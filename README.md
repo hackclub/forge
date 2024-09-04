@@ -4,7 +4,7 @@
 
 * This is an potential upcoming [Hack Club](https://hackclub.com) You Ship, We Ship (YSWS) program.
 
-> **This project is not currently endorsed by Hack Club and isn't an offical program.**
+> **This project is not currently an offical Hack Club program.**
 
 * Things are still under heavy development as the Forge Editor and the Forge Printer are WIP (Work in Progress) projects
 * All information on this README is subject to change at any moment
