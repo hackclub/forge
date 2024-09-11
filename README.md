@@ -13,7 +13,7 @@
 
 **[Landing Page](https://forge.hackclub.com)** | **[Forge Editor](https://forge.hackclub.com/editor)** | **[Gallery](https://forge.hackclub.com/gallery)**
 
-Top 2 Finalist of the Hack Club Arcade Showcase 2024, out of over 2000 projects.
+2nd Place Finalist of the Hack Club Arcade Showcase 2024, out of over 2000 projects.
 
 Find problems in the world and use programatic 3D modeling to solve them. Submit your solutions to the Gallery and get a Forge 3D Printer
 Forge is planned to be a **You Ship, We Ship** project from [Hack Club](https://hackclub.com).
