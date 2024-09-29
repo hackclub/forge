@@ -1,5 +1,3 @@
-# Forge, Hack Club's 3D Printer
-
 ## WIP Disclaimers
 
 * This is an potential upcoming [Hack Club](https://hackclub.com) You Ship, We Ship (YSWS) program.
@@ -11,7 +9,11 @@
 * Submission requirements, images, and links are not final. Websites URLs are placeholders and may not be functional
 * If you have any questions about the Development of Forge (and are a teen under 18), feel free to visit [#forge-dev](https://hackclub.slack.com/archives/C078GBDKC03) on the [Hack Club Slack!](https://hackclub.com/arcade/?param=slack)
 
+# Forge, Hack Club's 3D Printer
+
 **[Landing Page](https://forge.hackclub.com)** | **[Forge Editor](https://forge.hackclub.com/editor)** | **[Gallery](https://forge.hackclub.com/gallery)**
+
+2nd Place Finalist of the Hack Club Arcade Showcase 2024, out of over 2000 projects.
 
 Find problems in the world and use programatic 3D modeling to solve them. Submit your solutions to the Gallery and get a Forge 3D Printer
 Forge is planned to be a **You Ship, We Ship** project from [Hack Club](https://hackclub.com).
