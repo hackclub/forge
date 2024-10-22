@@ -15677,7 +15677,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+		(property "Footprint" "RMCF0805JT5K10:RESC2012X65N"
 			(at 138.43 241.808 90)
 			(effects
 				(font
@@ -18579,9 +18579,10 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
+		(fields_autoplaced yes)
 		(uuid "3cfa41cf-3ea0-4a3c-953b-2dee6cac4f52")
 		(property "Reference" "SW1"
-			(at 21.59 69.088 0)
+			(at 21.59 66.04 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -18594,10 +18595,9 @@
 				(font
 					(size 1.27 1.27)
 				)
-				(hide yes)
 			)
 		)
-		(property "Footprint" "ad-hoc:SKHH_Button_TopPush"
+		(property "Footprint" ""
 			(at 21.59 68.58 0)
 			(effects
 				(font
@@ -18624,7 +18624,34 @@
 				(hide yes)
 			)
 		)
-		(property "Part #" "SKHHAMA010"
+		(property "Description_1" ""
+			(at 21.59 73.66 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "DigiKey_Part_Number" ""
+			(at 21.59 73.66 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MAXIMUM_PACKAGE_HEIGHT" ""
+			(at 21.59 73.66 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Purchase-URL" ""
 			(at 21.59 73.66 0)
 			(effects
 				(font
@@ -21471,7 +21498,7 @@
 				)
 			)
 		)
-		(property "Footprint" "ad-hoc:Fuse_RUEF900"
+		(property "Footprint" "RUEF900:FUSRR1015W81L2410T300H2900"
 			(at 281.94 251.46 0)
 			(effects
 				(font
@@ -28373,7 +28400,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+		(property "Footprint" "RMCF0805JT5K10:RESC2012X65N"
 			(at 138.43 249.428 90)
 			(effects
 				(font
@@ -28571,7 +28598,7 @@
 		(at 20.32 86.36 0)
 		(unit 1)
 		(exclude_from_sim yes)
-		(in_bom no)
+		(in_bom yes)
 		(on_board yes)
 		(dnp no)
 		(uuid "dad56f5a-6d17-493e-98fe-a54d3458d162")
@@ -28592,7 +28619,7 @@
 				(hide yes)
 			)
 		)
-		(property "Footprint" "TestPoint:TestPoint_2Pads_Pitch2.54mm_Drill0.8mm"
+		(property "Footprint" ""
 			(at 20.32 86.36 0)
 			(effects
 				(font
