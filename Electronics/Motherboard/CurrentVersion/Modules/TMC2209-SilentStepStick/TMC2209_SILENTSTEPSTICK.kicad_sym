@@ -28,7 +28,7 @@
 			)
 		)
 		(property "Footprint" "TMC2209-SilentStepStick:MODULE_TMC2209_SILENTSTEPSTICK"
-			(at 0 0 0)
+			(at 0.254 38.862 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -38,7 +38,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 0 0 0)
+			(at 0 40.132 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -47,7 +47,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 0 0 0)
+			(at 0 40.132 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -56,7 +56,7 @@
 			)
 		)
 		(property "MF" "Trinamic Motion Control GmbH"
-			(at 0 0 0)
+			(at 2.032 39.37 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -66,7 +66,7 @@
 			)
 		)
 		(property "Description_1" "\nTMC2209 Motor Controller/Driver Power Management Evaluation Board\n"
-			(at 0 0 0)
+			(at -3.556 38.862 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -76,7 +76,7 @@
 			)
 		)
 		(property "Package" "None"
-			(at 0 0 0)
+			(at 0.762 39.116 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -86,7 +86,7 @@
 			)
 		)
 		(property "Price" "None"
-			(at 0 0 0)
+			(at 0 40.132 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -96,7 +96,7 @@
 			)
 		)
 		(property "Check_prices" "https://www.snapeda.com/parts/TMC2209%20SILENTSTEPSTICK/Trinamic+Motion+Control+GmbH/view-part/?ref=eda"
-			(at 0 0 0)
+			(at -1.27 38.1 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -106,7 +106,7 @@
 			)
 		)
 		(property "STANDARD" "Manufacturer Recommendations"
-			(at 0 0 0)
+			(at 0 38.354 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -116,7 +116,7 @@
 			)
 		)
 		(property "PARTREV" "1.20"
-			(at 0 0 0)
+			(at 2.54 39.37 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -126,7 +126,7 @@
 			)
 		)
 		(property "SnapEDA_Link" "https://www.snapeda.com/parts/TMC2209%20SILENTSTEPSTICK/Trinamic+Motion+Control+GmbH/view-part/?ref=snap"
-			(at 0 0 0)
+			(at 1.524 38.608 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -136,7 +136,7 @@
 			)
 		)
 		(property "MP" "TMC2209 SILENTSTEPSTICK"
-			(at 0 0 0)
+			(at -0.762 38.1 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -146,7 +146,7 @@
 			)
 		)
 		(property "MANUFACTURER" "Trinamic Motion Control GmbH"
-			(at 0 0 0)
+			(at 1.27 38.862 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -156,7 +156,7 @@
 			)
 		)
 		(property "Availability" "In Stock"
-			(at 0 0 0)
+			(at 0.762 38.354 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -166,7 +166,7 @@
 			)
 		)
 		(property "SNAPEDA_PN" "TMC2209 SILENTSTEPSTICK"
-			(at 0 0 0)
+			(at 1.778 38.862 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -177,8 +177,8 @@
 		)
 		(symbol "TMC2209_SilentStepStick_0_0"
 			(rectangle
-				(start -12.7 -22.86)
-				(end 12.7 20.32)
+				(start -12.7 20.32)
+				(end 12.7 -22.86)
 				(stroke
 					(width 0.254)
 					(type default)
@@ -386,7 +386,7 @@
 				)
 			)
 			(pin output line
-				(at 17.78 -2.54 180)
+				(at 17.78 2.54 180)
 				(length 5.08)
 				(name "M1B"
 					(effects
@@ -404,7 +404,7 @@
 				)
 			)
 			(pin output line
-				(at 17.78 2.54 180)
+				(at 17.78 0 180)
 				(length 5.08)
 				(name "M1A"
 					(effects
@@ -422,7 +422,7 @@
 				)
 			)
 			(pin output line
-				(at 17.78 0 180)
+				(at 17.78 -2.54 180)
 				(length 5.08)
 				(name "M2A"
 					(effects
