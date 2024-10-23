@@ -8719,6 +8719,126 @@
 				)
 			)
 		)
+		(symbol "power:VBUS"
+			(power)
+			(pin_numbers hide)
+			(pin_names
+				(offset 0) hide)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "#PWR"
+				(at 0 -3.81 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Value" "VBUS"
+				(at 0 3.556 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Power symbol creates a global label with name \"VBUS\""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "global power"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "VBUS_0_1"
+				(polyline
+					(pts
+						(xy -0.762 1.27) (xy 0 2.54)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0 0) (xy 0 2.54)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0 2.54) (xy 0.762 1.27)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "VBUS_1_1"
+				(pin power_in line
+					(at 0 0 90)
+					(length 0)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+		)
 	)
 	(junction
 		(at 109.22 58.42)
@@ -10010,6 +10130,16 @@
 	)
 	(wire
 		(pts
+			(xy 326.39 233.68) (xy 339.09 233.68)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "7b643777-6a92-4d3f-9cf0-bbd3f0adba0f")
+	)
+	(wire
+		(pts
 			(xy 29.21 73.66) (xy 34.29 73.66)
 		)
 		(stroke
@@ -10790,16 +10920,6 @@
 	)
 	(wire
 		(pts
-			(xy 326.39 233.68) (xy 339.09 233.68)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "f2b7c4df-c145-4a0c-94be-a57947a08ad6")
-	)
-	(wire
-		(pts
 			(xy 17.78 255.27) (xy 31.75 255.27)
 		)
 		(stroke
@@ -11369,6 +11489,28 @@
 			)
 		)
 		(uuid "fa9b58eb-2070-407a-9162-c2d3bfe49434")
+	)
+	(label "RAW_D-"
+		(at 133.35 255.27 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "78b72b6e-7cfe-4554-a07a-755ff0c09d8e")
+	)
+	(label "RAW_D+"
+		(at 133.35 257.81 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "e283db66-03c0-4d87-ac82-f0835ae5303f")
 	)
 	(global_label "DIR_Y1"
 		(shape input)
@@ -14828,7 +14970,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical"
+		(property "Footprint" "Connector_JST:JST_XH_B4B-XH-A_1x04_P2.50mm_Vertical"
 			(at 386.08 233.68 0)
 			(effects
 				(font
@@ -15720,7 +15862,7 @@
 				)
 			)
 		)
-		(property "Footprint" "RMCF0805JT5K10:RESC2012X65N"
+		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
 			(at 138.43 241.808 90)
 			(effects
 				(font
@@ -15776,6 +15918,15 @@
 		)
 		(property "Purchase-URL" ""
 			(at 138.43 240.03 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Part #" "RMCF0805JT5K10"
+			(at 138.43 240.03 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -18689,17 +18840,16 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "3cfa41cf-3ea0-4a3c-953b-2dee6cac4f52")
 		(property "Reference" "SW1"
-			(at 21.59 66.04 0)
+			(at 21.59 69.342 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 			)
 		)
-		(property "Value" "SW_Push"
+		(property "Value" "~"
 			(at 21.59 68.58 0)
 			(effects
 				(font
@@ -18707,7 +18857,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "ad-hoc:ALPSALPINE_TopPush_Button"
 			(at 21.59 68.58 0)
 			(effects
 				(font
@@ -18770,6 +18920,15 @@
 				(hide yes)
 			)
 		)
+		(property "Part #" "SKHHAMA010"
+			(at 21.59 73.66 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "2"
 			(uuid "1b223516-573b-4330-8d46-0f1bdc0349a8")
 		)
@@ -18780,73 +18939,6 @@
 			(project "motherboard_2layers_v2"
 				(path "/f19ed6d2-b585-4f53-97d1-0ea31cd0857a"
 					(reference "SW1")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "power:+5V")
-		(at 152.4 250.19 0)
-		(mirror y)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "3d024214-749b-4c7d-8b03-1a67414c5cb8")
-		(property "Reference" "#PWR081"
-			(at 152.4 254 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "+5V"
-			(at 152.4 245.11 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 152.4 250.19 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 152.4 250.19 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"+5V\""
-			(at 152.4 250.19 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "7c7f16c0-8cb4-4f92-a5f9-6e9ec349807f")
-		)
-		(instances
-			(project "motherboard_2layers_v2"
-				(path "/f19ed6d2-b585-4f53-97d1-0ea31cd0857a"
-					(reference "#PWR081")
 					(unit 1)
 				)
 			)
@@ -21690,7 +21782,7 @@
 				)
 			)
 		)
-		(property "Footprint" "RUEF900:FUSRR1015W81L2410T300H2900"
+		(property "Footprint" "ad-hoc:Fuse_RUEF900"
 			(at 281.94 251.46 0)
 			(effects
 				(font
@@ -22996,6 +23088,72 @@
 			(project "motherboard_2layers_v2"
 				(path "/f19ed6d2-b585-4f53-97d1-0ea31cd0857a"
 					(reference "#PWR043")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:VBUS")
+		(at 127 240.03 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "8348b5a4-a4b4-4c0a-b88d-a7be12cc9348")
+		(property "Reference" "#PWR078"
+			(at 127 243.84 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "VBUS"
+			(at 127 234.95 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 127 240.03 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 127 240.03 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"VBUS\""
+			(at 127 240.03 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "e958d4dc-f196-4bda-a2bc-7d77fca46d66")
+		)
+		(instances
+			(project ""
+				(path "/f19ed6d2-b585-4f53-97d1-0ea31cd0857a"
+					(reference "#PWR078")
 					(unit 1)
 				)
 			)
@@ -25122,6 +25280,119 @@
 		)
 	)
 	(symbol
+		(lib_id "Device:R")
+		(at 138.43 247.65 270)
+		(mirror x)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "9c315b3d-3080-4d81-ac96-edcb1805ec8b")
+		(property "Reference" "R10"
+			(at 138.43 242.824 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "5.1k"
+			(at 138.43 245.364 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+			(at 138.43 249.428 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 138.43 247.65 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 138.43 247.65 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description_1" ""
+			(at 138.43 247.65 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "DigiKey_Part_Number" ""
+			(at 138.43 247.65 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MAXIMUM_PACKAGE_HEIGHT" ""
+			(at 138.43 247.65 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Purchase-URL" ""
+			(at 138.43 247.65 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Part #" "RMCF0805JT5K10"
+			(at 138.43 247.65 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "a92d3a40-9c1c-4ac8-8e33-111176fcaec0")
+		)
+		(pin "1"
+			(uuid "1f82c77b-e986-4437-b495-ffe0dca5a7bb")
+		)
+		(instances
+			(project "motherboard_2layers_v2"
+				(path "/f19ed6d2-b585-4f53-97d1-0ea31cd0857a"
+					(reference "R10")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:GND")
 		(at 396.24 172.72 0)
 		(unit 1)
@@ -25365,73 +25636,6 @@
 			(project "motherboard_2layers_v2"
 				(path "/f19ed6d2-b585-4f53-97d1-0ea31cd0857a"
 					(reference "#PWR096")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "power:+5V")
-		(at 127 240.03 0)
-		(mirror y)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "a11a9824-6a9e-495a-b030-4107a35603c6")
-		(property "Reference" "#PWR078"
-			(at 127 243.84 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "+5V"
-			(at 127 234.95 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 127 240.03 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 127 240.03 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"+5V\""
-			(at 127 240.03 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "ef2a2d79-8330-424c-a443-718f4c8a3e2b")
-		)
-		(instances
-			(project "motherboard_2layers_v2"
-				(path "/f19ed6d2-b585-4f53-97d1-0ea31cd0857a"
-					(reference "#PWR078")
 					(unit 1)
 				)
 			)
@@ -25765,6 +25969,74 @@
 			(project "motherboard_2layers_v2"
 				(path "/f19ed6d2-b585-4f53-97d1-0ea31cd0857a"
 					(reference "#PWR019")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 322.58 233.68 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "a8b855ca-4be3-4a61-a52d-7cb1eb66deae")
+		(property "Reference" "R8"
+			(at 322.58 227.33 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "4.7k"
+			(at 322.58 229.87 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_1206_3216Metric"
+			(at 322.58 235.458 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 322.58 233.68 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 322.58 233.68 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "fd9318a1-8db5-47fd-8b89-f14cde09028c")
+		)
+		(pin "1"
+			(uuid "1e07516b-4143-40b1-acf7-db6183eeb2f3")
+		)
+		(instances
+			(project ""
+				(path "/f19ed6d2-b585-4f53-97d1-0ea31cd0857a"
+					(reference "R8")
 					(unit 1)
 				)
 			)
@@ -26510,120 +26782,6 @@
 			(project "motherboard_2layers_v2"
 				(path "/f19ed6d2-b585-4f53-97d1-0ea31cd0857a"
 					(reference "#PWR099")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Device:R")
-		(at 322.58 233.68 270)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "b766d709-1670-4719-9da6-67d4c68b1023")
-		(property "Reference" "R8"
-			(at 323.8501 231.14 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(property "Value" "4.7k"
-			(at 321.3101 231.14 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(property "Footprint" "Resistor_SMD:R_1206_3216Metric"
-			(at 322.58 231.902 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 322.58 233.68 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Resistor"
-			(at 322.58 233.68 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Part #" "RC1206JR-134K7L"
-			(at 322.58 233.68 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description_1" ""
-			(at 322.58 233.68 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "DigiKey_Part_Number" ""
-			(at 322.58 233.68 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "MAXIMUM_PACKAGE_HEIGHT" ""
-			(at 322.58 233.68 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Purchase-URL" ""
-			(at 322.58 233.68 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "2"
-			(uuid "9c307691-bb89-4903-80f8-875d5b9b1b38")
-		)
-		(pin "1"
-			(uuid "7891908f-3c53-4dcf-8032-b5bdf54ec117")
-		)
-		(instances
-			(project "motherboard_2layers_v2"
-				(path "/f19ed6d2-b585-4f53-97d1-0ea31cd0857a"
-					(reference "R8")
 					(unit 1)
 				)
 			)
@@ -27820,6 +27978,72 @@
 		)
 	)
 	(symbol
+		(lib_id "power:VBUS")
+		(at 152.4 250.19 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "c1ffdca8-9e81-49a4-8763-df560c79b9ea")
+		(property "Reference" "#PWR081"
+			(at 152.4 254 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "VBUS"
+			(at 152.4 245.11 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 152.4 250.19 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 152.4 250.19 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"VBUS\""
+			(at 152.4 250.19 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "771fc91d-4eac-4d64-afc3-e8252ebb292e")
+		)
+		(instances
+			(project "motherboard_2layers_v2"
+				(path "/f19ed6d2-b585-4f53-97d1-0ea31cd0857a"
+					(reference "#PWR081")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:+3V3")
 		(at 179.07 160.02 0)
 		(mirror y)
@@ -28671,110 +28895,6 @@
 		)
 	)
 	(symbol
-		(lib_id "Device:R")
-		(at 138.43 247.65 270)
-		(mirror x)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "d983c4b4-c1cc-4956-823e-2fe509bd6366")
-		(property "Reference" "R10"
-			(at 138.43 242.824 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "5.1k"
-			(at 138.43 245.364 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "RMCF0805JT5K10:RESC2012X65N"
-			(at 138.43 249.428 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 138.43 247.65 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Resistor"
-			(at 138.43 247.65 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description_1" ""
-			(at 138.43 247.65 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "DigiKey_Part_Number" ""
-			(at 138.43 247.65 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "MAXIMUM_PACKAGE_HEIGHT" ""
-			(at 138.43 247.65 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Purchase-URL" ""
-			(at 138.43 247.65 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "2"
-			(uuid "26c9a493-7b30-483a-8ef7-2abe0500849b")
-		)
-		(pin "1"
-			(uuid "59ff8ce4-95a0-4b04-886d-c9aebb1c5e57")
-		)
-		(instances
-			(project "motherboard_2layers_v2"
-				(path "/f19ed6d2-b585-4f53-97d1-0ea31cd0857a"
-					(reference "R10")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "Device:C")
 		(at 31.75 153.67 0)
 		(mirror y)
@@ -28894,7 +29014,7 @@
 		(at 20.32 86.36 0)
 		(unit 1)
 		(exclude_from_sim yes)
-		(in_bom yes)
+		(in_bom no)
 		(on_board yes)
 		(dnp no)
 		(uuid "dad56f5a-6d17-493e-98fe-a54d3458d162")
@@ -28915,7 +29035,7 @@
 				(hide yes)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "TestPoint:TestPoint_2Pads_Pitch2.54mm_Drill0.8mm"
 			(at 20.32 86.36 0)
 			(effects
 				(font
