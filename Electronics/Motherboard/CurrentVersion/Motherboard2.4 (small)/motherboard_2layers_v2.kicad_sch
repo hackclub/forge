@@ -15862,7 +15862,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
 			(at 138.43 241.808 90)
 			(effects
 				(font
@@ -18544,7 +18544,7 @@
 				(justify right)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_1206_3216Metric"
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
 			(at 137.922 132.08 90)
 			(effects
 				(font
@@ -23510,7 +23510,7 @@
 				(hide yes)
 			)
 		)
-		(property "Footprint" "Diode_THT:D_DO-201AD_P15.24mm_Horizontal"
+		(property "Footprint" "Diode_SMD:D_SOD-123"
 			(at 199.39 101.6 0)
 			(effects
 				(font
@@ -23537,7 +23537,7 @@
 				(hide yes)
 			)
 		)
-		(property "Part #" "1N5822"
+		(property "Part #" "C2972823"
 			(at 199.39 101.6 90)
 			(effects
 				(font
@@ -25305,7 +25305,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
 			(at 138.43 249.428 90)
 			(effects
 				(font
@@ -26134,7 +26134,7 @@
 				(justify right)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_1206_3216Metric"
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
 			(at 122.682 134.62 90)
 			(effects
 				(font
@@ -27320,7 +27320,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_1206_3216Metric"
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 43.4848 157.48 0)
 			(effects
 				(font
@@ -28922,7 +28922,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_1206_3216Metric"
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 30.7848 157.48 0)
 			(effects
 				(font
@@ -30463,7 +30463,7 @@
 				(justify right)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_1206_3216Metric"
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
 			(at 29.972 274.32 90)
 			(effects
 				(font
