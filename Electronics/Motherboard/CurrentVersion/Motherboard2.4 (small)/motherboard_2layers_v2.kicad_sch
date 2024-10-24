@@ -11710,7 +11710,7 @@
 			)
 		)
 	)
-	(global_label "USB_DM"
+	(global_label "USB_D-"
 		(shape bidirectional)
 		(at 80.01 109.22 0)
 		(fields_autoplaced yes)
@@ -12018,7 +12018,7 @@
 			)
 		)
 	)
-	(global_label "USB_DM"
+	(global_label "USB_D-"
 		(shape input)
 		(at 157.48 255.27 0)
 		(fields_autoplaced yes)
@@ -12678,7 +12678,7 @@
 			)
 		)
 	)
-	(global_label "USB_DP"
+	(global_label "USB_D+"
 		(shape bidirectional)
 		(at 80.01 111.76 0)
 		(fields_autoplaced yes)
@@ -14130,7 +14130,7 @@
 			)
 		)
 	)
-	(global_label "USB_DP"
+	(global_label "USB_D+"
 		(shape input)
 		(at 157.48 257.81 0)
 		(fields_autoplaced yes)
