@@ -27484,7 +27484,7 @@
 		(fields_autoplaced yes)
 		(uuid "bb540381-fe98-40ad-86e4-dcf189df12b1")
 		(property "Reference" "U6"
-			(at 66.9641 169.672 0)
+			(at 66.9641 170.18 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -27492,8 +27492,8 @@
 				(justify left)
 			)
 		)
-		(property "Value" "STZ12F405RGTx"
-			(at 66.9641 172.212 0)
+		(property "Value" "STM32F405RGTx"
+			(at 66.9641 172.72 0)
 			(effects
 				(font
 					(size 1.27 1.27)
