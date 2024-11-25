@@ -26,18 +26,18 @@ Building a model in the Forge editor is easy to learn, hard to master. You need 
 
 The Forge YSWS Project can be considered 4 major sections:
 
-* Forge Printer - the fixed-bed cantilevered 3D Printer
+* Forge Printer - the cantilevered 3D Printer
 * Forge Editor - the OpenSCAD-based online modeling software and slicer designed for the Forge Printer
 * Forge Mainboard - the custom-engineered control board powered by a STM32F405 and TMC2209s. Also includes the interface board
 * Forge Firmware - The custom-engineered firmware that powers the Forge Mainboard
 
 ## About the Forge Printer
 
-The printer is built around the [Flatpack](https://github.com/eponra/flatpack). However, this printer is significantly different internally than the Flatpack. Featuring a STM32 F405 series MCU and TMC2209 drivers on a custom Hack Club-engineered control board. The printer is designed to fit inside a filament box when folded, only taking up 220x210x75mm (not including the power supply or spool holder). Forge is the ultimate tool for competitions, club fairs, and hackathons.
+The Forge Printer is a fast, inexpensive, and compact cantilevered 3D Printer. More details soon!
 
 ## Specifications
 
-**These are Forge's specifications as of August 24, 2024. As we begin test manufacturing Forge, these specifications may change.**
+**These are Forge's specifications as of November 25, 2024. We're currently in the process of building MK2. As we get closer to 2025, more details will be published.**
 
 * STM32F405RGT6 32-Bit MCU
 * TMC2209 Stepper Drivers
@@ -47,34 +47,30 @@ The printer is built around the [Flatpack](https://github.com/eponra/flatpack). 
   * 300°C Maximum Temperature
   * Designed around the Bambu Lab X1C hotend
   * 30mm³/s max flow rate
-* 120x110x110mm Build Volume
+* 120x120x145mm Build Volume
   * Up to 100°C heated bed temperature
   * Magnetic Textured PEI Plate
-  * A small portion of the print area is occupied by the Klicky Probe system.
-* 220x210x75mm Folded Volume
-  * Small enough to fit in a filament box!
-* MGN9C Linear Rails on all axes
-* OLED and Rotary Encoder interface
+* MGN9C Linear Rails on X and Z axies
+* MGN12C Linear Rail on Y axis
 * Sherpa Mini Direct Drive Extruder (DDE)
-* Klicky Probe
-  * Fully Automatic Bed Leveling (ABL)
-  * Z offset is currently manual
+* Fully Automatic Bed Leveling (ABL)
+* Meanwell RPS-200-24 PSU (Intergrated)
 * PLA, PETG, TPU capable
   * ABS and ASA are possible but require an enclosure and active ventilation
 * Aluminum and 3D Printed ASA frame
 * 3010 Axial Fan for Heatbreak cooling and 4010 "Blower-style" fan for part cooling
-* Up to 300mm/s Print Velocity*
+* Up to 500mm/s Print Velocity*
    *This number is an estimate, real print speeds will be updated as Forge's development continues
 * SD1306 1.92" OLED and Rotary Encoder for the interface
 
 ## Firmware
 
-* The Forge Mainbaord will run on custom, open source Forge Firmware (more information coming out soon!)
+* The Forge Mainboard will run on Marlin Firmware. (Custom, open source Forge Firmware is planned but development has been halted to work on MK2)
 
 * **The Forge Mainboard (2-layer PCB) is supported by Klipper**
   * Using the Forge Printer with Klipper will be possible! The latest revision of the Forge Mainboard (2 layer PCB version) runs a STM32F405 which is fully compatible with Klipper! Additionally, we'll be providing a Klipper [WiP configuration file](https://github.com/blazecoding2009/Forge/blob/main/Firmware/klipper) and OrcaSlicer profiles (Coming Soon) for you!
   * SBC Info:
-    * **A Raspberry Pi Zero 2W will be required for *Klipper*. You can also use another SBC (that can run MainSailOS or Fluidd) with the same form factor. However, the Zero W (1st Gen) is highly not recommended due to performance limitations. Larger SBCs like the Raspberry Pi 1/2/3/4/5 boards are not compatible due to size limitations. We'll be providing a Raspberry Pi Zero Bracket available to print that still allows the printer to fold.** The Forge Mainboard connects to the SBC via GPIO to GPIO, therefore, SPI touchscreens are not recommended.
+    * **A Raspberry Pi Zero 2W will be required for *Klipper*. You can also use another SBC (that can run MainSailOS or Fluidd) with the same form factor. However, the Zero W (1st Gen) is highly not recommended due to performance limitations. Larger SBCs like the Raspberry Pi 1/2/3/4/5 boards are not compatible due to size limitations. We'll be providing a Raspberry Pi Zero Bracket available to print closer to MK2's launch!** The Forge Mainboard connects to the SBC via GPIO to GPIO, therefore, SPI touchscreens are not recommended.
 
 ## Additional notes
 
@@ -86,7 +82,7 @@ The printer is built around the [Flatpack](https://github.com/eponra/flatpack). 
 
 ## Licensing
 
-* **Since Flatpack is GPLV3 (General Public License), the Forge Project is also GPLV3**
+* **Currently, the Forge Project is GPLV3 (General Public License)**
 * The design uses a Annex Engineering Sperpa Mini Extruder.
   * In compliance with their guidelines, the CAD models of the Forge Printer will use a placeholder provided by Annex Engineering.
   * [Sherpa Mini GitHub](https://github.com/Annex-Engineering/Sherpa_Mini-Extruder/tree/master)
@@ -157,6 +153,4 @@ Also note that, currently, the BOMs are not polished as we communicate with Sibo
 * Beenana (@Beenana02) - Promotional Materials
 
 ### CAD Models and reference designs:
-
-* [Flatpack](https://github.com/eponra/flatpack)
 * [Sherpa Mini by Annex Engineering](https://github.com/Annex-Engineering/Sherpa_Mini-Extruder)
