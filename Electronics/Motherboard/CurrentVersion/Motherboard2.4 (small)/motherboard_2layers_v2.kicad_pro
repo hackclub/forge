@@ -486,7 +486,7 @@
       "plot": "",
       "pos_files": "",
       "specctra_dsn": "",
-      "step": "",
+      "step": "motherboard_2layers_v2.step",
       "svg": "",
       "vrml": ""
     },
