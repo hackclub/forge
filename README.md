@@ -4,23 +4,21 @@
 
 > **This project is semi-endorsed by Hack Club and isn't fully an official program yet.**
 
-* Things are still under heavy development as the Forge Editor and the Forge Printer are WIP (Work in Progress) projects
+* Things are still under heavy development as the Forge Printer are WIP (Work in Progress) projects
 * All information on this README is subject to change at any moment
 * Submission requirements, images, and links are not final. Website URLs are placeholders and may not be functional
 * If you have any questions about the Development of Forge (and are a teen under 18), feel free to visit [#forge-dev](https://hackclub.slack.com/archives/C078GBDKC03) on the [Hack Club Slack!](https://hackclub.com/arcade/?param=slack)
 
 # Forge, Hack Club's 3D Printer
 
-**[Landing Page](https://forge.hackclub.com)** | **[Forge Editor](https://forge.hackclub.com/editor)** | **[Gallery](https://forge.hackclub.com/gallery)**
+**[Landing Page](https://forge.hackclub.com)** | **[Gallery](https://forge.hackclub.com/gallery)**
 
 2nd Place Finalist of the Hack Club Arcade Showcase 2024, out of over 2000 projects.
 
 Find problems in the world and use programmatic 3D modeling to solve them. Submit your solutions to the Gallery and get a Forge 3D Printer
 Forge is planned to be a **You Ship, We Ship** project from [Hack Club](https://hackclub.com).
 
-Forge is **fully open source**. The online editor can be freely used (or modified) by anyone, and we encourage all to submit to the gallery through PRs! However, you must be a teenager or younger to receive a free printer.
-
-Building a model in the Forge editor is easy to learn, hard to master. You need abosultely no CAD or programming knowledge to get started. Since the Forge Editor is based on the [OpenSCAD](https://openscad.org) modeling language, it presents a challenge to even the most experienced parametric modelers.
+Forge is **fully open source**. We encourage all to submit to the gallery through PRs! However, you must be a teenager or younger to receive a free printer.
 
 ## What is Forge exactly?
 
@@ -102,7 +100,7 @@ Look around! Find problems that 3D printing can fix. From a carabiner to a phone
 
 ### 2) Design a solution
 
-Using the Forge Editor, follow the tutorials (link coming soon!) and program your solutions in OpenSCAD.  
+Using any modeling software you are comfortable with, follow the tutorials (link coming soon!) and create your solutions.  
 
 ### 3) Submit your design
 
@@ -132,11 +130,11 @@ Also note that, currently, the BOMs are not polished as we communicate with Sibo
 
 ### Forge Team:
 
-* Krishna Meda (@EmperorNumerius) - Project Lead, Communications, Forge Editor Dev, Promotional Materials
+* Krishna Meda (@EmperorNumerius) - Project Lead, Communications, Promotional Materials
 * Arnnav Kudale (@blazecoding2009) - Project Lead, Sourcing, Electrical Engineering, Forge Firmware/Klipper Config Dev
 * Michael Panait (@mikeymascatu) - Design Engineering, Promotional Materials
 * Brendan Conover (@AGB556) - Design Engineering
-* Malav Patel (@astro-develops) - Forge Editor/Landing Page Frontend Developer, Promotional Materials
+* Malav Patel (@astro-develops) - Forge Landing Page Frontend Developer, Promotional Materials
 * Arthur Beck (@AverseABFun) - Forge Firmware Dev and PCB designer
 
 Note that we all kind of work on everything, listed above is just what we generally do
