@@ -27,7 +27,6 @@ Building a model in the Forge editor is easy to learn, hard to master. You need 
 The Forge YSWS Project can be considered 4 major sections:
 
 * Forge Printer - the cantilevered 3D Printer
-* Forge Editor - the OpenSCAD-based online modeling software and slicer designed for the Forge Printer
 * Forge Mainboard - the custom-engineered control board powered by a STM32F405 and TMC2209s. Also includes the interface board
 * Forge Firmware - The custom-engineered firmware that powers the Forge Mainboard
 
@@ -65,16 +64,16 @@ The Forge Printer is a fast, inexpensive, and compact cantilevered 3D Printer. M
 
 ## Firmware
 
-* The Forge Mainboard will run on Marlin Firmware. (Custom, open source Forge Firmware is planned but development has been halted to work on MK2)
+* The Forge Mainboard will run on Marlin Firmware. (Custom, open source Forge Firmware had been planned but development has been halted as as of right now it is unrealistic)
 
 * **The Forge Mainboard (2-layer PCB) is supported by Klipper**
-  * Using the Forge Printer with Klipper will be possible! The latest revision of the Forge Mainboard (2 layer PCB version) runs a STM32F405 which is fully compatible with Klipper! Additionally, we'll be providing a Klipper [WiP configuration file](https://github.com/blazecoding2009/Forge/blob/main/Firmware/klipper) and OrcaSlicer profiles (Coming Soon) for you!
+  * Using the Forge Printer with Klipper will be possible! The latest revision of the Forge Mainboard (2 layer PCB version) runs a STM32F405 which is fully compatible with Klipper! Additionally, we'll be providing a Klipper [WiP configuration file](https://github.com/hackclub/Forge/blob/main/Firmware/klipper) and OrcaSlicer profiles (Coming Soon) for you!
   * SBC Info:
     * **A Raspberry Pi Zero 2W will be required for *Klipper*. You can also use another SBC (that can run MainSailOS or Fluidd) with the same form factor. However, the Zero W (1st Gen) is highly not recommended due to performance limitations. Larger SBCs like the Raspberry Pi 1/2/3/4/5 boards are not compatible due to size limitations. We'll be providing a Raspberry Pi Zero Bracket available to print closer to MK2's launch!** The Forge Mainboard connects to the SBC via GPIO to GPIO, therefore, SPI touchscreens are not recommended.
 
 ## Additional notes
 
-* The full Forge Printer and Mainboard BOM will (soon be) at the bottom of this doc. The Forge Printer BOM will not be available until we begin prototyping. However, the BOM for the Forge Mainbaord is currently available as a CSV in `Electronics/Motherboard/billofmaterials.csv`.
+* The full Forge Printer and Mainboard BOM will (soon be) at the bottom of this doc. The Forge Printer BOM will not be available until we begin prototyping. However, the BOM for the Forge Mainboard is currently available as a CSV in `Electronics/Motherboard/billofmaterials.csv`.
 * The estimated value of the Forge Printer is $200-$250, but this estimate will change over time.
   * However, Forge will be **100% Free for teens 18 and under after designing 5 models and submitting a PR**
 * Currently, Forge's parts and components are planned to be manufactured by [Siboor](https://www.siboor.com), a well established supplier of 3D Printing components.
@@ -113,12 +112,11 @@ The submission rules to get a Forge Printer for a PR are (not available, the For
 
 #### Dos and Don'ts
 
-* A PR should have a .scad and .stl file
-* Don't copy OpenSCAD code from other websites/generate code with AI (ChatGPT)
+* A PR should have a .stl file
+* Don't copy anything from other websites/generate code with AI (ChatGPT)
   * Doing so is considered plagiarism. Anyone submitting fraudulent code will be ineligible for a Forge Printer and may result in a violation of the Hack Club Code of Conduct
-* Don't build your model using Parametric CAD software (Fusion, OnShape, Shapr3D, etc.)
 * Your model should be both functional and have some aesthetic quality.
-  * TL:DR, make it look nice
+  * TL:DR, make it look nice(to you at least)
 * Your model should have effort (roughly 8 hours per model)
 
 ### 4) Receive the parts to build your own Forge Printer
@@ -139,7 +137,9 @@ Also note that, currently, the BOMs are not polished as we communicate with Sibo
 * Michael Panait (@mikeymascatu) - Design Engineering, Promotional Materials
 * Brendan Conover (@AGB556) - Design Engineering
 * Malav Patel (@astro-develops) - Forge Editor/Landing Page Frontend Developer, Promotional Materials
-* Arthur Beck (@AverseABFun) - Forge Firmware Dev
+* Arthur Beck (@AverseABFun) - Forge Firmware Dev and PCB designer
+
+Note that we all kind of work on everything, listed above is just what we generally do
 
 ### Special Thanks:
 
