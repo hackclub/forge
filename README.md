@@ -75,7 +75,7 @@ The Forge Printer is a fast, inexpensive, and compact cantilevered 3D Printer. M
 * The estimated value of the Forge Printer is $200-$250, but this estimate will change over time.
   * However, Forge will be **100% Free for teens 18 and under after designing 5 models and submitting a PR**
 * Currently, Forge's parts and components are planned to be manufactured by [Siboor](https://www.siboor.com), a well established supplier of 3D Printing components.
-* Forge is designed in Onshape. [Check out the 3D model!](https://cad.onshape.com/documents/490fa34c5c188f9b01dad5d1/w/4ce61de39bd6c276033d903d/e/7a262062418efbefd9181a13?renderMode=0&uiState=6696ce6038c5ba5455f5be75)
+* Forge is designed in Onshape. [Check out the 3D model!](https://cad.onshape.com/documents/af44ce458991ef8deb280728/w/4e67c2ab8938e73dbc0acac0/e/91ca9a2c3befc6f76fb79dfa)
 
 ## Licensing
 
