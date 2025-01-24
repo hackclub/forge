@@ -1,4 +1,3 @@
-import { useEffect, useRef } from 'react'
 import { AppBar, Toolbar, Typography, Button, Box } from '@mui/material'
 import forgeLogo from './assets/forgeLogo.png'
 import './App.css'

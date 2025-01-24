@@ -1,6 +1,6 @@
 import { Canvas } from '@react-three/fiber'
-import { OrbitControls, useGLTF, Edges } from '@react-three/drei'
-import { useEffect, useRef } from 'react'
+import { OrbitControls, Edges } from '@react-three/drei'
+
 import { STLLoader } from 'three/addons/loaders/STLLoader.js'
 import { useLoader } from '@react-three/fiber'
 
