@@ -85,7 +85,7 @@ function App() {
               </p>
             </Box>
             <Box sx={{ flex: '0 0 60%', height: '500px' }}>
-              <ModelViewer showMain={true} />
+              <ModelViewer />
             </Box>
           </Box>
 
@@ -98,7 +98,7 @@ function App() {
             <Typography variant="h5" sx={{ color: '#EEE', mb: 2 }}>
               Featured Models
             </Typography>
-            <ModelViewer showMain={false} />
+            <ModelViewer />
           </Box>
         </main>
       </div>

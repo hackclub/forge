@@ -24,10 +24,10 @@ const Tutorial = () => {
     },
     {
       level: 'Advanced',
-      description: 'Master Forge and complex 3D printing techniques',
+      description: 'Master CAD and 3d Modeling',
       color: '#F44336',
       links: [
-        { title: 'Hardware Modifications', url: '#' },
+        { title: 'Advanced Assemblies', url: '#' },
         { title: 'Custom Firmware', url: '#' },
         { title: 'Advanced Troubleshooting', url: '#' }
       ]
