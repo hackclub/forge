@@ -46,7 +46,7 @@ function App() {
             </Button>
             <Button 
               variant="contained"
-              href="https://forge.hackclub.com/editor/"
+              href="/tutorial"
               sx={{
                 bgcolor: '#F95E1D',
                 color: '#222',
@@ -56,7 +56,7 @@ function App() {
                 }
               }}
             >
-              Editor
+              Tutorial
             </Button>
           </Box>
         </Toolbar>
@@ -64,6 +64,7 @@ function App() {
 
       <div className="relative">
         <main className="min-h-screen">
+          {/* Main Hero Section */}
           <Box sx={{ 
             display: 'flex', 
             flexDirection: 'row',
@@ -83,9 +84,21 @@ function App() {
                 (or younger), you can get one for free!
               </p>
             </Box>
-            <Box sx={{ flex: '0 0 60%', height: '700px' }}>
-              <ModelViewer />
+            <Box sx={{ flex: '0 0 60%', height: '500px' }}>
+              <ModelViewer showMain={true} />
             </Box>
+          </Box>
+
+          {/* Additional Models Section */}
+          <Box sx={{ 
+            mt: 4,
+            px: 8,
+            height: '300px'
+          }}>
+            <Typography variant="h5" sx={{ color: '#EEE', mb: 2 }}>
+              Featured Models
+            </Typography>
+            <ModelViewer showMain={false} />
           </Box>
         </main>
       </div>

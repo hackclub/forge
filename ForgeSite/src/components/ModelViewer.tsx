@@ -5,7 +5,7 @@ import { STLLoader } from 'three/addons/loaders/STLLoader.js'
 import { useLoader } from '@react-three/fiber'
 
 const ForgeModel = () => {
-  const geometry = useLoader(STLLoader, '/models/Forge.stl')
+  const geometry = useLoader(STLLoader, '/forge/Demo Models/Drawer (Forge Branded).stl')
   return (
     <mesh geometry={geometry}>
       <meshStandardMaterial color="#F95E1D" />
@@ -15,7 +15,7 @@ const ForgeModel = () => {
 }
 
 const AnvilModel = () => {
-  const geometry = useLoader(STLLoader, '/models/anvil.stl')
+  const geometry = useLoader(STLLoader, '/forge/Demo Models/hammer.stl')
   return (
     <mesh geometry={geometry}>
       <meshStandardMaterial color="#4287f5" />
@@ -25,7 +25,7 @@ const AnvilModel = () => {
 }
 
 const HammerModel = () => {
-  const geometry = useLoader(STLLoader, '/models/hammer.stl')
+  const geometry = useLoader(STLLoader, '/forge/Demo Models/anvil.stl')
   return (
     <mesh geometry={geometry}>
       <meshStandardMaterial color="#42f54b" />
