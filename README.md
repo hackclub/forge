@@ -22,7 +22,7 @@ Forge is **fully open source**. We encourage all to submit to the gallery throug
 
 ## What is Forge exactly?
 
-The Forge YSWS Project can be considered 4 major sections:
+The Forge YSWS Project can be considered 3 major sections:
 
 * Forge Printer - the cantilevered 3D Printer
 * Forge Mainboard - the custom-engineered control board powered by a STM32F405 and TMC2209s. Also includes the interface board
@@ -34,7 +34,7 @@ The Forge Printer is a fast, inexpensive, and compact cantilevered 3D Printer. M
 
 ## Specifications
 
-**These are Forge's specifications as of November 25, 2024. We're currently in the process of building MK2. As we get closer to 2025, more details will be published.**
+**These are Forge's specifications as of June 10, 2025. We're currently still in the process of building MK2. More details will be published soon.**
 
 * STM32F405RGT6 32-Bit MCU
 * TMC2209 Stepper Drivers
@@ -44,46 +44,41 @@ The Forge Printer is a fast, inexpensive, and compact cantilevered 3D Printer. M
   * 300°C Maximum Temperature
   * Designed around the Bambu Lab X1C hotend
   * 30mm³/s max flow rate
-* 120x120x145mm Build Volume
+* 120x120x140mm Build Volume
   * Up to 100°C heated bed temperature
   * Magnetic Textured PEI Plate
-* MGN9C Linear Rails on X and Z axies
-* MGN12C Linear Rail on Y axis
-* Sherpa Mini Direct Drive Extruder (DDE)
-* Fully Automatic Bed Leveling (ABL)
-* Meanwell RPS-200-24 PSU (Intergrated)
+* MGN9C Linear Rails
+* ProtoXtruder Direct Drive Extruder (DDE)
+* Fully Automatic Bed Leveling using BLTouch (ABL)
+* Meanwell RPS-200-24 PSU (Integrated) with a protected C14 Inlet (used on the majority of consumer 3D printers)
 * PLA, PETG, TPU capable
   * ABS and ASA are possible but require an enclosure and active ventilation
 * Aluminum and 3D Printed ASA frame
-* 3010 Axial Fan for Heatbreak cooling and 4010 "Blower-style" fan for part cooling
+* [DragonBurner](https://github.com/chirpy2605/voron/tree/main/V0/Dragon_Burner) Toolhead
 * Up to 500mm/s Print Velocity*
    *This number is an estimate, real print speeds will be updated as Forge's development continues
-* SD1306 1.92" OLED and Rotary Encoder for the interface
 
 ## Firmware
 
 * The Forge Mainboard will run on Marlin Firmware. (Custom, open source Forge Firmware had been planned but development has been halted as as of right now it is unrealistic)
 
-* **The Forge Mainboard (2-layer PCB) is supported by Klipper**
+* **The Forge Mainboard is supported by Klipper**
   * Using the Forge Printer with Klipper will be possible! The latest revision of the Forge Mainboard (2 layer PCB version) runs a STM32F405 which is fully compatible with Klipper! Additionally, we'll be providing a Klipper [WiP configuration file](https://github.com/hackclub/Forge/blob/main/Firmware/klipper) and OrcaSlicer profiles (Coming Soon) for you!
   * SBC Info:
     * **A Raspberry Pi Zero 2W will be required for *Klipper*. You can also use another SBC (that can run MainSailOS or Fluidd) with the same form factor. However, the Zero W (1st Gen) is highly not recommended due to performance limitations. Larger SBCs like the Raspberry Pi 1/2/3/4/5 boards are not compatible due to size limitations. We'll be providing a Raspberry Pi Zero Bracket available to print closer to MK2's launch!** The Forge Mainboard connects to the SBC via GPIO to GPIO, therefore, SPI touchscreens are not recommended.
 
 ## Additional notes
 
-* The full Forge Printer and Mainboard BOM will (soon be) at the bottom of this doc. The Forge Printer BOM will not be available until we begin prototyping. However, the BOM for the Forge Mainboard is currently available as a CSV in `Electronics/Motherboard/billofmaterials.csv`.
-* The estimated value of the Forge Printer is $200-$250, but this estimate will change over time.
-  * However, Forge will be **100% Free for teens 18 and under after designing 5 models and submitting a PR**
-* Currently, Forge's parts and components are planned to be manufactured by [Siboor](https://www.siboor.com), a well established supplier of 3D Printing components.
+* The full Forge Printer and Mainboard BOM will soon be at the bottom of this doc. The Forge Printer BOM will not be available until we begin prototyping. However, the BOM for the Forge Mainboard is currently available as a CSV in `Electronics/Motherboard/billofmaterials.csv`.
+* The estimated value of the Forge Printer is $200-$300, but this estimate will change over time (Additionally, tariffs may impact this cost in the future).
+  * However, our goal is to offer Forge for free for teens 18 and under (details on how will come out soon) **
+* Currently, Forge's parts and components are planned to be manufactured by [Siboor](https://www.siboor.com), a well-established supplier of 3D Printing components.
 * Forge is designed in Onshape. [Check out the 3D model!](https://cad.onshape.com/documents/af44ce458991ef8deb280728/w/4e67c2ab8938e73dbc0acac0/e/91ca9a2c3befc6f76fb79dfa)
 
 ## Licensing
 
 * **Currently, the Forge Project is GPLV3 (General Public License)**
-* The design uses a Annex Engineering Sperpa Mini Extruder.
-  * In compliance with their guidelines, the CAD models of the Forge Printer will use a placeholder provided by Annex Engineering.
-  * [Sherpa Mini GitHub](https://github.com/Annex-Engineering/Sherpa_Mini-Extruder/tree/master)
-* Anybody is allowed to freely use, advertise, modify, copy, or distribute any Forge designs or software as needed with the condition that any public distribution or use of Forge software/design must also be open source and use GPL.
+* Anybody is allowed to freely use, advertise, modify, copy, or distribute any Forge designs or software as needed, with the condition that any public distribution or use of Forge software/design must also be open source and use GPL.
 * For more information about this license, check out this [link](https://www.gnu.org/licenses/gpl-3.0.en.html)
   
 ## Support the Project!
@@ -93,38 +88,10 @@ The Forge Printer is a fast, inexpensive, and compact cantilevered 3D Printer. M
 * **Forge is now offically [fiscally sponsored](https://en.wikipedia.org/wiki/Fiscal_sponsorship#:~:text=Fiscal%20sponsorship%20refers%20to%20the,and%20an%20established%20non-profit.) by Hack Club (a 501(c)(3) NPO with EIN 81-2908499)!
 
 ## How do I get a Forge Printer?
-
-### 1) Find a problem
-
-Look around! Find problems that 3D printing can fix. From a carabiner to a phone case!  
-
-### 2) Design a solution
-
-Using any modeling software you are comfortable with, follow the tutorials (link coming soon!) and create your solutions.  
-
-### 3) Submit your design
-
-The submission rules to get a Forge Printer for a PR are (not available, the Forge design guidelines will be accessible at launch). **You must be a teenager (or younger to qualify for a free machine)** but anyone can make a model and make a PR. Currently, we are requiring 5 Blot-level (of quality) models. This may change as the project progresses. While the full guidelines are not accessible, here are the basics of what you should(n't) do with your Forge project:
-
-* Exporting your design to an STL is an option if you want to test your model on another 3D printer before you submit a PR.
-
-#### Dos and Don'ts
-
-* A PR should have a .stl file
-* Don't copy anything from other websites/generate code with AI (ChatGPT)
-  * Doing so is considered plagiarism. Anyone submitting fraudulent code will be ineligible for a Forge Printer and may result in a violation of the Hack Club Code of Conduct
-* Your model should be both functional and have some aesthetic quality.
-  * TL:DR, make it look nice(to you at least)
-* Your model should have effort (roughly 8 hours per model)
-
-### 4) Receive the parts to build your own Forge Printer
-
-The bill of materials for the Forge Printer will be coming soon here as we start finalizing the printer. An assembly guide will also be available here (coming soon!).
-Also note that, currently, the BOMs are not polished as we communicate with Siboor and test manufacture.
+* **More details soon!**
 
 ## Forge Printer BOM
-
-* Coming soon! We have the finished BOM for the MK1 Prototype from Siboor which we just need to clean up before posting here!
+* Coming soon! As MK2 CAD gets more polished, a BOM is currently in the works!
 
 ## Forge Project Credits:
 
