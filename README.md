@@ -109,13 +109,17 @@ Note that we all kind of work on everything, listed above is just what we genera
 ### Special Thanks:
 
 * Aaron Wong (@aaronw-dev) - Former Project Lead, Firmware Dev, Artist, Electrical Engineer
-* Engineering and Sales teams at Siboor - This project wouldn't be possible without them <3
+* Engineering and Sales teams at [Siboor](https://www.siboor.com)
+* [Polymaker](https://us.polymaker.com) for sponsoring $100 of filament!
 * Patricio (@Patcybermind) - Former Forge Editor Developer
 * Max Wofford (@maxwofford) - Hack Club HQ Representative, Forge Benefactor
 * Alex Ren (@qcoral) - Thanks for the help with licensing!
-* Annex Engineering (@Annex-Engineering) - Thanks for helping with the Sherpa Mini copyright!
 * Jonathan Dong (@Dongathan-Jong) - Forge Art, Promotional Materials
 * Beenana (@Beenana02) - Promotional Materials
+* And the community for supporting this project!!
 
-### CAD Models and reference designs:
-* [Sherpa Mini by Annex Engineering](https://github.com/Annex-Engineering/Sherpa_Mini-Extruder)
+### Credits!
+* [ProtoXtruder 2.0 by nhchiu](https://github.com/nhchiu/3DPrinter-Designs/tree/main/ProtoXtruder_2.0)
+* [DragonBurner V8 Toolhead by chirpy2605](https://github.com/chirpy2605/voron/tree/main/V0/Dragon_Burner)
+* [TZ-E3 2.0 DragonBurner Mount by cpp0xc0ffeeee](https://www.printables.com/model/1200549-tz-e3-20-mount-for-dragonburner-v8)
+* [TZ E3 V2 Hotend CAD by Keram](https://www.printables.com/model/1051271-tz-e3-v2-hotend-bambulab-hotend-derivative-cad-wit)
