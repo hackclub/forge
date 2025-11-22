@@ -20,13 +20,6 @@ Forge is planned to be a **You Ship, We Ship** project from [Hack Club](https://
 
 Forge is **fully open source**. We encourage all to submit to the gallery through PRs! However, you must be a teenager or younger to receive a free printer.
 
-## What is Forge exactly?
-
-The Forge YSWS Project can be considered 3 major sections:
-
-* Forge Printer - the cantilevered 3D Printer
-* Forge Mainboard - the custom-engineered control board powered by a STM32F405 and TMC2209s. Also includes the interface board
-* Forge Firmware - The custom-engineered firmware that powers the Forge Mainboard
 
 ## About the Forge Printer
 
@@ -87,12 +80,6 @@ The Forge Printer is a fast, inexpensive, and compact cantilevered 3D Printer. M
 * [Donate to the Forge Project](https://hcb.hackclub.com/donations/start/forge), any dollar counts!
 * **Forge is now offically [fiscally sponsored](https://en.wikipedia.org/wiki/Fiscal_sponsorship#:~:text=Fiscal%20sponsorship%20refers%20to%20the,and%20an%20established%20non-profit.) by Hack Club (a 501(c)(3) NPO with EIN 81-2908499)!
 
-## How do I get a Forge Printer?
-* **More details soon!**
-
-## Forge Printer BOM
-* Coming soon! As MK2 CAD gets more polished, a BOM is currently in the works!
-
 ## Forge Project Credits:
 
 ### Forge Team:
@@ -101,7 +88,7 @@ The Forge Printer is a fast, inexpensive, and compact cantilevered 3D Printer. M
 * Arnnav Kudale (@blazecoding2009) - Project Lead, Sourcing, Electrical Engineering, Forge Firmware/Klipper Config Dev
 * Evan Le (@lolwutboi987) - Design Engineering
 * Michael Panait (@mikeymascatu) - Design Engineering, Promotional Materials
-* Malav Patel (@astro-develops) - Forge Landing Page Frontend Developer, Promotional Materials
+* Malav Patel (@astro-develops) - Design Engineer, Forge Landing Page Frontend Developer, Promotional Materials
 
 Note that we all kind of work on everything, listed above is just what we generally do
 
@@ -124,4 +111,5 @@ Note that we all kind of work on everything, listed above is just what we genera
 * [DragonBurner V8 Toolhead by chirpy2605](https://github.com/chirpy2605/voron/tree/main/V0/Dragon_Burner)
 * [TZ-E3 2.0 DragonBurner Mount by cpp0xc0ffeeee](https://www.printables.com/model/1200549-tz-e3-20-mount-for-dragonburner-v8)
 * [TZ E3 V2 Hotend CAD by Keram](https://www.printables.com/model/1051271-tz-e3-v2-hotend-bambulab-hotend-derivative-cad-wit)
+
 
