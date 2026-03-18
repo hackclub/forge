@@ -1,0 +1,43 @@
+# Ruby / Rails
+/.bundle
+/vendor/bundle
+/log/*
+/tmp/*
+/storage/*
+!/log/.keep
+!/tmp/.keep
+!/storage/.keep
+/public/assets
+/public/packs
+
+# Vite
+/public/vite*
+node_modules/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Database
+/db/*.sqlite3
+/db/*.sqlite3-*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Master key / credentials
+/config/master.key
+/config/credentials/*.key
+
+# Byebug / IRB
+.byebug_history
+.irb_history
