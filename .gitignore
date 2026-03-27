@@ -41,3 +41,4 @@ Thumbs.db
 # Byebug / IRB
 .byebug_history
 .irb_history
+stitch/
