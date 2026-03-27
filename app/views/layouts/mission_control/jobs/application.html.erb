@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Jobs — Forge Admin</title>
+  <%= csrf_meta_tags %>
+  <%= csp_meta_tag %>
+
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="turbo-cache-control" content="no-cache">
+
+  <%= stylesheet_link_tag "mission_control/jobs/bulma.min" %>
+  <%= stylesheet_link_tag "mission_control/jobs/application", "data-turbo-track": "reload" %>
+  <%= javascript_importmap_tags "application", importmap: MissionControl::Jobs.importmap %>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bulma-body-background-color: #0e0e0e;
+      --bulma-body-color: #e5e2e1;
+      --bulma-body-font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      background-color: #0e0e0e !important;
+      color: #e5e2e1 !important;
+      font-family: 'Inter', sans-serif !important;
+    }
+
+    * { border-radius: 0 !important; }
+
+    .section { background-color: #0e0e0e !important; }
+    .container { max-width: 1400px !important; }
+
+    /* Navigation tabs */
+    .tabs { border-bottom-color: rgba(255,255,255,0.05) !important; }
+    .tabs a { color: #a8a29e !important; border-bottom-color: transparent !important; font-size: 0.875rem !important; }
+    .tabs a:hover { color: #ffb595 !important; border-bottom-color: #ffb595 !important; }
+    .tabs li.is-active a { color: #ffb595 !important; border-bottom-color: #ffb595 !important; font-weight: 600 !important; }
+
+    /* Tables */
+    .table { background-color: transparent !important; color: #e5e2e1 !important; }
+    .table th { color: #78716c !important; border-color: rgba(255,255,255,0.05) !important; font-size: 0.625rem !important; text-transform: uppercase !important; letter-spacing: 0.2em !important; font-weight: 700 !important; }
+    .table td { color: #e5e2e1 !important; border-color: rgba(255,255,255,0.05) !important; }
+    .table tr:hover { background-color: #1c1b1b !important; }
+    .table td a { color: #ffb595 !important; }
+    .table td a:hover { color: #ee671c !important; }
+    .table thead th { background-color: transparent !important; }
+
+    /* Buttons */
+    .button { background-color: #1c1b1b !important; color: #a8a29e !important; border: 1px solid rgba(168,138,126,0.15) !important; font-size: 0.75rem !important; font-weight: 600 !important; text-transform: uppercase !important; letter-spacing: 0.1em !important; }
+    .button:hover { background-color: #2a2a2a !important; color: #e5e2e1 !important; border-color: rgba(168,138,126,0.3) !important; }
+    .button.is-danger { background-color: rgba(239,68,68,0.2) !important; color: #f87171 !important; border-color: rgba(239,68,68,0.3) !important; }
+    .button.is-danger:hover { background-color: rgba(239,68,68,0.3) !important; }
+    .button.is-warning { background-color: rgba(245,158,11,0.2) !important; color: #fbbf24 !important; border-color: rgba(245,158,11,0.3) !important; }
+    .button.is-primary { background-color: #ee671c !important; color: #4c1a00 !important; border-color: #ee671c !important; font-weight: 700 !important; }
+
+    /* Cards & boxes */
+    .box, .card { background-color: #1c1b1b !important; border: 1px solid rgba(168,138,126,0.15) !important; }
+    .card-header { background-color: transparent !important; border-bottom-color: rgba(255,255,255,0.05) !important; }
+    .card-header-title { color: #e5e2e1 !important; }
+
+    /* Tags */
+    .tag { background-color: #1c1b1b !important; color: #a8a29e !important; border: 1px solid rgba(168,138,126,0.15) !important; }
+    .tag.is-danger { background-color: rgba(239,68,68,0.15) !important; color: #f87171 !important; border-color: rgba(239,68,68,0.2) !important; }
+    .tag.is-warning { background-color: rgba(245,158,11,0.15) !important; color: #fbbf24 !important; border-color: rgba(245,158,11,0.2) !important; }
+    .tag.is-success { background-color: rgba(34,197,94,0.15) !important; color: #4ade80 !important; border-color: rgba(34,197,94,0.2) !important; }
+    .tag.is-info { background-color: rgba(59,130,246,0.15) !important; color: #60a5fa !important; border-color: rgba(59,130,246,0.2) !important; }
+
+    /* Panels */
+    .panel { background-color: #1c1b1b !important; border: 1px solid rgba(168,138,126,0.15) !important; }
+    .panel-heading { background-color: #1c1b1b !important; color: #e5e2e1 !important; border-bottom-color: rgba(255,255,255,0.05) !important; }
+    .panel-block { border-bottom-color: rgba(255,255,255,0.05) !important; color: #e5e2e1 !important; }
+    .panel-block:hover { background-color: #2a2a2a !important; }
+
+    /* Forms */
+    .input, .select select, .textarea { background-color: #0e0e0e !important; color: #e5e2e1 !important; border-color: rgba(168,138,126,0.15) !important; }
+    .input:focus, .select select:focus, .textarea:focus { border-color: rgba(238,103,28,0.3) !important; box-shadow: 0 0 0 1px rgba(238,103,28,0.15) !important; }
+    .label { color: #78716c !important; font-size: 0.625rem !important; text-transform: uppercase !important; letter-spacing: 0.2em !important; font-weight: 700 !important; }
+
+    /* Pagination */
+    .pagination-link, .pagination-previous, .pagination-next { background-color: #1c1b1b !important; color: #a8a29e !important; border-color: rgba(168,138,126,0.15) !important; }
+    .pagination-link:hover, .pagination-previous:hover, .pagination-next:hover { background-color: #2a2a2a !important; color: #e5e2e1 !important; }
+    .pagination-link.is-current { background-color: #ee671c !important; color: #4c1a00 !important; border-color: #ee671c !important; }
+
+    /* Title overrides */
+    .title, .subtitle { color: #e5e2e1 !important; font-family: 'Space Grotesk', sans-serif !important; }
+
+    /* Links */
+    a:not(.button):not(.tag):not(.pagination-link) { color: #ffb595; }
+    a:not(.button):not(.tag):not(.pagination-link):hover { color: #ee671c; }
+
+    /* Notification/flash */
+    .notification { background-color: #1c1b1b !important; color: #e5e2e1 !important; border: 1px solid rgba(168,138,126,0.15) !important; }
+    .notification.is-danger { background-color: rgba(239,68,68,0.1) !important; border-color: rgba(239,68,68,0.2) !important; }
+
+    /* Navbar */
+    .navbar { background-color: #1c1b1b !important; }
+
+    /* Back link styling */
+    .mc-jobs-back-link { color: #ffb595 !important; font-size: 0.875rem !important; }
+
+    /* Progress bar */
+    .progress { background-color: #1c1b1b !important; }
+    .progress::-webkit-progress-value { background-color: #ee671c !important; }
+
+    /* Dropdown */
+    .dropdown-content { background-color: #1c1b1b !important; border: 1px solid rgba(168,138,126,0.15) !important; }
+    .dropdown-item { color: #e5e2e1 !important; }
+    .dropdown-item:hover { background-color: #2a2a2a !important; }
+  </style>
+</head>
+<body>
+
+<section class="section">
+  <div class="container">
+    <p style="margin-bottom: 1.5rem;">
+      <a href="/admin" style="color: #ffb595; font-size: 0.875rem; text-decoration: none;">
+        ← Back to admin
+      </a>
+    </p>
+    <%= render "layouts/mission_control/jobs/application_selection" %>
+    <%= render "layouts/mission_control/jobs/flash" %>
+    <%= render "layouts/mission_control/jobs/navigation" %>
+    <%= yield %>
+  </div>
+</section>
+
+</body>
+</html>

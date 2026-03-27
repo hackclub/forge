@@ -6,6 +6,7 @@ class ApplicationController < ActionController::Base
   include InertiaPagination
 
   before_action :track_ahoy_visit
+  before_action :set_paper_trail_whodunnit
 
   rescue_from Pundit::NotAuthorizedError, with: :user_not_authorized
 

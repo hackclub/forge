@@ -2,7 +2,7 @@ class ExploreController < ApplicationController
   allow_unauthenticated_access
 
   def index
-    scope = Project.kept.listed.includes(:user, :ships).order(created_at: :desc)
+    scope = Project.kept.includes(:user, :ships).order(created_at: :desc)
     scope = scope.search(params[:query]) if params[:query].present?
     @pagy, @projects = pagy(scope)
 

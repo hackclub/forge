@@ -1,5 +1,5 @@
 class ProjectsController < ApplicationController
-  before_action :set_project, only: %i[show edit update destroy]
+  before_action :set_project, only: %i[show edit update destroy submit_for_review]
 
   def index
     scope = policy_scope(Project).includes(:user, :ships)
@@ -20,7 +20,8 @@ class ProjectsController < ApplicationController
       project: serialize_project_detail(@project),
       can: {
         update: policy(@project).update?,
-        destroy: policy(@project).destroy?
+        destroy: policy(@project).destroy?,
+        submit_for_review: policy(@project).submit_for_review?
       }
     }
   end
@@ -30,7 +31,7 @@ class ProjectsController < ApplicationController
     authorize @project
 
     render inertia: "Projects/Form", props: {
-      project: { name: "", description: "", demo_link: "", repo_link: "", is_unlisted: false, tags: [] },
+      project: { name: "", description: "", repo_link: "", tags: [] },
       title: "New Project",
       submit_url: projects_path,
       method: "post"
@@ -39,10 +40,11 @@ class ProjectsController < ApplicationController
 
   def create
     @project = current_user.projects.build(project_params)
+    @project.status = :draft
     authorize @project
 
     if @project.save
-      redirect_to @project, notice: "Project created."
+      redirect_to @project, notice: "Project created as draft."
     else
       redirect_back fallback_location: new_project_path, inertia: { errors: @project.errors.messages }
     end
@@ -56,9 +58,7 @@ class ProjectsController < ApplicationController
         id: @project.id,
         name: @project.name,
         description: @project.description.to_s,
-        demo_link: @project.demo_link.to_s,
         repo_link: @project.repo_link.to_s,
-        is_unlisted: @project.is_unlisted,
         tags: @project.tags
       },
       title: "Edit Project",
@@ -83,14 +83,108 @@ class ProjectsController < ApplicationController
     redirect_to projects_path, notice: "Project deleted."
   end
 
+  def import_from_github
+    authorize Project
+    repo_url = params[:repo_url].to_s
+    parsed = repo_url.match(%r{github\.com/([^/]+)/([^/]+?)(?:\.git)?(?:/|$)})
+
+    unless parsed
+      render json: { error: "Invalid GitHub repository URL" }, status: :unprocessable_entity
+      return
+    end
+
+    owner, repo = parsed[1], parsed[2]
+    github_base = "https://api.github.com/repos/#{owner}/#{repo}"
+
+    repo_data = fetch_json(github_base)
+    unless repo_data
+      render json: { error: "Repository not found" }, status: :not_found
+      return
+    end
+
+    readme_data = fetch_json("#{github_base}/readme")
+    readme_content = readme_data && readme_data["content"] ? Base64.decode64(readme_data["content"]).force_encoding("UTF-8") : ""
+
+    commits_data = fetch_json("#{github_base}/commits?per_page=10")
+    recent_commits = commits_data.is_a?(Array) ? commits_data.map { |c| c.dig("commit", "message") }.compact.join("\n") : ""
+
+    ai_prompt = <<~PROMPT
+      Analyze this GitHub repository and generate a concise project description for a hardware project grants platform called Forge.
+
+      Repository: #{repo_data["full_name"]}
+      GitHub Description: #{repo_data["description"] || "None"}
+      Language: #{repo_data["language"] || "Unknown"}
+      Topics: #{(repo_data["topics"] || []).join(", ").presence || "None"}
+
+      #{readme_content.present? ? "README:\n#{readme_content.truncate(4000)}" : "No README found."}
+
+      #{recent_commits.present? ? "Recent commit messages (devlog):\n#{recent_commits.truncate(2000)}" : ""}
+
+      Respond in valid JSON only, no markdown fences. Use this exact format:
+      {"name": "human readable project name", "description": "2-4 sentence description of what this project is, what it does, and what hardware/tech it uses. Write as if the builder is describing their own project.", "tags": ["tag1", "tag2", "tag3"]}
+    PROMPT
+
+    ai_response = Net::HTTP.post(
+      URI("https://ai.hackclub.com/proxy/v1/chat/completions"),
+      { model: "qwen/qwen3-32b", messages: [ { role: "user", content: ai_prompt } ] }.to_json,
+      "Content-Type" => "application/json",
+      "Authorization" => "Bearer #{ENV["HACKCLUB_AI_API_KEY"]}"
+    )
+
+    unless ai_response.is_a?(Net::HTTPSuccess)
+      render json: { error: "AI service unavailable" }, status: :service_unavailable
+      return
+    end
+
+    ai_data = JSON.parse(ai_response.body)
+    content = ai_data.dig("choices", 0, "message", "content") || ""
+    json_match = content.match(/\{[\s\S]*\}/)
+
+    unless json_match
+      render json: { error: "Could not parse AI response" }, status: :unprocessable_entity
+      return
+    end
+
+    parsed_ai = JSON.parse(json_match[0])
+
+    render json: {
+      name: parsed_ai["name"] || repo_data["name"],
+      description: parsed_ai["description"] || repo_data["description"],
+      repo_link: repo_data["html_url"],
+      tags: Array(parsed_ai["tags"]).first(5)
+    }
+  rescue JSON::ParserError
+    render json: { error: "Could not parse AI response" }, status: :unprocessable_entity
+  end
+
+  def submit_for_review
+    authorize @project
+
+    unless @project.repo_link.present?
+      redirect_back fallback_location: project_path(@project), alert: "You must link a repository before submitting for review."
+      return
+    end
+
+    @project.submit_for_review!
+    redirect_to @project, notice: "Project submitted for review."
+  end
+
   private
+
+  def fetch_json(url)
+    uri = URI(url)
+    response = Net::HTTP.get_response(uri)
+    response.is_a?(Net::HTTPSuccess) ? JSON.parse(response.body) : nil
+  rescue StandardError
+    nil
+  end
 
   def set_project
     @project = Project.find(params[:id])
   end
 
   def project_params
-    params.expect(project: [ :name, :description, :demo_link, :repo_link, :is_unlisted, tags: [] ])
+    params.expect(project: [ :name, :description, :repo_link, tags: [] ])
   end
 
   def serialize_project_card(project)
@@ -98,8 +192,8 @@ class ProjectsController < ApplicationController
       id: project.id,
       name: project.name,
       description: project.description&.truncate(200),
-      is_unlisted: project.is_unlisted,
       tags: project.tags,
+      status: project.status,
       user_display_name: project.user.display_name,
       ships_count: project.ships.size
     }
@@ -110,10 +204,10 @@ class ProjectsController < ApplicationController
       id: project.id,
       name: project.name,
       description: project.description,
-      demo_link: project.demo_link,
       repo_link: project.repo_link,
-      is_unlisted: project.is_unlisted,
       tags: project.tags,
+      status: project.status,
+      review_feedback: project.review_feedback,
       user_display_name: project.user.display_name,
       created_at: project.created_at.strftime("%B %d, %Y")
     }

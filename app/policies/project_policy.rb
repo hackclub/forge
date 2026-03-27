@@ -7,10 +7,14 @@ class ProjectPolicy < ApplicationPolicy
 
   def show?
     return false if record.discarded? && !admin?
-    admin? || !record.is_unlisted || owner?
+    true
   end
 
   def create?
+    user.present?
+  end
+
+  def import_from_github?
     user.present?
   end
 
@@ -20,8 +24,21 @@ class ProjectPolicy < ApplicationPolicy
   end
 
   def destroy?
-    return false if record.discarded?
+    return admin? if record.discarded?
     admin? || owner?
+  end
+
+  def submit_for_review?
+    return false unless owner?
+    record.reviewable?
+  end
+
+  def restore?
+    admin? && record.discarded?
+  end
+
+  def review?
+    user&.staff?
   end
 
   class Scope < ApplicationPolicy::Scope
@@ -29,7 +46,7 @@ class ProjectPolicy < ApplicationPolicy
       if user&.admin?
         scope.all
       else
-        scope.kept.listed.or(scope.kept.where(user: user))
+        scope.kept
       end
     end
   end

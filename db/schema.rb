@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_12_190137) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_27_122604) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -85,19 +85,30 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_12_190137) do
     t.index ["visitor_token", "started_at"], name: "index_ahoy_visits_on_visitor_token_and_started_at"
   end
 
+  create_table "feature_flags", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "description"
+    t.boolean "enabled", default: false, null: false
+    t.string "name", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_feature_flags_on_name", unique: true
+  end
+
   create_table "projects", force: :cascade do |t|
     t.datetime "created_at", null: false
-    t.string "demo_link"
     t.text "description"
     t.datetime "discarded_at"
-    t.boolean "is_unlisted", default: false, null: false
     t.string "name", null: false
     t.string "repo_link"
+    t.text "review_feedback"
+    t.datetime "reviewed_at"
+    t.bigint "reviewer_id"
+    t.integer "status", default: 0, null: false
     t.string "tags", default: [], null: false, array: true
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.index ["discarded_at"], name: "index_projects_on_discarded_at"
-    t.index ["is_unlisted"], name: "index_projects_on_is_unlisted"
+    t.index ["status"], name: "index_projects_on_status"
     t.index ["tags"], name: "index_projects_on_tags", using: :gin
     t.index ["user_id"], name: "index_projects_on_user_id"
   end
@@ -122,6 +133,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_12_190137) do
 
   create_table "users", force: :cascade do |t|
     t.string "avatar", null: false
+    t.text "ban_reason"
     t.datetime "created_at", null: false
     t.datetime "discarded_at"
     t.string "display_name", null: false
@@ -130,6 +142,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_12_190137) do
     t.text "hca_token"
     t.boolean "is_adult", default: false, null: false
     t.boolean "is_banned", default: false, null: false
+    t.string "permissions", default: [], null: false, array: true
     t.string "roles", default: [], null: false, array: true
     t.string "slack_id", null: false
     t.string "timezone", null: false
@@ -151,6 +164,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_12_190137) do
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "projects", "users"
+  add_foreign_key "projects", "users", column: "reviewer_id"
   add_foreign_key "ships", "projects"
   add_foreign_key "ships", "users", column: "reviewer_id"
 end

@@ -24,7 +24,7 @@ Do not add comments unless they are absolutely necessary for clarity. Your code 
 
 ## UI Design System — "PCB / Circuit Board" Theme
 
-Quarry is a hardware event where builders get up to $1k in funding, with hourly rates determined by community voting. The UI follows a dark, medieval/gold aesthetic — like a royal treasury carved from dark stone. All new pages and components must follow this theme consistently.
+Forge is a hardware event where builders get up to $1k in funding, with hourly rates determined by community voting. The UI follows a dark, medieval/gold aesthetic — like a royal treasury carved from dark stone. All new pages and components must follow this theme consistently.
 
 ### Color Palette
 - **Background:** `#0e0c09` (near-black warm brown) with SVG noise texture overlay at `opacity: 0.06`
@@ -69,6 +69,5 @@ Quarry is a hardware event where builders get up to $1k in funding, with hourly 
 - No bright whites — everything is tinted gold/yellow, even "white" text uses `yellow-100` at varying opacity
 - **No border-radius anywhere** — everything is sharp, angular, medieval (no `rounded-*` classes)
 - Gold gradient text for hero words and stat numbers
-- Use mining/quarry language: "stake your claim", "enter the pit", "strike gold", "dig in", "yield", "vein"
 - The vibe is a dark medieval treasury — gold glinting in torchlight on dark stone walls
 - Keep it sparse and heavy — lots of breathing room, big type, minimal decoration

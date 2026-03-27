@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useForm, usePage } from '@inertiajs/react'
 import type { ProjectForm, SharedProps } from '@/types'
 
@@ -13,15 +14,61 @@ export default function ProjectsForm({
   method: string
 }) {
   const { errors } = usePage<SharedProps>().props
+  const [importUrl, setImportUrl] = useState('')
+  const [importing, setImporting] = useState(false)
+  const [importError, setImportError] = useState('')
+  const [showImport, setShowImport] = useState(false)
 
   const form = useForm({
     name: project.name,
     description: project.description,
-    demo_link: project.demo_link,
     repo_link: project.repo_link,
-    is_unlisted: project.is_unlisted,
     tags: project.tags,
   })
+
+  async function handleImport() {
+    setImportError('')
+
+    if (!importUrl.match(/github\.com\/[^/]+\/[^/]+/)) {
+      setImportError('Enter a valid GitHub repository URL')
+      return
+    }
+
+    setImporting(true)
+    try {
+      const csrfToken = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content
+      const res = await fetch('/projects/import_from_github', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
+        },
+        body: JSON.stringify({ repo_url: importUrl }),
+      })
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        throw new Error(body.error || 'Import failed')
+      }
+
+      const data = await res.json()
+
+      form.setData({
+        name: data.name || form.data.name,
+        description: data.description || form.data.description,
+        repo_link: data.repo_link || importUrl,
+        tags: Array.isArray(data.tags) ? data.tags.slice(0, 5) : form.data.tags,
+      })
+
+      setShowImport(false)
+      setImportUrl('')
+    } catch (err) {
+      setImportError(err instanceof Error ? err.message : 'Could not import repository.')
+    } finally {
+      setImporting(false)
+    }
+  }
 
   function submit(e: React.FormEvent) {
     e.preventDefault()
@@ -33,13 +80,64 @@ export default function ProjectsForm({
   }
 
   return (
-    <div className="max-w-2xl mx-auto py-8">
-      <h1 className="font-black text-yellow-100/90 tracking-tight text-4xl mb-6">{title}</h1>
+    <div className="p-12 max-w-2xl mx-auto">
+      <h1 className="text-4xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-8">{title}</h1>
 
-      <form onSubmit={submit} className="space-y-4">
+      {method === 'post' && !showImport && (
+        <button
+          type="button"
+          onClick={() => setShowImport(true)}
+          className="ghost-border bg-[#1c1b1b] hover:bg-[#2a2a2a] text-stone-400 hover:text-[#e5e2e1] px-5 py-3 text-xs font-bold uppercase tracking-[0.2em] transition-colors flex items-center gap-3 mb-8 w-full justify-center"
+        >
+          <span className="material-symbols-outlined text-lg">download</span>
+          Import from GitHub
+        </button>
+      )}
+
+      {showImport && (
+        <div className="ghost-border bg-[#1c1b1b] p-6 mb-8 space-y-4">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500">Import from GitHub</span>
+            <button type="button" onClick={() => { setShowImport(false); setImportError('') }} className="text-stone-600 hover:text-stone-400 transition-colors">
+              <span className="material-symbols-outlined text-lg">close</span>
+            </button>
+          </div>
+          <div className="flex gap-3">
+            <input
+              type="url"
+              value={importUrl}
+              onChange={(e) => setImportUrl(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleImport())}
+              className="flex-1 bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 text-sm"
+              placeholder="https://github.com/username/repo"
+            />
+            <button
+              type="button"
+              onClick={handleImport}
+              disabled={importing}
+              className="signature-smolder text-[#4c1a00] px-6 py-3 font-bold uppercase tracking-wider text-xs flex items-center gap-2"
+            >
+              {importing ? (
+                <span className="material-symbols-outlined text-lg animate-spin">progress_activity</span>
+              ) : (
+                'Import'
+              )}
+            </button>
+          </div>
+          {importError && (
+            <p className="text-red-400 text-sm flex items-center gap-2">
+              <span className="material-symbols-outlined text-sm">error</span>
+              {importError}
+            </p>
+          )}
+        </div>
+      )}
+
+      <form onSubmit={submit} className="space-y-6">
         {Object.keys(errors).length > 0 && (
-          <div className="border border-red-800/30 bg-red-950/20 text-red-400/80 p-4 mb-4">
-            <ul>
+          <div className="ghost-border bg-red-500/10 text-red-400 p-4 rounded-lg flex items-start gap-3">
+            <span className="material-symbols-outlined text-lg shrink-0 mt-0.5">error</span>
+            <ul className="text-sm space-y-1">
               {Object.entries(errors).map(([field, messages]) =>
                 messages.map((msg) => (
                   <li key={`${field}-${msg}`}>
@@ -52,21 +150,22 @@ export default function ProjectsForm({
         )}
 
         <div>
-          <label htmlFor="name" className="block text-yellow-100/40 text-xs uppercase tracking-wider font-bold mb-1">
-            Title
+          <label htmlFor="name" className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
+            Project Name
           </label>
           <input
             type="text"
             id="name"
             value={form.data.name}
             onChange={(e) => form.setData('name', e.target.value)}
-            className="mt-1 block w-full bg-yellow-950/20 border border-yellow-800/30 text-yellow-100/80 placeholder-yellow-100/15 focus:border-yellow-600/50 focus:outline-none px-3 py-2"
+            className="w-full bg-[#0e0e0e] border-none rounded-lg px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600"
+            placeholder="My Hardware Project"
             required
           />
         </div>
 
         <div>
-          <label htmlFor="description" className="block text-yellow-100/40 text-xs uppercase tracking-wider font-bold mb-1">
+          <label htmlFor="description" className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
             Description
           </label>
           <textarea
@@ -74,57 +173,42 @@ export default function ProjectsForm({
             value={form.data.description}
             onChange={(e) => form.setData('description', e.target.value)}
             rows={4}
-            className="mt-1 block w-full bg-yellow-950/20 border border-yellow-800/30 text-yellow-100/80 placeholder-yellow-100/15 focus:border-yellow-600/50 focus:outline-none px-3 py-2"
+            className="w-full bg-[#0e0e0e] border-none rounded-lg px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 resize-y"
+            placeholder="Describe your hardware project..."
           />
         </div>
 
         <div>
-          <label htmlFor="demo_link" className="block text-yellow-100/40 text-xs uppercase tracking-wider font-bold mb-1">
-            Demo link
-          </label>
-          <input
-            type="url"
-            id="demo_link"
-            value={form.data.demo_link}
-            onChange={(e) => form.setData('demo_link', e.target.value)}
-            className="mt-1 block w-full bg-yellow-950/20 border border-yellow-800/30 text-yellow-100/80 placeholder-yellow-100/15 focus:border-yellow-600/50 focus:outline-none px-3 py-2"
-            placeholder="https://"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="repo_link" className="block text-yellow-100/40 text-xs uppercase tracking-wider font-bold mb-1">
-            Repo link
+          <label htmlFor="repo_link" className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
+            Repository Link <span className="text-stone-600 normal-case tracking-normal">(optional)</span>
           </label>
           <input
             type="url"
             id="repo_link"
             value={form.data.repo_link}
             onChange={(e) => form.setData('repo_link', e.target.value)}
-            className="mt-1 block w-full bg-yellow-950/20 border border-yellow-800/30 text-yellow-100/80 placeholder-yellow-100/15 focus:border-yellow-600/50 focus:outline-none px-3 py-2"
-            placeholder="https://"
+            className="w-full bg-[#0e0e0e] border-none rounded-lg px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600"
+            placeholder="https://github.com/..."
           />
         </div>
 
-        <div>
-          <label className="inline-flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={form.data.is_unlisted}
-              onChange={(e) => form.setData('is_unlisted', e.target.checked)}
-              className="border-yellow-800/30 accent-yellow-600"
-            />
-            <span className="text-yellow-100/40 text-xs uppercase tracking-wider font-bold">Unlisted</span>
-          </label>
-        </div>
-
-        <div>
+        <div className="flex gap-3 pt-4">
           <button
             type="submit"
-            className="bg-gradient-to-b from-yellow-600 to-yellow-800 hover:from-yellow-500 hover:to-yellow-700 text-[#1a1200] font-black uppercase tracking-wider px-4 py-2 cursor-pointer"
+            className="signature-smolder text-[#4c1a00] px-8 py-3 rounded-lg font-headline font-bold uppercase tracking-wider active:scale-95 transition-transform flex items-center gap-2"
             disabled={form.processing}
           >
-            {form.processing ? 'Saving...' : 'Save'}
+            {form.processing ? (
+              <>
+                <span className="material-symbols-outlined text-lg animate-spin">progress_activity</span>
+                Saving...
+              </>
+            ) : (
+              <>
+                <span className="material-symbols-outlined text-lg">save</span>
+                Save Project
+              </>
+            )}
           </button>
         </div>
       </form>

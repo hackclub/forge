@@ -2,11 +2,10 @@ import { usePage, router, Link } from '@inertiajs/react'
 import type { SharedProps } from '@/types'
 
 const navItems = [
-  { href: '/home', label: 'Dashboard', authOnly: true },
-  { href: '/explore', label: 'Explore', authOnly: false },
-  { href: '/docs', label: 'Resources', authOnly: false },
-  { href: '/vote', label: 'Vote', authOnly: true },
-  { href: '/shop', label: 'Shop', authOnly: true },
+  { href: '/explore', label: 'Explore', icon: 'explore', authOnly: false },
+  { href: '/home', label: 'Dashboard', icon: 'dashboard', authOnly: true },
+  { href: '/shop', label: 'Shop', icon: 'shopping_cart', authOnly: false },
+  { href: '/docs', label: 'Resources', icon: 'menu_book', authOnly: false },
 ]
 
 export default function Nav() {
@@ -23,78 +22,93 @@ export default function Nav() {
   )
 
   return (
-    <aside className="fixed top-0 left-0 h-screen w-52 border-r border-yellow-900/20 bg-[#0b0a07] flex flex-col z-50">
-      {/* Logo */}
-      <div className="px-5 pt-6 pb-8">
-        <Link href={shared.auth.user ? '/home' : '/'} className="flex items-center gap-2">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className="text-yellow-600 shrink-0">
-            <path d="M12 2L4 8V16L12 22L20 16V8L12 2Z" stroke="currentColor" strokeWidth="1.5" fill="currentColor" fillOpacity="0.15" />
-            <circle cx="12" cy="12" r="3" fill="currentColor" />
-          </svg>
-          <span className="text-sm font-black tracking-[0.25em] uppercase text-yellow-600">Quarry</span>
-        </Link>
-      </div>
+    <aside className="h-screen w-64 fixed left-0 top-0 border-r border-white/5 bg-[#1C1B1B] shadow-2xl flex flex-col p-6 justify-between z-50">
+      <div className="space-y-10">
+        <div className="flex flex-col gap-1">
+          <Link href={shared.auth.user ? '/home' : '/'} className="flex items-center gap-2">
+            <span className="text-2xl font-bold tracking-tighter text-[#FFB595] uppercase font-headline">Forge</span>
+          </Link>
+        </div>
 
-      {/* Nav links */}
-      <nav className="flex-1 px-3 space-y-1">
-        {visibleItems.map((item) => {
-          const isActive = currentPath === item.href || currentPath.startsWith(item.href + '/')
-          return (
+        <nav className="flex flex-col gap-1">
+          {visibleItems.map((item) => {
+            const isActive = currentPath === item.href || currentPath.startsWith(item.href + '/')
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`px-4 py-3 flex items-center gap-3 transition-all duration-150 font-headline font-medium tracking-tight ${
+                  isActive
+                    ? 'text-[#FFB595] bg-[#353534] rounded-md'
+                    : 'text-stone-500 hover:text-stone-200 hover:bg-[#353534] rounded-md'
+                }`}
+              >
+                <span
+                  className="material-symbols-outlined text-xl"
+                  style={isActive ? { fontVariationSettings: "'FILL' 1" } : undefined}
+                >
+                  {item.icon}
+                </span>
+                <span>{item.label}</span>
+              </Link>
+            )
+          })}
+
+          {shared.auth.user?.is_admin && (
             <Link
-              key={item.href}
-              href={item.href}
-              className={`block px-3 py-2.5 text-sm font-bold uppercase tracking-wider transition-all text-center ${
-                isActive
-                  ? 'bg-yellow-700/15 border border-yellow-700/30 text-yellow-400'
-                  : 'border border-transparent text-yellow-100/30 hover:text-yellow-100/60 hover:bg-yellow-900/10'
+              href="/admin"
+              className={`px-4 py-3 flex items-center gap-3 transition-all duration-150 font-headline font-medium tracking-tight rounded-md ${
+                currentPath.startsWith('/admin')
+                  ? 'text-[#FFB595] bg-[#353534]'
+                  : 'text-stone-500 hover:text-stone-200 hover:bg-[#353534]'
               }`}
             >
-              {item.label}
+              <span
+                className="material-symbols-outlined text-xl"
+                style={currentPath.startsWith('/admin') ? { fontVariationSettings: "'FILL' 1" } : undefined}
+              >
+                admin_panel_settings
+              </span>
+              <span>Admin</span>
             </Link>
-          )
-        })}
+          )}
+        </nav>
+      </div>
 
-        {shared.auth.user?.is_admin && (
-          <Link
-            href="/admin"
-            className={`block px-3 py-2.5 text-sm font-bold uppercase tracking-wider transition-all text-center ${
-              currentPath.startsWith('/admin')
-                ? 'bg-yellow-700/15 border border-yellow-700/30 text-yellow-400'
-                : 'border border-transparent text-yellow-500/40 hover:text-yellow-500/70 hover:bg-yellow-900/10'
-            }`}
-          >
-            Admin
-          </Link>
-        )}
-      </nav>
-
-      {/* User profile / Sign in */}
-      <div className="px-3 pb-4 border-t border-yellow-900/20 pt-4">
+      <div className="space-y-4">
         {shared.auth.user ? (
           <>
-            <div className="flex items-center gap-2.5 px-2 mb-3">
+            <Link
+              href="/projects/new"
+              className="w-full signature-smolder text-[#4c1a00] font-headline font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 active:scale-95 transition-transform"
+            >
+              <span className="material-symbols-outlined text-lg">add</span>
+              <span>New Project</span>
+            </Link>
+            <div className="flex items-center gap-3 px-2">
               <img
                 src={shared.auth.user.avatar}
                 alt={shared.auth.user.display_name}
-                className="w-8 h-8 border border-yellow-800/30 shrink-0"
+                className="w-8 h-8 rounded-full border border-white/10 shrink-0"
               />
-              <div className="min-w-0">
-                <p className="text-yellow-100/70 text-xs font-bold truncate">{shared.auth.user.display_name}</p>
+              <div className="flex flex-col min-w-0 flex-1">
+                <span className="text-xs font-bold text-[#e5e2e1] truncate">{shared.auth.user.display_name}</span>
+                <button
+                  onClick={signOut}
+                  className="text-[10px] text-stone-500 uppercase tracking-wider text-left hover:text-stone-300 transition-colors"
+                >
+                  Sign Out
+                </button>
               </div>
             </div>
-            <button
-              onClick={signOut}
-              className="w-full text-yellow-100/20 hover:text-yellow-100/40 text-xs uppercase tracking-wider font-bold transition-colors py-1.5 text-center"
-            >
-              Sign Out
-            </button>
           </>
         ) : (
           <a
             href={shared.sign_in_path}
-            className="block w-full bg-gradient-to-b from-yellow-600 to-yellow-800 hover:from-yellow-500 hover:to-yellow-700 text-[#1a1200] font-black py-2.5 text-xs uppercase tracking-widest transition-all text-center border border-yellow-500/30"
+            className="w-full signature-smolder text-[#4c1a00] font-headline font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 active:scale-95 transition-transform"
           >
-            Sign In
+            <span className="material-symbols-outlined text-lg">login</span>
+            <span>Sign In</span>
           </a>
         )}
       </div>

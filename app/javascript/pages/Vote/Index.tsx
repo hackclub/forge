@@ -7,7 +7,6 @@ interface VoteProject {
   tags: string[]
   user_display_name: string
   user_avatar: string
-  demo_link: string | null
   repo_link: string | null
 }
 
@@ -36,88 +35,60 @@ function ProjectCard({
   side: 'left' | 'right'
 }) {
   return (
-    <div className="border border-yellow-800/20 bg-yellow-950/10 relative group flex flex-col">
-      {/* Corner brackets */}
-      <span className="absolute top-0 left-0 w-3 h-3 border-t border-l border-yellow-700/30" />
-      <span className="absolute top-0 right-0 w-3 h-3 border-t border-r border-yellow-700/30" />
-      <span className="absolute bottom-0 left-0 w-3 h-3 border-b border-l border-yellow-700/30" />
-      <span className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-yellow-700/30" />
-
-      <div className="p-6 flex-1">
-        {/* Side label */}
-        <p className="text-yellow-700/30 text-[10px] uppercase tracking-[0.4em] font-bold mb-4">
+    <div className="bg-[#1c1b1b] rounded-xl ghost-border flex flex-col group hover:bg-[#2a2a2a] transition-all duration-300">
+      <div className="p-8 flex-1">
+        <p className="text-stone-600 text-[10px] uppercase tracking-[0.3em] font-bold mb-6">
           {side === 'left' ? 'Project A' : 'Project B'}
         </p>
 
-        {/* User */}
-        <div className="flex items-center gap-3 mb-4">
+        <div className="flex items-center gap-3 mb-6">
           <img
             src={project.user_avatar}
             alt={project.user_display_name}
-            className="w-8 h-8 border border-yellow-800/30"
+            className="w-8 h-8 rounded-full border border-white/10"
           />
-          <span className="text-yellow-100/30 text-xs">{project.user_display_name}</span>
+          <span className="text-xs text-stone-400">{project.user_display_name}</span>
         </div>
 
-        {/* Project name */}
-        <h2 className="text-xl font-black text-yellow-100/90 tracking-tight mb-3">{project.name}</h2>
+        <h2 className="text-2xl font-headline font-bold text-white mb-3 group-hover:text-[#ffb595] transition-colors">
+          {project.name}
+        </h2>
 
-        {/* Description */}
         {project.description && (
-          <p className="text-yellow-100/25 text-sm leading-relaxed mb-4">{project.description}</p>
+          <p className="text-stone-500 text-sm leading-relaxed mb-4">{project.description}</p>
         )}
 
-        {/* Tags */}
         {project.tags.length > 0 && (
           <div className="flex gap-2 flex-wrap mb-4">
             {project.tags.map((tag) => (
-              <span key={tag} className="text-[10px] uppercase tracking-wider text-yellow-600/50 border border-yellow-800/20 px-2 py-0.5">
+              <span key={tag} className="px-2 py-1 bg-[#0e0e0e] text-[10px] rounded text-stone-400 uppercase tracking-wider">
                 {tag}
               </span>
             ))}
           </div>
         )}
 
-        {/* Links */}
-        {(isSafeUrl(project.demo_link) || isSafeUrl(project.repo_link)) && (
-          <div className="flex gap-4 text-xs">
-            {isSafeUrl(project.demo_link) && (
-              <a
-                href={project.demo_link!}
-                target="_blank"
-                rel="noopener"
-                className="text-yellow-500/50 hover:text-yellow-400 uppercase tracking-wider transition-colors"
-                onClick={(e) => e.stopPropagation()}
-              >
-                Demo
-              </a>
-            )}
-            {isSafeUrl(project.repo_link) && (
-              <a
-                href={project.repo_link!}
-                target="_blank"
-                rel="noopener"
-                className="text-yellow-500/50 hover:text-yellow-400 uppercase tracking-wider transition-colors"
-                onClick={(e) => e.stopPropagation()}
-              >
-                Repo
-              </a>
-            )}
-          </div>
+        {isSafeUrl(project.repo_link) && (
+          <a
+            href={project.repo_link!}
+            target="_blank"
+            rel="noopener"
+            className="text-xs font-bold uppercase tracking-widest text-[#ffb595] flex items-center gap-1 hover:opacity-80 transition-opacity"
+            onClick={(e) => e.stopPropagation()}
+          >
+            View Repo
+            <span className="material-symbols-outlined text-sm">open_in_new</span>
+          </a>
         )}
       </div>
 
-      {/* Vote button */}
-      <div className="p-4 border-t border-yellow-800/15">
+      <div className="p-6 border-t border-white/5">
         <button
           onClick={onVote}
-          className="w-full relative bg-gradient-to-b from-yellow-600 to-yellow-800 hover:from-yellow-500 hover:to-yellow-700 text-[#1a1200] font-black py-3 text-sm uppercase tracking-[0.2em] transition-all shadow-[0_0_20px_rgba(180,130,20,0.1)] hover:shadow-[0_0_30px_rgba(180,130,20,0.25)] border border-yellow-500/30"
+          className="w-full signature-smolder text-[#4c1a00] font-headline font-bold py-3 rounded-lg uppercase tracking-wider active:scale-95 transition-transform flex items-center justify-center gap-2"
         >
-          <span className="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-yellow-400/50" />
-          <span className="absolute top-0 right-0 w-2 h-2 border-t-2 border-r-2 border-yellow-400/50" />
-          <span className="absolute bottom-0 left-0 w-2 h-2 border-b-2 border-l-2 border-yellow-400/50" />
-          <span className="absolute bottom-0 right-0 w-2 h-2 border-b-2 border-r-2 border-yellow-400/50" />
-          <span className="relative z-10">Vote for This</span>
+          <span className="material-symbols-outlined text-lg">how_to_vote</span>
+          Vote for This
         </button>
       </div>
     </div>
@@ -131,16 +102,20 @@ export default function VoteIndex({ matchup }: { matchup: Matchup | null }) {
 
   return (
     <>
-      <Head title="Vote — Quarry" />
-      <div className="max-w-5xl mx-auto px-6 py-10">
-        <div className="text-center mb-10">
-          <p className="text-yellow-700/60 text-[10px] uppercase tracking-[0.4em] font-bold mb-2">The Pit</p>
-          <h1 className="text-3xl font-black text-yellow-100/90 tracking-tight mb-2">Vote</h1>
+      <Head title="Vote — Forge" />
+      <div className="p-12 max-w-[1400px] mx-auto">
+        <div className="text-center mb-12">
+          <h1 className="text-5xl font-headline font-medium tracking-tight mb-4">
+            The <span className="text-[#ffb595]">Arena</span>
+          </h1>
+          <p className="text-stone-400 text-lg max-w-lg mx-auto">
+            Vote on which project you think is better. Your votes shape the leaderboard and funding rates.
+          </p>
         </div>
 
         {matchup ? (
           <>
-            <div className="grid sm:grid-cols-2 gap-6">
+            <div className="grid sm:grid-cols-2 gap-8 max-w-4xl mx-auto">
               <ProjectCard
                 project={matchup.project_a}
                 side="left"
@@ -153,27 +128,21 @@ export default function VoteIndex({ matchup }: { matchup: Matchup | null }) {
               />
             </div>
 
-            {/* VS divider for mobile */}
-            <div className="sm:hidden flex items-center justify-center -mt-3 -mb-3 relative z-10">
-              <div className="w-10 h-10 border border-yellow-800/40 bg-[#0e0c09] flex items-center justify-center rotate-45">
-                <span className="text-yellow-600/60 text-xs font-black -rotate-45">VS</span>
-              </div>
-            </div>
-
-            {/* Skip */}
-            <div className="text-center mt-8">
+            <div className="text-center mt-10">
               <button
                 onClick={() => router.get('/vote')}
-                className="text-yellow-100/15 hover:text-yellow-100/30 text-xs uppercase tracking-wider font-bold transition-colors"
+                className="text-stone-600 hover:text-stone-400 text-xs uppercase tracking-widest font-bold transition-colors flex items-center gap-2 mx-auto"
               >
+                <span className="material-symbols-outlined text-sm">skip_next</span>
                 Skip this matchup
               </button>
             </div>
           </>
         ) : (
-          <div className="border border-yellow-800/20 bg-yellow-950/10 p-12 text-center">
-            <p className="text-yellow-100/30 text-lg font-bold mb-2">No matchups available</p>
-            <p className="text-yellow-100/15 text-sm">There aren't enough projects to vote on yet. Check back later.</p>
+          <div className="bg-[#1c1b1b] rounded-xl ghost-border p-16 text-center max-w-2xl mx-auto">
+            <span className="material-symbols-outlined text-5xl text-stone-700 mb-4">how_to_vote</span>
+            <p className="text-stone-300 text-lg font-headline font-medium mb-2">No matchups available</p>
+            <p className="text-stone-500 text-sm">There aren't enough projects to vote on yet. Check back later.</p>
           </div>
         )}
       </div>

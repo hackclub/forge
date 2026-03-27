@@ -7,235 +7,209 @@ export default function LandingIndex() {
 
   return (
     <>
-      <Head title="Quarry — Build Hardware, Get Funded" />
+      <Head title="Forge — Build Hardware, Get Funded" />
 
-      <div
-        className="min-h-screen text-white relative"
-        style={{
-          backgroundColor: '#0e0c09',
-          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E")`,
-        }}
-      >
-        {/* Corner flourishes */}
-        <div className="absolute top-0 left-0 w-40 h-40 pointer-events-none">
-          <svg viewBox="0 0 160 160" fill="none" className="w-full h-full opacity-25">
-            <path d="M0 0 L60 0 L60 4 L4 4 L4 60 L0 60 Z" fill="#d4a017" />
-            <path d="M20 0 L20 20 L0 20" stroke="#d4a017" strokeWidth="0.5" fill="none" />
-          </svg>
-        </div>
-        <div className="absolute top-0 right-0 w-40 h-40 pointer-events-none scale-x-[-1]">
-          <svg viewBox="0 0 160 160" fill="none" className="w-full h-full opacity-25">
-            <path d="M0 0 L60 0 L60 4 L4 4 L4 60 L0 60 Z" fill="#d4a017" />
-            <path d="M20 0 L20 20 L0 20" stroke="#d4a017" strokeWidth="0.5" fill="none" />
-          </svg>
-        </div>
-        <div className="absolute bottom-0 left-0 w-40 h-40 pointer-events-none scale-y-[-1]">
-          <svg viewBox="0 0 160 160" fill="none" className="w-full h-full opacity-25">
-            <path d="M0 0 L60 0 L60 4 L4 4 L4 60 L0 60 Z" fill="#d4a017" />
-            <path d="M20 0 L20 20 L0 20" stroke="#d4a017" strokeWidth="0.5" fill="none" />
-          </svg>
-        </div>
-        <div className="absolute bottom-0 right-0 w-40 h-40 pointer-events-none scale-[-1]">
-          <svg viewBox="0 0 160 160" fill="none" className="w-full h-full opacity-25">
-            <path d="M0 0 L60 0 L60 4 L4 4 L4 60 L0 60 Z" fill="#d4a017" />
-            <path d="M20 0 L20 20 L0 20" stroke="#d4a017" strokeWidth="0.5" fill="none" />
-          </svg>
-        </div>
-
-        {/* Vignette */}
-        <div className="absolute inset-0 pointer-events-none" style={{
-          background: 'radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.6) 100%)',
-        }} />
-
-        {/* ── Nav ── */}
-        <nav className="relative z-10 flex items-center justify-between px-8 py-5 max-w-6xl mx-auto">
-          <div className="flex items-center gap-2.5">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className="text-yellow-600">
-              <path d="M12 2L4 8V16L12 22L20 16V8L12 2Z" stroke="currentColor" strokeWidth="1.5" fill="currentColor" fillOpacity="0.15" />
-              <circle cx="12" cy="12" r="3" fill="currentColor" />
-            </svg>
-            <span className="font-black tracking-[0.2em] uppercase text-yellow-600 text-sm">Quarry</span>
+      <div className="min-h-screen bg-[#0E0E0E] text-[#e5e2e1]">
+        {/* Top Navigation */}
+        <nav className="fixed top-0 right-0 w-full h-16 z-40 bg-[#0E0E0E]/80 backdrop-blur-xl border-b border-white/5 flex justify-between items-center px-8">
+          <div className="flex items-center gap-8">
+            <span className="text-2xl font-bold tracking-tighter text-[#FFB595] uppercase font-headline">Forge</span>
+            <div className="hidden md:flex gap-6 text-sm font-medium text-stone-400">
+              <a className="hover:text-white transition-colors" href="/explore">Explore</a>
+              <a className="hover:text-white transition-colors" href="/docs">Resources</a>
+            </div>
           </div>
-          <a
-            href={cta}
-            className="border border-yellow-700/50 hover:border-yellow-600 bg-yellow-800/10 hover:bg-yellow-800/20 text-yellow-400 hover:text-yellow-300 font-bold px-5 py-2 text-xs uppercase tracking-widest transition-all"
-          >
-            {shared.auth.user ? 'Dashboard' : 'Sign In'}
-          </a>
+          <div className="flex items-center gap-4">
+            {shared.auth.user ? (
+              <a
+                href="/home"
+                className="signature-smolder text-[#4c1a00] px-5 py-2 text-xs font-bold uppercase tracking-widest rounded-lg"
+              >
+                Dashboard
+              </a>
+            ) : (
+              <>
+                <a href={shared.sign_in_path} className="text-stone-400 hover:text-white transition-colors flex items-center gap-2 text-sm">
+                  <span className="material-symbols-outlined text-lg">login</span>
+                  Sign In
+                </a>
+                <a
+                  href={shared.sign_in_path}
+                  className="signature-smolder text-[#4c1a00] px-5 py-2 text-xs font-bold uppercase tracking-widest rounded-lg"
+                >
+                  Get Started
+                </a>
+              </>
+            )}
+          </div>
         </nav>
 
-        {/* ── Hero ── full width, centered, big impact */}
-        <section className="relative z-10 max-w-6xl mx-auto px-8 pt-24 pb-20 text-center">
-          <p className="text-yellow-100/25 text-sm mb-6 tracking-wide">Hack Club presents...</p>
+        <main className="pt-16">
+          {/* Hero Section */}
+          <section className="relative min-h-[85vh] flex flex-col justify-center px-8 md:px-24 overflow-hidden">
+            <div className="absolute top-1/4 -right-20 w-96 h-96 bg-[#ee671c]/10 blur-[120px] rounded-full" />
+            <div className="absolute bottom-1/4 -left-20 w-64 h-64 bg-[#7a2e25]/10 blur-[100px] rounded-full" />
 
-          <h1 className="text-8xl sm:text-9xl md:text-[11rem] font-black leading-[0.75] tracking-tighter mb-10">
-            <span className="bg-gradient-to-b from-yellow-200 via-yellow-500 to-yellow-800 bg-clip-text text-transparent">Quarry</span>
-          </h1>
-
-          <p className="text-yellow-100/70 text-xl sm:text-2xl font-bold leading-snug mb-3 max-w-2xl mx-auto">
-            Build any hardware project — get up to{' '}
-            <span className="text-yellow-300">$1,000</span> to make it real!
-          </p>
-          <p className="text-yellow-100/30 text-base leading-relaxed mb-10 max-w-lg mx-auto">
-            The more people vote for your project, the more funding you earn per hour. For ages 13 to 18.
-          </p>
-
-          <div className="flex items-center justify-center gap-5">
-            <a
-              href={cta}
-              className="relative bg-gradient-to-b from-yellow-500 to-yellow-700 hover:from-yellow-400 hover:to-yellow-600 text-[#1a1200] font-black px-10 py-4 text-sm uppercase tracking-[0.2em] transition-all shadow-[0_0_30px_rgba(180,130,20,0.15)] hover:shadow-[0_0_50px_rgba(180,130,20,0.35)] border border-yellow-500/30"
-            >
-              <span className="absolute top-0 left-0 w-2.5 h-2.5 border-t-2 border-l-2 border-yellow-400/50" />
-              <span className="absolute top-0 right-0 w-2.5 h-2.5 border-t-2 border-r-2 border-yellow-400/50" />
-              <span className="absolute bottom-0 left-0 w-2.5 h-2.5 border-b-2 border-l-2 border-yellow-400/50" />
-              <span className="absolute bottom-0 right-0 w-2.5 h-2.5 border-b-2 border-r-2 border-yellow-400/50" />
-              <span className="absolute top-0 left-[15%] right-[15%] h-px bg-gradient-to-r from-transparent via-yellow-300/60 to-transparent" />
-              <span className="relative z-10">Get Started</span>
-            </a>
-            <a
-              href="#how-it-works"
-              className="text-yellow-100/25 hover:text-yellow-100/50 font-bold text-sm uppercase tracking-[0.2em] transition-colors py-4"
-            >
-              Learn more &darr;
-            </a>
-          </div>
+            <div className="relative z-10 max-w-5xl">
 
 
-        </section>
-
-        {/* Divider */}
-        <div className="relative z-10 flex items-center gap-4 max-w-6xl mx-auto px-8">
-          <div className="flex-1 h-px bg-gradient-to-r from-transparent via-yellow-700/40 to-transparent" />
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="text-yellow-600/40">
-            <path d="M10 2L18 10L10 18L2 10Z" stroke="currentColor" strokeWidth="1.5" />
-            <circle cx="10" cy="10" r="2" fill="currentColor" />
-          </svg>
-          <div className="flex-1 h-px bg-gradient-to-r from-transparent via-yellow-700/40 to-transparent" />
-        </div>
-
-        {/* ── How it works ── horizontal timeline style */}
-        <section id="how-it-works" className="relative z-10">
-          <div className="max-w-6xl mx-auto px-8 py-20">
-            <h2 className="text-2xl sm:text-3xl font-black text-yellow-100/80 tracking-tight text-center mb-16">How it works</h2>
-
-            {/* Timeline connector */}
-            <div className="relative">
-              <div className="hidden sm:block absolute top-8 left-0 right-0 h-px bg-gradient-to-r from-transparent via-yellow-700/30 to-transparent" />
-
-              <div className="grid sm:grid-cols-3 gap-8">
-                {[
-                  { n: 'I', title: 'Stake your claim', desc: 'Design a circuit, solder a board, 3D print an enclosure — build a hardware project you\'re proud of.' },
-                  { n: 'II', title: 'Enter the pit', desc: 'Ship your project. It enters head-to-head matchups where hackclubbers votes on which build is better.' },
-                  { n: 'III', title: 'Strike gold', desc: 'Based on how your project did against other people your project recieves gold! (the more people that voted for you the more gold you get!)' },
-                ].map((step) => (
-                  <div key={step.n} className="text-center relative">
-                    {/* Node dot */}
-                    <div className="hidden sm:flex w-4 h-4 border-2 border-yellow-600/40 bg-[#0e0c09] mx-auto mb-6 rotate-45 items-center justify-center">
-                      <div className="w-1.5 h-1.5 bg-yellow-600/60" />
-                    </div>
-
-                    <div className="relative border border-yellow-800/30 bg-yellow-950/20 p-8 hover:border-yellow-700/50 transition-all group">
-                      <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-yellow-700/40 group-hover:border-yellow-600/60 transition-colors" />
-                      <div className="absolute top-0 right-0 w-3 h-3 border-t border-r border-yellow-700/40 group-hover:border-yellow-600/60 transition-colors" />
-                      <div className="absolute bottom-0 left-0 w-3 h-3 border-b border-l border-yellow-700/40 group-hover:border-yellow-600/60 transition-colors" />
-                      <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-yellow-700/40 group-hover:border-yellow-600/60 transition-colors" />
-                      <span className="text-yellow-700/30 text-4xl font-black leading-none block mb-4 font-serif">{step.n}</span>
-                      <h3 className="text-base font-black text-yellow-100/70 uppercase tracking-wider mb-3">{step.title}</h3>
-                      <p className="text-yellow-100/25 text-sm leading-relaxed">{step.desc}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Divider */}
-        <div className="relative z-10 flex items-center gap-4 max-w-6xl mx-auto px-8">
-          <div className="flex-1 h-px bg-gradient-to-r from-transparent via-yellow-700/40 to-transparent" />
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="text-yellow-600/40">
-            <path d="M10 2L18 10L10 18L2 10Z" stroke="currentColor" strokeWidth="1.5" />
-            <circle cx="10" cy="10" r="2" fill="currentColor" />
-          </svg>
-          <div className="flex-1 h-px bg-gradient-to-r from-transparent via-yellow-700/40 to-transparent" />
-        </div>
-
-        {/* ── The twist ── big dramatic section */}
-        <section className="relative z-10">
-          <div className="max-w-6xl mx-auto px-8 py-24">
-            <div className="text-center max-w-2xl mx-auto mb-16">
-              <p className="text-yellow-700/60 text-[10px] uppercase tracking-[0.4em] font-bold mb-4">The Twist</p>
-              <h2 className="text-3xl sm:text-5xl font-black tracking-tight mb-6">
-                <span className="text-yellow-100/80">Your funding isn't fixed.</span>
+              <h1 className="text-6xl md:text-8xl font-headline font-medium tracking-tighter leading-[0.9] mb-8">
+                Build hardware,{' '}
                 <br />
-                <span className="bg-gradient-to-b from-yellow-300 via-yellow-500 to-yellow-700 bg-clip-text text-transparent">It's earned.</span>
-              </h2>
-              <p className="text-yellow-100/30 text-base leading-relaxed">
-                Every builder votes on matchups between projects. An algorithm turns those votes into a ranking
-                that sets your hourly rate. The community decides what's valuable — not a panel of judges.
-                Keep shipping, keep climbing.
+                <span className="text-[#ee671c]">get funded.</span>
+              </h1>
+
+              <p className="text-lg md:text-xl text-stone-400 max-w-xl font-light leading-relaxed mb-12">
+                Up to <span className="text-[#ffb595] font-medium">$2,000</span> in grants for hardware projects. For ages 13 to 18.
               </p>
+
+              <div className="flex flex-col sm:flex-row gap-4 items-start">
+                <a
+                  href={cta}
+                  className="signature-smolder text-[#4c1a00] px-10 py-4 text-sm font-bold uppercase tracking-widest rounded-lg flex items-center gap-3 group"
+                >
+                  {shared.auth.user ? 'Go to Dashboard' : 'Apply for Funding'}
+                  <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                </a>
+                <a
+                  href="#how-it-works"
+                  className="bg-[#353534] text-[#e5e2e1] px-10 py-4 text-sm font-bold uppercase tracking-widest rounded-lg ghost-border hover:bg-[#3a3939] transition-colors btn-bracket"
+                >
+                  How It Works
+                </a>
+              </div>
             </div>
 
-            {/* Visual: matchup mockup */}
-            <div className="max-w-lg mx-auto">
-              <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4">
-                <div className="border border-yellow-800/25 bg-yellow-950/15 p-5 text-center">
-                  <div className="w-10 h-10 border border-yellow-700/20 bg-yellow-950/30 mx-auto mb-3" />
-                  <p className="text-yellow-100/40 text-xs font-bold">Project A</p>
-                  <p className="text-yellow-100/15 text-[10px] mt-1">by builder_1</p>
+            <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4 text-stone-600">
+              <span className="text-[10px] tracking-[0.3em] uppercase">Scroll to learn more</span>
+              <div className="w-[1px] h-12 bg-stone-600" />
+            </div>
+          </section>
+
+          {/* How It Works */}
+          <section id="how-it-works" className="px-8 md:px-24 py-32 bg-[#0e0e0e]">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 max-w-6xl mx-auto">
+              {/* Large Feature */}
+              <div className="md:col-span-8 group relative overflow-hidden bg-[#1c1b1b] rounded-xl ghost-border p-12 flex flex-col justify-between min-h-[400px]">
+                <div className="absolute top-0 right-0 p-8 opacity-20 group-hover:opacity-40 transition-opacity">
+                  <span className="material-symbols-outlined text-9xl">hardware</span>
                 </div>
-                <div className="w-10 h-10 border border-yellow-800/30 bg-[#0e0c09] flex items-center justify-center rotate-45">
-                  <span className="text-yellow-600/50 text-[10px] font-black -rotate-45">VS</span>
+                <div>
+                  <h3 className="text-3xl font-headline font-medium mb-4 text-[#ffb595]">Real Hardware Only.</h3>
+                  <p className="text-stone-400 max-w-md leading-relaxed">
+                    Forge is for builders who solder, 3D print, laser cut, and wire things together. Circuits, robots, custom PCBs, mechanical builds — if you can hold it in your hands, it belongs here.
+                  </p>
                 </div>
-                <div className="border border-yellow-800/25 bg-yellow-950/15 p-5 text-center">
-                  <div className="w-10 h-10 border border-yellow-700/20 bg-yellow-950/30 mx-auto mb-3" />
-                  <p className="text-yellow-100/40 text-xs font-bold">Project B</p>
-                  <p className="text-yellow-100/15 text-[10px] mt-1">by builder_2</p>
+                <div className="flex gap-4 items-center">
+                  <span className="text-xs font-bold tracking-widest uppercase text-stone-500">Popular builds:</span>
+                  <div className="flex gap-2">
+                    <span className="px-2 py-1 bg-[#2a2a2a] text-[10px] rounded text-stone-300">PCBs</span>
+                    <span className="px-2 py-1 bg-[#2a2a2a] text-[10px] rounded text-stone-300">Robotics</span>
+                    <span className="px-2 py-1 bg-[#2a2a2a] text-[10px] rounded text-stone-300">3D Prints</span>
+                  </div>
                 </div>
               </div>
-              <p className="text-center text-yellow-100/12 text-xs mt-6 tracking-wide">
-                You pick the winner. Votes shape the leaderboard. The leaderboard shapes funding.
-              </p>
+
+              {/* Stat card */}
+              <div className="md:col-span-4 bg-[#2a2a2a] rounded-xl ghost-border p-8 flex flex-col justify-center items-center text-center">
+                <span className="text-5xl font-headline font-bold text-[#e5e2e1] mb-2">$1,000</span>
+                <span className="text-xs tracking-widest uppercase text-[#ffb595] font-bold">Max Grant per Project</span>
+                <p className="text-sm text-stone-500 mt-4 px-4">Equity-free. No strings. Just build and document.</p>
+              </div>
+
+              {/* Review card */}
+              <div className="md:col-span-4 bg-[#1c1b1b] rounded-xl ghost-border p-8 flex flex-col justify-between group hover:bg-[#2a2a2a] transition-colors">
+                <div className="w-10 h-10 rounded-lg signature-smolder flex items-center justify-center">
+                  <span className="material-symbols-outlined text-[#4c1a00]">verified</span>
+                </div>
+                <div>
+                  <h4 className="font-headline font-bold uppercase tracking-tight mb-2">Expert Review</h4>
+                  <p className="text-sm text-stone-400">Our team reviews your project submissions and provides feedback to help you improve and get funded.</p>
+                </div>
+              </div>
+
+              {/* Documentation */}
+              <div className="md:col-span-8 bg-[#1c1b1b] rounded-xl ghost-border overflow-hidden flex flex-col md:flex-row">
+                <div className="p-10 flex-1">
+                  <h3 className="text-2xl font-headline font-medium mb-4">Document Your Build.</h3>
+                  <p className="text-sm text-stone-400 leading-relaxed mb-6">
+                    Ship updates as you go. Log your progress, share your process, and show the world what you're building. The better you document, the more you earn.
+                  </p>
+                  <a className="text-xs font-bold uppercase tracking-widest text-[#ffb595] flex items-center gap-2" href="/explore">
+                    See live projects
+                    <span className="material-symbols-outlined text-sm">open_in_new</span>
+                  </a>
+                </div>
+                <div className="w-full md:w-1/3 h-48 md:h-auto bg-[#2a2a2a] relative overflow-hidden flex items-center justify-center">
+                  <span className="material-symbols-outlined text-8xl text-stone-700">description</span>
+                </div>
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
 
-        {/* Divider */}
-        <div className="relative z-10 flex items-center gap-4 max-w-6xl mx-auto px-8">
-          <div className="flex-1 h-px bg-gradient-to-r from-transparent via-yellow-700/40 to-transparent" />
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="text-yellow-600/40">
-            <path d="M10 2L18 10L10 18L2 10Z" stroke="currentColor" strokeWidth="1.5" />
-            <circle cx="10" cy="10" r="2" fill="currentColor" />
-          </svg>
-          <div className="flex-1 h-px bg-gradient-to-r from-transparent via-yellow-700/40 to-transparent" />
-        </div>
+          {/* CTA Section */}
+          <section className="py-40 px-8 flex flex-col items-center text-center relative">
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-[1px] bg-[#ffb595]/20" />
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-full w-[1px] bg-[#ffb595]/20" />
+            </div>
+            <div className="max-w-2xl relative z-10">
+              <h2 className="text-4xl md:text-5xl font-headline font-medium mb-8 leading-tight">
+                Ready to start{' '}
+                <br />
+                <span className="text-stone-600">building</span> something <span className="text-[#e5e2e1]">real?</span>
+              </h2>
+              <p className="text-stone-400 mb-12 leading-relaxed">
+                Sign in with Slack to register your project and start earning. All you need is an idea and the willingness to build it.
+              </p>
+              <div className="flex flex-col sm:flex-row justify-center gap-4">
+                <a
+                  href={cta}
+                  className="signature-smolder text-[#4c1a00] px-12 py-5 text-sm font-bold uppercase tracking-[0.2em] rounded-lg shadow-xl shadow-[#ee671c]/20"
+                >
+                  {shared.auth.user ? 'Go to Dashboard' : 'Get Started'}
+                </a>
+                <a
+                  href="/docs"
+                  className="bg-[#1c1b1b] text-[#e5e2e1] px-12 py-5 text-sm font-bold uppercase tracking-[0.2em] rounded-lg ghost-border btn-bracket"
+                >
+                  Read the Docs
+                </a>
+              </div>
+            </div>
+          </section>
 
-        {/* ── CTA ── */}
-        <section className="relative z-10">
-          <div className="max-w-6xl mx-auto px-8 py-24 text-center">
-            <h2 className="text-3xl sm:text-4xl font-black text-yellow-100/80 tracking-tight mb-4">Ready to dig in?</h2>
-            <p className="text-yellow-100/25 text-base mb-10 max-w-md mx-auto">
-              Sign in with Slack to register your project and start earning.
-            </p>
-            <a
-              href={cta}
-              className="relative inline-block bg-gradient-to-b from-yellow-500 to-yellow-700 hover:from-yellow-400 hover:to-yellow-600 text-[#1a1200] font-black px-12 py-4 text-base uppercase tracking-[0.2em] transition-all shadow-[0_0_40px_rgba(180,130,20,0.15)] hover:shadow-[0_0_60px_rgba(180,130,20,0.3)] border border-yellow-500/30"
-            >
-              <span className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-yellow-400/50" />
-              <span className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-yellow-400/50" />
-              <span className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-yellow-400/50" />
-              <span className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-yellow-400/50" />
-              <span className="absolute top-0 left-[15%] right-[15%] h-px bg-gradient-to-r from-transparent via-yellow-300/60 to-transparent" />
-              <span className="relative z-10">Enter the Quarry</span>
-            </a>
-          </div>
-        </section>
-
-        {/* ── Footer ── */}
-        <footer className="relative z-10 border-t border-yellow-900/30 py-6 text-center text-yellow-100/12 text-[10px] uppercase tracking-[0.4em] font-bold">
-          Quarry &mdash; A Hack Club Event
-        </footer>
+          {/* Footer */}
+          <footer className="border-t border-white/5 py-16 px-8 md:px-24 bg-[#0e0e0e]">
+            <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-start gap-12">
+              <div className="flex flex-col gap-6">
+                <span className="text-2xl font-bold tracking-tighter text-[#FFB595] uppercase font-headline">Forge</span>
+                <p className="text-xs text-stone-500 max-w-xs leading-loose font-light">
+                  Forge is a Hack Club event where teen builders get funded for their hardware projects.
+                </p>
+              </div>
+              <div className="grid grid-cols-2 gap-16">
+                <div className="flex flex-col gap-4">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-[#ffb595]">Navigate</span>
+                  <a className="text-xs text-stone-500 hover:text-white transition-colors" href="/explore">Explore</a>
+                  <a className="text-xs text-stone-500 hover:text-white transition-colors" href="/docs">Resources</a>
+                </div>
+                <div className="flex flex-col gap-4">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-[#ffb595]">Hack Club</span>
+                  <a className="text-xs text-stone-500 hover:text-white transition-colors" href="https://hackclub.com" target="_blank" rel="noopener">Website</a>
+                  <a className="text-xs text-stone-500 hover:text-white transition-colors" href="https://hackclub.com/slack" target="_blank" rel="noopener">Slack</a>
+                </div>
+              </div>
+            </div>
+            <div className="max-w-6xl mx-auto mt-24 flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] tracking-widest text-stone-700 uppercase font-bold">
+              <span>&copy; {new Date().getFullYear()} Forge &mdash; A Hack Club Event</span>
+              <span className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-green-500/50" />
+                Systems Nominal
+              </span>
+            </div>
+          </footer>
+        </main>
       </div>
     </>
   )

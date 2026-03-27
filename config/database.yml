@@ -6,11 +6,11 @@ default: &default
 
 development:
   <<: *default
-  database: quarry_development
+  database: forge_development
 
 test:
   <<: *default
-  database: quarry_test
+  database: forge_test
 
 production:
   <<: *default

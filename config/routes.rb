@@ -102,11 +102,31 @@ Rails.application.routes.draw do
   end
 
   constraints AdminConstraint.new do
-    mount MissionControl::Jobs::Engine, at: "/jobs"
+    mount MissionControl::Jobs::Engine, at: "/admin/jobs"
 
     namespace :admin do
-      resources :projects, only: [ :index, :show ]
-      resources :users, only: [ :index, :show ]
+      resources :projects, only: [ :index, :show, :destroy ] do
+        member do
+          post :review
+          post :restore
+        end
+      end
+      resources :users, only: [ :index, :show, :destroy ] do
+        member do
+          patch :update_roles
+          patch :update_permissions
+          post :restore
+          post :ban
+          post :unban
+        end
+      end
+      resources :feature_flags, only: [ :index, :create, :destroy ] do
+        member do
+          post :toggle
+        end
+      end
+      get "audit_log" => "audit_log#index", as: :audit_log
+      get "audit_log/:id" => "audit_log#show", as: :audit_log_entry
     end
   end
 
@@ -123,11 +143,16 @@ Rails.application.routes.draw do
   get "home" => "home#index", as: :home
 
   get "explore" => "explore#index", as: :explore
-  get "vote" => "vote#index", as: :vote
-  post "vote" => "vote#create"
   get "shop" => "shop#index", as: :shop
 
-  resources :projects
+  resources :projects do
+    collection do
+      post :import_from_github
+    end
+    member do
+      post :submit_for_review
+    end
+  end
 
   get "docs" => "markdown#show", as: :docs
   get "docs/*slug" => "markdown#show", as: :doc

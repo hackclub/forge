@@ -5,6 +5,8 @@ class BansController < ApplicationController
   def show
     return redirect_to root_path unless current_user&.is_banned?
 
-    render inertia: "Bans/Show"
+    render inertia: "Bans/Show", props: {
+      ban_reason: current_user.ban_reason
+    }
   end
 end

@@ -7,14 +7,16 @@ export default function FlashMessages() {
   if (!flash.notice && !flash.alert) return null
 
   return (
-    <div className="px-6 pt-4">
+    <div className="px-12 pt-6">
       {flash.notice && (
-        <div className="border border-green-800/30 bg-green-950/20 text-green-400/80 px-4 py-3 text-sm mb-2">
+        <div className="ghost-border bg-emerald-500/10 text-emerald-400 px-4 py-3 text-sm rounded-lg mb-2 flex items-center gap-2">
+          <span className="material-symbols-outlined text-lg">check_circle</span>
           {flash.notice}
         </div>
       )}
       {flash.alert && (
-        <div className="border border-red-800/30 bg-red-950/20 text-red-400/80 px-4 py-3 text-sm mb-2">
+        <div className="ghost-border bg-red-500/10 text-red-400 px-4 py-3 text-sm rounded-lg mb-2 flex items-center gap-2">
+          <span className="material-symbols-outlined text-lg">error</span>
           {flash.alert}
         </div>
       )}

@@ -32,75 +32,83 @@ export default function ExploreIndex({
 
   return (
     <>
-      <Head title="Explore — Quarry" />
-      <div className="max-w-5xl mx-auto px-6 py-10">
-        <div className="mb-10">
-          <p className="text-yellow-700/60 text-[10px] uppercase tracking-[0.4em] font-bold mb-2">The Quarry</p>
-          <h1 className="text-3xl font-black text-yellow-100/90 tracking-tight mb-2">Explore Projects</h1>
-          <p className="text-yellow-100/25 text-sm">See what builders are working on.</p>
-        </div>
-
-        <form onSubmit={search} className="mb-8">
-          <div className="flex gap-3">
-            <input
-              type="search"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search projects..."
-              className="flex-1 bg-yellow-950/20 border border-yellow-800/30 text-yellow-100/80 placeholder-yellow-100/15 focus:border-yellow-600/50 focus:outline-none px-4 py-2.5 text-sm"
-            />
-            <button
-              type="submit"
-              className="border border-yellow-800/40 hover:border-yellow-600/50 text-yellow-100/40 hover:text-yellow-400 font-bold px-6 py-2.5 text-sm uppercase tracking-wider transition-all"
-            >
-              Search
-            </button>
+      <Head title="Explore — Forge" />
+      <div className="p-12 max-w-[1400px] mx-auto">
+        {/* Header */}
+        <section className="mb-12">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+            <div className="max-w-2xl">
+              <h1 className="text-5xl font-headline font-medium tracking-tight mb-4">
+                Forge <span className="text-[#ffb595]">Dashboard</span>
+              </h1>
+              <p className="text-stone-400 text-lg leading-relaxed">
+                Discover other Hackclubbers working on hardware projects!
+              </p>
+            </div>
+            <form onSubmit={search} className="flex gap-2 w-full md:w-auto">
+              <input
+                type="search"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search projects..."
+                className="bg-[#0e0e0e] border-none rounded-lg px-4 py-2 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 w-full md:w-64"
+              />
+              <button
+                type="submit"
+                className="bg-[#2a2a2a] text-[#e5e2e1] px-6 py-2 rounded-lg text-sm font-medium hover:bg-[#3a3939] transition-colors border border-white/5"
+              >
+                Search
+              </button>
+            </form>
           </div>
-        </form>
+        </section>
 
         {projects.length > 0 ? (
           <>
-            <div className="grid sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {projects.map((project) => (
                 <Link
                   key={project.id}
                   href={`/projects/${project.id}`}
-                  className="block border border-yellow-800/20 bg-yellow-950/10 p-6 hover:border-yellow-700/40 transition-all group relative"
+                  className="group bg-[#1c1b1b] p-1 rounded-xl transition-all duration-300 hover:bg-[#2a2a2a] ghost-border"
                 >
-                  <span className="absolute top-0 left-0 w-2 h-2 border-t border-l border-yellow-700/30 group-hover:border-yellow-600/50 transition-colors" />
-                  <span className="absolute top-0 right-0 w-2 h-2 border-t border-r border-yellow-700/30 group-hover:border-yellow-600/50 transition-colors" />
-                  <span className="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-yellow-700/30 group-hover:border-yellow-600/50 transition-colors" />
-                  <span className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-yellow-700/30 group-hover:border-yellow-600/50 transition-colors" />
-
-                  <div className="flex items-start gap-3 mb-3">
-                    <img
-                      src={project.user_avatar}
-                      alt={project.user_display_name}
-                      className="w-8 h-8 border border-yellow-800/30 shrink-0 mt-0.5"
-                    />
-                    <div className="min-w-0">
-                      <h2 className="font-black text-yellow-100/80 group-hover:text-yellow-100/95 transition-colors truncate">{project.name}</h2>
-                      <p className="text-yellow-100/25 text-xs">by {project.user_display_name}</p>
-                    </div>
+                  <div className="aspect-[16/10] overflow-hidden rounded-lg mb-4 bg-[#0e0e0e] flex items-center justify-center">
+                    <span className="material-symbols-outlined text-6xl text-stone-800 group-hover:text-stone-700 transition-colors">precision_manufacturing</span>
                   </div>
 
-                  {project.description && (
-                    <p className="text-yellow-100/20 text-sm leading-relaxed line-clamp-2 mb-3">{project.description}</p>
-                  )}
-
-                  {project.tags.length > 0 && (
-                    <div className="flex gap-2 flex-wrap mb-3">
-                      {project.tags.map((tag) => (
-                        <span key={tag} className="text-[10px] uppercase tracking-wider text-yellow-600/50 border border-yellow-800/20 px-2 py-0.5">
-                          {tag}
+                  <div className="px-5 pb-5">
+                    <div className="flex justify-between items-start mb-3">
+                      {project.tags.length > 0 ? (
+                        <span className="text-xs uppercase tracking-widest text-stone-300 bg-[#353534] px-3 py-1 rounded-full">
+                          {project.tags[0]}
                         </span>
-                      ))}
+                      ) : (
+                        <span className="text-xs uppercase tracking-widest text-stone-500 bg-[#353534] px-3 py-1 rounded-full">
+                          Project
+                        </span>
+                      )}
+                      <span className="text-stone-500 text-xs">{project.ships_count} ships</span>
                     </div>
-                  )}
 
-                  <div className="flex items-center justify-between text-[10px] uppercase tracking-wider text-yellow-100/15">
-                    <span>{project.ships_count} ships</span>
-                    <span>{project.created_at}</span>
+                    <h3 className="text-xl font-headline font-medium mb-2 group-hover:text-[#ffb595] transition-colors">
+                      {project.name}
+                    </h3>
+
+                    {project.description && (
+                      <p className="text-stone-500 text-sm mb-4 line-clamp-2">{project.description}</p>
+                    )}
+
+                    <div className="flex justify-between items-center pt-2">
+                      <div className="flex items-center gap-2">
+                        <img
+                          src={project.user_avatar}
+                          alt={project.user_display_name}
+                          className="w-6 h-6 rounded-full border border-white/10"
+                        />
+                        <span className="text-xs text-stone-400">{project.user_display_name}</span>
+                      </div>
+                      <span className="material-symbols-outlined text-lg text-stone-400 group-hover:text-[#ffb595] transition-colors">arrow_forward</span>
+                    </div>
                   </div>
                 </Link>
               ))}
@@ -109,12 +117,13 @@ export default function ExploreIndex({
             <Pagination pagy={pagy} />
           </>
         ) : (
-          <div className="border border-yellow-800/20 bg-yellow-950/10 p-12 text-center">
-            <p className="text-yellow-100/30 text-lg font-bold mb-2">
+          <div className="bg-[#1c1b1b] rounded-xl ghost-border p-16 text-center">
+            <span className="material-symbols-outlined text-5xl text-stone-700 mb-4">search_off</span>
+            <p className="text-stone-300 text-lg font-headline font-medium mb-2">
               {query ? 'No projects found' : 'No projects yet'}
             </p>
-            <p className="text-yellow-100/15 text-sm">
-              {query ? 'Try a different search term.' : 'Be the first to stake a claim.'}
+            <p className="text-stone-500 text-sm">
+              {query ? 'Try a different search term.' : 'Be the first to submit a project.'}
             </p>
           </div>
         )}

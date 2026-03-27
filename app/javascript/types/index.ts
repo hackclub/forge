@@ -29,12 +29,14 @@ export interface PagyProps {
   prev: number | null
 }
 
+export type ProjectStatus = 'draft' | 'pending' | 'approved' | 'returned' | 'rejected'
+
 export interface ProjectCard {
   id: number
   name: string
   description: string | null
-  is_unlisted: boolean
   tags: string[]
+  status: ProjectStatus
   user_display_name: string
   ships_count: number
 }
@@ -43,10 +45,10 @@ export interface ProjectDetail {
   id: number
   name: string
   description: string | null
-  demo_link: string | null
   repo_link: string | null
-  is_unlisted: boolean
   tags: string[]
+  status: ProjectStatus
+  review_feedback: string | null
   user_display_name: string
   created_at: string
 }
@@ -55,9 +57,7 @@ export interface ProjectForm {
   id?: number
   name: string
   description: string
-  demo_link: string
   repo_link: string
-  is_unlisted: boolean
   tags: string[]
 }
 
@@ -67,6 +67,7 @@ export interface AdminUserRow {
   email: string
   roles: string[]
   projects_count: number
+  is_banned: boolean
   is_discarded: boolean
   created_at: string
 }
@@ -77,8 +78,10 @@ export interface AdminUserDetail {
   email: string
   avatar: string
   roles: string[]
+  permissions: string[]
   timezone: string
   is_banned: boolean
+  ban_reason: string | null
   is_discarded: boolean
   discarded_at: string | null
   created_at: string
@@ -87,10 +90,10 @@ export interface AdminUserDetail {
 export interface AdminProjectRow {
   id: number
   name: string
+  status: ProjectStatus
   user_id: number
   user_display_name: string
   ships_count: number
-  is_unlisted: boolean
   is_discarded: boolean
   created_at: string
 }
@@ -99,14 +102,17 @@ export interface AdminProjectDetail {
   id: number
   name: string
   description: string | null
-  demo_link: string | null
   repo_link: string | null
-  is_unlisted: boolean
   tags: string[]
+  status: ProjectStatus
+  review_feedback: string | null
+  reviewed_at: string | null
+  reviewer_display_name: string | null
   is_discarded: boolean
   discarded_at: string | null
   user_id: number
   user_display_name: string
+  created_at: string
 }
 
 export interface AdminShipRow {

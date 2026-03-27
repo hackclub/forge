@@ -4,12 +4,14 @@
 #
 #  id                  :bigint           not null, primary key
 #  avatar              :string           not null
+#  ban_reason          :text
 #  discarded_at        :datetime
 #  display_name        :string           not null
 #  email               :string           not null
 #  hca_token           :text
 #  is_adult            :boolean          default(FALSE), not null
 #  is_banned           :boolean          default(FALSE), not null
+#  permissions         :string           default([]), not null, is an Array
 #  roles               :string           default([]), not null, is an Array
 #  timezone            :string           not null
 #  verification_status :string
@@ -72,6 +74,29 @@ class User < ApplicationRecord
 
   def staff?
     admin? || reviewer?
+  end
+
+  AVAILABLE_PERMISSIONS = %w[
+    pending_reviews
+    projects
+    users
+    ships
+    feature_flags
+    audit_log
+    jobs
+    third_party
+  ].freeze
+
+  def has_permission?(perm)
+    admin? || permissions.include?(perm.to_s)
+  end
+
+  def grant_permission(perm)
+    self.permissions |= [ perm.to_s ]
+  end
+
+  def revoke_permission(perm)
+    permissions.delete(perm.to_s)
   end
 
   def self.exchange_hca_token(code, redirect_uri)
