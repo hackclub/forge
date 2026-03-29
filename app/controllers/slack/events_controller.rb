@@ -7,15 +7,17 @@ class Slack::EventsController < ApplicationController
   def create
     payload = JSON.parse(request.body.read)
 
-    case payload["type"]
-    when "url_verification"
-      render json: { challenge: payload["challenge"] }
-    when "event_callback"
+    return render json: { challenge: payload["challenge"] } if payload["type"] == "url_verification"
+
+    if payload["type"] == "event_callback"
+      event_id = payload["event_id"]
+      return head(:ok) if Rails.cache.read("slack_event:#{event_id}")
+      Rails.cache.write("slack_event:#{event_id}", true, expires_in: 5.minutes)
+
       handle_event(payload["event"])
-      head :ok
-    else
-      head :ok
     end
+
+    head :ok
   end
 
   private

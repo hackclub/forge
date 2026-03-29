@@ -1,5 +1,5 @@
 class ProjectsController < ApplicationController
-  before_action :set_project, only: %i[show edit update destroy submit_for_review sync_journal]
+  before_action :set_project, only: %i[show edit update destroy submit_for_review sync_journal set_devlog_mode link_repo]
 
   def index
     scope = policy_scope(Project).includes(:user, :ships)
@@ -166,8 +166,34 @@ class ProjectsController < ApplicationController
       return
     end
 
-    SyncJournalJob.perform_later(@project.id)
-    redirect_to @project, notice: "Syncing JOURNAL.md from your repo..."
+    if params[:clear] == "true"
+      @project.devlogs.delete_all
+    end
+
+    SyncJournalJob.perform_now(@project.id)
+    redirect_to @project, notice: "Journal synced."
+  end
+
+  def set_devlog_mode
+    authorize @project, :update?
+    mode = params[:devlog_mode]
+    unless %w[website git].include?(mode)
+      redirect_to @project, alert: "Invalid devlog mode."
+      return
+    end
+    @project.update!(devlog_mode: mode)
+    redirect_to @project, notice: mode == "git" ? "Git-based devlogging enabled. Link your repo and add a JOURNAL.md file." : "Website devlogging enabled."
+  end
+
+  def link_repo
+    authorize @project, :update?
+    repo_url = params[:repo_link].to_s.strip
+    if repo_url.blank? || !repo_url.match?(/\Ahttps?:\/\/\S+\z/i)
+      redirect_to @project, alert: "Enter a valid repository URL."
+      return
+    end
+    @project.update!(repo_link: repo_url)
+    redirect_to @project, notice: "Repository linked."
   end
 
   def submit_for_review
@@ -220,6 +246,7 @@ class ProjectsController < ApplicationController
       repo_link: project.repo_link,
       tags: project.tags,
       status: project.status,
+      devlog_mode: project.devlog_mode,
       review_feedback: project.review_feedback,
       user_display_name: project.user.display_name,
       created_at: project.created_at.strftime("%B %d, %Y")

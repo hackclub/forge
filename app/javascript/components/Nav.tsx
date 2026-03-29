@@ -37,10 +37,10 @@ export default function Nav() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`px-4 py-3 flex items-center gap-3 transition-all duration-150 font-headline font-medium tracking-tight ${
+                className={`px-4 py-3 flex items-center gap-3 transition-all duration-150 font-headline font-medium tracking-tight corner-accents ${
                   isActive
-                    ? 'text-[#FFB595] bg-[#353534] rounded-md'
-                    : 'text-stone-500 hover:text-stone-200 hover:bg-[#353534] rounded-md'
+                    ? 'text-[#FFB595] bg-[#353534]'
+                    : 'text-stone-500 hover:text-stone-200 hover:bg-[#353534]'
                 }`}
               >
                 <span
@@ -57,7 +57,7 @@ export default function Nav() {
           {shared.auth.user?.is_admin && (
             <Link
               href="/admin"
-              className={`px-4 py-3 flex items-center gap-3 transition-all duration-150 font-headline font-medium tracking-tight rounded-md ${
+              className={`px-4 py-3 flex items-center gap-3 transition-all duration-150 font-headline font-medium tracking-tight corner-accents ${
                 currentPath.startsWith('/admin')
                   ? 'text-[#FFB595] bg-[#353534]'
                   : 'text-stone-500 hover:text-stone-200 hover:bg-[#353534]'

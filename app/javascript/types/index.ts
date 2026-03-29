@@ -48,6 +48,7 @@ export interface ProjectDetail {
   repo_link: string | null
   tags: string[]
   status: ProjectStatus
+  devlog_mode: 'website' | 'git' | null
   review_feedback: string | null
   user_display_name: string
   created_at: string

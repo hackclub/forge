@@ -154,6 +154,8 @@ Rails.application.routes.draw do
     member do
       post :submit_for_review
       post :sync_journal
+      patch :set_devlog_mode
+      patch :link_repo
     end
     resources :devlogs, only: [ :create, :destroy ]
   end

@@ -4,6 +4,7 @@
 #
 #  id               :bigint           not null, primary key
 #  description      :text
+#  devlog_mode      :string
 #  discarded_at     :datetime
 #  name             :string           not null
 #  pitch_text       :text
