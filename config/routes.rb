@@ -153,6 +153,7 @@ Rails.application.routes.draw do
     end
     member do
       post :submit_for_review
+      post :submit_build
       post :sync_journal
       patch :set_devlog_mode
       patch :link_repo

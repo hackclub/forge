@@ -6,6 +6,7 @@
 #  description      :text
 #  devlog_mode      :string
 #  discarded_at     :datetime
+#  hcb_grant_link   :string
 #  name             :string           not null
 #  pitch_text       :text
 #  repo_link        :string
@@ -45,7 +46,7 @@ class Project < ApplicationRecord
   has_many :ships, dependent: :destroy
   has_many :devlogs, dependent: :destroy
 
-  enum :status, { draft: 0, pending: 1, approved: 2, returned: 3, rejected: 4 }
+  enum :status, { draft: 0, pending: 1, approved: 2, returned: 3, rejected: 4, build_pending: 5, build_approved: 6 }
 
   validates :name, presence: true
   validates :repo_link, format: { with: /\Ahttps?:\/\/\S+\z/i, message: "must be a valid URL starting with http:// or https://" }, allow_blank: true
@@ -54,6 +55,10 @@ class Project < ApplicationRecord
 
   def submit_for_review!
     update!(status: :pending)
+  end
+
+  def submit_build_for_review!
+    update!(status: :build_pending)
   end
 
   def reviewable?

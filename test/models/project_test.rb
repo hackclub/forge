@@ -6,6 +6,7 @@
 #  description      :text
 #  devlog_mode      :string
 #  discarded_at     :datetime
+#  hcb_grant_link   :string
 #  name             :string           not null
 #  pitch_text       :text
 #  repo_link        :string

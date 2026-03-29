@@ -19,7 +19,9 @@ class Admin::ProjectsController < Admin::ApplicationController
         approved: policy_scope(Project).approved.count,
         returned: policy_scope(Project).returned.count,
         rejected: policy_scope(Project).rejected.count,
-        draft: policy_scope(Project).draft.count
+        draft: policy_scope(Project).draft.count,
+        build_pending: policy_scope(Project).build_pending.count,
+        build_approved: policy_scope(Project).build_approved.count
       }
     }
   end
@@ -75,6 +77,15 @@ class Admin::ProjectsController < Admin::ApplicationController
     when "draft"
       @project.update!(status: :draft, reviewer: current_user, reviewed_at: Time.current, review_feedback: feedback)
       redirect_to admin_project_path(@project), notice: "Project reverted to draft."
+    when "approve_build"
+      hcb_link = params[:hcb_grant_link].to_s.strip
+      @project.update!(status: :build_approved, reviewer: current_user, reviewed_at: Time.current, review_feedback: feedback, hcb_grant_link: hcb_link.presence)
+      notify_slack_decision(@project, "build approved! :tada:", feedback)
+      redirect_to admin_project_path(@project), notice: "Build approved."
+    when "return_build"
+      @project.update!(status: :approved, reviewer: current_user, reviewed_at: Time.current, review_feedback: feedback)
+      notify_slack_decision(@project, "build returned for more work", feedback)
+      redirect_to admin_project_path(@project), notice: "Build returned to builder."
     else
       redirect_to admin_project_path(@project), alert: "Invalid review decision."
     end
@@ -132,6 +143,7 @@ class Admin::ProjectsController < Admin::ApplicationController
       is_discarded: project.discarded?,
       discarded_at: project.discarded_at&.strftime("%b %d, %Y"),
       pitch_text: project.pitch_text,
+      hcb_grant_link: project.hcb_grant_link,
       from_slack: project.slack_message_ts.present?,
       user_id: project.user_id,
       user_display_name: project.user.display_name,

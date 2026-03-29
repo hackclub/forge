@@ -27,6 +27,8 @@ const statusConfig: Record<ProjectStatus, { label: string; bg: string; text: str
   approved: { label: 'Approved', bg: 'bg-emerald-500/10', text: 'text-emerald-400', icon: 'check_circle' },
   returned: { label: 'Returned', bg: 'bg-orange-500/10', text: 'text-orange-400', icon: 'undo' },
   rejected: { label: 'Rejected', bg: 'bg-red-500/10', text: 'text-red-400', icon: 'cancel' },
+  build_pending: { label: 'Build Under Review', bg: 'bg-amber-500/10', text: 'text-amber-400', icon: 'engineering' },
+  build_approved: { label: 'Build Approved', bg: 'bg-emerald-500/10', text: 'text-emerald-400', icon: 'verified' },
 }
 
 export default function ProjectsShow({
@@ -83,6 +85,7 @@ export default function ProjectsShow({
 
   const status = statusConfig[project.status]
   const isApproved = project.status === 'approved'
+  const isBuildingPhase = isApproved || project.status === 'build_pending' || project.status === 'build_approved'
   const needsDevlogChoice = isApproved && !project.devlog_mode && can.update
   const isGitMode = project.devlog_mode === 'git'
   const isWebMode = project.devlog_mode === 'website'
@@ -228,7 +231,7 @@ export default function ProjectsShow({
           )}
 
           {/* Devlogs — Git mode */}
-          {isApproved && isGitMode && (
+          {isBuildingPhase && isGitMode && (
             <section className="mb-12">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-headline font-bold text-[#e5e2e1] tracking-tight">Journal</h2>
@@ -303,7 +306,7 @@ export default function ProjectsShow({
           )}
 
           {/* Devlogs — Website mode */}
-          {isApproved && isWebMode && (
+          {isBuildingPhase && isWebMode && (
             <section className="mb-12">
               <div className="flex items-center justify-between mb-6">
                 <div>
@@ -432,20 +435,63 @@ export default function ProjectsShow({
             </div>
           )}
 
-          {/* Approved message */}
+          {/* Approved — building */}
           {isApproved && (
             <div className="bg-emerald-500/5 ghost-border p-8">
               <div className="flex items-center gap-2 mb-3">
                 <span className="material-symbols-outlined text-emerald-400 text-lg">check_circle</span>
                 <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-400 font-headline">Approved — Start Building!</h4>
               </div>
-              <p className="text-stone-400 text-sm">
+              <p className="text-stone-400 text-sm mb-4">
                 {!project.devlog_mode
                   ? 'Choose your devlog method below to get started.'
                   : project.devlog_mode === 'git'
                     ? 'Document your progress in JOURNAL.md and sync it here.'
                     : 'Add devlog entries to document your progress.'}
               </p>
+              {can.update && project.devlog_mode && devlogs.length > 0 && (
+                <button
+                  onClick={() => { if (confirm('Submit your build for review? Make sure your devlog is complete.')) router.post(`/projects/${project.id}/submit_build`) }}
+                  className="w-full signature-smolder text-[#4c1a00] font-headline font-bold py-3 uppercase tracking-wider active:scale-95 transition-transform flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-lg">send</span>
+                  Submit Build for Review
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Build under review */}
+          {project.status === 'build_pending' && (
+            <div className="bg-amber-500/5 ghost-border p-8">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="material-symbols-outlined text-amber-400 text-lg">engineering</span>
+                <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-amber-400 font-headline">Build Under Review</h4>
+              </div>
+              <p className="text-stone-400 text-sm">Your build is being reviewed. You'll hear back in Slack once a decision is made.</p>
+            </div>
+          )}
+
+          {/* Build approved — HCB grant */}
+          {project.status === 'build_approved' && (
+            <div className="bg-emerald-500/5 ghost-border p-8">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="material-symbols-outlined text-emerald-400 text-lg">verified</span>
+                <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-400 font-headline">Build Approved!</h4>
+              </div>
+              <p className="text-stone-400 text-sm mb-4">Your build has been approved and your grant is ready.</p>
+              {project.hcb_grant_link && (
+                <a
+                  href={project.hcb_grant_link}
+                  target="_blank"
+                  rel="noopener"
+                  className="w-full signature-smolder text-[#4c1a00] font-headline font-bold py-3 uppercase tracking-wider flex items-center justify-center gap-2"
+                >
+                  <span className="material-symbols-outlined text-lg">account_balance</span>
+                  Access Your Grant
+                  <span className="material-symbols-outlined text-sm">open_in_new</span>
+                </a>
+              )}
             </div>
           )}
 

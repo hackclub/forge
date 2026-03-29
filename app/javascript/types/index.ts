@@ -29,7 +29,7 @@ export interface PagyProps {
   prev: number | null
 }
 
-export type ProjectStatus = 'draft' | 'pending' | 'approved' | 'returned' | 'rejected'
+export type ProjectStatus = 'draft' | 'pending' | 'approved' | 'returned' | 'rejected' | 'build_pending' | 'build_approved'
 
 export interface ProjectCard {
   id: number
@@ -49,6 +49,7 @@ export interface ProjectDetail {
   tags: string[]
   status: ProjectStatus
   devlog_mode: 'website' | 'git' | null
+  hcb_grant_link: string | null
   review_feedback: string | null
   user_display_name: string
   created_at: string
@@ -110,6 +111,7 @@ export interface AdminProjectDetail {
   reviewed_at: string | null
   reviewer_display_name: string | null
   pitch_text: string | null
+  hcb_grant_link: string | null
   from_slack: boolean
   is_discarded: boolean
   discarded_at: string | null

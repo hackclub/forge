@@ -18,6 +18,8 @@ const statusConfig: Record<ProjectStatus, { label: string; bg: string; text: str
   approved: { label: 'Approved', bg: 'bg-emerald-500/10', text: 'text-emerald-400', icon: 'check_circle' },
   returned: { label: 'Returned', bg: 'bg-orange-500/10', text: 'text-orange-400', icon: 'undo' },
   rejected: { label: 'Rejected', bg: 'bg-red-500/10', text: 'text-red-400', icon: 'cancel' },
+  build_pending: { label: 'Build Under Review', bg: 'bg-amber-500/10', text: 'text-amber-400', icon: 'engineering' },
+  build_approved: { label: 'Build Approved', bg: 'bg-emerald-500/10', text: 'text-emerald-400', icon: 'verified' },
 }
 
 export default function AdminProjectsShow({
@@ -36,6 +38,7 @@ export default function AdminProjectsShow({
   can: { review: boolean; destroy: boolean; restore: boolean }
 }) {
   const [feedback, setFeedback] = useState('')
+  const [hcbLink, setHcbLink] = useState(project.hcb_grant_link || '')
   const status = statusConfig[project.status] || statusConfig.draft
 
   function handleRestore() {
@@ -245,6 +248,59 @@ export default function AdminProjectsShow({
                     Revert to Draft
                   </button>
                 )}
+              </div>
+            </div>
+          )}
+
+          {/* Build Review Panel */}
+          {can.review && project.status === 'build_pending' && (
+            <div className="bg-[#1c1b1b] ghost-border p-8 rounded-xl">
+              <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-amber-400 font-headline mb-6 flex items-center gap-2">
+                <span className="material-symbols-outlined text-sm">engineering</span>
+                Review Build
+              </h4>
+
+              <div className="mb-4">
+                <label className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
+                  HCB Grant Link
+                </label>
+                <input
+                  type="url"
+                  value={hcbLink}
+                  onChange={(e) => setHcbLink(e.target.value)}
+                  className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600"
+                  placeholder="https://hcb.hackclub.com/..."
+                />
+              </div>
+
+              <div className="mb-6">
+                <label className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
+                  Feedback
+                </label>
+                <textarea
+                  value={feedback}
+                  onChange={(e) => setFeedback(e.target.value)}
+                  rows={4}
+                  className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 resize-y"
+                  placeholder="Feedback for the builder..."
+                />
+              </div>
+
+              <div className="flex flex-col gap-3">
+                <button
+                  onClick={() => router.post(`/admin/projects/${project.id}/review`, { decision: 'approve_build', feedback, hcb_grant_link: hcbLink })}
+                  className="w-full py-3 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 font-headline font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-lg">verified</span>
+                  Approve Build
+                </button>
+                <button
+                  onClick={() => router.post(`/admin/projects/${project.id}/review`, { decision: 'return_build', feedback })}
+                  className="w-full py-3 bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 font-headline font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-lg">undo</span>
+                  Return for More Work
+                </button>
               </div>
             </div>
           )}

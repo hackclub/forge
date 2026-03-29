@@ -1,5 +1,5 @@
 class ProjectsController < ApplicationController
-  before_action :set_project, only: %i[show edit update destroy submit_for_review sync_journal set_devlog_mode link_repo]
+  before_action :set_project, only: %i[show edit update destroy submit_for_review submit_build sync_journal set_devlog_mode link_repo]
 
   def index
     scope = policy_scope(Project).includes(:user, :ships)
@@ -174,6 +174,24 @@ class ProjectsController < ApplicationController
     redirect_to @project, notice: "Journal synced."
   end
 
+  def submit_build
+    authorize @project, :update?
+
+    unless @project.approved?
+      redirect_to @project, alert: "Project must be approved before submitting build."
+      return
+    end
+
+    unless @project.devlogs.any?
+      redirect_to @project, alert: "Add at least one devlog entry before submitting."
+      return
+    end
+
+    @project.submit_build_for_review!
+    notify_slack_decision(@project, "submitted for build review", nil) if @project.slack_channel_id.present?
+    redirect_to @project, notice: "Build submitted for review!"
+  end
+
   def set_devlog_mode
     authorize @project, :update?
     mode = params[:devlog_mode]
@@ -247,6 +265,7 @@ class ProjectsController < ApplicationController
       tags: project.tags,
       status: project.status,
       devlog_mode: project.devlog_mode,
+      hcb_grant_link: project.hcb_grant_link,
       review_feedback: project.review_feedback,
       user_display_name: project.user.display_name,
       created_at: project.created_at.strftime("%B %d, %Y")

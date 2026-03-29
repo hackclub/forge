@@ -9,12 +9,16 @@ const statusConfig: Record<ProjectStatus, { label: string; text: string }> = {
   approved: { label: 'Approved', text: 'text-emerald-400' },
   returned: { label: 'Returned', text: 'text-orange-400' },
   rejected: { label: 'Rejected', text: 'text-red-400' },
+  build_pending: { label: 'Build Review', text: 'text-amber-400' },
+  build_approved: { label: 'Build Approved', text: 'text-emerald-400' },
 }
 
 const filters = [
   { key: '', label: 'All' },
   { key: 'pending', label: 'Pending' },
   { key: 'approved', label: 'Approved' },
+  { key: 'build_pending', label: 'Build Review' },
+  { key: 'build_approved', label: 'Build Approved' },
   { key: 'returned', label: 'Returned' },
   { key: 'rejected', label: 'Rejected' },
   { key: 'draft', label: 'Draft' },
