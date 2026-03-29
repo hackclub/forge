@@ -22,52 +22,105 @@ If asked to change the requirements or behavior of a feature, make sure previous
 
 Do not add comments unless they are absolutely necessary for clarity. Your code should describe what it does, not comments. If you do add comments, ensure they are clear, concise, and relevant to the code they accompany. Do not add huge blocks of comments.
 
-## UI Design System — "PCB / Circuit Board" Theme
+## Architecture Overview
 
-Forge is a hardware event where builders get up to $1k in funding, with hourly rates determined by community voting. The UI follows a dark, medieval/gold aesthetic — like a royal treasury carved from dark stone. All new pages and components must follow this theme consistently.
+Forge is a Hack Club program where teen builders (ages 13-18) get funded for hardware projects. Users pitch projects in Slack, admins review them, and approved builders document their progress via devlogs.
 
-### Color Palette
-- **Background:** `#0e0c09` (near-black warm brown) with SVG noise texture overlay at `opacity: 0.06`
-- **Card/surface backgrounds:** `bg-yellow-950/20` (very subtle warm tint over dark)
-- **Primary accent (gold):** Tailwind `yellow-600` for solid elements, gradient `from-yellow-600 to-yellow-800` for buttons
-- **Gold text gradient:** `bg-gradient-to-b from-yellow-400 via-yellow-600 to-yellow-800 bg-clip-text text-transparent`
-- **Primary hover:** Tailwind `yellow-500` to `yellow-700` gradient
-- **Heading text:** `text-yellow-100/90` or `text-yellow-100/80`
-- **Body text:** `text-yellow-100/40` (ghostly pale gold)
-- **Muted text:** `text-yellow-100/25` or `text-yellow-100/20`
-- **Labels/footer:** `text-yellow-100/15` or `text-yellow-700/60`
-- **Status indicators:** `yellow-500` with pulse animation
-- **Borders:** `border-yellow-800/30` for cards, `border-yellow-700/40` for accented, `border-yellow-900/30` for subtle
-- **Button glow:** `shadow-[0_0_30px_rgba(180,130,20,0.15)]`, hover: `shadow-[0_0_40px_rgba(180,130,20,0.25)]`
+### Key Models
+- **User** — has roles (user/admin/reviewer), permissions array, ban status, slack_id for Slack integration
+- **Project** — belongs to user, has status enum (draft/pending/approved/returned/rejected), slack_channel_id/slack_message_ts for Slack thread tracking, pitch_text (cleaned user pitch), description (AI-generated admin summary)
+- **Ship** — belongs to project, represents a submission of work for review
+- **Devlog** — belongs to project, markdown entries documenting build progress (title, content, time_spent)
+- **FeatureFlag** — simple name/enabled toggle for app-wide feature flags
+- All models use `has_paper_trail` for audit logging
+
+### Project Lifecycle
+1. User posts pitch in `#into-the-forge` Slack channel
+2. `SlackPitchJob` picks it up, uses Hack Club AI to clean formatting and generate admin summary
+3. Project created as `pending`, bot replies in Slack thread
+4. Admin reviews in `/admin/projects/:id` — can approve/return/reject with feedback
+5. `SlackNotifyJob` posts decision back to the Slack thread
+6. Once approved, user can add devlogs on the project page or sync from JOURNAL.md in their GitHub repo
+
+### Slack Integration
+- **Webhook endpoint:** `POST /slack/events` — receives Slack events, filters for messages in the forge channel
+- **SlackPitchJob** — processes pitches, creates projects, replies in thread, adds :eyes: reaction
+- **SlackNotifyJob** — posts review decisions back to Slack threads
+- Bot ignores its own messages (`bot_id`), thread replies (`thread_ts`), and messages with subtypes
+- Required env vars: `SLACK_SIGNING_SECRET`, `SLACK_FORGE_CHANNEL_ID`, `SLACK_BOT_TOKEN`
+- Required Slack app scopes: `channels:history`, `groups:history`, `chat:write`, `reactions:write`
+- Event subscription: `message.channels` and `message.groups`
+
+### Admin Panel
+- Dashboard at `/admin` with links to all sections
+- **Projects** (`/admin/projects`) — table view, status filters, review panel with approve/return/reject/draft actions
+- **Users** (`/admin/users`) — role management, permission toggles, ban/unban with reasons, soft/hard delete, restore
+- **Ships** (`/admin/reviews`) — review and manage ship submissions
+- **Feature Flags** (`/admin/feature_flags`) — create/toggle/delete feature flags, use `FeatureFlag.enabled?("name")` to check
+- **Audit Log** (`/admin/audit_log`) — PaperTrail versions with human-readable descriptions, filterable by type/event, clickable detail view
+- **Jobs** (`/admin/jobs`) — MissionControl::Jobs engine with dark theme override
+- Route constraints: `StaffConstraint` (admin or reviewer) for dashboard/ships, `AdminConstraint` (admin only) for everything else
+
+### Permissions System
+- **Roles** (array on User): `user`, `admin`, `reviewer`. Admin has all permissions by default.
+- **Permissions** (array on User): `pending_reviews`, `projects`, `users`, `ships`, `feature_flags`, `audit_log`, `jobs`, `third_party` — for fine-grained access control on non-admin staff
+- Check with `user.has_permission?("permission_name")` — returns true for admins automatically
+
+### AI Integration
+- Uses Hack Club AI (`https://ai.hackclub.com/proxy/v1/chat/completions`) with `qwen/qwen3-32b` model
+- **Pitch processing:** cleans formatting (preserves wording), generates admin summary, extracts tags
+- **GitHub import:** fetches repo metadata/README/commits, generates project description
+- Env var: `HACKCLUB_AI_API_KEY`
+
+### Devlog / JOURNAL.md
+- Users can add devlog entries directly on the project page (title, markdown content, time spent)
+- Or create a `JOURNAL.md` in their GitHub repo and click "Sync JOURNAL.md" to import entries
+- JOURNAL.md format: YAML frontmatter + entries separated by `# Date: Title` headers with `**Total time spent: X**`
+- `SyncJournalJob` fetches and parses the file, skips duplicates by title
+- Documentation at `/docs/journal`
+
+### Environment Variables
+- `DATABASE_URL` — PostgreSQL connection string (production)
+- `SECRET_KEY_BASE` — Rails secret key (production)
+- `HACKCLUB_AI_API_KEY` — Hack Club AI API key
+- `SLACK_BOT_TOKEN` — Slack bot token for posting messages
+- `SLACK_SIGNING_SECRET` — Slack request verification
+- `SLACK_FORGE_CHANNEL_ID` — Channel ID for `#into-the-forge`
+- `HCA_CLIENT_ID` / `HCA_CLIENT_SECRET` — HCA OAuth credentials
+- `APP_URL` — Base URL for links in Slack messages (defaults to `https://forge.hackclub.com`)
+
+### Deployment
+- Dockerfile with Thruster (port 80) proxying to Puma (port 3000)
+- docker-compose.yml with Traefik labels for `forge.hackclub.com`
+- Deployed via Coolify on Hetzner
+- Solid Cache for caching (PostgreSQL-backed), Solid Queue for background jobs
+- `bin/docker-entrypoint` runs `db:prepare` on startup
+
+## UI Design System
+
+The UI uses a dark theme with warm orange/stone accents. NOT the gold/medieval theme described below — that was the original Quarry design. The current Forge design uses:
+
+### Current Color Palette
+- **Background:** `#0e0e0e` (near-black)
+- **Card/surface:** `#1c1b1b` with `ghost-border` (1px solid rgba(168,138,126,0.15))
+- **Primary accent:** `#ffb595` (warm peach/orange) for links and highlights
+- **Active accent:** `#ee671c` (deep orange) for buttons (`signature-smolder` class)
+- **Button text:** `#4c1a00` (dark brown) on `signature-smolder` backgrounds
+- **Heading text:** `#e5e2e1`
+- **Body text:** `text-stone-400`
+- **Muted text:** `text-stone-500`, `text-stone-600`
+- **Labels:** `text-[10px] uppercase tracking-[0.2em] font-bold text-stone-500`
 
 ### Typography
-- **Headings:** System sans-serif, `font-black`, tight tracking (`tracking-tight` or `tracking-tighter`)
-- **Step numbers:** Roman numerals (I, II, III) in `font-serif text-yellow-700/30 text-5xl font-black`
-- **Labels and section headers:** `text-[10px] uppercase tracking-[0.4em] font-bold text-yellow-700/60`
-- **Nav logo:** `font-black tracking-[0.25em] uppercase text-yellow-600`
-- **Status badges:** `text-xs uppercase tracking-[0.3em] text-yellow-600`
+- **Headings:** `font-headline` (Space Grotesk), `font-bold`, `tracking-tight`
+- **Body:** Inter
+- **Labels:** `text-[10px] uppercase tracking-[0.2em] font-bold`
 
-### Decorative Elements
-- **Noise texture:** Inline SVG with `feTurbulence` (`baseFrequency="0.9"`, `numOctaves="4"`) at 6% opacity on the body background
-- **Corner flourishes:** SVG L-shaped gold borders at page corners, ~20% opacity, using `#b8860b`
-- **Vignette:** `radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.6) 100%)` overlay
-- **Section dividers:** Gold gradient line (`from-transparent via-yellow-700/40 to-transparent`) with diamond SVG (stroked rhombus with center dot)
-- **Card corner accents:** Small `w-3 h-3` borders on each corner (`border-t border-l border-yellow-700/40`) that brighten on hover
-- **Top bars on stat cards:** `w-8 h-px` centered gradient line on top edge
-
-### Buttons
-- **Primary:** `bg-gradient-to-b from-yellow-600 to-yellow-800 hover:from-yellow-500 hover:to-yellow-700 text-black font-black uppercase tracking-[0.2em]` — no border-radius, sharp edges, with gold glow shadow
-- **Secondary/outline:** `border border-yellow-800/50 hover:border-yellow-600/60 text-yellow-100/30 hover:text-yellow-500 font-bold uppercase tracking-[0.2em]` — sharp edges
-
-### Cards
-- `border border-yellow-800/30 bg-yellow-950/20` — no border-radius (sharp edges)
-- Corner accent divs on all four corners
-- Hover state: `hover:border-yellow-700/50 transition-all`
-- Step numbers as large faded roman numerals
-
-### General Rules
-- No bright whites — everything is tinted gold/yellow, even "white" text uses `yellow-100` at varying opacity
-- **No border-radius anywhere** — everything is sharp, angular, medieval (no `rounded-*` classes)
-- Gold gradient text for hero words and stat numbers
-- The vibe is a dark medieval treasury — gold glinting in torchlight on dark stone walls
-- Keep it sparse and heavy — lots of breathing room, big type, minimal decoration
+### Components
+- **No border-radius** — `* { border-radius: 0 !important; }` in CSS
+- **Cards:** `bg-[#1c1b1b] ghost-border` with hover `bg-[#2a2a2a]`
+- **Primary buttons:** `signature-smolder text-[#4c1a00]` class (orange gradient background)
+- **Secondary buttons:** `ghost-border bg-[#1c1b1b] text-stone-400 hover:bg-[#2a2a2a]`
+- **Inputs:** `bg-[#0e0e0e] border-none focus:ring-1 focus:ring-[#ee671c]/30`
+- **Status colors:** emerald for approved, amber for pending, orange for returned, red for rejected, stone for draft
+- **Danger zones:** `border border-red-500/20` with red-tinted buttons
