@@ -108,6 +108,8 @@ export interface AdminProjectDetail {
   review_feedback: string | null
   reviewed_at: string | null
   reviewer_display_name: string | null
+  pitch_text: string | null
+  from_slack: boolean
   is_discarded: boolean
   discarded_at: string | null
   user_id: number

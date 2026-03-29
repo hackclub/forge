@@ -130,6 +130,8 @@ Rails.application.routes.draw do
     end
   end
 
+  post "slack/events" => "slack/events#create"
+
   get "up" => "rails/health#show", as: :rails_health_check
 
   root "landing#index"
@@ -151,7 +153,9 @@ Rails.application.routes.draw do
     end
     member do
       post :submit_for_review
+      post :sync_journal
     end
+    resources :devlogs, only: [ :create, :destroy ]
   end
 
   get "docs" => "markdown#show", as: :docs

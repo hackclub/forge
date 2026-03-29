@@ -1,0 +1,51 @@
+| title | Pitching Your Project |
+| description | How to write a great pitch |
+| --- | --- |
+
+# Pitching Your Project
+
+Post your pitch in **#into-the-forge** on the Hack Club Slack. Keep it structured, honest, and concise. Here's the format:
+
+## Pitch Format
+
+```
+Idea: [Short name for your project]
+I'm designing: [What you're actually building — PCBs, 3D printed parts, firmware, etc.]
+Inspo / reference: [Links to similar projects or inspiration]
+Past projects: [Links to things you've built before — helps us gauge your skill level]
+Why this is worth more than 10 points: [Why this project is ambitious/complex]
+
+Rough BOM:
+* [Part] $[cost]
+* [Part] $[cost]
+* Total: $[total]
+```
+
+## Example Pitch
+
+```
+Idea: 3D printer that fits inside a filament box
+I'm designing: all the 3D printed parts, including stepper mounts, toolhead,
+cooling ducts, etc. I'll also be making a custom PCB for the display!
+Inspo / reference: The positron 3D printer! https://www.positron3d.com/
+Past projects: a VORON Legacy I built from scratch, a custom macropad PCB
+Why this is worth more than 10 points: 3D printers are one of the most
+mechanically advanced projects. It requires hundreds of parts plus a custom PCB.
+
+Rough BOM:
+* Control board $35
+* PSU $25
+* Linear rods $15
+* 4 stepper motors $75
+* Misc Fasteners $50
+* Hotend $35
+* Misc (belts, etc) $25
+* Total: $260
+```
+
+## Tips
+
+- **Show your background.** One project could be next to impossible for one person but easy for another. Past projects help us understand your skill level.
+- **Keep costs reasonable.** Ask yourself where the majority of your engineering work is — the cost should be there, not on a random expensive part. A $100 project with a $900 monitor is not a $1000 project.
+- **Be specific about what you're designing.** "I'm building a robot" is vague. "I'm designing a custom PCB for motor control, 3D printing the chassis, and writing firmware in Rust" tells us exactly what you're doing.
+- **Extra detail goes in the thread.** Keep the main pitch concise. If you want to elaborate, reply to your own message in the thread.

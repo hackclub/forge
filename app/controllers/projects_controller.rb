@@ -1,5 +1,5 @@
 class ProjectsController < ApplicationController
-  before_action :set_project, only: %i[show edit update destroy submit_for_review]
+  before_action :set_project, only: %i[show edit update destroy submit_for_review sync_journal]
 
   def index
     scope = policy_scope(Project).includes(:user, :ships)
@@ -18,6 +18,7 @@ class ProjectsController < ApplicationController
 
     render inertia: "Projects/Show", props: {
       project: serialize_project_detail(@project),
+      devlogs: @project.devlogs.map { |d| serialize_devlog(d) },
       can: {
         update: policy(@project).update?,
         destroy: policy(@project).destroy?,
@@ -157,6 +158,18 @@ class ProjectsController < ApplicationController
     render json: { error: "Could not parse AI response" }, status: :unprocessable_entity
   end
 
+  def sync_journal
+    authorize @project, :update?
+
+    unless @project.repo_link.present?
+      redirect_back fallback_location: project_path(@project), alert: "Link a repository first."
+      return
+    end
+
+    SyncJournalJob.perform_later(@project.id)
+    redirect_to @project, notice: "Syncing JOURNAL.md from your repo..."
+  end
+
   def submit_for_review
     authorize @project
 
@@ -203,13 +216,23 @@ class ProjectsController < ApplicationController
     {
       id: project.id,
       name: project.name,
-      description: project.description,
+      description: project.pitch_text || project.description,
       repo_link: project.repo_link,
       tags: project.tags,
       status: project.status,
       review_feedback: project.review_feedback,
       user_display_name: project.user.display_name,
       created_at: project.created_at.strftime("%B %d, %Y")
+    }
+  end
+
+  def serialize_devlog(devlog)
+    {
+      id: devlog.id,
+      title: devlog.title,
+      content: devlog.content,
+      time_spent: devlog.time_spent,
+      created_at: devlog.created_at.strftime("%B %d, %Y")
     }
   end
 end

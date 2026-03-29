@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_27_122604) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_28_124322) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -85,6 +85,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_27_122604) do
     t.index ["visitor_token", "started_at"], name: "index_ahoy_visits_on_visitor_token_and_started_at"
   end
 
+  create_table "devlogs", force: :cascade do |t|
+    t.text "content"
+    t.datetime "created_at", null: false
+    t.bigint "project_id", null: false
+    t.string "time_spent"
+    t.string "title"
+    t.datetime "updated_at", null: false
+    t.index ["project_id"], name: "index_devlogs_on_project_id"
+  end
+
   create_table "feature_flags", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "description"
@@ -99,10 +109,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_27_122604) do
     t.text "description"
     t.datetime "discarded_at"
     t.string "name", null: false
+    t.text "pitch_text"
     t.string "repo_link"
     t.text "review_feedback"
     t.datetime "reviewed_at"
     t.bigint "reviewer_id"
+    t.string "slack_channel_id"
+    t.string "slack_message_ts"
     t.integer "status", default: 0, null: false
     t.string "tags", default: [], null: false, array: true
     t.datetime "updated_at", null: false
@@ -163,6 +176,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_27_122604) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "devlogs", "projects"
   add_foreign_key "projects", "users"
   add_foreign_key "projects", "users", column: "reviewer_id"
   add_foreign_key "ships", "projects"

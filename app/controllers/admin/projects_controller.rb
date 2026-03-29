@@ -62,12 +62,15 @@ class Admin::ProjectsController < Admin::ApplicationController
     case decision
     when "approve"
       @project.update!(status: :approved, reviewer: current_user, reviewed_at: Time.current, review_feedback: feedback)
+      notify_slack_decision(@project, "approved", feedback)
       redirect_to admin_project_path(@project), notice: "Project approved."
     when "return"
       @project.update!(status: :returned, reviewer: current_user, reviewed_at: Time.current, review_feedback: feedback)
+      notify_slack_decision(@project, "returned for changes", feedback)
       redirect_to admin_project_path(@project), notice: "Project returned to builder."
     when "reject"
       @project.update!(status: :rejected, reviewer: current_user, reviewed_at: Time.current, review_feedback: feedback)
+      notify_slack_decision(@project, "rejected", feedback)
       redirect_to admin_project_path(@project), notice: "Project rejected."
     when "draft"
       @project.update!(status: :draft, reviewer: current_user, reviewed_at: Time.current, review_feedback: feedback)
@@ -78,6 +81,25 @@ class Admin::ProjectsController < Admin::ApplicationController
   end
 
   private
+
+  def notify_slack_decision(project, decision, feedback)
+    return unless project.slack_channel_id.present? && project.slack_message_ts.present?
+
+    emoji = case decision
+    when "approved" then ":white_check_mark:"
+    when "rejected" then ":x:"
+    else ":arrows_counterclockwise:"
+    end
+
+    msg = "#{emoji} Your pitch for *#{project.name}* has been *#{decision}*."
+    msg += "\n\n *Here's what our reviewers had to say:* \n> #{feedback}" if feedback.present?
+
+    SlackNotifyJob.perform_later(
+      channel_id: project.slack_channel_id,
+      thread_ts: project.slack_message_ts,
+      text: msg
+    )
+  end
 
   def set_project
     @project = Project.find(params[:id])
@@ -109,6 +131,8 @@ class Admin::ProjectsController < Admin::ApplicationController
       reviewer_display_name: project.reviewer&.display_name,
       is_discarded: project.discarded?,
       discarded_at: project.discarded_at&.strftime("%b %d, %Y"),
+      pitch_text: project.pitch_text,
+      from_slack: project.slack_message_ts.present?,
       user_id: project.user_id,
       user_display_name: project.user.display_name,
       created_at: project.created_at.strftime("%b %d, %Y")

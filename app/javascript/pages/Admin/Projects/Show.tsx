@@ -89,7 +89,19 @@ export default function AdminProjectsShow({
               {project.user_display_name}
             </Link>
             {' · '}Created {project.created_at}
+            {project.from_slack && (
+              <span className="ml-2 bg-[#4A154B]/20 text-[#E01E5A] px-2 py-0.5 text-[10px] uppercase font-bold tracking-widest">
+                Slack Pitch
+              </span>
+            )}
           </p>
+
+          {project.pitch_text && (
+            <div className="bg-[#1c1b1b] ghost-border rounded-xl p-8 mb-8">
+              <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">Original Pitch</h4>
+              <pre className="text-stone-300 text-sm leading-relaxed whitespace-pre-wrap font-sans">{project.pitch_text}</pre>
+            </div>
+          )}
 
           {project.description && (
             <div className="bg-[#1c1b1b] ghost-border rounded-xl p-8 mb-8">
