@@ -1,0 +1,29 @@
+version: '3'
+
+services:
+  web:
+    build: .
+    ports:
+      - "80:80"
+    env_file:
+      - .env
+    restart: unless-stopped
+    networks:
+      - coolify
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.forge.rule=Host(`forge.hackclub.com`)"
+      - "traefik.http.routers.forge.entrypoints=http,https"
+      - "traefik.http.routers.forge.tls.certresolver=letsencrypt"
+      - "traefik.http.services.forge.loadbalancer.server.port=80"
+      - "coolify.managed=true"
+      - "coolify.proxy=true"
+    volumes:
+      - forge_storage:/rails/storage
+
+volumes:
+  forge_storage:
+
+networks:
+  coolify:
+    external: true
