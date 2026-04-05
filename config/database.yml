@@ -20,7 +20,3 @@ production:
     <<: *default
     url: <%= ENV["DATABASE_URL"] %>
     migrations_paths: db/cache_migrate
-  queue:
-    <<: *default
-    url: <%= ENV["DATABASE_URL"] %>
-    migrations_paths: db/queue_migrate
