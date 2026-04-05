@@ -40,7 +40,7 @@ export default function ExploreIndex({
                 Forge <span className="text-[#ffb595]">Dashboard</span>
               </h1>
               <p className="text-stone-400 text-lg leading-relaxed">
-                Discover other Hackclubbers working on hardware projects!
+                Discover other Hack Clubbers working on hardware projects!
               </p>
             </div>
             <form onSubmit={search} className="flex gap-2 w-full md:w-auto">
