@@ -16,10 +16,8 @@ class RsvpsController < ApplicationController
     end
 
     rsvp = Rsvp.find_or_initialize_by(email: email)
-    is_new = rsvp.new_record?
 
     if rsvp.save
-      RsvpMailer.welcome(email).deliver_later if is_new
       render json: { ok: true }
     else
       render json: { error: rsvp.errors.full_messages.to_sentence }, status: :unprocessable_entity
