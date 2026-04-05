@@ -10,7 +10,6 @@ export default function LandingIndex() {
       <Head title="Forge — Build Hardware, Get Funded" />
 
       <div className="min-h-screen bg-[#0E0E0E] text-[#e5e2e1]">
-        {/* Top Navigation */}
         <nav className="fixed top-0 right-0 w-full h-16 z-40 bg-[#0E0E0E]/80 backdrop-blur-xl border-b border-white/5 flex justify-between items-center px-8">
           <div className="flex items-center gap-8">
             <span className="text-2xl font-bold tracking-tighter text-[#FFB595] uppercase font-headline">Forge</span>
@@ -45,7 +44,6 @@ export default function LandingIndex() {
         </nav>
 
         <main className="pt-16">
-          {/* Hero Section */}
           <section className="relative min-h-[85vh] flex flex-col justify-center px-8 md:px-24 overflow-hidden">
             <div className="absolute top-1/4 -right-20 w-96 h-96 bg-[#ee671c]/10 blur-[120px] rounded-full" />
             <div className="absolute bottom-1/4 -left-20 w-64 h-64 bg-[#7a2e25]/10 blur-[100px] rounded-full" />
@@ -86,10 +84,8 @@ export default function LandingIndex() {
             </div>
           </section>
 
-          {/* How It Works */}
           <section id="how-it-works" className="px-8 md:px-24 py-32 bg-[#0e0e0e]">
             <div className="grid grid-cols-1 md:grid-cols-12 gap-6 max-w-6xl mx-auto">
-              {/* Large Feature */}
               <div className="md:col-span-8 group relative overflow-hidden bg-[#1c1b1b] rounded-xl ghost-border p-12 flex flex-col justify-between min-h-[400px]">
                 <div className="absolute top-0 right-0 p-8 opacity-20 group-hover:opacity-40 transition-opacity">
                   <span className="material-symbols-outlined text-9xl">hardware</span>
@@ -110,14 +106,12 @@ export default function LandingIndex() {
                 </div>
               </div>
 
-              {/* Stat card */}
               <div className="md:col-span-4 bg-[#2a2a2a] rounded-xl ghost-border p-8 flex flex-col justify-center items-center text-center">
                 <span className="text-5xl font-headline font-bold text-[#e5e2e1] mb-2">$1,000</span>
                 <span className="text-xs tracking-widest uppercase text-[#ffb595] font-bold">Max Grant per Project</span>
                 <p className="text-sm text-stone-500 mt-4 px-4">Equity-free. No strings. Just build and document.</p>
               </div>
 
-              {/* Review card */}
               <div className="md:col-span-4 bg-[#1c1b1b] rounded-xl ghost-border p-8 flex flex-col justify-between group hover:bg-[#2a2a2a] transition-colors">
                 <div className="w-10 h-10 rounded-lg signature-smolder flex items-center justify-center">
                   <span className="material-symbols-outlined text-[#4c1a00]">verified</span>
@@ -128,7 +122,6 @@ export default function LandingIndex() {
                 </div>
               </div>
 
-              {/* Documentation */}
               <div className="md:col-span-8 bg-[#1c1b1b] rounded-xl ghost-border overflow-hidden flex flex-col md:flex-row">
                 <div className="p-10 flex-1">
                   <h3 className="text-2xl font-headline font-medium mb-4">Document Your Build.</h3>
@@ -147,7 +140,6 @@ export default function LandingIndex() {
             </div>
           </section>
 
-          {/* CTA Section */}
           <section className="py-40 px-8 flex flex-col items-center text-center relative">
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-[1px] bg-[#ffb595]/20" />
@@ -179,7 +171,6 @@ export default function LandingIndex() {
             </div>
           </section>
 
-          {/* Footer */}
           <footer className="border-t border-white/5 py-16 px-8 md:px-24 bg-[#0e0e0e]">
             <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-start gap-12">
               <div className="flex flex-col gap-6">

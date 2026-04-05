@@ -1,17 +1,5 @@
 class ProjectsController < ApplicationController
-  before_action :set_project, only: %i[show edit update destroy submit_for_review submit_build sync_journal set_devlog_mode link_repo]
-
-  def index
-    scope = policy_scope(Project).includes(:user, :ships)
-    scope = scope.search(params[:query]) if params[:query].present?
-    @pagy, @projects = pagy(scope.order(created_at: :desc))
-
-    render inertia: "Projects/Index", props: {
-      projects: @projects.map { |p| serialize_project_card(p) },
-      pagy: pagy_props(@pagy),
-      query: params[:query].to_s
-    }
-  end
+  before_action :set_project, only: %i[show edit update destroy submit_for_review submit_build sync_journal set_devlog_mode link_repo resubmit_pitch upload_cover_image]
 
   def show
     authorize @project
@@ -31,12 +19,19 @@ class ProjectsController < ApplicationController
     @project = current_user.projects.build
     authorize @project
 
-    render inertia: "Projects/Form", props: {
-      project: { name: "", description: "", repo_link: "", tags: [] },
-      title: "New Project",
-      submit_url: projects_path,
-      method: "post"
-    }
+    case params[:tier]
+    when "normal"
+      render inertia: "Projects/Form", props: {
+        project: { name: "", subtitle: "", repo_link: "", tags: [], tier: "normal" },
+        title: "New Project",
+        submit_url: projects_path,
+        method: "post"
+      }
+    when "advanced"
+      render inertia: "Projects/AdvancedPitch", props: {}
+    else
+      render inertia: "Projects/New", props: {}
+    end
   end
 
   def create
@@ -47,7 +42,7 @@ class ProjectsController < ApplicationController
     if @project.save
       redirect_to @project, notice: "Project created as draft."
     else
-      redirect_back fallback_location: new_project_path, inertia: { errors: @project.errors.messages }
+      redirect_back fallback_location: new_project_path(tier: @project.tier), inertia: { errors: @project.errors.messages }
     end
   end
 
@@ -58,9 +53,10 @@ class ProjectsController < ApplicationController
       project: {
         id: @project.id,
         name: @project.name,
-        description: @project.description.to_s,
+        subtitle: @project.subtitle.to_s,
         repo_link: @project.repo_link.to_s,
-        tags: @project.tags
+        tags: @project.tags,
+        tier: @project.tier
       },
       title: "Edit Project",
       submit_url: project_path(@project),
@@ -187,8 +183,24 @@ class ProjectsController < ApplicationController
       return
     end
 
+    if @project.cover_image_url.blank?
+      redirect_to @project, alert: "Upload a cover image before submitting for review."
+      return
+    end
+
+    unless current_user.address_line1.present?
+      redirect_to @project, alert: "Fill in your shipping address before submitting for review."
+      return
+    end
+
     @project.submit_build_for_review!
-    notify_slack_decision(@project, "submitted for build review", nil) if @project.slack_channel_id.present?
+    if @project.slack_channel_id.present? && @project.slack_message_ts.present?
+      SlackNotifyJob.perform_later(
+        channel_id: @project.slack_channel_id,
+        thread_ts: @project.slack_message_ts,
+        text: ":hammer_and_wrench: *#{@project.name}* has been submitted for build review."
+      )
+    end
     redirect_to @project, notice: "Build submitted for review!"
   end
 
@@ -226,6 +238,32 @@ class ProjectsController < ApplicationController
     redirect_to @project, notice: "Project submitted for review."
   end
 
+  def resubmit_pitch
+    authorize @project, :update?
+
+    unless @project.returned? && @project.advanced? && @project.slack_channel_id.present? && @project.slack_message_ts.present?
+      redirect_to @project, alert: "This project cannot be resubmitted."
+      return
+    end
+
+    ResubmitPitchJob.perform_later(@project.id)
+    redirect_to @project, notice: "Re-fetching your updated pitch from Slack and resubmitting for review..."
+  end
+
+  def upload_cover_image
+    authorize @project, :update?
+
+    file = params[:cover_image]
+    unless file.respond_to?(:read)
+      redirect_to @project, alert: "No file uploaded."
+      return
+    end
+
+    @project.cover_image.attach(file)
+    @project.update!(cover_image_url: nil)
+    redirect_to @project, notice: "Cover image uploaded. Processing..."
+  end
+
   private
 
   def fetch_json(url)
@@ -241,33 +279,32 @@ class ProjectsController < ApplicationController
   end
 
   def project_params
-    params.expect(project: [ :name, :description, :repo_link, tags: [] ])
-  end
-
-  def serialize_project_card(project)
-    {
-      id: project.id,
-      name: project.name,
-      description: project.description&.truncate(200),
-      tags: project.tags,
-      status: project.status,
-      user_display_name: project.user.display_name,
-      ships_count: project.ships.size
-    }
+    params.expect(project: [ :name, :subtitle, :repo_link, :tier, tags: [] ])
   end
 
   def serialize_project_detail(project)
     {
       id: project.id,
       name: project.name,
-      description: project.pitch_text || project.description,
+      subtitle: project.subtitle,
       repo_link: project.repo_link,
-      tags: project.tags,
       status: project.status,
       devlog_mode: project.devlog_mode,
       hcb_grant_link: project.hcb_grant_link,
       review_feedback: project.review_feedback,
+      tier: project.tier,
+      from_slack: project.slack_message_ts.present?,
+      cover_image_url: project.cover_image_url,
       user_display_name: project.user.display_name,
+      user_has_address: project.user.address_line1.present?,
+      user_address: project.user.address_line1.present? ? {
+        address_line1: project.user.address_line1,
+        address_line2: project.user.address_line2,
+        city: project.user.city,
+        state: project.user.state,
+        country: project.user.country,
+        postal_code: project.user.postal_code
+      } : nil,
       created_at: project.created_at.strftime("%B %d, %Y")
     }
   end

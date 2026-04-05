@@ -19,8 +19,7 @@ interface Stats {
 interface DashboardProject {
   id: number
   name: string
-  description: string | null
-  tags: string[]
+  subtitle: string | null
   ships_count: number
   pending_ships: number
   approved_ships: number
@@ -54,7 +53,6 @@ export default function HomeIndex({ user, stats, projects, recent_ships }: Props
     <>
       <Head title="Dashboard — Forge" />
       <div className="p-12 max-w-7xl mx-auto space-y-12">
-        {/* Hero Section */}
         <section className="flex flex-col md:flex-row justify-between items-end gap-8">
           <div className="space-y-4 max-w-2xl">
             <h1 className="text-5xl font-medium font-headline tracking-tight text-white leading-tight">
@@ -77,13 +75,9 @@ export default function HomeIndex({ user, stats, projects, recent_ships }: Props
         </section>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Projects */}
           <div className="lg:col-span-8 space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline">Your Projects</h2>
-              <Link href="/projects" className="text-xs font-bold uppercase tracking-widest text-stone-500 hover:text-[#ffb595] transition-colors">
-                View All
-              </Link>
             </div>
 
             {projects.length === 0 ? (
@@ -125,8 +119,8 @@ export default function HomeIndex({ user, stats, projects, recent_ships }: Props
                         <h3 className="text-xl font-bold font-headline text-white group-hover:text-[#ffb595] transition-colors truncate">
                           {project.name}
                         </h3>
-                        {project.description && (
-                          <p className="text-stone-500 text-sm line-clamp-1">{project.description}</p>
+                        {project.subtitle && (
+                          <p className="text-stone-500 text-sm line-clamp-1">{project.subtitle}</p>
                         )}
                       </div>
                       <div className="text-right shrink-0 space-y-1">
@@ -135,24 +129,13 @@ export default function HomeIndex({ user, stats, projects, recent_ships }: Props
                       </div>
                     </div>
 
-                    {project.tags.length > 0 && (
-                      <div className="flex gap-2 mt-3 flex-wrap">
-                        {project.tags.map((tag) => (
-                          <span key={tag} className="px-2 py-1 bg-[#0e0e0e] text-[10px] rounded text-stone-400">
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                    )}
                   </Link>
                 ))}
               </div>
             )}
           </div>
 
-          {/* Sidebar */}
           <div className="lg:col-span-4 space-y-8">
-            {/* Ship Status Summary */}
             {stats.total_ships > 0 && (
               <div className="bg-[#1c1b1b] ghost-border p-8 rounded-xl">
                 <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-6">Ship Status</h4>
@@ -181,7 +164,6 @@ export default function HomeIndex({ user, stats, projects, recent_ships }: Props
               </div>
             )}
 
-            {/* Recent Activity */}
             <div className="bg-[#1c1b1b] ghost-border p-8 rounded-xl">
               <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-6">Recent Activity</h4>
               {recent_ships.length === 0 ? (
@@ -208,7 +190,6 @@ export default function HomeIndex({ user, stats, projects, recent_ships }: Props
               )}
             </div>
 
-            {/* Quick Actions */}
             <div className="bg-[#0e0e0e] ghost-border p-8 rounded-xl">
               <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-6">Quick Actions</h4>
               <div className="flex flex-col gap-3">
@@ -218,13 +199,6 @@ export default function HomeIndex({ user, stats, projects, recent_ships }: Props
                 >
                   <span className="text-sm font-headline font-medium text-[#e5e2e1]">New Project</span>
                   <span className="material-symbols-outlined text-stone-500 group-hover:text-[#ffb595] transition-colors">add_circle</span>
-                </Link>
-                <Link
-                  href="/shop"
-                  className="w-full py-3 px-4 bg-[#2a2a2a] hover:bg-[#3a3939] rounded-lg flex items-center justify-between group transition-all btn-bracket"
-                >
-                  <span className="text-sm font-headline font-medium text-[#e5e2e1]">Visit Shop</span>
-                  <span className="material-symbols-outlined text-stone-500 group-hover:text-[#ffb595] transition-colors">shopping_cart</span>
                 </Link>
                 <Link
                   href="/explore"

@@ -15,4 +15,10 @@ export default defineConfig({
       '@': resolve(__dirname, 'app/javascript'),
     },
   },
+  server: {
+    cors: true,
+    hmr: {
+      host: 'localhost',
+    },
+  },
 })

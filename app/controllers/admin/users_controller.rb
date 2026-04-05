@@ -80,6 +80,13 @@ class Admin::UsersController < Admin::ApplicationController
     redirect_to admin_user_path(@user), notice: "Permissions updated."
   end
 
+  def toggle_beta_approval
+    @user = User.find(params[:id])
+    authorize @user, :update?
+    @user.update!(is_beta_approved: !@user.is_beta_approved)
+    redirect_to admin_user_path(@user), notice: @user.is_beta_approved ? "#{@user.display_name} approved for beta." : "Beta access revoked."
+  end
+
   private
 
   def serialize_user_row(user)
@@ -106,6 +113,7 @@ class Admin::UsersController < Admin::ApplicationController
       timezone: user.timezone,
       is_banned: user.is_banned,
       ban_reason: user.ban_reason,
+      is_beta_approved: user.is_beta_approved,
       is_discarded: user.discarded?,
       discarded_at: user.discarded_at&.strftime("%b %d, %Y"),
       created_at: user.created_at.strftime("%B %d, %Y")

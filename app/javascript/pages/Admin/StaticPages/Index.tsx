@@ -34,7 +34,9 @@ export default function AdminStaticPagesIndex({ user_name, counts }: AdminDashbo
       <div>
         <h2 className="text-xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-4">Tasks</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <DashboardLink href="/admin/projects?status=pending" label={`Pending Reviews (${counts.pending_reviews})`} />
+          <DashboardLink href="/admin/projects?status=pending" label={`All Pending (${counts.pending_reviews})`} />
+          <DashboardLink href="/admin/pitches" label="Pitch Reviews" />
+          <DashboardLink href="/admin/reviews" label="Project Reviews" />
         </div>
       </div>
 
@@ -43,9 +45,10 @@ export default function AdminStaticPagesIndex({ user_name, counts }: AdminDashbo
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <DashboardLink href="/admin/projects" label={`Projects (${counts.projects})`} />
           <DashboardLink href="/admin/users" label={`Users (${counts.users})`} />
-          <DashboardLink href="/admin/reviews" label={`Ships (${counts.ships})`} />
+          <DashboardLink href="/admin/rsvps" label="RSVPs" />
           <DashboardLink href="/admin/feature_flags" label={`Feature Flags (${counts.feature_flags})`} />
           <DashboardLink href="/admin/audit_log" label="Audit Log" />
+          <DashboardLink href="/admin/database" label="Database" />
           <DashboardLink href="/admin/jobs" label="Jobs" external />
         </div>
       </div>

@@ -4,7 +4,6 @@ interface VoteProject {
   id: number
   name: string
   description: string | null
-  tags: string[]
   user_display_name: string
   user_avatar: string
   repo_link: string | null
@@ -58,15 +57,6 @@ function ProjectCard({
           <p className="text-stone-500 text-sm leading-relaxed mb-4">{project.description}</p>
         )}
 
-        {project.tags.length > 0 && (
-          <div className="flex gap-2 flex-wrap mb-4">
-            {project.tags.map((tag) => (
-              <span key={tag} className="px-2 py-1 bg-[#0e0e0e] text-[10px] rounded text-stone-400 uppercase tracking-wider">
-                {tag}
-              </span>
-            ))}
-          </div>
-        )}
 
         {isSafeUrl(project.repo_link) && (
           <a

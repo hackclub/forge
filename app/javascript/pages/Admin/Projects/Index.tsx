@@ -5,11 +5,11 @@ import type { AdminProjectRow, PagyProps, ProjectStatus } from '@/types'
 
 const statusConfig: Record<ProjectStatus, { label: string; text: string }> = {
   draft: { label: 'Draft', text: 'text-stone-400' },
-  pending: { label: 'Pending', text: 'text-amber-400' },
+  pending: { label: 'Pitch Review', text: 'text-amber-400' },
   approved: { label: 'Approved', text: 'text-emerald-400' },
   returned: { label: 'Returned', text: 'text-orange-400' },
   rejected: { label: 'Rejected', text: 'text-red-400' },
-  build_pending: { label: 'Build Review', text: 'text-amber-400' },
+  build_pending: { label: 'Build Review', text: 'text-amber-500' },
   build_approved: { label: 'Build Approved', text: 'text-emerald-400' },
 }
 
@@ -17,7 +17,6 @@ const filters = [
   { key: '', label: 'All' },
   { key: 'pending', label: 'Pending' },
   { key: 'approved', label: 'Approved' },
-  { key: 'build_pending', label: 'Build Review' },
   { key: 'build_approved', label: 'Build Approved' },
   { key: 'returned', label: 'Returned' },
   { key: 'rejected', label: 'Rejected' },
@@ -30,18 +29,23 @@ export default function AdminProjectsIndex({
   query,
   status_filter,
   counts,
+  page_title,
+  hide_filters,
 }: {
   projects: AdminProjectRow[]
   pagy: PagyProps
   query: string
   status_filter: string
   counts: Record<string, number>
+  page_title?: string
+  hide_filters?: boolean
 }) {
   const [searchQuery, setSearchQuery] = useState(query)
+  const basePath = typeof window !== 'undefined' ? window.location.pathname : '/admin/projects'
 
   function search(e: React.FormEvent) {
     e.preventDefault()
-    router.get('/admin/projects', { query: searchQuery, status: status_filter }, { preserveState: true })
+    router.get(basePath, { query: searchQuery, status: hide_filters ? undefined : status_filter }, { preserveState: true })
   }
 
   function filterByStatus(status: string) {
@@ -51,7 +55,7 @@ export default function AdminProjectsIndex({
   return (
     <div className="p-12 max-w-[1400px] mx-auto">
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-4xl font-headline font-bold text-[#e5e2e1] tracking-tight">All Projects</h1>
+        <h1 className="text-4xl font-headline font-bold text-[#e5e2e1] tracking-tight">{page_title || 'All Projects'}</h1>
         <form onSubmit={search} className="flex gap-2">
           <input
             type="search"
@@ -66,7 +70,7 @@ export default function AdminProjectsIndex({
         </form>
       </div>
 
-      <div className="flex gap-2 mb-6 flex-wrap">
+      <div className={`flex gap-2 mb-6 flex-wrap ${hide_filters ? 'hidden' : ''}`}>
         {filters.map((f) => {
           const count = f.key ? counts[f.key] || 0 : counts.all || 0
           const isActive = status_filter === f.key

@@ -15,8 +15,6 @@ interface AuditEntryDetail {
   actor_id: string | null
   actor_name: string
   created_at: string
-  previous_data: Record<string, unknown>
-  current_data: Record<string, unknown>
   changes: Change[]
 }
 
@@ -85,8 +83,8 @@ export default function AdminAuditLogShow({ entry }: { entry: AuditEntryDetail }
         </div>
       </div>
 
-      {entry.changes.length > 0 && (
-        <div className="mb-10">
+      {entry.changes.length > 0 ? (
+        <div>
           <h2 className="text-xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-4">Changes</h2>
           <div className="ghost-border overflow-hidden">
             <table className="w-full">
@@ -113,41 +111,9 @@ export default function AdminAuditLogShow({ entry }: { entry: AuditEntryDetail }
             </table>
           </div>
         </div>
-      )}
-
-      {Object.keys(entry.previous_data).length > 0 && (
-        <div className="mb-10">
-          <h2 className="text-xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-4">Previous State</h2>
-          <div className="ghost-border bg-[#1c1b1b] p-6 overflow-x-auto">
-            <table className="w-full">
-              <tbody>
-                {Object.entries(entry.previous_data).map(([key, value]) => (
-                  <tr key={key} className="border-b border-white/5 last:border-0">
-                    <td className="py-2 pr-6 text-stone-500 text-xs font-bold uppercase tracking-wider whitespace-nowrap align-top">{key}</td>
-                    <td className="py-2 text-stone-300 text-sm break-all">{String(value ?? '—')}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-      {Object.keys(entry.current_data).length > 0 && (
-        <div>
-          <h2 className="text-xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-4">Current State</h2>
-          <div className="ghost-border bg-[#1c1b1b] p-6 overflow-x-auto">
-            <table className="w-full">
-              <tbody>
-                {Object.entries(entry.current_data).map(([key, value]) => (
-                  <tr key={key} className="border-b border-white/5 last:border-0">
-                    <td className="py-2 pr-6 text-stone-500 text-xs font-bold uppercase tracking-wider whitespace-nowrap align-top">{key}</td>
-                    <td className="py-2 text-stone-300 text-sm break-all">{String(value ?? '—')}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+      ) : (
+        <div className="bg-[#1c1b1b] ghost-border p-8 text-center">
+          <p className="text-stone-500 text-sm">No field changes detected.</p>
         </div>
       )}
     </div>

@@ -3,16 +3,26 @@
 # Table name: users
 #
 #  id                  :bigint           not null, primary key
+#  address_line1       :string
+#  address_line2       :string
 #  avatar              :string           not null
 #  ban_reason          :text
+#  birthday            :date
+#  city                :string
+#  country             :string
 #  discarded_at        :datetime
 #  display_name        :string           not null
 #  email               :string           not null
+#  first_name          :string
 #  hca_token           :text
 #  is_adult            :boolean          default(FALSE), not null
 #  is_banned           :boolean          default(FALSE), not null
+#  is_beta_approved    :boolean          default(FALSE), not null
+#  last_name           :string
 #  permissions         :string           default([]), not null, is an Array
+#  postal_code         :string
 #  roles               :string           default([]), not null, is an Array
+#  state               :string
 #  timezone            :string           not null
 #  verification_status :string
 #  created_at          :datetime         not null
@@ -29,6 +39,12 @@ class User < ApplicationRecord
   include PgSearch::Model
 
   has_paper_trail
+
+  after_commit :bust_cache
+
+  def bust_cache
+    Rails.cache.delete("user/#{id}")
+  end
 
   pg_search_scope :search, against: [ :display_name, :email ], using: { tsearch: { prefix: true } }
 
@@ -121,6 +137,10 @@ class User < ApplicationRecord
       raise StandardError, "No identity data in HCA response"
     end
 
+    if determine_is_adult(identity)
+      raise StandardError, "Sorry, Forge is for teen builders (under 19). You're not eligible to participate."
+    end
+
     hca_id = identity["id"]
     email = identity["primary_email"]
     user = User.find_by(hca_id: hca_id)
@@ -147,12 +167,18 @@ class User < ApplicationRecord
   def self.create_from_hca(identity, access_token)
     email = identity["primary_email"]
     first_name = identity["first_name"] || ""
+    last_name = identity["last_name"] || ""
     display_name = first_name.presence || identity["id"] || "User"
     avatar = identity["profile_picture"].presence || "/static-assets/pfp_fallback.webp"
     timezone = "UTC"
     slack_id = identity["slack_id"] || ""
     verification_status = identity["verification_status"] || ""
     is_adult = determine_is_adult(identity)
+    birthday = begin
+      Date.parse(identity["birthday"].to_s)
+    rescue StandardError
+      nil
+    end
 
     if email.blank? || !(email =~ URI::MailTo::EMAIL_REGEXP)
       Rails.logger.warn({
@@ -176,6 +202,9 @@ class User < ApplicationRecord
     User.create!(
       email: email,
       display_name: display_name,
+      first_name: first_name.presence,
+      last_name: last_name.presence,
+      birthday: birthday,
       avatar: avatar,
       timezone: timezone,
       slack_id: slack_id,

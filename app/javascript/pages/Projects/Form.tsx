@@ -21,9 +21,10 @@ export default function ProjectsForm({
 
   const form = useForm({
     name: project.name,
-    description: project.description,
+    subtitle: project.subtitle,
     repo_link: project.repo_link,
     tags: project.tags,
+    tier: project.tier,
   })
 
   async function handleImport() {
@@ -56,9 +57,10 @@ export default function ProjectsForm({
 
       form.setData({
         name: data.name || form.data.name,
-        description: data.description || form.data.description,
+        subtitle: form.data.subtitle,
         repo_link: data.repo_link || importUrl,
         tags: Array.isArray(data.tags) ? data.tags.slice(0, 5) : form.data.tags,
+        tier: form.data.tier,
       })
 
       setShowImport(false)
@@ -165,16 +167,16 @@ export default function ProjectsForm({
         </div>
 
         <div>
-          <label htmlFor="description" className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
-            Description
+          <label htmlFor="subtitle" className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
+            Subtitle
           </label>
-          <textarea
-            id="description"
-            value={form.data.description}
-            onChange={(e) => form.setData('description', e.target.value)}
-            rows={4}
-            className="w-full bg-[#0e0e0e] border-none rounded-lg px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 resize-y"
-            placeholder="Describe your hardware project..."
+          <input
+            type="text"
+            id="subtitle"
+            value={form.data.subtitle}
+            onChange={(e) => form.setData('subtitle', e.target.value)}
+            className="w-full bg-[#0e0e0e] border-none rounded-lg px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600"
+            placeholder="A short description of your project"
           />
         </div>
 

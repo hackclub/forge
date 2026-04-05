@@ -11,8 +11,7 @@ class ExploreController < ApplicationController
         {
           id: p.id,
           name: p.name,
-          description: p.description&.truncate(200),
-          tags: p.tags,
+          subtitle: p.subtitle,
           user_display_name: p.user.display_name,
           user_avatar: p.user.avatar,
           ships_count: p.ships.size,

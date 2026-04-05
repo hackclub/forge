@@ -1,7 +1,15 @@
 class HomeController < ApplicationController
   def index
-    projects = current_user.projects.kept.includes(:ships).order(updated_at: :desc)
-    ships = current_user.ships
+    projects = current_user.projects.kept.order(updated_at: :desc)
+    loaded_projects = projects.to_a
+
+    ship_counts = current_user.ships.group(:status).count
+    total_ships = ship_counts.values.sum
+
+    project_ids = loaded_projects.map(&:id)
+    ships_by_project = Ship.where(project_id: project_ids).group(:project_id, :status).count
+
+    recent_ships = current_user.ships.order(created_at: :desc).limit(5).includes(project: :user)
 
     render inertia: "Home/Index", props: {
       user: {
@@ -11,26 +19,29 @@ class HomeController < ApplicationController
         created_at: current_user.created_at.strftime("%B %d, %Y")
       },
       stats: {
-        projects_count: projects.size,
-        total_ships: ships.count,
-        pending_ships: ships.pending.count,
-        approved_ships: ships.approved.count,
-        returned_ships: ships.returned.count,
-        rejected_ships: ships.rejected.count
+        projects_count: loaded_projects.size,
+        total_ships: total_ships,
+        pending_ships: ship_counts["pending"] || 0,
+        approved_ships: ship_counts["approved"] || 0,
+        returned_ships: ship_counts["returned"] || 0,
+        rejected_ships: ship_counts["rejected"] || 0
       },
-      projects: projects.map { |p|
+      projects: loaded_projects.map { |p|
+        project_ships = ships_by_project.select { |k, _| k[0] == p.id }
+        ships_total = project_ships.values.sum
+        pending = project_ships.select { |k, _| k[1] == "pending" }.values.sum
+        approved = project_ships.select { |k, _| k[1] == "approved" }.values.sum
         {
           id: p.id,
           name: p.name,
-          description: p.description,
-          tags: p.tags,
-          ships_count: p.ships.size,
-          pending_ships: p.ships.count(&:pending?),
-          approved_ships: p.ships.count(&:approved?),
+          subtitle: p.subtitle,
+          ships_count: ships_total,
+          pending_ships: pending,
+          approved_ships: approved,
           updated_at: p.updated_at.strftime("%b %d, %Y")
         }
       },
-      recent_ships: ships.order(created_at: :desc).limit(5).includes(project: :user).map { |s|
+      recent_ships: recent_ships.map { |s|
         {
           id: s.id,
           project_name: s.project.name,

@@ -57,10 +57,10 @@ Rails.application.configure do
   config.action_mailer.default_url_options = { host: ENV.fetch("APP_HOST", "example.com") }
   config.action_mailer.delivery_method = :smtp
   config.action_mailer.smtp_settings = {
-    address: "smtp.loops.so",
-    port: 587,
-    user_name: "loops",
-    password: ENV["LOOPS_API_KEY"],
+    address: ENV.fetch("SMTP_ADDRESS", "smtp.loops.so"),
+    port: ENV.fetch("SMTP_PORT", "587").to_i,
+    user_name: ENV.fetch("SMTP_USERNAME", "loops"),
+    password: ENV["SMTP_PASSWORD"] || ENV["LOOPS_API_KEY"],
     authentication: "plain",
     enable_starttls: true
   }

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_29_115212) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_05_012325) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -105,13 +105,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_29_115212) do
   end
 
   create_table "projects", force: :cascade do |t|
+    t.text "budget"
+    t.string "cover_image_url"
     t.datetime "created_at", null: false
     t.text "description"
     t.string "devlog_mode"
     t.datetime "discarded_at"
     t.string "hcb_grant_link"
     t.string "name", null: false
+    t.decimal "override_hours"
+    t.text "override_hours_justification"
     t.text "pitch_text"
+    t.text "readme_cache"
+    t.datetime "readme_fetched_at"
     t.string "repo_link"
     t.text "review_feedback"
     t.datetime "reviewed_at"
@@ -119,13 +125,22 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_29_115212) do
     t.string "slack_channel_id"
     t.string "slack_message_ts"
     t.integer "status", default: 0, null: false
+    t.string "subtitle"
     t.string "tags", default: [], null: false, array: true
+    t.string "tier", default: "normal", null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.index ["discarded_at"], name: "index_projects_on_discarded_at"
     t.index ["status"], name: "index_projects_on_status"
     t.index ["tags"], name: "index_projects_on_tags", using: :gin
     t.index ["user_id"], name: "index_projects_on_user_id"
+  end
+
+  create_table "rsvps", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "email", null: false
+    t.datetime "updated_at", null: false
+    t.index ["email"], name: "index_rsvps_on_email", unique: true
   end
 
   create_table "ships", force: :cascade do |t|
@@ -147,19 +162,29 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_29_115212) do
   end
 
   create_table "users", force: :cascade do |t|
+    t.string "address_line1"
+    t.string "address_line2"
     t.string "avatar", null: false
     t.text "ban_reason"
+    t.date "birthday"
+    t.string "city"
+    t.string "country"
     t.datetime "created_at", null: false
     t.datetime "discarded_at"
     t.string "display_name", null: false
     t.string "email", null: false
+    t.string "first_name"
     t.string "hca_id", null: false
     t.text "hca_token"
     t.boolean "is_adult", default: false, null: false
     t.boolean "is_banned", default: false, null: false
+    t.boolean "is_beta_approved", default: false, null: false
+    t.string "last_name"
     t.string "permissions", default: [], null: false, array: true
+    t.string "postal_code"
     t.string "roles", default: [], null: false, array: true
     t.string "slack_id", null: false
+    t.string "state"
     t.string "timezone", null: false
     t.datetime "updated_at", null: false
     t.string "verification_status"

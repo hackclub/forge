@@ -43,8 +43,6 @@ class Admin::AuditLogController < Admin::ApplicationController
         actor_id: version.whodunnit,
         actor_name: actor&.display_name || version.whodunnit || "System",
         created_at: version.created_at.strftime("%b %d, %Y %H:%M:%S"),
-        previous_data: sanitize_data(previous_data),
-        current_data: sanitize_data(current_data),
         changes: changes
       }
     }

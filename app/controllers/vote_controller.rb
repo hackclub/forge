@@ -27,7 +27,6 @@ class VoteController < ApplicationController
       id: project.id,
       name: project.name,
       description: project.description&.truncate(300),
-      tags: project.tags,
       user_display_name: project.user.display_name,
       user_avatar: project.user.avatar,
       repo_link: project.repo_link

@@ -53,7 +53,7 @@ export default function AdminFeatureFlagsIndex({ flags }: { flags: Flag[] }) {
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 text-sm"
-              placeholder="e.g. new_shop_enabled"
+              placeholder="e.g. new_feature_enabled"
               required
             />
           </div>

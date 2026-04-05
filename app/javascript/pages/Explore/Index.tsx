@@ -6,8 +6,7 @@ import type { PagyProps } from '@/types'
 interface ExploreProject {
   id: number
   name: string
-  description: string | null
-  tags: string[]
+  subtitle: string | null
   user_display_name: string
   user_avatar: string
   ships_count: number
@@ -34,7 +33,6 @@ export default function ExploreIndex({
     <>
       <Head title="Explore — Forge" />
       <div className="p-12 max-w-[1400px] mx-auto">
-        {/* Header */}
         <section className="mb-12">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
             <div className="max-w-2xl">
@@ -78,15 +76,9 @@ export default function ExploreIndex({
 
                   <div className="px-5 pb-5">
                     <div className="flex justify-between items-start mb-3">
-                      {project.tags.length > 0 ? (
-                        <span className="text-xs uppercase tracking-widest text-stone-300 bg-[#353534] px-3 py-1 rounded-full">
-                          {project.tags[0]}
-                        </span>
-                      ) : (
-                        <span className="text-xs uppercase tracking-widest text-stone-500 bg-[#353534] px-3 py-1 rounded-full">
-                          Project
-                        </span>
-                      )}
+                      <span className="text-xs uppercase tracking-widest text-stone-500 bg-[#353534] px-3 py-1 rounded-full">
+                        Project
+                      </span>
                       <span className="text-stone-500 text-xs">{project.ships_count} ships</span>
                     </div>
 
@@ -94,8 +86,8 @@ export default function ExploreIndex({
                       {project.name}
                     </h3>
 
-                    {project.description && (
-                      <p className="text-stone-500 text-sm mb-4 line-clamp-2">{project.description}</p>
+                    {project.subtitle && (
+                      <p className="text-stone-500 text-sm mb-4 line-clamp-2">{project.subtitle}</p>
                     )}
 
                     <div className="flex justify-between items-center pt-2">

@@ -97,7 +97,8 @@ Rails.application.routes.draw do
   constraints StaffConstraint.new do
     namespace :admin do
       get "/" => "static_pages#index", as: :root
-      resources :ships, only: [ :index, :show, :edit, :update ], path: "reviews"
+      get "pitches" => "projects#pitches", as: :pitches
+      get "reviews" => "projects#reviews", as: :reviews
     end
   end
 
@@ -118,6 +119,7 @@ Rails.application.routes.draw do
           post :restore
           post :ban
           post :unban
+          post :toggle_beta_approval
         end
       end
       resources :feature_flags, only: [ :index, :create, :destroy ] do
@@ -125,8 +127,16 @@ Rails.application.routes.draw do
           post :toggle
         end
       end
+      resources :rsvps, only: [ :index, :destroy ] do
+        collection do
+          get :export
+        end
+      end
       get "audit_log" => "audit_log#index", as: :audit_log
       get "audit_log/:id" => "audit_log#show", as: :audit_log_entry
+      get "database" => "database#index", as: :database
+      post "database/query" => "database#query"
+      post "database/execute" => "database#execute"
     end
   end
 
@@ -143,11 +153,13 @@ Rails.application.routes.draw do
   get "sorry" => "bans#show", as: :sorry
 
   get "home" => "home#index", as: :home
+  patch "profile/address" => "profile#update_address", as: :update_address
+  get "rsvp" => "rsvps#index", as: :rsvp
+  post "rsvp" => "rsvps#create"
 
   get "explore" => "explore#index", as: :explore
-  get "shop" => "shop#index", as: :shop
 
-  resources :projects do
+  resources :projects, except: :index do
     collection do
       post :import_from_github
     end
@@ -155,6 +167,9 @@ Rails.application.routes.draw do
       post :submit_for_review
       post :submit_build
       post :sync_journal
+      post :resubmit_pitch
+      get :resubmit_pitch
+      post :upload_cover_image
       patch :set_devlog_mode
       patch :link_repo
     end
@@ -169,4 +184,6 @@ Rails.application.routes.draw do
       resources :projects, only: [ :index, :show ]
     end
   end
+
+  match "*path", to: "errors#not_found", via: :all
 end

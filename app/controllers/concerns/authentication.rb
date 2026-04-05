@@ -29,7 +29,11 @@ module Authentication
   end
 
   def set_current_user
-    @current_user = User.find_by(id: session[:user_id]) if session[:user_id]
+    return unless session[:user_id]
+
+    @current_user = Rails.cache.fetch("user/#{session[:user_id]}", expires_in: 5.minutes) do
+      User.find_by(id: session[:user_id])
+    end
   end
 
   def current_user

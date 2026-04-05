@@ -5,16 +5,26 @@
 # Table name: users
 #
 #  id                  :bigint           not null, primary key
+#  address_line1       :string
+#  address_line2       :string
 #  avatar              :string           not null
 #  ban_reason          :text
+#  birthday            :date
+#  city                :string
+#  country             :string
 #  discarded_at        :datetime
 #  display_name        :string           not null
 #  email               :string           not null
+#  first_name          :string
 #  hca_token           :text
 #  is_adult            :boolean          default(FALSE), not null
 #  is_banned           :boolean          default(FALSE), not null
+#  is_beta_approved    :boolean          default(FALSE), not null
+#  last_name           :string
 #  permissions         :string           default([]), not null, is an Array
+#  postal_code         :string
 #  roles               :string           default([]), not null, is an Array
+#  state               :string
 #  timezone            :string           not null
 #  verification_status :string
 #  created_at          :datetime         not null

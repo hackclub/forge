@@ -11,6 +11,7 @@ Rails.application.configure do
 
   # Allow cloudflare tunnel hosts
   config.hosts << ".trycloudflare.com"
+  config.hosts << "forge.aaravj.tech"
 
   # Show full error reports.
   config.consider_all_requests_local = true
@@ -36,7 +37,7 @@ Rails.application.configure do
 
   config.action_mailer.raise_delivery_errors = true
   config.action_mailer.perform_caching = false
-  config.action_mailer.delivery_method = :letter_opener
+  config.action_mailer.delivery_method = :test
   config.action_mailer.default_url_options = { host: "localhost", port: 3000 }
 
   # Print deprecation notices to the Rails logger.

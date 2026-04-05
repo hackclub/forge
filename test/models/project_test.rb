@@ -2,24 +2,32 @@
 #
 # Table name: projects
 #
-#  id               :bigint           not null, primary key
-#  description      :text
-#  devlog_mode      :string
-#  discarded_at     :datetime
-#  hcb_grant_link   :string
-#  name             :string           not null
-#  pitch_text       :text
-#  repo_link        :string
-#  review_feedback  :text
-#  reviewed_at      :datetime
-#  slack_message_ts :string
-#  status           :integer          default("draft"), not null
-#  tags             :string           default([]), not null, is an Array
-#  created_at       :datetime         not null
-#  updated_at       :datetime         not null
-#  reviewer_id      :bigint
-#  slack_channel_id :string
-#  user_id          :bigint           not null
+#  id                           :bigint           not null, primary key
+#  budget                       :text
+#  cover_image_url              :string
+#  description                  :text
+#  devlog_mode                  :string
+#  discarded_at                 :datetime
+#  hcb_grant_link               :string
+#  name                         :string           not null
+#  override_hours               :decimal(, )
+#  override_hours_justification :text
+#  pitch_text                   :text
+#  readme_cache                 :text
+#  readme_fetched_at            :datetime
+#  repo_link                    :string
+#  review_feedback              :text
+#  reviewed_at                  :datetime
+#  slack_message_ts             :string
+#  status                       :integer          default("draft"), not null
+#  subtitle                     :string
+#  tags                         :string           default([]), not null, is an Array
+#  tier                         :string           default("normal"), not null
+#  created_at                   :datetime         not null
+#  updated_at                   :datetime         not null
+#  reviewer_id                  :bigint
+#  slack_channel_id             :string
+#  user_id                      :bigint           not null
 #
 # Indexes
 #

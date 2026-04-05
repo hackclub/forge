@@ -43,12 +43,44 @@ export default function ProjectsShow({
   const [showDevlogForm, setShowDevlogForm] = useState(false)
   const [showRepoForm, setShowRepoForm] = useState(false)
   const [repoUrl, setRepoUrl] = useState('')
+  const [uploadingCover, setUploadingCover] = useState(false)
 
   const devlogForm = useForm({
     title: '',
     content: '',
     time_spent: '',
   })
+
+  const addressForm = useForm({
+    address_line1: project.user_address?.address_line1 || '',
+    address_line2: project.user_address?.address_line2 || '',
+    city: project.user_address?.city || '',
+    state: project.user_address?.state || '',
+    country: project.user_address?.country || '',
+    postal_code: project.user_address?.postal_code || '',
+  })
+
+  function saveAddress(e: React.FormEvent) {
+    e.preventDefault()
+    addressForm.patch('/profile/address', { preserveScroll: true })
+  }
+
+  function uploadCoverImage(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploadingCover(true)
+    const formData = new FormData()
+    formData.append('cover_image', file)
+    const csrfToken = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content
+    fetch(`/projects/${project.id}/upload_cover_image`, {
+      method: 'POST',
+      headers: csrfToken ? { 'X-CSRF-Token': csrfToken } : {},
+      body: formData,
+    }).then(() => {
+      setUploadingCover(false)
+      router.reload()
+    }).catch(() => setUploadingCover(false))
+  }
 
   function deleteProject() {
     if (confirm('Are you sure you want to delete this project?')) {
@@ -99,7 +131,6 @@ export default function ProjectsShow({
   return (
     <div className="p-12 max-w-[1400px] mx-auto">
       <div className="grid grid-cols-12 gap-12">
-        {/* Main Content */}
         <div className="col-span-12 lg:col-span-8">
           <section className="mb-12">
             <div className="flex items-center gap-3 mb-4">
@@ -112,25 +143,19 @@ export default function ProjectsShow({
                   {project.devlog_mode === 'git' ? 'Git Journal' : 'Web Devlog'}
                 </span>
               )}
-              {project.tags.length > 0 && project.tags.map((tag) => (
-                <span key={tag} className="bg-[#353534] text-stone-300 px-3 py-1 text-[10px] uppercase font-bold tracking-widest">
-                  {tag}
-                </span>
-              ))}
             </div>
 
             <h1 className="text-6xl font-headline font-bold text-[#e5e2e1] tracking-tighter mb-6 leading-none">
               {project.name}
             </h1>
 
-            {project.description && (
-              <pre className="text-lg text-stone-400 leading-relaxed max-w-xl whitespace-pre-wrap font-sans">
-                {project.description}
-              </pre>
+            {project.subtitle && (
+              <p className="text-lg text-stone-400 leading-relaxed max-w-xl">
+                {project.subtitle}
+              </p>
             )}
           </section>
 
-          {/* Review feedback */}
           {project.review_feedback && (project.status === 'returned' || project.status === 'rejected') && (
             <section className="mb-12">
               <div className={`${status.bg} ghost-border p-8`}>
@@ -143,7 +168,6 @@ export default function ProjectsShow({
             </section>
           )}
 
-          {/* Repo link + link repo form */}
           <section className="mb-12">
             {isSafeUrl(project.repo_link) ? (
               <a
@@ -190,7 +214,6 @@ export default function ProjectsShow({
             ) : null}
           </section>
 
-          {/* Devlog mode chooser — shown once after approval */}
           {needsDevlogChoice && (
             <section className="mb-12">
               <div className="ghost-border bg-[#1c1b1b] p-8">
@@ -230,7 +253,6 @@ export default function ProjectsShow({
             </section>
           )}
 
-          {/* Devlogs — Git mode */}
           {isBuildingPhase && isGitMode && (
             <section className="mb-12">
               <div className="flex items-center justify-between mb-6">
@@ -305,7 +327,6 @@ export default function ProjectsShow({
             </section>
           )}
 
-          {/* Devlogs — Website mode */}
           {isBuildingPhase && isWebMode && (
             <section className="mb-12">
               <div className="flex items-center justify-between mb-6">
@@ -414,7 +435,6 @@ export default function ProjectsShow({
             </section>
           )}
 
-          {/* Creator info */}
           <section className="bg-[#1c1b1b] ghost-border p-8">
             <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">Created by</h4>
             <p className="text-[#e5e2e1] font-headline font-medium">{project.user_display_name}</p>
@@ -422,9 +442,7 @@ export default function ProjectsShow({
           </section>
         </div>
 
-        {/* Sidebar */}
         <aside className="col-span-12 lg:col-span-4 space-y-6">
-          {/* Pending status message */}
           {project.status === 'pending' && (
             <div className="bg-amber-500/5 ghost-border p-8">
               <div className="flex items-center gap-2 mb-3">
@@ -435,7 +453,6 @@ export default function ProjectsShow({
             </div>
           )}
 
-          {/* Approved — building */}
           {isApproved && (
             <div className="bg-emerald-500/5 ghost-border p-8">
               <div className="flex items-center gap-2 mb-3">
@@ -450,18 +467,84 @@ export default function ProjectsShow({
                     : 'Add devlog entries to document your progress.'}
               </p>
               {can.update && project.devlog_mode && devlogs.length > 0 && (
-                <button
-                  onClick={() => { if (confirm('Submit your build for review? Make sure your devlog is complete.')) router.post(`/projects/${project.id}/submit_build`) }}
-                  className="w-full signature-smolder text-[#4c1a00] font-headline font-bold py-3 uppercase tracking-wider active:scale-95 transition-transform flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  <span className="material-symbols-outlined text-lg">send</span>
-                  Submit Build for Review
-                </button>
+                (() => {
+                  const hasCover = !!project.cover_image_url
+                  const hasAddress = project.user_has_address
+                  const canSubmit = hasCover && hasAddress
+                  return (
+                    <>
+                      {!canSubmit && (
+                        <div className="mb-4 bg-amber-500/10 border border-amber-500/20 p-4 text-amber-200 text-xs">
+                          <p className="font-bold uppercase tracking-wider mb-2">Before submitting:</p>
+                          <ul className="space-y-1">
+                            {!hasCover && <li>• Upload a project cover image below</li>}
+                            {!hasAddress && <li>• Fill in your shipping address below</li>}
+                          </ul>
+                        </div>
+                      )}
+                      <button
+                        disabled={!canSubmit}
+                        onClick={() => { if (confirm('Submit your build for review? Make sure your devlog is complete.')) router.post(`/projects/${project.id}/submit_build`) }}
+                        className={`w-full font-headline font-bold py-3 uppercase tracking-wider transition-transform flex items-center justify-center gap-2 ${canSubmit ? 'signature-smolder text-[#4c1a00] active:scale-95 cursor-pointer' : 'bg-stone-700/40 text-stone-500 cursor-not-allowed'}`}
+                      >
+                        <span className="material-symbols-outlined text-lg">send</span>
+                        Submit Build for Review
+                      </button>
+                    </>
+                  )
+                })()
               )}
             </div>
           )}
 
-          {/* Build under review */}
+          {can.update && isApproved && (
+            <div className="bg-[#1c1b1b] ghost-border p-8">
+              <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">Cover Image</h4>
+              {project.cover_image_url ? (
+                <>
+                  <img src={project.cover_image_url} alt="Project cover" className="w-full mb-4" />
+                  <label className="ghost-border bg-[#0e0e0e] hover:bg-[#2a2a2a] text-stone-400 hover:text-[#e5e2e1] px-4 py-2 text-xs font-bold uppercase tracking-[0.15em] flex items-center justify-center gap-2 cursor-pointer transition-colors">
+                    <span className="material-symbols-outlined text-sm">upload</span>
+                    Replace
+                    <input type="file" accept="image/*" onChange={uploadCoverImage} className="hidden" disabled={uploadingCover} />
+                  </label>
+                </>
+              ) : (
+                <label className="ghost-border bg-[#0e0e0e] hover:bg-[#2a2a2a] text-stone-400 hover:text-[#e5e2e1] px-4 py-8 text-xs font-bold uppercase tracking-[0.15em] flex flex-col items-center justify-center gap-2 cursor-pointer transition-colors">
+                  <span className="material-symbols-outlined text-3xl">add_photo_alternate</span>
+                  {uploadingCover ? 'Uploading...' : 'Upload Cover Image'}
+                  <input type="file" accept="image/*" onChange={uploadCoverImage} className="hidden" disabled={uploadingCover} />
+                </label>
+              )}
+            </div>
+          )}
+
+          {can.update && isApproved && (
+            <div className="bg-[#1c1b1b] ghost-border p-8">
+              <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-2">
+                Shipping Address
+                {project.user_has_address && <span className="ml-2 text-emerald-400 normal-case tracking-normal text-[10px]">✓ Saved</span>}
+              </h4>
+              <p className="text-stone-500 text-xs mb-4">Required before submitting for review.</p>
+              <form onSubmit={saveAddress} className="space-y-3">
+                <input type="text" value={addressForm.data.address_line1} onChange={(e) => addressForm.setData('address_line1', e.target.value)} placeholder="Address Line 1" className="w-full bg-[#0e0e0e] border-none px-3 py-2 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600" required />
+                <input type="text" value={addressForm.data.address_line2} onChange={(e) => addressForm.setData('address_line2', e.target.value)} placeholder="Address Line 2 (optional)" className="w-full bg-[#0e0e0e] border-none px-3 py-2 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600" />
+                <div className="grid grid-cols-2 gap-3">
+                  <input type="text" value={addressForm.data.city} onChange={(e) => addressForm.setData('city', e.target.value)} placeholder="City" className="bg-[#0e0e0e] border-none px-3 py-2 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600" required />
+                  <input type="text" value={addressForm.data.state} onChange={(e) => addressForm.setData('state', e.target.value)} placeholder="State / Province" className="bg-[#0e0e0e] border-none px-3 py-2 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600" />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <input type="text" value={addressForm.data.country} onChange={(e) => addressForm.setData('country', e.target.value)} placeholder="Country" className="bg-[#0e0e0e] border-none px-3 py-2 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600" required />
+                  <input type="text" value={addressForm.data.postal_code} onChange={(e) => addressForm.setData('postal_code', e.target.value)} placeholder="ZIP / Postal Code" className="bg-[#0e0e0e] border-none px-3 py-2 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600" required />
+                </div>
+                <button type="submit" disabled={addressForm.processing} className="w-full signature-smolder text-[#4c1a00] font-bold py-2 uppercase tracking-wider text-xs flex items-center justify-center gap-2 cursor-pointer">
+                  <span className="material-symbols-outlined text-sm">save</span>
+                  Save Address
+                </button>
+              </form>
+            </div>
+          )}
+
           {project.status === 'build_pending' && (
             <div className="bg-amber-500/5 ghost-border p-8">
               <div className="flex items-center gap-2 mb-3">
@@ -472,7 +555,6 @@ export default function ProjectsShow({
             </div>
           )}
 
-          {/* Build approved — HCB grant */}
           {project.status === 'build_approved' && (
             <div className="bg-emerald-500/5 ghost-border p-8">
               <div className="flex items-center gap-2 mb-3">
@@ -495,8 +577,23 @@ export default function ProjectsShow({
             </div>
           )}
 
-          {/* Submit for Review - only for draft/returned */}
-          {can.submit_for_review && (
+          {can.update && project.status === 'returned' && project.tier === 'advanced' && project.from_slack && (
+            <div className="bg-[#1c1b1b] ghost-border p-8">
+              <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">Resubmit Pitch</h4>
+              <p className="text-stone-400 text-sm mb-4">
+                Edit your original message in <span className="text-[#ffb595] font-bold">#into-the-forge</span> on Slack with the requested changes, then hit resubmit.
+              </p>
+              <button
+                onClick={() => router.post(`/projects/${project.id}/resubmit_pitch`)}
+                className="w-full signature-smolder text-[#4c1a00] font-headline font-bold py-3 uppercase tracking-wider active:scale-95 transition-transform flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-lg">refresh</span>
+                Resubmit Pitch
+              </button>
+            </div>
+          )}
+
+          {can.submit_for_review && !(project.status === 'returned' && project.tier === 'advanced' && project.from_slack) && (
             <div className="bg-[#1c1b1b] ghost-border p-8">
               <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">Submit for Review</h4>
               {project.repo_link ? (
@@ -522,7 +619,6 @@ export default function ProjectsShow({
             </div>
           )}
 
-          {/* Actions */}
           {(can.update || can.destroy) && (
             <div className="bg-[#1c1b1b] ghost-border p-8">
               <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-6">Actions</h4>
@@ -549,7 +645,6 @@ export default function ProjectsShow({
             </div>
           )}
 
-          {/* Project Info */}
           <div className="bg-[#1c1b1b] ghost-border p-8">
             <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-6">Details</h4>
             <div className="space-y-4">

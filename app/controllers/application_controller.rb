@@ -5,6 +5,7 @@ class ApplicationController < ActionController::Base
   include Pagy::Method
   include InertiaPagination
 
+  before_action :gate_beta_access
   before_action :track_ahoy_visit
   before_action :set_paper_trail_whodunnit
 
@@ -35,12 +36,24 @@ class ApplicationController < ActionController::Base
 
   private
 
+  def gate_beta_access
+    return if current_user&.admin?
+    return if current_user&.is_beta_approved
+    return if request.path == "/rsvp" || request.path.start_with?("/auth") || request.path.start_with?("/slack") || request.path.start_with?("/up")
+
+    redirect_to "/rsvp"
+  end
+
   def track_ahoy_visit
-    if user_signed_in? && ahoy.visit && ahoy.visit.user_id != current_user.id
+    return unless user_signed_in?
+    return if session[:ahoy_tracked_user] == current_user.id
+
+    if ahoy.visit && ahoy.visit.user_id != current_user.id
       ahoy.visit.update(user_id: current_user.id)
     end
 
-    ahoy.authenticate(current_user) if user_signed_in?
+    ahoy.authenticate(current_user)
+    session[:ahoy_tracked_user] = current_user.id
   end
 
   def user_not_authorized
