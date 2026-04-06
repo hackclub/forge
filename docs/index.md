@@ -9,5 +9,5 @@ Forge is a [Hack Club](https://hackclub.com) program where teens like yourself c
 - [How It Works](/docs/how-it-works) - How to use Forge, from start to finish!
 - [Pitching Your Project](/docs/pitching) - How to write a great pitch
 - [JOURNAL.md Format](/docs/journal) - How to document your build
-- [About Cost](/docs/cost) - How to effectively source parts
+- [About Cost](/docs/cost) - How to effectively source parts and use grant funds
 - [FAQ](/docs/faq) - Frequently Asked Questions 
