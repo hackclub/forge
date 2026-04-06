@@ -34,6 +34,10 @@ module Authentication
     @current_user = Rails.cache.fetch("user/#{session[:user_id]}", expires_in: 5.minutes) do
       User.find_by(id: session[:user_id])
     end
+  rescue ActiveRecord::Encryption::Errors::Decryption
+    Rails.logger.warn("[Authentication] Decryption failed for user #{session[:user_id]}, clearing session")
+    reset_session
+    @current_user = nil
   end
 
   def current_user
