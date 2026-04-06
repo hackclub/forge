@@ -147,6 +147,15 @@ h1, h2, h3, .font-headline {
   border: 1px solid rgba(168, 138, 126, 0.15);
 }
 
+@keyframes float {
+  0% { transform: translateY(100vh) rotate(0deg); }
+  100% { transform: translateY(-100px) rotate(20deg); }
+}
+
+.animate-float {
+  animation: float linear infinite;
+}
+
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: #0e0e0e; }
 ::-webkit-scrollbar-thumb { background: #353534; }
