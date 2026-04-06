@@ -7,6 +7,7 @@ interface ExploreProject {
   id: number
   name: string
   subtitle: string | null
+  cover_image_url: string | null
   user_display_name: string
   user_avatar: string
   ships_count: number
@@ -71,7 +72,11 @@ export default function ExploreIndex({
                   className="group bg-[#1c1b1b] p-1 rounded-xl transition-all duration-300 hover:bg-[#2a2a2a] ghost-border"
                 >
                   <div className="aspect-[16/10] overflow-hidden rounded-lg mb-4 bg-[#0e0e0e] flex items-center justify-center">
-                    <span className="material-symbols-outlined text-6xl text-stone-800 group-hover:text-stone-700 transition-colors">precision_manufacturing</span>
+                    {project.cover_image_url ? (
+                      <img src={project.cover_image_url} alt={project.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="material-symbols-outlined text-6xl text-stone-800 group-hover:text-stone-700 transition-colors">precision_manufacturing</span>
+                    )}
                   </div>
 
                   <div className="px-5 pb-5">

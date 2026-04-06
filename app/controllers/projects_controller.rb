@@ -234,6 +234,23 @@ class ProjectsController < ApplicationController
       return
     end
 
+    if @project.normal?
+      if @project.subtitle.blank?
+        redirect_to @project, alert: "Add a short description before submitting for review."
+        return
+      end
+
+      unless @project.devlogs.any?
+        redirect_to @project, alert: "Add at least one devlog entry before submitting for review."
+        return
+      end
+
+      if @project.cover_image_url.blank?
+        redirect_to @project, alert: "Upload a cover image before submitting for review."
+        return
+      end
+    end
+
     @project.submit_for_review!
     redirect_to @project, notice: "Project submitted for review."
   end
@@ -287,6 +304,7 @@ class ProjectsController < ApplicationController
       id: project.id,
       name: project.name,
       subtitle: project.subtitle,
+      tags: project.tags,
       repo_link: project.repo_link,
       status: project.status,
       devlog_mode: project.devlog_mode,

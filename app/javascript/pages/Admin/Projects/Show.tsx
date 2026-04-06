@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { Link, router } from '@inertiajs/react'
 import Markdown from 'react-markdown'
+import rehypeRaw from 'rehype-raw'
+import remarkGfm from 'remark-gfm'
 import type { AdminProjectDetail, ProjectStatus } from '@/types'
 
 function isSafeUrl(url: string | null): boolean {
@@ -89,6 +91,10 @@ export default function AdminProjectsShow({
 
           <h1 className="text-5xl font-headline font-bold text-[#e5e2e1] tracking-tighter mb-4">{project.name}</h1>
 
+          {project.subtitle && (
+            <p className="text-lg text-stone-400 leading-relaxed mb-4">{project.subtitle}</p>
+          )}
+
           <p className="text-stone-400 text-sm mb-8">
             by{' '}
             <Link href={`/admin/users/${project.user_id}`} className="text-[#ffb595] hover:underline">
@@ -126,7 +132,7 @@ export default function AdminProjectsShow({
             </div>
           )}
 
-          {(isBuildReview || project.status === 'build_approved') && (
+          {(isBuildReview || project.status === 'build_approved' || (project.tier === 'normal' && project.devlogs.length > 0)) && (
             <>
               {project.cover_image_url && (
                 <div className="bg-[#1c1b1b] ghost-border rounded-xl p-8 mb-8">
@@ -152,8 +158,8 @@ export default function AdminProjectsShow({
                   </div>
                 </div>
                 {project.readme_cache ? (
-                  <div className="prose prose-invert prose-sm max-w-none text-stone-300 prose-a:text-[#ffb595] prose-img:max-w-full">
-                    <Markdown>{project.readme_cache}</Markdown>
+                  <div className="prose prose-invert prose-sm max-w-none text-stone-300 prose-a:text-[#ffb595] prose-img:max-w-full overflow-x-auto">
+                    <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>{project.readme_cache}</Markdown>
                   </div>
                 ) : (
                   <p className="text-stone-600 text-sm">No README fetched yet. Click Refresh to pull from the repo.</p>
@@ -173,9 +179,9 @@ export default function AdminProjectsShow({
                 {project.devlogs.length > 0 ? (
                   <div className="space-y-4">
                     {project.devlogs.map((entry) => (
-                      <div key={entry.id} className="bg-[#0e0e0e] p-5 ghost-border">
+                      <div key={entry.id} className="bg-[#0e0e0e] p-5 ghost-border overflow-hidden">
                         <div className="flex items-start justify-between mb-2">
-                          <h5 className="font-headline font-bold text-[#e5e2e1]">{entry.title}</h5>
+                          <h5 className="font-headline font-bold text-[#e5e2e1] break-words min-w-0">{entry.title}</h5>
                           <div className="flex items-center gap-3 text-xs">
                             {entry.time_spent && (
                               <span className="text-[#ffb595] flex items-center gap-1">
@@ -186,8 +192,8 @@ export default function AdminProjectsShow({
                             <span className="text-stone-500">{entry.created_at}</span>
                           </div>
                         </div>
-                        <div className="prose prose-invert prose-sm max-w-none text-stone-300 prose-a:text-[#ffb595]">
-                          <Markdown>{entry.content}</Markdown>
+                        <div className="prose prose-invert prose-sm max-w-none text-stone-300 prose-a:text-[#ffb595] break-words [overflow-wrap:anywhere]">
+                          <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>{entry.content}</Markdown>
                         </div>
                       </div>
                     ))}

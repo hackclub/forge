@@ -29,7 +29,7 @@ class ResubmitPitchJob < ApplicationJob
       status: :pending
     )
 
-    app_url = ENV.fetch("APP_URL", "https://forge.aaravj.tech")
+    app_url = ENV.fetch("APP_URL", "https://forge.hackclub.com")
     project_url = "#{app_url}/projects/#{project.id}"
     post_reply(project.slack_channel_id, project.slack_message_ts, ":arrows_counterclockwise: Your updated pitch for *#{project.name}* has been resubmitted for review!\n\n<#{project_url}|View Project>")
     swap_reaction(project.slack_channel_id, project.slack_message_ts, "eyes")

@@ -25,7 +25,7 @@ export default function AdminStaticPagesIndex({ user_name, counts }: AdminDashbo
     <div className="p-12 max-w-5xl mx-auto space-y-12">
       <div>
         <Link href="/home" className="ghost-border inline-block px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-stone-500 hover:text-[#e5e2e1] transition-colors mb-6">
-          Escape hatch
+          Leave the mines
         </Link>
         <h1 className="text-4xl font-headline font-bold text-[#e5e2e1] tracking-tight">Admin Dashboard</h1>
         <p className="text-stone-500 mt-2">What are we forging today {user_name}?</p>
