@@ -185,5 +185,5 @@ Rails.application.routes.draw do
     end
   end
 
-  match "*path", to: "errors#not_found", via: :all
+  match "*path", to: "errors#not_found", via: :all, constraints: ->(req) { !req.path.start_with?("/rails/") }
 end

@@ -4,7 +4,7 @@ class SlackPitchJob < ApplicationJob
   def perform(slack_user_id:, channel_id:, message_ts:, text:)
     user = User.find_by(slack_id: slack_user_id)
     unless user
-      post_reply(channel_id, message_ts, "Hey! You need to sign in to Forge first before pitching. Head to #{ENV.fetch('APP_URL', 'https://forge.aaravj.tech')} and sign in with Slack.")
+      post_reply(channel_id, message_ts, "Hey! You need to sign in to Forge first before pitching. Head to #{ENV.fetch('APP_URL', 'https://forge.hackclub.com')} and sign in with Slack.")
       return
     end
 
@@ -27,7 +27,7 @@ class SlackPitchJob < ApplicationJob
       slack_message_ts: message_ts
     )
 
-    app_url = ENV.fetch("APP_URL", "https://forge.aaravj.tech")
+    app_url = ENV.fetch("APP_URL", "https://forge.hackclub.com")
     project_url = "#{app_url}/projects/#{project.id}"
     post_reply(channel_id, message_ts, "Your pitch for *#{project.name}* has been received and is now pending review! :eyes:\n\nYou'll hear back here once it's been reviewed.\n\n<#{project_url}|View Project>")
     react_to_message(channel_id, message_ts, "eyes")

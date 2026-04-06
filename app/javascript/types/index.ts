@@ -53,6 +53,7 @@ export interface ProjectDetail {
   id: number
   name: string
   subtitle: string | null
+  tags: string[]
   repo_link: string | null
   status: ProjectStatus
   devlog_mode: 'website' | 'git' | null
@@ -127,6 +128,7 @@ export interface AdminDevlog {
 export interface AdminProjectDetail {
   id: number
   name: string
+  subtitle: string | null
   description: string | null
   repo_link: string | null
   tags: string[]

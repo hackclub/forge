@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { router, Link, useForm } from '@inertiajs/react'
 import Markdown from 'react-markdown'
+import rehypeRaw from 'rehype-raw'
+import remarkGfm from 'remark-gfm'
 import type { ProjectDetail, ProjectStatus } from '@/types'
 
 function isSafeUrl(url: string | null): boolean {
@@ -44,6 +46,8 @@ export default function ProjectsShow({
   const [showRepoForm, setShowRepoForm] = useState(false)
   const [repoUrl, setRepoUrl] = useState('')
   const [uploadingCover, setUploadingCover] = useState(false)
+  const [editingSubtitle, setEditingSubtitle] = useState(false)
+  const [subtitleDraft, setSubtitleDraft] = useState(project.subtitle || '')
 
   const devlogForm = useForm({
     title: '',
@@ -115,12 +119,25 @@ export default function ProjectsShow({
     })
   }
 
+  function saveSubtitle(e: React.FormEvent) {
+    e.preventDefault()
+    router.patch(`/projects/${project.id}`, {
+      project: { name: project.name, subtitle: subtitleDraft, repo_link: project.repo_link || '', tier: project.tier, tags: project.tags },
+    }, {
+      preserveScroll: true,
+      onSuccess: () => setEditingSubtitle(false),
+    })
+  }
+
   const status = statusConfig[project.status]
   const isApproved = project.status === 'approved'
   const isBuildingPhase = isApproved || project.status === 'build_pending' || project.status === 'build_approved'
-  const needsDevlogChoice = isApproved && !project.devlog_mode && can.update
+  const isNormalTier = project.tier === 'normal'
+  const needsDevlogChoice = isApproved && !isNormalTier && !project.devlog_mode && can.update
   const isGitMode = project.devlog_mode === 'git'
-  const isWebMode = project.devlog_mode === 'website'
+  const isWebMode = project.devlog_mode === 'website' || isNormalTier
+  const showWebDevlog = (isBuildingPhase && isWebMode) || (isNormalTier && can.update)
+  const showCoverUpload = can.update && (isApproved || isNormalTier)
 
   const totalHours = devlogs.reduce((sum, entry) => {
     if (!entry.time_spent) return sum
@@ -130,6 +147,11 @@ export default function ProjectsShow({
 
   return (
     <div className="p-12 max-w-[1400px] mx-auto">
+      {project.cover_image_url && (
+        <div className="mb-10 ghost-border overflow-hidden">
+          <img src={project.cover_image_url} alt={project.name} className="w-full max-h-[400px] object-cover" />
+        </div>
+      )}
       <div className="grid grid-cols-12 gap-12">
         <div className="col-span-12 lg:col-span-8">
           <section className="mb-12">
@@ -149,11 +171,40 @@ export default function ProjectsShow({
               {project.name}
             </h1>
 
-            {project.subtitle && (
-              <p className="text-lg text-stone-400 leading-relaxed max-w-xl">
-                {project.subtitle}
+            {editingSubtitle && can.update ? (
+              <form onSubmit={saveSubtitle} className="max-w-xl space-y-3">
+                <label className="block text-[10px] uppercase tracking-[0.2em] font-bold text-stone-500">Description</label>
+                <textarea
+                  value={subtitleDraft}
+                  onChange={(e) => setSubtitleDraft(e.target.value)}
+                  rows={3}
+                  className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 text-sm"
+                  placeholder="A short description of your project"
+                  autoFocus
+                />
+                <div className="flex gap-2">
+                  <button type="submit" className="signature-smolder text-[#4c1a00] px-5 py-2 text-xs font-bold uppercase tracking-[0.15em] cursor-pointer">Save</button>
+                  <button type="button" onClick={() => { setEditingSubtitle(false); setSubtitleDraft(project.subtitle || '') }} className="ghost-border text-stone-400 px-4 py-2 text-xs cursor-pointer">Cancel</button>
+                </div>
+              </form>
+            ) : project.subtitle ? (
+              <p className="text-lg text-stone-400 leading-relaxed max-w-xl group inline-flex items-start gap-2">
+                <span>{project.subtitle}</span>
+                {can.update && (
+                  <button onClick={() => setEditingSubtitle(true)} className="text-stone-600 hover:text-[#ffb595] opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer mt-1" title="Edit description">
+                    <span className="material-symbols-outlined text-sm">edit</span>
+                  </button>
+                )}
               </p>
-            )}
+            ) : can.update ? (
+              <button
+                onClick={() => setEditingSubtitle(true)}
+                className="ghost-border bg-[#1c1b1b] hover:bg-[#2a2a2a] text-stone-400 hover:text-[#e5e2e1] px-4 py-2 text-xs font-bold uppercase tracking-[0.15em] flex items-center gap-2 cursor-pointer transition-colors"
+              >
+                <span className="material-symbols-outlined text-sm">add</span>
+                Add Description
+              </button>
+            ) : null}
           </section>
 
           {project.review_feedback && (project.status === 'returned' || project.status === 'rejected') && (
@@ -168,51 +219,31 @@ export default function ProjectsShow({
             </section>
           )}
 
-          <section className="mb-12">
-            {isSafeUrl(project.repo_link) ? (
-              <a
-                href={project.repo_link!}
-                target="_blank"
-                rel="noopener"
-                className="inline-flex items-center gap-2 bg-[#1c1b1b] ghost-border px-6 py-3 text-sm font-headline font-medium text-[#e5e2e1] hover:bg-[#2a2a2a] transition-colors group corner-accents"
-              >
-                <span className="material-symbols-outlined text-stone-500 group-hover:text-[#ffb595] transition-colors">code</span>
-                View Repository
-                <span className="material-symbols-outlined text-sm text-stone-500">open_in_new</span>
-              </a>
-            ) : can.update ? (
-              !showRepoForm ? (
-                <button
-                  onClick={() => setShowRepoForm(true)}
-                  className="ghost-border bg-[#1c1b1b] hover:bg-[#2a2a2a] text-stone-400 hover:text-[#e5e2e1] px-6 py-3 text-sm font-headline font-medium flex items-center gap-2 cursor-pointer transition-colors corner-accents"
-                >
-                  <span className="material-symbols-outlined">link</span>
-                  Link Repository
-                </button>
-              ) : (
-                <form onSubmit={linkRepo} className="ghost-border bg-[#1c1b1b] p-6 space-y-4">
-                  <label className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">Repository URL</label>
-                  <p className="text-stone-500 text-xs mb-3">Works with GitHub, GitLab, Codeberg, or any git provider.</p>
-                  <div className="flex gap-3">
-                    <input
-                      type="url"
-                      value={repoUrl}
-                      onChange={(e) => setRepoUrl(e.target.value)}
-                      className="flex-1 bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 text-sm"
-                      placeholder="https://github.com/username/repo"
-                      required
-                    />
-                    <button type="submit" className="signature-smolder text-[#4c1a00] px-6 py-3 font-bold uppercase tracking-wider text-xs cursor-pointer">
-                      Link
-                    </button>
-                    <button type="button" onClick={() => setShowRepoForm(false)} className="ghost-border text-stone-400 px-4 py-3 text-xs cursor-pointer">
-                      Cancel
-                    </button>
-                  </div>
-                </form>
-              )
-            ) : null}
-          </section>
+          {/* Repo link form (only shown when editing) */}
+          {can.update && !isSafeUrl(project.repo_link) && showRepoForm && (
+            <section className="mb-12">
+              <form onSubmit={linkRepo} className="ghost-border bg-[#1c1b1b] p-6 space-y-4">
+                <label className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">Repository URL</label>
+                <p className="text-stone-500 text-xs mb-3">Works with GitHub, GitLab, Codeberg, or any git provider.</p>
+                <div className="flex gap-3">
+                  <input
+                    type="url"
+                    value={repoUrl}
+                    onChange={(e) => setRepoUrl(e.target.value)}
+                    className="flex-1 bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 text-sm"
+                    placeholder="https://github.com/username/repo"
+                    required
+                  />
+                  <button type="submit" className="signature-smolder text-[#4c1a00] px-6 py-3 font-bold uppercase tracking-wider text-xs cursor-pointer">
+                    Link
+                  </button>
+                  <button type="button" onClick={() => setShowRepoForm(false)} className="ghost-border text-stone-400 px-4 py-3 text-xs cursor-pointer">
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </section>
+          )}
 
           {needsDevlogChoice && (
             <section className="mb-12">
@@ -304,7 +335,7 @@ export default function ProjectsShow({
               {devlogs.length > 0 && (
                 <div className="space-y-4">
                   {devlogs.map((entry) => (
-                    <div key={entry.id} className="ghost-border bg-[#1c1b1b] p-6">
+                    <div key={entry.id} className="ghost-border bg-[#1c1b1b] p-6 overflow-hidden">
                       <div className="flex items-start justify-between mb-3">
                         <div>
                           <h3 className="font-headline font-bold text-[#e5e2e1]">{entry.title}</h3>
@@ -319,7 +350,7 @@ export default function ProjectsShow({
                           </div>
                         </div>
                       </div>
-                      <div className="prose prose-invert prose-sm max-w-none text-stone-300 prose-a:text-[#ffb595] prose-img:max-w-full prose-img:rounded-none"><Markdown>{entry.content}</Markdown></div>
+                      <div className="prose prose-invert prose-sm max-w-none text-stone-300 prose-a:text-[#ffb595] prose-img:max-w-full prose-img:rounded-none break-words [overflow-wrap:anywhere]"><Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>{entry.content}</Markdown></div>
                     </div>
                   ))}
                 </div>
@@ -327,12 +358,11 @@ export default function ProjectsShow({
             </section>
           )}
 
-          {isBuildingPhase && isWebMode && (
+          {showWebDevlog && (
             <section className="mb-12">
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <h2 className="text-2xl font-headline font-bold text-[#e5e2e1] tracking-tight">Devlog</h2>
-                  <p className="text-amber-400/60 text-xs mt-1">Web devlog — up to $200 funding</p>
                 </div>
                 {can.update && (
                   <button
@@ -399,7 +429,7 @@ export default function ProjectsShow({
               {devlogs.length > 0 ? (
                 <div className="space-y-4">
                   {devlogs.map((entry) => (
-                    <div key={entry.id} className="ghost-border bg-[#1c1b1b] p-6">
+                    <div key={entry.id} className="ghost-border bg-[#1c1b1b] p-6 overflow-hidden">
                       <div className="flex items-start justify-between mb-3">
                         <div>
                           <h3 className="font-headline font-bold text-[#e5e2e1]">{entry.title}</h3>
@@ -422,7 +452,7 @@ export default function ProjectsShow({
                           </button>
                         )}
                       </div>
-                      <div className="prose prose-invert prose-sm max-w-none text-stone-300 prose-a:text-[#ffb595] prose-img:max-w-full prose-img:rounded-none"><Markdown>{entry.content}</Markdown></div>
+                      <div className="prose prose-invert prose-sm max-w-none text-stone-300 prose-a:text-[#ffb595] prose-img:max-w-full prose-img:rounded-none break-words [overflow-wrap:anywhere]"><Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>{entry.content}</Markdown></div>
                     </div>
                   ))}
                 </div>
@@ -435,21 +465,49 @@ export default function ProjectsShow({
             </section>
           )}
 
-          <section className="bg-[#1c1b1b] ghost-border p-8">
-            <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">Created by</h4>
-            <p className="text-[#e5e2e1] font-headline font-medium">{project.user_display_name}</p>
-            <p className="text-stone-500 text-sm mt-1">{project.created_at}</p>
-          </section>
         </div>
 
         <aside className="col-span-12 lg:col-span-4 space-y-6">
+          {isSafeUrl(project.repo_link) && (
+            <a
+              href={project.repo_link!}
+              target="_blank"
+              rel="noopener"
+              className="w-full flex items-center justify-center gap-2 bg-[#1c1b1b] ghost-border px-6 py-3 text-sm font-headline font-medium text-[#e5e2e1] hover:bg-[#2a2a2a] transition-colors group corner-accents"
+            >
+              <span className="material-symbols-outlined text-stone-500 group-hover:text-[#ffb595] transition-colors">code</span>
+              View Repository
+              <span className="material-symbols-outlined text-sm text-stone-500">open_in_new</span>
+            </a>
+          )}
+          {can.update && !isSafeUrl(project.repo_link) && !showRepoForm && (
+            <button
+              onClick={() => setShowRepoForm(true)}
+              className="w-full ghost-border bg-[#1c1b1b] hover:bg-[#2a2a2a] text-stone-400 hover:text-[#e5e2e1] px-6 py-3 text-sm font-headline font-medium flex items-center justify-center gap-2 cursor-pointer transition-colors corner-accents"
+            >
+              <span className="material-symbols-outlined">link</span>
+              Link Repository
+            </button>
+          )}
+
+          <div className="bg-[#1c1b1b] ghost-border p-8">
+            <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">Created by</h4>
+            <p className="text-[#e5e2e1] font-headline font-medium">{project.user_display_name}</p>
+            <p className="text-stone-500 text-sm mt-1">{project.created_at}</p>
+          </div>
           {project.status === 'pending' && (
             <div className="bg-amber-500/5 ghost-border p-8">
               <div className="flex items-center gap-2 mb-3">
                 <span className="material-symbols-outlined text-amber-400 text-lg">schedule</span>
-                <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-amber-400 font-headline">Waiting for Approval</h4>
+                <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-amber-400 font-headline">
+                  {isNormalTier ? 'Project Under Review' : 'Pitch Under Review'}
+                </h4>
               </div>
-              <p className="text-stone-400 text-sm">Your pitch is being reviewed. You'll hear back in Slack once a decision is made.</p>
+              <p className="text-stone-400 text-sm">
+                {isNormalTier
+                  ? 'Your project is being reviewed. You\'ll hear back once a decision is made.'
+                  : 'Your pitch is being reviewed. You\'ll hear back in Slack once a decision is made.'}
+              </p>
             </div>
           )}
 
@@ -497,7 +555,7 @@ export default function ProjectsShow({
             </div>
           )}
 
-          {can.update && isApproved && (
+          {showCoverUpload && (
             <div className="bg-[#1c1b1b] ghost-border p-8">
               <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">Cover Image</h4>
               {project.cover_image_url ? (
@@ -596,26 +654,48 @@ export default function ProjectsShow({
           {can.submit_for_review && !(project.status === 'returned' && project.tier === 'advanced' && project.from_slack) && (
             <div className="bg-[#1c1b1b] ghost-border p-8">
               <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">Submit for Review</h4>
-              {project.repo_link ? (
-                <>
-                  <p className="text-stone-400 text-sm mb-6">
-                    {project.status === 'returned'
-                      ? 'Address the feedback and resubmit your project for another review.'
-                      : 'Your project is ready to be reviewed. Submit it when you\'re happy with it.'}
-                  </p>
-                  <button
-                    onClick={submitForReview}
-                    className="w-full signature-smolder text-[#4c1a00] font-headline font-bold py-3 uppercase tracking-wider active:scale-95 transition-transform flex items-center justify-center gap-2 cursor-pointer"
-                  >
-                    <span className="material-symbols-outlined text-lg">send</span>
-                    Submit for Review
-                  </button>
-                </>
-              ) : (
-                <p className="text-stone-500 text-sm">
-                  Link a repository to your project before submitting for review.
-                </p>
-              )}
+              {(() => {
+                const hasRepo = !!project.repo_link
+                const hasSubtitle = !!project.subtitle
+                const hasCover = !!project.cover_image_url
+                const hasDevlog = devlogs.length > 0
+                const normalChecks = isNormalTier ? [
+                  { ok: hasRepo, label: 'Link a repository' },
+                  { ok: hasSubtitle, label: 'Add a description' },
+                  { ok: hasCover, label: 'Upload a cover image' },
+                  { ok: hasDevlog, label: 'Add at least one devlog entry' },
+                ] : [
+                  { ok: hasRepo, label: 'Link a repository' },
+                ]
+                const canSubmit = normalChecks.every((c) => c.ok)
+                return (
+                  <>
+                    <p className="text-stone-400 text-sm mb-4">
+                      {project.status === 'returned'
+                        ? 'Address the feedback and resubmit your project for another review.'
+                        : 'Your project is ready to be reviewed. Submit it when you\'re happy with it.'}
+                    </p>
+                    {!canSubmit && (
+                      <div className="mb-4 bg-amber-500/10 border border-amber-500/20 p-4 text-amber-200 text-xs">
+                        <p className="font-bold uppercase tracking-wider mb-2">Before submitting:</p>
+                        <ul className="space-y-1">
+                          {normalChecks.filter((c) => !c.ok).map((c) => (
+                            <li key={c.label}>• {c.label}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    <button
+                      onClick={submitForReview}
+                      disabled={!canSubmit}
+                      className={`w-full font-headline font-bold py-3 uppercase tracking-wider transition-transform flex items-center justify-center gap-2 ${canSubmit ? 'signature-smolder text-[#4c1a00] active:scale-95 cursor-pointer' : 'bg-stone-700/40 text-stone-500 cursor-not-allowed'}`}
+                    >
+                      <span className="material-symbols-outlined text-lg">send</span>
+                      Submit for Review
+                    </button>
+                  </>
+                )
+              })()}
             </div>
           )}
 

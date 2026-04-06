@@ -40,12 +40,8 @@ class AirtableSyncJob < ApplicationJob
       "HCB Grant Link" => project.hcb_grant_link
     }
 
-    if project.cover_image.attached?
-      begin
-        fields["Screenshot"] = [ { "url" => Rails.application.routes.url_helpers.rails_blob_url(project.cover_image, host: app_url) } ]
-      rescue StandardError => e
-        Rails.logger.warn("Airtable screenshot URL build failed: #{e.message}")
-      end
+    if project.cover_image_url.present?
+      fields["Screenshot"] = [ { "url" => project.cover_image_url } ]
     end
 
     fields.compact

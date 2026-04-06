@@ -152,7 +152,7 @@ class Admin::ProjectsController < Admin::ApplicationController
     else ":arrows_counterclockwise:"
     end
 
-    app_url = ENV.fetch("APP_URL", "https://forge.aaravj.tech")
+    app_url = ENV.fetch("APP_URL", "https://forge.hackclub.com")
     project_url = "#{app_url}/projects/#{project.id}"
 
     msg = "#{emoji} Your pitch for *#{project.name}* has been *#{decision}*."
@@ -215,6 +215,7 @@ class Admin::ProjectsController < Admin::ApplicationController
     {
       id: project.id,
       name: project.name,
+      subtitle: project.subtitle,
       description: project.description,
       repo_link: project.repo_link,
       tags: project.tags,
