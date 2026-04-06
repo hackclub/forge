@@ -12,15 +12,17 @@ Post your pitch in the **#into-the-forge** Slack channel. Your pitch will be aut
 
 You'll get a confirmation reply in your Slack thread, and your project will appear on your Forge dashboard as "Pending Review."
 
+**Note: #into-the-forge is a threaded channel ONLY for project pitches! Please use #forge for general discussions.**
+
 See [Pitching Your Project](/docs/pitching) for the pitch format.
 
 ## Step 2: Get Approved
 
-An admin will review your pitch. You'll hear back directly in your Slack thread with one of three outcomes:
+We will review your pitch. You'll hear back directly in your Slack thread with one of three outcomes:
 
-- **Approved** — You're good to go! Start building.
-- **Returned for Changes** — Your pitch needs some adjustments. Read the feedback and re-pitch.
-- **Rejected** — Your project doesn't fit the program. You can pitch a different project.
+- **Approved**: You're good to go! Start building.
+- **Returned for Changes**: Your pitch needs some adjustments. Read the feedback and re-pitch.
+- **Rejected**: Your project doesn't fit the program. Don't worry, you can pitch a different project!
 
 ## Step 3: Start Building
 
@@ -33,6 +35,5 @@ See [JOURNAL.md Format](/docs/journal) for details.
 
 ## Step 4: Ship It
 
-When you've made progress, submit a "ship" — a snapshot of your work. Ships are reviewed and earn you funding based on the hours you've put in.
-
-The better you document your process, the more you earn.
+When you've finished, ship it! This involves publishing your functioning design out there for the world to see.
+See [Shipping](/docs/shipping) for more details.
