@@ -1,4 +1,4 @@
-| title | Sourcing Parts |
+| title | Sourcing Parts |
 | description | Where to find the best (and cheapest) parts for your project |
 | --- | --- |
 
