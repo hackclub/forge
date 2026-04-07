@@ -131,7 +131,6 @@ Rails.application.routes.draw do
       get "audit_log/:id" => "audit_log#show", as: :audit_log_entry
       get "database" => "database#index", as: :database
       post "database/query" => "database#query"
-      post "database/execute" => "database#execute"
       resources :support_tickets, only: [ :index, :show, :destroy ], path: "support" do
         member do
           post :reply
