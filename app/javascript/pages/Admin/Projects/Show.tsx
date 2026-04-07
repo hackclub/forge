@@ -121,7 +121,11 @@ export default function AdminProjectsShow({
           {project.pitch_text && (
             <div className="bg-[#1c1b1b] ghost-border rounded-xl p-8 mb-8">
               <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">Original Pitch</h4>
-              <pre className="text-stone-300 text-sm leading-relaxed whitespace-pre-wrap font-sans">{project.pitch_text}</pre>
+              <div className="prose prose-invert prose-sm max-w-none text-stone-300 prose-a:text-[#ffb595] break-words [overflow-wrap:anywhere]">
+                <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
+                  {project.pitch_text.replace(/<(https?:\/\/[^|>]+)\|([^>]+)>/g, '[$2]($1)').replace(/<(https?:\/\/[^>]+)>/g, '$1')}
+                </Markdown>
+              </div>
             </div>
           )}
 
