@@ -92,6 +92,11 @@ class Slack::InteractivityController < ApplicationController
       thread_ts: ticket.thread_ts,
       text: ":white_check_mark: This question has been marked as resolved!"
     )
+    slack_client.reactions_add(
+      channel: ticket.channel_id,
+      timestamp: ticket.thread_ts,
+      name: "white_check_mark"
+    )
   rescue StandardError => e
     Rails.logger.error("Failed to post resolved message: #{e.message}")
   end

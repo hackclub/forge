@@ -84,6 +84,11 @@ class Admin::SupportTicketsController < Admin::ApplicationController
       thread_ts: @ticket.thread_ts,
       text: ":white_check_mark: This question has been marked as resolved!"
     )
+    slack_client.reactions_add(
+      channel: @ticket.channel_id,
+      timestamp: @ticket.thread_ts,
+      name: "white_check_mark"
+    )
     update_bts_message(@ticket)
     redirect_to admin_support_ticket_path(@ticket), notice: "Ticket resolved."
   rescue StandardError => e
