@@ -30,7 +30,7 @@ You can edit and resubmit your pitch! Read the feedback and try again, just by e
 
 ## How do I get my money?
 
-Once your project is approved, you'll receive funding through a virtual card on [HCB](https://hcb.hackclub.com). Please keep and upload all of your reciepts, since it is a requirement from the IRS! 
+Once your project is approved, you'll receive funding through a virtual card on [HCB](https://hcb.hackclub.com). Please keep and upload all of your receipts, since it is a requirement from the IRS! 
 
 > **We monitor your transactions.** Misuse of your funds will lead to a ban from Forge and potentially Hack Club as a whole. If you're not sure if something is an appropriate use of your funds, ask us before buying it!
 
