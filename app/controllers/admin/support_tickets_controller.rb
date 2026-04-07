@@ -49,6 +49,16 @@ class Admin::SupportTicketsController < Admin::ApplicationController
       icon_url: current_user.avatar
     )
 
+    if @ticket.bts_message_ts.present?
+      slack_client.chat_postMessage(
+        channel: @ticket.bts_channel_id,
+        thread_ts: @ticket.bts_message_ts,
+        text: text,
+        username: current_user.display_name,
+        icon_url: current_user.avatar
+      )
+    end
+
     redirect_to admin_support_ticket_path(@ticket), notice: "Reply sent."
   rescue StandardError => e
     Rails.logger.error("Support reply failed: #{e.message}")
