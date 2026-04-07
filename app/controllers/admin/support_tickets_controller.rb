@@ -83,7 +83,7 @@ class Admin::SupportTicketsController < Admin::ApplicationController
     slack_client.chat_postMessage(
       channel: @ticket.channel_id,
       thread_ts: @ticket.thread_ts,
-      text: ":white_check_mark: This question has been marked as resolved!"
+      text: ":white_check_mark: <@#{@ticket.slack_user_id}> This question has been marked as resolved by #{current_user.display_name}!"
     )
     slack_client.reactions_add(
       channel: @ticket.channel_id,
