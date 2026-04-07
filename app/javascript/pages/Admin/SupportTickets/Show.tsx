@@ -15,7 +15,7 @@ export default function AdminSupportTicketsShow({
 }: {
   ticket: AdminSupportTicketRow
   messages: SupportThreadMessage[]
-  can: { reply: boolean; claim: boolean; resolve: boolean }
+  can: { reply: boolean; claim: boolean; resolve: boolean; destroy: boolean }
 }) {
   const [replyText, setReplyText] = useState('')
   const [sending, setSending] = useState(false)
@@ -97,6 +97,15 @@ export default function AdminSupportTicketsShow({
           >
             <span className="material-symbols-outlined text-sm">check_circle</span>
             Resolve
+          </button>
+        )}
+        {can.destroy && (
+          <button
+            onClick={() => { if (confirm('Permanently delete this ticket? This cannot be undone.')) router.delete(`/admin/support/${ticket.id}`) }}
+            className="bg-red-500/20 border border-red-500/40 text-red-400 hover:bg-red-500/30 px-4 py-2 text-xs font-bold uppercase tracking-[0.15em] transition-colors cursor-pointer inline-flex items-center gap-2"
+          >
+            <span className="material-symbols-outlined text-sm">delete_forever</span>
+            Delete
           </button>
         )}
       </div>
