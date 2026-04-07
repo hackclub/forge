@@ -619,7 +619,11 @@ export default function ProjectsShow({
                 <span className="material-symbols-outlined text-emerald-400 text-lg">verified</span>
                 <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-400 font-headline">Build Approved!</h4>
               </div>
-              <p className="text-stone-400 text-sm mb-4">Your build has been approved and your grant is ready.</p>
+              <p className="text-stone-400 text-sm mb-4">
+                {can.update
+                  ? 'Your build has been approved and your grant is ready.'
+                  : 'This build has been approved and has been funded!'}
+              </p>
               {project.hcb_grant_link && (
                 <a
                   href={project.hcb_grant_link}
