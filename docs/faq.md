@@ -10,7 +10,7 @@ Forge is open to builders aged 13 to 18. You must be a member of the Hack Club S
 
 ## How much funding can I get?
 
-Infinite! (within reason) The amount depends on the scope of your project and the quality of your documentation. Still try to save cost where you can!
+Up to $1,000. The amount depends on the scope of your project and the quality of your documentation. Still try to save cost where you can!
 
 ## Do I need to know how to code?
 

@@ -1,3 +1,6 @@
+| title | Sourcing Parts |
+| description | Where to find the best (and cheapest) parts for your project |
+| --- | --- |
 
 # Sourcing parts
 originally made by [@alexren](https://github.com/qcoral), adapted from hwdocs.hackclub.dev
@@ -37,8 +40,7 @@ If you're in a pinch, Amazon actually has OK prices all things considered. I wou
 
 ### SBCs (Raspberry Pi, Orange Pi, etc)
 
-Raspberry Pi
-You can get Orange Pis from aliexpress.
+Raspberry Pis are often harder to source cheaply, but you can get Orange Pis from AliExpress.
 
 Depending on your application though, you can also repurpose old laptops/desktops for your specific application if it's not space-sensitive
 
@@ -61,6 +63,7 @@ Arduinos are fairly outdated by todays standards
 ### Batteries (Li-Po, CR2032, AA, etc)
 
 Coming soon.
+
 ## Country Specific Notes
 
 ### Egypt:
