@@ -60,6 +60,7 @@ class Slack::InteractivityController < ApplicationController
       resolved_at: Time.current
     )
 
+    notify_public_resolved(ticket)
     update_bts_message(ticket)
   end
 
@@ -83,6 +84,16 @@ class Slack::InteractivityController < ApplicationController
     update_bts_message(ticket)
   rescue StandardError => e
     Rails.logger.error("Failed to post answered message: #{e.message}")
+  end
+
+  def notify_public_resolved(ticket)
+    slack_client.chat_postMessage(
+      channel: ticket.channel_id,
+      thread_ts: ticket.thread_ts,
+      text: ":white_check_mark: This question has been marked as resolved!"
+    )
+  rescue StandardError => e
+    Rails.logger.error("Failed to post resolved message: #{e.message}")
   end
 
   def update_bts_message(ticket)
