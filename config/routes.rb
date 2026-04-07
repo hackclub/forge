@@ -132,7 +132,13 @@ Rails.application.routes.draw do
       get "database" => "database#index", as: :database
       post "database/query" => "database#query"
       post "database/execute" => "database#execute"
-      resources :support_tickets, only: [ :index ], path: "support"
+      resources :support_tickets, only: [ :index, :show ], path: "support" do
+        member do
+          post :reply
+          post :claim
+          post :resolve
+        end
+      end
     end
   end
 

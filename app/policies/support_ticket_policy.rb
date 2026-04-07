@@ -3,6 +3,22 @@ class SupportTicketPolicy < ApplicationPolicy
     user&.has_permission?("support")
   end
 
+  def show?
+    user&.has_permission?("support")
+  end
+
+  def reply?
+    user&.has_permission?("support")
+  end
+
+  def claim?
+    user&.has_permission?("support")
+  end
+
+  def resolve?
+    user&.has_permission?("support")
+  end
+
   class Scope < ApplicationPolicy::Scope
     def resolve
       scope.all

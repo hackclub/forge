@@ -212,3 +212,13 @@ export interface SupportLeaderboardEntry {
   name: string
   count: number
 }
+
+export interface SupportThreadMessage {
+  text: string
+  user: string
+  display_name: string
+  avatar_url: string | null
+  ts: string
+  is_bot: boolean
+  created_at: string
+}
