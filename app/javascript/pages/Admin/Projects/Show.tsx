@@ -428,6 +428,22 @@ export default function AdminProjectsShow({
           )}
 
           <div className="bg-[#1c1b1b] ghost-border p-8 rounded-xl">
+            <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">Visibility</h4>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-stone-400 text-sm">Hidden from explore</span>
+              <button
+                onClick={() => router.post(`/admin/projects/${project.id}/toggle_hidden`)}
+                className={`relative inline-flex h-6 w-11 items-center transition-colors cursor-pointer ${project.hidden ? 'bg-[#ee671c]' : 'bg-stone-700'}`}
+              >
+                <span className={`inline-block h-4 w-4 transform bg-white transition-transform ${project.hidden ? 'translate-x-6' : 'translate-x-1'}`} />
+              </button>
+            </div>
+            {project.hidden && (
+              <p className="text-stone-600 text-xs">This project won't appear on the explore page or public API.</p>
+            )}
+          </div>
+
+          <div className="bg-[#1c1b1b] ghost-border p-8 rounded-xl">
             <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-6">Details</h4>
             <div className="space-y-4 text-sm">
               <div className="flex justify-between">
