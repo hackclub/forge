@@ -42,3 +42,7 @@ Thumbs.db
 .byebug_history
 .irb_history
 stitch/
+
+# Ignore key files for decrypting credentials and more.
+/config/*.key
+

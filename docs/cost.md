@@ -41,4 +41,4 @@ You MAY NOT use the money for:
     ✗ Buying anything that isn't directly related to building your project
     ✗ Buying software licenses or subscriptions (e.g. Fusion 360, Adobe Creative Cloud, etc.)
 
-**We monitor your transactions.** Misuse of your funds will lead to a ban from Forge and potentially Hack Club as a whole. If you're not sure if something is an appropriate use of your funds, ask us before buying it!
+> **We monitor your transactions.** Misuse of your funds will lead to a ban from Forge and potentially Hack Club as a whole. If you're not sure if something is an appropriate use of your funds, ask us before buying it!
