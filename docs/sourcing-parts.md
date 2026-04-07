@@ -89,7 +89,7 @@ Arduinos are fairly outdated by todays standards
         - [3Ding](https://www.3ding.in/)
         -
 
-> confirmed more vendors? wanna add specific notes for your country? contribute [here](https://github.com/hackclub/forge/edit/main/docs/part-sourcing.md)!! You'd be helping a ton of people!
+> confirmed more vendors? wanna add specific notes for your country? contribute [here](https://github.com/hackclub/forge/edit/main/docs/sourcing-parts.md)!! You'd be helping a ton of people!
 
 ## Tips for specific vendors
 
