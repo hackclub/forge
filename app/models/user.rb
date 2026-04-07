@@ -113,13 +113,14 @@ class User < ApplicationRecord
   ].freeze
 
   ROLE_DEFAULT_PERMISSIONS = {
+    "admin" => AVAILABLE_PERMISSIONS.dup,
     "reviewer" => %w[pending_reviews projects ships],
     "support" => %w[projects users support],
     "fulfillment" => %w[projects ships]
   }.freeze
 
   def has_permission?(perm)
-    admin? || permissions.include?(perm.to_s)
+    permissions.include?(perm.to_s)
   end
 
   def grant_permission(perm)
