@@ -174,7 +174,7 @@ export default function AdminUsersShow({
 
       <div className="mb-10">
         <h2 className="text-xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-2">Permissions</h2>
-        <p className="text-stone-500 text-sm mb-4">Admins have all permissions by default. These apply to non-admin staff roles.</p>
+        <p className="text-stone-500 text-sm mb-4">Toggle individual permissions. Assigning a role auto-grants its defaults, but you can override them.</p>
         <div className="grid grid-cols-2 gap-2">
           {available_permissions.map((perm) => {
             const active = user.permissions.includes(perm)
