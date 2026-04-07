@@ -19,6 +19,10 @@ class SupportTicketPolicy < ApplicationPolicy
     user&.has_permission?("support")
   end
 
+  def destroy?
+    admin?
+  end
+
   class Scope < ApplicationPolicy::Scope
     def resolve
       scope.all

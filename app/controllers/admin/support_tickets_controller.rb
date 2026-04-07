@@ -1,6 +1,6 @@
 class Admin::SupportTicketsController < Admin::ApplicationController
   before_action :require_support_permission!
-  before_action :set_ticket, only: [ :show, :reply, :claim, :resolve ]
+  before_action :set_ticket, only: [ :show, :reply, :claim, :resolve, :destroy ]
 
   def index
     scope = policy_scope(SupportTicket)
@@ -30,7 +30,8 @@ class Admin::SupportTicketsController < Admin::ApplicationController
       can: {
         reply: policy(@ticket).reply?,
         claim: policy(@ticket).claim?,
-        resolve: policy(@ticket).resolve?
+        resolve: policy(@ticket).resolve?,
+        destroy: policy(@ticket).destroy?
       }
     }
   end
@@ -84,11 +85,22 @@ class Admin::SupportTicketsController < Admin::ApplicationController
       thread_ts: @ticket.thread_ts,
       text: ":white_check_mark: This question has been marked as resolved!"
     )
+    slack_client.reactions_add(
+      channel: @ticket.channel_id,
+      timestamp: @ticket.thread_ts,
+      name: "white_check_mark"
+    )
     update_bts_message(@ticket)
     redirect_to admin_support_ticket_path(@ticket), notice: "Ticket resolved."
   rescue StandardError => e
     Rails.logger.error("Support resolve failed: #{e.message}")
     redirect_to admin_support_ticket_path(@ticket), alert: "Failed to resolve ticket."
+  end
+
+  def destroy
+    authorize @ticket
+    @ticket.destroy
+    redirect_to admin_support_tickets_path, notice: "Ticket permanently deleted."
   end
 
   private
