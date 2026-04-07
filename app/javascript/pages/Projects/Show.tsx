@@ -133,10 +133,10 @@ export default function ProjectsShow({
   const isApproved = project.status === 'approved'
   const isBuildingPhase = isApproved || project.status === 'build_pending' || project.status === 'build_approved'
   const isNormalTier = project.tier === 'normal'
-  const needsDevlogChoice = isApproved && !isNormalTier && !project.devlog_mode && can.update
+  const needsDevlogChoice = isApproved && !project.devlog_mode && can.update
   const isGitMode = project.devlog_mode === 'git'
-  const isWebMode = project.devlog_mode === 'website' || isNormalTier
-  const showWebDevlog = (isBuildingPhase && isWebMode) || (isNormalTier && can.update)
+  const isWebMode = project.devlog_mode === 'website'
+  const showWebDevlog = (isBuildingPhase && isWebMode) || (isNormalTier && !project.devlog_mode && can.update)
   const showCoverUpload = can.update && (isApproved || isNormalTier)
 
   const totalHours = devlogs.reduce((sum, entry) => {
