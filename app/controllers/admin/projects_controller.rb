@@ -4,10 +4,11 @@ class Admin::ProjectsController < Admin::ApplicationController
 
   def index
     scope = policy_scope(Project).includes(:user, :ships)
+    scope = params[:status] == "deleted" ? scope.discarded : scope.kept
     scope = scope.search(params[:query]) if params[:query].present?
     if params[:status] == "pending"
       scope = scope.where(status: [ :pending, :build_pending ])
-    elsif params[:status].present?
+    elsif params[:status].present? && params[:status] != "deleted"
       scope = scope.where(status: params[:status])
     end
     @pagy, @projects = pagy(scope.order(created_at: :desc))
@@ -23,7 +24,7 @@ class Admin::ProjectsController < Admin::ApplicationController
   end
 
   def pitches
-    scope = policy_scope(Project).includes(:user, :ships).where(status: :pending)
+    scope = policy_scope(Project).includes(:user, :ships).kept.where(status: :pending)
     scope = scope.search(params[:query]) if params[:query].present?
     @pagy, @projects = pagy(scope.order(created_at: :desc))
 
@@ -39,7 +40,7 @@ class Admin::ProjectsController < Admin::ApplicationController
   end
 
   def reviews
-    scope = policy_scope(Project).includes(:user, :ships).where(status: :build_pending)
+    scope = policy_scope(Project).includes(:user, :ships).kept.where(status: :build_pending)
     scope = scope.search(params[:query]) if params[:query].present?
     @pagy, @projects = pagy(scope.order(created_at: :desc))
 
@@ -181,7 +182,8 @@ class Admin::ProjectsController < Admin::ApplicationController
   end
 
   def status_counts
-    raw = policy_scope(Project).group(:status).count
+    kept_scope = policy_scope(Project).kept
+    raw = kept_scope.group(:status).count
     pending_count = (raw["pending"] || 0) + (raw["build_pending"] || 0)
     {
       all: raw.values.sum,
@@ -190,7 +192,8 @@ class Admin::ProjectsController < Admin::ApplicationController
       returned: raw["returned"] || 0,
       rejected: raw["rejected"] || 0,
       draft: raw["draft"] || 0,
-      build_approved: raw["build_approved"] || 0
+      build_approved: raw["build_approved"] || 0,
+      deleted: policy_scope(Project).discarded.count
     }
   end
 

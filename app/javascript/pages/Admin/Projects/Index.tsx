@@ -21,6 +21,7 @@ const filters = [
   { key: 'returned', label: 'Returned' },
   { key: 'rejected', label: 'Rejected' },
   { key: 'draft', label: 'Draft' },
+  { key: 'deleted', label: 'Deleted' },
 ]
 
 export default function AdminProjectsIndex({
