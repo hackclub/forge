@@ -27,19 +27,44 @@ class Slack::EventsController < ApplicationController
     return unless event["type"] == "message"
     return if event["subtype"].present?
     return if event["bot_id"].present?
-    return if event["thread_ts"].present?
-    return unless event["channel"] == forge_channel_id
 
-    SlackPitchJob.perform_later(
-      slack_user_id: event["user"],
-      channel_id: event["channel"],
-      message_ts: event["ts"],
-      text: event["text"]
-    )
+    channel = event["channel"]
+    is_thread = event["thread_ts"].present?
+
+    if !is_thread && channel == forge_channel_id
+      SlackPitchJob.perform_later(
+        slack_user_id: event["user"],
+        channel_id: channel,
+        message_ts: event["ts"],
+        text: event["text"]
+      )
+    elsif !is_thread && channel == support_channel_id
+      SupportTicketJob.perform_later(
+        slack_user_id: event["user"],
+        channel_id: channel,
+        message_ts: event["ts"],
+        text: event["text"]
+      )
+    elsif is_thread && channel == bts_channel_id
+      SupportRelayJob.perform_later(
+        slack_user_id: event["user"],
+        channel_id: channel,
+        thread_ts: event["thread_ts"],
+        text: event["text"]
+      )
+    end
   end
 
   def forge_channel_id
     ENV.fetch("SLACK_FORGE_CHANNEL_ID", "")
+  end
+
+  def support_channel_id
+    ENV.fetch("SLACK_SUPPORT_CHANNEL_ID", "")
+  end
+
+  def bts_channel_id
+    ENV.fetch("SLACK_BTS_CHANNEL_ID", "")
   end
 
   def verify_slack_request

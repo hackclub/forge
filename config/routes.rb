@@ -132,6 +132,7 @@ Rails.application.routes.draw do
       get "database" => "database#index", as: :database
       post "database/query" => "database#query"
       post "database/execute" => "database#execute"
+      resources :support_tickets, only: [ :index ], path: "support"
     end
   end
 
@@ -140,6 +141,7 @@ Rails.application.routes.draw do
   end
 
   post "slack/events" => "slack/events#create"
+  post "slack/interactivity" => "slack/interactivity#create"
 
   get "up" => "rails/health#show", as: :rails_health_check
 

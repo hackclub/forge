@@ -11,6 +11,7 @@ const permissionLabels: Record<string, string> = {
   audit_log: 'Audit Log',
   jobs: 'Jobs',
   third_party: '3rd Party',
+  support: 'Support Tickets',
 }
 
 const roleDescriptions: Record<string, string> = {
