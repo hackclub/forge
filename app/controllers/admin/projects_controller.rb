@@ -1,5 +1,5 @@
 class Admin::ProjectsController < Admin::ApplicationController
-  before_action :require_admin!, only: [ :index ]
+  before_action :require_projects_permission!
   before_action :set_project, only: [ :show, :review, :destroy, :restore, :toggle_hidden ]
 
   def index
@@ -150,6 +150,10 @@ class Admin::ProjectsController < Admin::ApplicationController
   end
 
   private
+
+  def require_projects_permission!
+    require_permission!("projects")
+  end
 
   def notify_slack_decision(project, decision, feedback)
     return unless project.slack_channel_id.present? && project.slack_message_ts.present?

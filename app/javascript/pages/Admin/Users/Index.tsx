@@ -7,23 +7,32 @@ export default function AdminUsersIndex({
   users,
   pagy,
   query,
+  role_filter,
+  available_roles,
 }: {
   users: AdminUserRow[]
   pagy: PagyProps
   query: string
+  role_filter: string
+  available_roles: string[]
 }) {
   const [searchQuery, setSearchQuery] = useState(query)
 
   function search(e: React.FormEvent) {
     e.preventDefault()
-    router.get('/admin/users', { query: searchQuery }, { preserveState: true })
+    router.get('/admin/users', { query: searchQuery, role: role_filter || undefined }, { preserveState: true })
+  }
+
+  function filterByRole(role: string) {
+    const newRole = role === role_filter ? undefined : role
+    router.get('/admin/users', { query: searchQuery || undefined, role: newRole }, { preserveState: true })
   }
 
   return (
     <div className="p-12 max-w-[1400px] mx-auto">
       <h1 className="text-4xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-8">Users</h1>
 
-      <form onSubmit={search} className="mb-8">
+      <form onSubmit={search} className="mb-4">
         <div className="flex gap-2">
           <input
             type="search"
@@ -37,6 +46,22 @@ export default function AdminUsersIndex({
           </button>
         </div>
       </form>
+
+      <div className="flex gap-2 flex-wrap mb-8">
+        {available_roles.map((role) => (
+          <button
+            key={role}
+            onClick={() => filterByRole(role)}
+            className={`px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.15em] transition-colors cursor-pointer ${
+              role === role_filter
+                ? 'signature-smolder text-[#4c1a00]'
+                : 'ghost-border bg-[#1c1b1b] text-stone-500 hover:text-stone-300 hover:bg-[#2a2a2a]'
+            }`}
+          >
+            {role}
+          </button>
+        ))}
+      </div>
 
       <div className="space-y-2">
         <div className="grid grid-cols-[1fr_1fr_auto_auto_auto] gap-4 px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">

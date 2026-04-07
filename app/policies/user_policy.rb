@@ -1,10 +1,10 @@
 class UserPolicy < ApplicationPolicy
   def index?
-    admin?
+    has_users_permission?
   end
 
   def show?
-    admin? || record == user
+    has_users_permission? || record == user
   end
 
   def update?
@@ -21,11 +21,17 @@ class UserPolicy < ApplicationPolicy
 
   class Scope < ApplicationPolicy::Scope
     def resolve
-      if user&.admin?
+      if user&.has_permission?("users")
         scope.all
       else
         scope.kept.where(id: user&.id)
       end
     end
+  end
+
+  private
+
+  def has_users_permission?
+    user&.has_permission?("users")
   end
 end

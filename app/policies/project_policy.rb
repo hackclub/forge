@@ -34,12 +34,12 @@ class ProjectPolicy < ApplicationPolicy
   end
 
   def review?
-    user&.staff?
+    user&.has_permission?("projects")
   end
 
   class Scope < ApplicationPolicy::Scope
     def resolve
-      if user&.admin?
+      if user&.has_permission?("projects")
         scope.all
       else
         scope.kept

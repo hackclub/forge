@@ -10,4 +10,8 @@ class Admin::ApplicationController < ApplicationController
   def require_admin!
     raise ActionController::RoutingError, "Not Found" unless current_user&.admin?
   end
+
+  def require_permission!(perm)
+    raise ActionController::RoutingError, "Not Found" unless current_user&.has_permission?(perm)
+  end
 end
