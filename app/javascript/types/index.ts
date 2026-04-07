@@ -191,3 +191,24 @@ export interface ShipForm {
   project_name: string
   user_display_name: string
 }
+
+export type SupportTicketStatus = 'open' | 'claimed' | 'resolved'
+
+export interface AdminSupportTicketRow {
+  id: number
+  slack_display_name: string
+  slack_avatar_url: string | null
+  original_text: string
+  status: SupportTicketStatus
+  claimed_by_name: string | null
+  resolved_by_name: string | null
+  slack_thread_url: string
+  bts_thread_url: string | null
+  created_at: string
+  resolved_at: string | null
+}
+
+export interface SupportLeaderboardEntry {
+  name: string
+  count: number
+}

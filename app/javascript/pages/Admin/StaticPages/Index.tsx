@@ -46,12 +46,13 @@ export default function AdminStaticPagesIndex({ user_name, counts, permissions, 
         </div>
       )}
 
-      {(can('projects') || can('users') || can('feature_flags') || can('audit_log') || can('jobs')) && (
+      {(can('projects') || can('users') || can('support') || can('feature_flags') || can('audit_log') || can('jobs')) && (
         <div>
           <h2 className="text-xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-4">Dashboards</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {can('projects') && <DashboardLink href="/admin/projects" label={`Projects (${counts.projects})`} />}
             {can('users') && <DashboardLink href="/admin/users" label={`Users (${counts.users})`} />}
+            {can('support') && <DashboardLink href="/admin/support" label="Support Tickets" />}
             {is_admin && <DashboardLink href="/admin/rsvps" label="RSVPs" />}
             {can('feature_flags') && <DashboardLink href="/admin/feature_flags" label={`Feature Flags (${counts.feature_flags})`} />}
             {can('audit_log') && <DashboardLink href="/admin/audit_log" label="Audit Log" />}

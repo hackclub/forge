@@ -109,11 +109,12 @@ class User < ApplicationRecord
     audit_log
     jobs
     third_party
+    support
   ].freeze
 
   ROLE_DEFAULT_PERMISSIONS = {
     "reviewer" => %w[pending_reviews projects ships],
-    "support" => %w[projects users],
+    "support" => %w[projects users support],
     "fulfillment" => %w[projects ships]
   }.freeze
 
