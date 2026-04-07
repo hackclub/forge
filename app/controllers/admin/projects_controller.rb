@@ -1,6 +1,6 @@
 class Admin::ProjectsController < Admin::ApplicationController
   before_action :require_admin!, only: [ :index ]
-  before_action :set_project, only: [ :show, :review, :destroy, :restore ]
+  before_action :set_project, only: [ :show, :review, :destroy, :restore, :toggle_hidden ]
 
   def index
     scope = policy_scope(Project).includes(:user, :ships)
@@ -64,6 +64,13 @@ class Admin::ProjectsController < Admin::ApplicationController
       ships: @ships.map { |s| serialize_ship_row(s) },
       can: { review: policy(@project).review?, destroy: policy(@project).destroy?, restore: policy(@project).restore? }
     }
+  end
+
+  def toggle_hidden
+    authorize @project, :update?
+    @project.update!(hidden: !@project.hidden)
+    status = @project.hidden? ? "hidden" : "visible"
+    redirect_to admin_project_path(@project), notice: "Project is now #{status} on explore."
   end
 
   def restore
@@ -241,6 +248,7 @@ class Admin::ProjectsController < Admin::ApplicationController
       readme_fetched_at: project.readme_fetched_at&.strftime("%b %d, %Y %H:%M"),
       total_hours: project.total_hours,
       devlogs: project.devlogs.order(created_at: :desc).map { |d| serialize_devlog(d) },
+      hidden: project.hidden,
       user_id: project.user_id,
       user_display_name: project.user.display_name,
       user_email: project.user.email,

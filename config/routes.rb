@@ -110,6 +110,7 @@ Rails.application.routes.draw do
         member do
           post :review
           post :restore
+          post :toggle_hidden
         end
       end
       resources :users, only: [ :index, :show, :destroy ] do

@@ -149,6 +149,7 @@ export interface AdminProjectDetail {
   readme_fetched_at: string | null
   total_hours: number
   devlogs: AdminDevlog[]
+  hidden: boolean
   is_discarded: boolean
   discarded_at: string | null
   user_id: number

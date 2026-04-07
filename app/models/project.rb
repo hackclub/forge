@@ -9,6 +9,7 @@
 #  devlog_mode                  :string
 #  discarded_at                 :datetime
 #  hcb_grant_link               :string
+#  hidden                       :boolean          default(FALSE), not null
 #  name                         :string           not null
 #  override_hours               :decimal(, )
 #  override_hours_justification :text

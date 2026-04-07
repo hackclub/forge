@@ -2,7 +2,7 @@ class Api::V1::ProjectsController < Api::V1::BaseController
   include Pagy::Method
 
   def index
-    scope = Project.kept.order(created_at: :desc)
+    scope = Project.kept.where(hidden: false).order(created_at: :desc)
     scope = scope.search(params[:query]) if params[:query].present?
     @pagy, @projects = pagy(scope)
 
