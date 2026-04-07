@@ -52,6 +52,7 @@ class Slack::InteractivityController < ApplicationController
   def handle_resolve(ticket_id, slack_user_id, display_name)
     ticket = SupportTicket.find_by(id: ticket_id)
     return unless ticket
+    return if ticket.resolved?
 
     ticket.update!(
       status: :resolved,
@@ -60,13 +61,14 @@ class Slack::InteractivityController < ApplicationController
       resolved_at: Time.current
     )
 
-    notify_public_resolved(ticket, display_name)
+    notify_public_resolved(ticket, slack_user_id)
     update_bts_message(ticket)
   end
 
   def handle_mark_answered(ticket_id, slack_user_id, display_name)
     ticket = SupportTicket.find_by(id: ticket_id)
     return unless ticket
+    return if ticket.resolved?
 
     ticket.update!(
       status: :resolved,
@@ -81,12 +83,13 @@ class Slack::InteractivityController < ApplicationController
     Rails.logger.error("Failed to post answered message: #{e.message}")
   end
 
-  def notify_public_resolved(ticket, resolver_name = nil)
-    resolver = resolver_name || ticket.resolved_by_name || "the team"
+  def notify_public_resolved(ticket, resolver_slack_id = nil)
+    resolver_id = resolver_slack_id || ticket.resolved_by_slack_id
+    resolver_mention = resolver_id ? "<@#{resolver_id}>" : "the team"
     slack_client.chat_postMessage(
       channel: ticket.channel_id,
       thread_ts: ticket.thread_ts,
-      text: ":white_check_mark: <@#{ticket.slack_user_id}> This question has been marked as resolved by #{resolver}!"
+      text: ":white_check_mark: <@#{ticket.slack_user_id}> This question has been marked as resolved by #{resolver_mention}!"
     )
     slack_client.reactions_add(
       channel: ticket.channel_id,
