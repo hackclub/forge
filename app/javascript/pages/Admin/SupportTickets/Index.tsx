@@ -1,4 +1,4 @@
-import { router } from '@inertiajs/react'
+import { router, Link } from '@inertiajs/react'
 import Pagination from '@/components/Pagination'
 import type { AdminSupportTicketRow, PagyProps, SupportLeaderboardEntry, SupportTicketStatus } from '@/types'
 
@@ -77,11 +77,9 @@ export default function AdminSupportTicketsIndex({
               <span>Created</span>
             </div>
             {tickets.map((ticket) => (
-              <a
+              <Link
                 key={ticket.id}
-                href={ticket.slack_thread_url}
-                target="_blank"
-                rel="noopener noreferrer"
+                href={`/admin/support/${ticket.id}`}
                 className="grid grid-cols-[auto_1fr_auto_auto_auto] gap-4 bg-[#1c1b1b] px-5 py-4 ghost-border hover:bg-[#2a2a2a] transition-all group items-center"
               >
                 <div className="w-8 h-8 shrink-0">
@@ -106,7 +104,7 @@ export default function AdminSupportTicketsIndex({
                   {ticket.claimed_by_name || ticket.resolved_by_name || '—'}
                 </span>
                 <span className="text-stone-500 text-xs whitespace-nowrap">{ticket.created_at}</span>
-              </a>
+              </Link>
             ))}
             {tickets.length === 0 && (
               <p className="text-stone-500 text-sm py-8 text-center">No tickets found.</p>
