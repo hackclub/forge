@@ -12,7 +12,9 @@ class Admin::StaticPagesController < Admin::ApplicationController
 
     render inertia: "Admin/StaticPages/Index", props: {
       user_name: current_user.display_name,
-      counts: counts
+      counts: counts,
+      permissions: User::AVAILABLE_PERMISSIONS.index_with { |p| current_user.has_permission?(p) },
+      is_admin: current_user.admin?
     }
   end
 end

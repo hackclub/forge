@@ -88,8 +88,16 @@ class User < ApplicationRecord
     has_role?(:reviewer)
   end
 
+  def support?
+    has_role?(:support)
+  end
+
+  def fulfillment?
+    has_role?(:fulfillment)
+  end
+
   def staff?
-    admin? || reviewer?
+    admin? || reviewer? || support? || fulfillment?
   end
 
   AVAILABLE_PERMISSIONS = %w[
@@ -103,6 +111,12 @@ class User < ApplicationRecord
     third_party
   ].freeze
 
+  ROLE_DEFAULT_PERMISSIONS = {
+    "reviewer" => %w[pending_reviews projects ships],
+    "support" => %w[projects users],
+    "fulfillment" => %w[projects ships]
+  }.freeze
+
   def has_permission?(perm)
     admin? || permissions.include?(perm.to_s)
   end
@@ -113,6 +127,13 @@ class User < ApplicationRecord
 
   def revoke_permission(perm)
     permissions.delete(perm.to_s)
+  end
+
+  def apply_default_permissions_for_role(role)
+    defaults = ROLE_DEFAULT_PERMISSIONS[role.to_s]
+    return unless defaults
+
+    self.permissions |= defaults
   end
 
   def self.exchange_hca_token(code, redirect_uri)

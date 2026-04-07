@@ -99,13 +99,7 @@ Rails.application.routes.draw do
       get "/" => "static_pages#index", as: :root
       get "pitches" => "projects#pitches", as: :pitches
       get "reviews" => "projects#reviews", as: :reviews
-    end
-  end
 
-  constraints AdminConstraint.new do
-    mount MissionControl::Jobs::Engine, at: "/admin/jobs"
-
-    namespace :admin do
       resources :projects, only: [ :index, :show, :destroy ] do
         member do
           post :review
@@ -139,6 +133,10 @@ Rails.application.routes.draw do
       post "database/query" => "database#query"
       post "database/execute" => "database#execute"
     end
+  end
+
+  constraints AdminConstraint.new do
+    mount MissionControl::Jobs::Engine, at: "/admin/jobs"
   end
 
   post "slack/events" => "slack/events#create"

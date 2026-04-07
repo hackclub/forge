@@ -1,5 +1,5 @@
 class Admin::AuditLogController < Admin::ApplicationController
-  before_action :require_admin!
+  before_action :require_audit_log_permission!
 
   def index
     scope = PaperTrail::Version.order(created_at: :desc)
@@ -49,6 +49,10 @@ class Admin::AuditLogController < Admin::ApplicationController
   end
 
   private
+
+  def require_audit_log_permission!
+    require_permission!("audit_log")
+  end
 
   def serialize_version(version)
     actor = version.whodunnit.present? ? User.find_by(id: version.whodunnit) : nil

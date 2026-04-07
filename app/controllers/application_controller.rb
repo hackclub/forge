@@ -37,7 +37,7 @@ class ApplicationController < ActionController::Base
   private
 
   def gate_beta_access
-    return if current_user&.admin?
+    return if current_user&.staff?
     return if current_user&.is_beta_approved
     return if request.path == "/rsvp" || request.path.start_with?("/auth") || request.path.start_with?("/slack") || request.path.start_with?("/up") || request.path.start_with?("/rails/active_storage")
 

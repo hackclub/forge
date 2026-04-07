@@ -53,7 +53,7 @@ export default function Nav() {
             )
           })}
 
-          {shared.auth.user?.is_admin && (
+          {shared.auth.user?.is_staff && (
             <Link
               href="/admin"
               className={`px-4 py-3 flex items-center gap-3 transition-all duration-150 font-headline font-medium tracking-tight corner-accents ${

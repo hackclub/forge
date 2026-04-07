@@ -13,6 +13,14 @@ const permissionLabels: Record<string, string> = {
   third_party: '3rd Party',
 }
 
+const roleDescriptions: Record<string, string> = {
+  user: 'Basic user account',
+  admin: 'Full access to everything',
+  reviewer: 'Reviews pitches and builds',
+  support: 'Manages users and projects',
+  fulfillment: 'Handles project fulfillment',
+}
+
 export default function AdminUsersShow({
   user,
   projects,
@@ -134,14 +142,15 @@ export default function AdminUsersShow({
 
       <div className="mb-10">
         <h2 className="text-xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-4">Roles</h2>
-        <div className="flex gap-2 flex-wrap">
+        <p className="text-stone-500 text-sm mb-4">Assigning a staff role auto-grants its default permissions. You can still manually adjust permissions below.</p>
+        <div className="grid grid-cols-2 gap-2">
           {available_roles.map((role) => {
             const active = user.roles.includes(role)
             return (
               <button
                 key={role}
                 onClick={() => toggleRole(role)}
-                className={`px-4 py-2 text-xs font-bold uppercase tracking-[0.15em] transition-colors cursor-pointer flex items-center gap-2 ${
+                className={`px-4 py-3 text-left transition-colors cursor-pointer flex items-center gap-3 ${
                   active
                     ? 'signature-smolder text-[#4c1a00]'
                     : 'ghost-border bg-[#1c1b1b] text-stone-500 hover:text-stone-300 hover:bg-[#2a2a2a]'
@@ -150,7 +159,12 @@ export default function AdminUsersShow({
                 <span className="material-symbols-outlined text-sm">
                   {active ? 'check_circle' : 'radio_button_unchecked'}
                 </span>
-                {role}
+                <div>
+                  <span className="text-xs font-bold uppercase tracking-[0.15em]">{role}</span>
+                  {roleDescriptions[role] && (
+                    <p className={`text-[10px] mt-0.5 ${active ? 'text-[#4c1a00]/70' : 'text-stone-600'}`}>{roleDescriptions[role]}</p>
+                  )}
+                </div>
               </button>
             )
           })}
@@ -159,7 +173,7 @@ export default function AdminUsersShow({
 
       <div className="mb-10">
         <h2 className="text-xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-2">Permissions</h2>
-        <p className="text-stone-500 text-sm mb-4">Admins have all permissions by default. These only apply to non-admin staff.</p>
+        <p className="text-stone-500 text-sm mb-4">Admins have all permissions by default. These apply to non-admin staff roles.</p>
         <div className="grid grid-cols-2 gap-2">
           {available_permissions.map((perm) => {
             const active = user.permissions.includes(perm)

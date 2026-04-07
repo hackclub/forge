@@ -1,15 +1,18 @@
 class Admin::UsersController < Admin::ApplicationController
-  before_action :require_admin!
+  before_action :require_users_permission!
 
   def index
     scope = policy_scope(User).includes(:projects)
     scope = scope.search(params[:query]) if params[:query].present?
+    scope = scope.where("? = ANY(roles)", params[:role]) if params[:role].present?
     @pagy, @users = pagy(scope.order(created_at: :desc))
 
     render inertia: "Admin/Users/Index", props: {
       users: @users.map { |u| serialize_user_row(u) },
       pagy: pagy_props(@pagy),
-      query: params[:query].to_s
+      query: params[:query].to_s,
+      role_filter: params[:role].to_s,
+      available_roles: %w[user admin reviewer support fulfillment]
     }
   end
 
@@ -22,7 +25,7 @@ class Admin::UsersController < Admin::ApplicationController
       user: serialize_user_detail(@user),
       projects: @projects.map { |p| serialize_project_row(p) },
       can: { destroy: policy(@user).destroy?, restore: policy(@user).restore? },
-      available_roles: %w[user admin reviewer],
+      available_roles: %w[user admin reviewer support fulfillment],
       available_permissions: User::AVAILABLE_PERMISSIONS
     }
   end
@@ -69,7 +72,11 @@ class Admin::UsersController < Admin::ApplicationController
   def update_roles
     @user = User.find(params[:id])
     authorize @user, :update?
-    @user.update!(roles: params[:roles].select(&:present?))
+    new_roles = params[:roles].select(&:present?)
+    added_roles = new_roles - @user.roles
+    @user.roles = new_roles
+    added_roles.each { |role| @user.apply_default_permissions_for_role(role) }
+    @user.save!
     redirect_to admin_user_path(@user), notice: "Roles updated."
   end
 
@@ -88,6 +95,10 @@ class Admin::UsersController < Admin::ApplicationController
   end
 
   private
+
+  def require_users_permission!
+    require_permission!("users")
+  end
 
   def serialize_user_row(user)
     {

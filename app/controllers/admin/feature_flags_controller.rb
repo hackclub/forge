@@ -1,5 +1,5 @@
 class Admin::FeatureFlagsController < Admin::ApplicationController
-  before_action :require_admin!
+  before_action :require_feature_flags_permission!
 
   def index
     @flags = FeatureFlag.order(:name)
@@ -32,6 +32,10 @@ class Admin::FeatureFlagsController < Admin::ApplicationController
   end
 
   private
+
+  def require_feature_flags_permission!
+    require_permission!("feature_flags")
+  end
 
   def flag_params
     params.expect(feature_flag: [ :name, :description, :enabled ])
