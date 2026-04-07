@@ -133,10 +133,11 @@ export default function ProjectsShow({
   const isApproved = project.status === 'approved'
   const isBuildingPhase = isApproved || project.status === 'build_pending' || project.status === 'build_approved'
   const isNormalTier = project.tier === 'normal'
-  const needsDevlogChoice = isApproved && !project.devlog_mode && can.update
+  const needsDevlogChoice = !project.devlog_mode && can.update
   const isGitMode = project.devlog_mode === 'git'
   const isWebMode = project.devlog_mode === 'website'
-  const showWebDevlog = (isBuildingPhase && isWebMode) || (isNormalTier && !project.devlog_mode && can.update)
+  const showGitDevlog = isGitMode && (isBuildingPhase || isNormalTier)
+  const showWebDevlog = (isBuildingPhase && isWebMode) || (isNormalTier && (isWebMode || !project.devlog_mode) && can.update)
   const showCoverUpload = can.update && (isApproved || isNormalTier)
 
   const totalHours = devlogs.reduce((sum, entry) => {
@@ -284,7 +285,7 @@ export default function ProjectsShow({
             </section>
           )}
 
-          {isBuildingPhase && isGitMode && (
+          {showGitDevlog && (
             <section className="mb-12">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-headline font-bold text-[#e5e2e1] tracking-tight">Journal</h2>
