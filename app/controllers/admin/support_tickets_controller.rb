@@ -49,6 +49,16 @@ class Admin::SupportTicketsController < Admin::ApplicationController
       icon_url: current_user.avatar
     )
 
+    if @ticket.bts_message_ts.present?
+      slack_client.chat_postMessage(
+        channel: @ticket.bts_channel_id,
+        thread_ts: @ticket.bts_message_ts,
+        text: text,
+        username: current_user.display_name,
+        icon_url: current_user.avatar
+      )
+    end
+
     redirect_to admin_support_ticket_path(@ticket), notice: "Reply sent."
   rescue StandardError => e
     Rails.logger.error("Support reply failed: #{e.message}")
@@ -72,6 +82,7 @@ class Admin::SupportTicketsController < Admin::ApplicationController
 
   def resolve
     authorize @ticket
+    return redirect_to admin_support_ticket_path(@ticket), notice: "Already resolved." if @ticket.resolved?
 
     @ticket.update!(
       status: :resolved,
@@ -83,7 +94,7 @@ class Admin::SupportTicketsController < Admin::ApplicationController
     slack_client.chat_postMessage(
       channel: @ticket.channel_id,
       thread_ts: @ticket.thread_ts,
-      text: ":white_check_mark: <@#{@ticket.slack_user_id}> This question has been marked as resolved by #{current_user.display_name}!"
+      text: ":white_check_mark: <@#{@ticket.slack_user_id}> This question has been marked as resolved by <@#{current_user.slack_id}>!"
     )
     slack_client.reactions_add(
       channel: @ticket.channel_id,
