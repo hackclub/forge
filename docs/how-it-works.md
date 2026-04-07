@@ -4,7 +4,7 @@
 
 # How It Works
 
-Forge gives you up to $1,000 in grants to build hardware projects. Here's the process:
+Forge will fund as much as you need to build any hardware project! Here's how:
 
 ## Step 1: Pitch Your Project
 
