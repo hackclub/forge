@@ -60,6 +60,7 @@ Arduinos are fairly outdated by todays standards
 
 ### Batteries (Li-Po, CR2032, AA, etc)
 
+Coming soon.
 ## Country Specific Notes
 
 ### Egypt:
