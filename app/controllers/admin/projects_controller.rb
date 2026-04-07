@@ -167,7 +167,9 @@ class Admin::ProjectsController < Admin::ApplicationController
     app_url = ENV.fetch("APP_URL", "https://forge.hackclub.com")
     project_url = "#{app_url}/projects/#{project.id}"
 
-    msg = "#{emoji} Your pitch for *#{project.name}* has been *#{decision}*."
+    reviewer_mention = current_user.slack_id.present? ? "<@#{current_user.slack_id}>" : current_user.display_name
+    user_mention = project.user.slack_id.present? ? "<@#{project.user.slack_id}>" : project.user.display_name
+    msg = "#{emoji} #{user_mention} Your pitch for *#{project.name}* has been *#{decision}* by #{reviewer_mention}."
     msg += "\n\n*Reviewer feedback:*\n> #{feedback}" if feedback.present?
 
     if decision.include?("returned")
