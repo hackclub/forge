@@ -38,7 +38,7 @@ export default function ExploreIndex({
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
             <div className="max-w-2xl">
               <h1 className="text-5xl font-headline font-medium tracking-tight mb-4">
-                Forge <span className="text-[#ffb595]">Dashboard</span>
+                <span className="text-[#ee671c]">Explore</span>
               </h1>
               <p className="text-stone-400 text-lg leading-relaxed">
                 Discover other Hack Clubbers working on hardware projects!
@@ -84,7 +84,6 @@ export default function ExploreIndex({
                       <span className="text-xs uppercase tracking-widest text-stone-500 bg-[#353534] px-3 py-1 rounded-full">
                         Project
                       </span>
-                      <span className="text-stone-500 text-xs">{project.ships_count} ships</span>
                     </div>
 
                     <h3 className="text-xl font-headline font-medium mb-2 group-hover:text-[#ffb595] transition-colors">
