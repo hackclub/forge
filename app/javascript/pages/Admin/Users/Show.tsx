@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, router } from '@inertiajs/react'
-import type { AdminUserDetail } from '@/types'
+import type { AdminUserDetail, UserNote } from '@/types'
 
 const permissionLabels: Record<string, string> = {
   pending_reviews: 'Pending Reviews',
@@ -25,18 +25,21 @@ const roleDescriptions: Record<string, string> = {
 export default function AdminUsersShow({
   user,
   projects,
+  notes,
   can,
   available_roles,
   available_permissions,
 }: {
   user: AdminUserDetail
   projects: { id: number; name: string; ships_count: number; created_at: string }[]
+  notes: UserNote[]
   can: { destroy: boolean; restore: boolean }
   available_roles: string[]
   available_permissions: string[]
 }) {
   const [banReason, setBanReason] = useState('')
   const [showBanForm, setShowBanForm] = useState(false)
+  const [noteContent, setNoteContent] = useState('')
 
   function handleBan() {
     if (!banReason.trim()) {
@@ -196,6 +199,57 @@ export default function AdminUsersShow({
             )
           })}
         </div>
+      </div>
+
+      <div className="mb-10">
+        <h2 className="text-xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-2">Internal Notes</h2>
+        <p className="text-stone-500 text-sm mb-4">Only visible to staff.</p>
+
+        <div className="mb-4">
+          <textarea
+            value={noteContent}
+            onChange={(e) => setNoteContent(e.target.value)}
+            placeholder="Add a note..."
+            rows={3}
+            className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 resize-y mb-2"
+          />
+          <button
+            onClick={() => {
+              if (!noteContent.trim()) return
+              router.post(`/admin/users/${user.id}/add_note`, { content: noteContent })
+              setNoteContent('')
+            }}
+            disabled={!noteContent.trim()}
+            className="signature-smolder text-[#4c1a00] px-5 py-2 text-xs font-bold uppercase tracking-[0.15em] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Add Note
+          </button>
+        </div>
+
+        {notes.length > 0 ? (
+          <div className="space-y-2">
+            {notes.map((note) => (
+              <div key={note.id} className="bg-[#1c1b1b] ghost-border px-5 py-4 flex gap-3">
+                <img src={note.author_avatar} alt={note.author_name} className="w-8 h-8 border border-white/10 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-headline font-bold text-[#e5e2e1] text-sm">{note.author_name}</span>
+                    <span className="text-stone-600 text-xs">{note.created_at}</span>
+                  </div>
+                  <p className="text-stone-300 text-sm whitespace-pre-wrap">{note.content}</p>
+                </div>
+                <button
+                  onClick={() => { if (confirm('Delete this note?')) router.delete(`/admin/users/${user.id}/notes/${note.id}`) }}
+                  className="text-stone-600 hover:text-red-400 transition-colors shrink-0 cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-sm">close</span>
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-stone-600 text-sm">No notes yet.</p>
+        )}
       </div>
 
       {can.destroy && (

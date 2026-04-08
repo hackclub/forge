@@ -106,6 +106,14 @@ export interface AdminUserDetail {
   created_at: string
 }
 
+export interface UserNote {
+  id: number
+  content: string
+  author_name: string
+  author_avatar: string
+  created_at: string
+}
+
 export interface AdminProjectRow {
   id: number
   name: string

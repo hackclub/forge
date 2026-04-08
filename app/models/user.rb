@@ -53,6 +53,7 @@ class User < ApplicationRecord
   has_many :projects, dependent: :destroy
   has_many :ships, through: :projects
   has_many :reviewed_ships, class_name: "Ship", foreign_key: :reviewer_id, dependent: :nullify, inverse_of: :reviewer
+  has_many :user_notes, dependent: :destroy
 
   encrypts :hca_token
 
