@@ -24,10 +24,26 @@ class Admin::UsersController < Admin::ApplicationController
     render inertia: "Admin/Users/Show", props: {
       user: serialize_user_detail(@user),
       projects: @projects.map { |p| serialize_project_row(p) },
+      notes: @user.user_notes.includes(:author).order(created_at: :desc).map { |n| serialize_note(n) },
       can: { destroy: policy(@user).destroy?, restore: policy(@user).restore? },
       available_roles: %w[user admin reviewer support fulfillment],
       available_permissions: User::AVAILABLE_PERMISSIONS
     }
+  end
+
+  def add_note
+    @user = User.find(params[:id])
+    authorize @user, :show?
+    @user.user_notes.create!(content: params[:content], author: current_user)
+    redirect_to admin_user_path(@user), notice: "Note added."
+  end
+
+  def destroy_note
+    @user = User.find(params[:id])
+    authorize @user, :show?
+    note = @user.user_notes.find(params[:note_id])
+    note.destroy
+    redirect_to admin_user_path(@user), notice: "Note deleted."
   end
 
   def destroy
@@ -137,6 +153,16 @@ class Admin::UsersController < Admin::ApplicationController
       name: project.name,
       ships_count: project.ships.size,
       created_at: project.created_at.strftime("%b %d, %Y")
+    }
+  end
+
+  def serialize_note(note)
+    {
+      id: note.id,
+      content: note.content,
+      author_name: note.author.display_name,
+      author_avatar: note.author.avatar,
+      created_at: note.created_at.strftime("%b %d, %Y %H:%M")
     }
   end
 end

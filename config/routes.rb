@@ -115,6 +115,8 @@ Rails.application.routes.draw do
           post :ban
           post :unban
           post :toggle_beta_approval
+          post :add_note
+          delete "notes/:note_id" => "users#destroy_note", as: :destroy_note
         end
       end
       resources :feature_flags, only: [ :index, :create, :destroy ] do
