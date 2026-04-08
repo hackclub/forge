@@ -2,8 +2,13 @@ class SupportRelayJob < ApplicationJob
   queue_as :default
 
   def perform(slack_user_id:, channel_id:, thread_ts:, text:)
+    return unless text.start_with?("!")
+
     ticket = SupportTicket.find_by(bts_message_ts: thread_ts)
     return unless ticket
+
+    public_text = text.sub(/\A!\s*/, "")
+    return if public_text.blank?
 
     user_info = slack_client.users_info(user: slack_user_id)
     profile = user_info&.user&.profile
@@ -13,7 +18,7 @@ class SupportRelayJob < ApplicationJob
     slack_client.chat_postMessage(
       channel: ticket.channel_id,
       thread_ts: ticket.thread_ts,
-      text: text,
+      text: public_text,
       username: display_name,
       icon_url: avatar_url
     )

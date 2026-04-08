@@ -106,6 +106,16 @@ export interface AdminUserDetail {
   created_at: string
 }
 
+export interface HackatimeInfo {
+  username: string
+  trust_level: string
+  suspected: boolean
+  banned: boolean
+  total_coding_time: number | null
+  days_active: number | null
+  last_heartbeat_at: string | null
+}
+
 export interface UserNote {
   id: number
   content: string

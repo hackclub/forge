@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, router } from '@inertiajs/react'
-import type { AdminUserDetail, UserNote } from '@/types'
+import type { AdminUserDetail, UserNote, HackatimeInfo } from '@/types'
 
 const permissionLabels: Record<string, string> = {
   pending_reviews: 'Pending Reviews',
@@ -12,6 +12,7 @@ const permissionLabels: Record<string, string> = {
   jobs: 'Jobs',
   third_party: '3rd Party',
   support: 'Support Tickets',
+  hackatime: 'Hackatime',
 }
 
 const roleDescriptions: Record<string, string> = {
@@ -26,6 +27,7 @@ export default function AdminUsersShow({
   user,
   projects,
   notes,
+  hackatime,
   can,
   available_roles,
   available_permissions,
@@ -33,6 +35,7 @@ export default function AdminUsersShow({
   user: AdminUserDetail
   projects: { id: number; name: string; ships_count: number; created_at: string }[]
   notes: UserNote[]
+  hackatime: HackatimeInfo | null
   can: { destroy: boolean; restore: boolean }
   available_roles: string[]
   available_permissions: string[]
@@ -133,6 +136,47 @@ export default function AdminUsersShow({
           </div>
         ))}
       </div>
+
+      {hackatime && (
+        <div className="bg-[#1c1b1b] ghost-border p-6 mb-6">
+          <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">Hackatime</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div>
+              <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">Trust Level</span>
+              <p className={`mt-1 font-bold ${
+                hackatime.trust_level === 'green' ? 'text-emerald-400' :
+                hackatime.trust_level === 'blue' ? 'text-blue-400' :
+                hackatime.trust_level === 'yellow' ? 'text-amber-400' :
+                hackatime.trust_level === 'red' ? 'text-red-400' : 'text-stone-400'
+              }`}>
+                {hackatime.trust_level || 'Unknown'}
+              </p>
+            </div>
+            <div>
+              <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">Coding Time</span>
+              <p className="text-[#e5e2e1] mt-1">{hackatime.total_coding_time ? `${Math.round(hackatime.total_coding_time / 3600)}h` : '—'}</p>
+            </div>
+            <div>
+              <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">Days Active</span>
+              <p className="text-[#e5e2e1] mt-1">{hackatime.days_active ?? '—'}</p>
+            </div>
+            <div>
+              <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">Last Active</span>
+              <p className="text-[#e5e2e1] mt-1">{hackatime.last_heartbeat_at || '—'}</p>
+            </div>
+          </div>
+          {(hackatime.suspected || hackatime.banned) && (
+            <div className="mt-4 flex gap-2">
+              {hackatime.suspected && (
+                <span className="bg-amber-500/10 text-amber-400 px-3 py-1 text-[10px] uppercase font-bold tracking-widest">Suspected</span>
+              )}
+              {hackatime.banned && (
+                <span className="bg-red-500/10 text-red-400 px-3 py-1 text-[10px] uppercase font-bold tracking-widest">Banned on Hackatime</span>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="mb-10">
         <button
