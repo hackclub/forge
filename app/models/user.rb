@@ -111,6 +111,7 @@ class User < ApplicationRecord
     jobs
     third_party
     support
+    hackatime
   ].freeze
 
   ROLE_DEFAULT_PERMISSIONS = {

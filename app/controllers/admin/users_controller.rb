@@ -21,10 +21,13 @@ class Admin::UsersController < Admin::ApplicationController
     authorize @user
     @projects = @user.projects.includes(:ships).order(created_at: :desc)
 
+    hackatime = current_user.has_permission?("hackatime") ? HackatimeService.get_trust_info(slack_id: @user.slack_id, email: @user.email) : nil
+
     render inertia: "Admin/Users/Show", props: {
       user: serialize_user_detail(@user),
       projects: @projects.map { |p| serialize_project_row(p) },
       notes: @user.user_notes.includes(:author).order(created_at: :desc).map { |n| serialize_note(n) },
+      hackatime: hackatime ? serialize_hackatime(hackatime) : nil,
       can: { destroy: policy(@user).destroy?, restore: policy(@user).restore? },
       available_roles: %w[user admin reviewer support fulfillment],
       available_permissions: User::AVAILABLE_PERMISSIONS
@@ -153,6 +156,18 @@ class Admin::UsersController < Admin::ApplicationController
       name: project.name,
       ships_count: project.ships.size,
       created_at: project.created_at.strftime("%b %d, %Y")
+    }
+  end
+
+  def serialize_hackatime(info)
+    {
+      username: info["username"],
+      trust_level: info["trust_level"],
+      suspected: info["suspected"],
+      banned: info["banned"],
+      total_coding_time: info.dig("stats", "total_coding_time"),
+      days_active: info.dig("stats", "days_active"),
+      last_heartbeat_at: info["last_heartbeat_at"] ? Time.at(info["last_heartbeat_at"]).strftime("%b %d, %Y") : nil
     }
   end
 
