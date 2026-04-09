@@ -88,7 +88,7 @@ export default function Nav() {
               <img
                 src={shared.auth.user.avatar}
                 alt={shared.auth.user.display_name}
-                className="w-8 h-8 rounded-full border border-white/10 shrink-0"
+                className="w-10 h-10 rounded-full border border-white/10 shrink-0"
               />
               <div className="flex flex-col min-w-0 flex-1">
                 <span className="text-xs font-bold text-[#e5e2e1] truncate">{shared.auth.user.display_name}</span>

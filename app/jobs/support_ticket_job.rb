@@ -27,20 +27,8 @@ class SupportTicketJob < ApplicationJob
         type: "section",
         text: {
           type: "mrkdwn",
-          text: ":hammer_and_wrench: *Hey builder!* We've seen your question and someone from the team will be with you soon.\n\nIn the meantime, check out <https://forge.hackclub.com/docs|the docs> — your answer might already be there!"
+          text: "heyo! this message is to confirm that we've recieved your query! one of our team members will be with you soon to try and getcha sorted\n\nin the meantime, check out <https://forge.hackclub.com/docs|the docs> as your answer might already be there!"
         }
-      },
-      {
-        type: "actions",
-        elements: [
-          {
-            type: "button",
-            text: { type: "plain_text", text: "Mark Answered", emoji: true },
-            style: "primary",
-            action_id: "support_mark_answered",
-            value: ticket.id.to_s
-          }
-        ]
       }
     ]
 
@@ -48,7 +36,7 @@ class SupportTicketJob < ApplicationJob
       channel: channel_id,
       thread_ts: message_ts,
       blocks: public_blocks,
-      text: "Hey builder! We've seen your question and someone from the team will be with you soon."
+      text: "heyo! this message is to confirm that we've recieved your query! one of our team members will be with you soon to try and getcha sorted"
     )
 
     bts_blocks = self.class.bts_blocks(ticket)
