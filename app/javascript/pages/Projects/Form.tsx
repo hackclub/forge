@@ -25,6 +25,7 @@ export default function ProjectsForm({
     repo_link: project.repo_link,
     tags: project.tags,
     tier: project.tier,
+    devlog_mode: project.devlog_mode || '',
   })
 
   async function handleImport() {
@@ -61,6 +62,7 @@ export default function ProjectsForm({
         repo_link: data.repo_link || importUrl,
         tags: Array.isArray(data.tags) ? data.tags.slice(0, 5) : form.data.tags,
         tier: form.data.tier,
+        devlog_mode: form.data.devlog_mode,
       })
 
       setShowImport(false)
@@ -193,6 +195,25 @@ export default function ProjectsForm({
             placeholder="https://github.com/..."
           />
         </div>
+
+        {method === 'patch' && (
+          <div>
+            <label htmlFor="devlog_mode" className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
+              Devlog Method
+            </label>
+            <select
+              id="devlog_mode"
+              value={form.data.devlog_mode}
+              onChange={(e) => form.setData('devlog_mode', e.target.value)}
+              className="w-full bg-[#0e0e0e] border-none rounded-lg px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30"
+            >
+              <option value="">Not chosen</option>
+              <option value="git">Git Journal</option>
+              <option value="website">Web Devlog</option>
+            </select>
+            <p className="text-stone-600 text-xs mt-2">Switching modes won't delete existing devlog entries.</p>
+          </div>
+        )}
 
         <div className="flex gap-3 pt-4">
           <button

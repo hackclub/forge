@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_07_031232) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_09_125539) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -102,6 +102,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_07_031232) do
     t.string "name", null: false
     t.datetime "updated_at", null: false
     t.index ["name"], name: "index_feature_flags_on_name", unique: true
+  end
+
+  create_table "news_posts", force: :cascade do |t|
+    t.bigint "author_id", null: false
+    t.text "body", null: false
+    t.datetime "created_at", null: false
+    t.boolean "published", default: false, null: false
+    t.datetime "published_at"
+    t.string "title", null: false
+    t.datetime "updated_at", null: false
+    t.index ["author_id"], name: "index_news_posts_on_author_id"
+    t.index ["published", "published_at"], name: "index_news_posts_on_published_and_published_at"
   end
 
   create_table "projects", force: :cascade do |t|
@@ -283,6 +295,39 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_07_031232) do
     t.index ["key"], name: "index_solid_queue_semaphores_on_key", unique: true
   end
 
+  create_table "support_tickets", force: :cascade do |t|
+    t.string "bts_channel_id", null: false
+    t.string "bts_message_ts"
+    t.string "channel_id", null: false
+    t.datetime "claimed_at"
+    t.string "claimed_by_name"
+    t.string "claimed_by_slack_id"
+    t.datetime "created_at", null: false
+    t.text "original_text", null: false
+    t.datetime "resolved_at"
+    t.string "resolved_by_name"
+    t.string "resolved_by_slack_id"
+    t.string "slack_avatar_url"
+    t.string "slack_display_name"
+    t.string "slack_user_id", null: false
+    t.integer "status", default: 0, null: false
+    t.string "thread_ts", null: false
+    t.datetime "updated_at", null: false
+    t.index ["bts_message_ts"], name: "index_support_tickets_on_bts_message_ts"
+    t.index ["status"], name: "index_support_tickets_on_status"
+    t.index ["thread_ts"], name: "index_support_tickets_on_thread_ts", unique: true
+  end
+
+  create_table "user_notes", force: :cascade do |t|
+    t.bigint "author_id", null: false
+    t.text "content", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["author_id"], name: "index_user_notes_on_author_id"
+    t.index ["user_id"], name: "index_user_notes_on_user_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "address_line1"
     t.string "address_line2"
@@ -326,6 +371,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_07_031232) do
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "devlogs", "projects"
+  add_foreign_key "news_posts", "users", column: "author_id"
   add_foreign_key "projects", "users"
   add_foreign_key "projects", "users", column: "reviewer_id"
   add_foreign_key "ships", "projects"
@@ -336,4 +382,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_07_031232) do
   add_foreign_key "solid_queue_ready_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_recurring_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_scheduled_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
+  add_foreign_key "user_notes", "users"
+  add_foreign_key "user_notes", "users", column: "author_id"
 end

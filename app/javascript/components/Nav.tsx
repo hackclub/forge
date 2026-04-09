@@ -4,6 +4,7 @@ import type { SharedProps } from '@/types'
 const navItems = [
   { href: '/explore', label: 'Explore', icon: 'explore', authOnly: false },
   { href: '/home', label: 'Dashboard', icon: 'dashboard', authOnly: true },
+  { href: '/news', label: 'News', icon: 'campaign', authOnly: true },
   { href: '/docs', label: 'Resources', icon: 'menu_book', authOnly: false },
 ]
 
@@ -23,9 +24,18 @@ export default function Nav() {
   return (
     <aside className="h-screen w-64 fixed left-0 top-0 border-r border-white/5 bg-[#1C1B1B] shadow-2xl flex flex-col p-6 justify-between z-50">
       <div className="space-y-10">
-        <div className="flex flex-col gap-1">
-          <Link href={shared.auth.user ? '/home' : '/'} className="flex items-center gap-2">
-            <span className="text-2xl font-bold tracking-tighter text-[#FFB595] uppercase font-headline">Forge</span>
+        <div className="flex justify-center">
+          <Link
+            href={shared.auth.user ? '/home' : '/'}
+            className="flex items-center gap-2 text-3xl font-bold tracking-tighter uppercase font-headline text-[#ee671c] hover:text-[#ffb595] transition-colors"
+          >
+            <span
+              className="material-symbols-outlined text-4xl text-[#ffb595]"
+              style={{ fontVariationSettings: "'FILL' 1" }}
+            >
+              precision_manufacturing
+            </span>
+            <span>Forge</span>
           </Link>
         </div>
 

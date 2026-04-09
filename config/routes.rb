@@ -124,6 +124,11 @@ Rails.application.routes.draw do
           post :toggle
         end
       end
+      resources :news_posts, only: [ :index, :create, :update, :destroy ] do
+        member do
+          post :toggle
+        end
+      end
       resources :rsvps, only: [ :index, :destroy ] do
         collection do
           get :export
@@ -166,6 +171,7 @@ Rails.application.routes.draw do
   post "rsvp" => "rsvps#create"
 
   get "explore" => "explore#index", as: :explore
+  get "news" => "news#index", as: :news
 
   resources :projects, except: :index do
     collection do
@@ -175,6 +181,7 @@ Rails.application.routes.draw do
       post :submit_for_review
       post :submit_build
       post :sync_journal
+      get :export_devlogs
       post :resubmit_pitch
       get :resubmit_pitch
       post :upload_cover_image

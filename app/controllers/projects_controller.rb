@@ -1,5 +1,5 @@
 class ProjectsController < ApplicationController
-  before_action :set_project, only: %i[show edit update destroy submit_for_review submit_build sync_journal set_devlog_mode link_repo resubmit_pitch upload_cover_image]
+  before_action :set_project, only: %i[show edit update destroy submit_for_review submit_build sync_journal set_devlog_mode link_repo resubmit_pitch upload_cover_image export_devlogs]
 
   def show
     authorize @project
@@ -7,6 +7,7 @@ class ProjectsController < ApplicationController
     render inertia: "Projects/Show", props: {
       project: serialize_project_detail(@project),
       devlogs: @project.devlogs.map { |d| serialize_devlog(d) },
+      is_admin_view: policy(@project).update? && @project.user_id != current_user&.id,
       can: {
         update: policy(@project).update?,
         destroy: policy(@project).destroy?,
@@ -56,7 +57,8 @@ class ProjectsController < ApplicationController
         subtitle: @project.subtitle.to_s,
         repo_link: @project.repo_link.to_s,
         tags: @project.tags,
-        tier: @project.tier
+        tier: @project.tier,
+        devlog_mode: @project.devlog_mode
       },
       title: "Edit Project",
       submit_url: project_path(@project),
@@ -170,6 +172,22 @@ class ProjectsController < ApplicationController
     redirect_to @project, notice: "Journal synced."
   end
 
+  def export_devlogs
+    authorize @project, :update?
+
+    entries = @project.devlogs.order(created_at: :asc)
+    md = +"# #{@project.name}\n\n"
+    md << "#{@project.subtitle}\n\n" if @project.subtitle.present?
+
+    entries.each do |entry|
+      md << "# #{entry.created_at.strftime('%Y-%m-%d')}: #{entry.title}\n\n"
+      md << "**Total time spent: #{entry.time_spent}**\n\n" if entry.time_spent.present?
+      md << "#{entry.content}\n\n"
+    end
+
+    send_data md, filename: "#{@project.name.parameterize}-journal.md", type: "text/markdown"
+  end
+
   def submit_build
     authorize @project, :update?
 
@@ -249,10 +267,18 @@ class ProjectsController < ApplicationController
         redirect_to @project, alert: "Upload a cover image before submitting for review."
         return
       end
-    end
 
-    @project.submit_for_review!
-    redirect_to @project, notice: "Project submitted for review."
+      unless current_user.address_line1.present?
+        redirect_to @project, alert: "Fill in your shipping address before submitting for review."
+        return
+      end
+
+      @project.submit_build_for_review!
+      redirect_to @project, notice: "Build submitted for review."
+    else
+      @project.submit_for_review!
+      redirect_to @project, notice: "Project submitted for review."
+    end
   end
 
   def resubmit_pitch
@@ -296,7 +322,7 @@ class ProjectsController < ApplicationController
   end
 
   def project_params
-    params.expect(project: [ :name, :subtitle, :repo_link, :tier, tags: [] ])
+    params.expect(project: [ :name, :subtitle, :repo_link, :tier, :devlog_mode, tags: [] ])
   end
 
   def serialize_project_detail(project)

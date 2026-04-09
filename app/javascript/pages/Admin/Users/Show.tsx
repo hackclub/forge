@@ -3,16 +3,17 @@ import { Link, router } from '@inertiajs/react'
 import type { AdminUserDetail, UserNote, HackatimeInfo } from '@/types'
 
 const permissionLabels: Record<string, string> = {
-  pending_reviews: 'Pending Reviews',
+  pending_reviews: 'Pitch Reviews',
   projects: 'Projects',
   users: 'Users',
-  ships: 'Ships',
+  ships: 'Build Reviews',
   feature_flags: 'Feature Flags',
   audit_log: 'Audit Log',
   jobs: 'Jobs',
   third_party: '3rd Party',
   support: 'Support Tickets',
   hackatime: 'Hackatime',
+  news: 'News',
 }
 
 const roleDescriptions: Record<string, string> = {
@@ -78,14 +79,19 @@ export default function AdminUsersShow({
       alert('User must have at least one role.')
       return
     }
-    router.patch(`/admin/users/${user.id}/update_roles`, { roles: newRoles })
+    router.patch(`/admin/users/${user.id}/update_roles`, { roles: newRoles }, { preserveState: true, preserveScroll: true })
   }
 
   function togglePermission(perm: string) {
     const newPerms = user.permissions.includes(perm)
       ? user.permissions.filter((p) => p !== perm)
       : [...user.permissions, perm]
-    router.patch(`/admin/users/${user.id}/update_permissions`, { permissions: newPerms })
+    router.patch(`/admin/users/${user.id}/update_permissions`, { permissions: newPerms }, { preserveState: true, preserveScroll: true })
+  }
+
+  function revokeAllPermissions() {
+    if (!confirm('Revoke all permissions?')) return
+    router.patch(`/admin/users/${user.id}/update_permissions`, { permissions: [] }, { preserveState: true, preserveScroll: true })
   }
 
   return (
@@ -220,7 +226,17 @@ export default function AdminUsersShow({
       </div>
 
       <div className="mb-10">
-        <h2 className="text-xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-2">Permissions</h2>
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-xl font-headline font-bold text-[#e5e2e1] tracking-tight">Permissions</h2>
+          {user.permissions.length > 0 && (
+            <button
+              onClick={revokeAllPermissions}
+              className="bg-red-500/20 border border-red-500/40 text-red-400 hover:bg-red-500/30 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.15em] transition-colors cursor-pointer"
+            >
+              Revoke All
+            </button>
+          )}
+        </div>
         <p className="text-stone-500 text-sm mb-4">Toggle individual permissions. Assigning a role auto-grants its defaults, but you can override them.</p>
         <div className="grid grid-cols-2 gap-2">
           {available_permissions.map((perm) => {

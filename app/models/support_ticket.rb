@@ -1,3 +1,32 @@
+# == Schema Information
+#
+# Table name: support_tickets
+#
+#  id                   :bigint           not null, primary key
+#  bts_message_ts       :string
+#  claimed_at           :datetime
+#  claimed_by_name      :string
+#  original_text        :text             not null
+#  resolved_at          :datetime
+#  resolved_by_name     :string
+#  slack_avatar_url     :string
+#  slack_display_name   :string
+#  status               :integer          default("open"), not null
+#  thread_ts            :string           not null
+#  created_at           :datetime         not null
+#  updated_at           :datetime         not null
+#  bts_channel_id       :string           not null
+#  channel_id           :string           not null
+#  claimed_by_slack_id  :string
+#  resolved_by_slack_id :string
+#  slack_user_id        :string           not null
+#
+# Indexes
+#
+#  index_support_tickets_on_bts_message_ts  (bts_message_ts)
+#  index_support_tickets_on_status          (status)
+#  index_support_tickets_on_thread_ts       (thread_ts) UNIQUE
+#
 class SupportTicket < ApplicationRecord
   has_paper_trail
 

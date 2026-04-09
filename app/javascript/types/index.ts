@@ -11,6 +11,14 @@ export interface User {
 
 export type FlashData = Record<string, string>
 
+export interface NewsPostSummary {
+  id: number
+  title: string
+  body: string
+  published_at: string
+  author_name: string
+}
+
 export interface SharedProps {
   auth: { user: User | null }
   flash: FlashData
@@ -77,6 +85,7 @@ export interface ProjectForm {
   repo_link: string
   tags: string[]
   tier: ProjectTier
+  devlog_mode?: string | null
 }
 
 export interface AdminUserRow {
