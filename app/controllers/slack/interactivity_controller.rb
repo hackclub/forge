@@ -29,8 +29,6 @@ class Slack::InteractivityController < ApplicationController
       handle_claim(action["value"], slack_user_id, display_name)
     when "support_resolve"
       handle_resolve(action["value"], slack_user_id, display_name)
-    when "support_mark_answered"
-      handle_mark_answered(action["value"], slack_user_id, display_name)
     end
   end
 
@@ -65,23 +63,6 @@ class Slack::InteractivityController < ApplicationController
     update_bts_message(ticket)
   end
 
-  def handle_mark_answered(ticket_id, slack_user_id, display_name)
-    ticket = SupportTicket.find_by(id: ticket_id)
-    return unless ticket
-    return if ticket.resolved?
-
-    ticket.update!(
-      status: :resolved,
-      resolved_by_slack_id: slack_user_id,
-      resolved_by_name: display_name,
-      resolved_at: Time.current
-    )
-
-    notify_public_resolved(ticket, display_name)
-    update_bts_message(ticket)
-  rescue StandardError => e
-    Rails.logger.error("Failed to post answered message: #{e.message}")
-  end
 
   def notify_public_resolved(ticket, resolver_slack_id = nil)
     resolver_id = resolver_slack_id || ticket.resolved_by_slack_id

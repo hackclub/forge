@@ -89,9 +89,9 @@ export default function AdminUsersShow({
   }
 
   return (
-    <div className="p-12 max-w-4xl mx-auto">
+    <div className="p-12 max-w-6xl mx-auto">
       <div className="flex items-center gap-5 mb-4">
-        <img src={user.avatar} alt={user.display_name} className="w-16 h-16 border border-white/10 shrink-0" />
+        <img src={user.avatar} alt={user.display_name} className="w-24 h-24 border border-white/10 shrink-0" />
         <div>
           <div className="flex items-center gap-3">
             <h1 className="text-4xl font-headline font-bold text-[#e5e2e1] tracking-tight">
