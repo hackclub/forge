@@ -112,6 +112,7 @@ class User < ApplicationRecord
     third_party
     support
     hackatime
+    news
   ].freeze
 
   ROLE_DEFAULT_PERMISSIONS = {
