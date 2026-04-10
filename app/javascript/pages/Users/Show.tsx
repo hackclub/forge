@@ -128,7 +128,7 @@ export default function UsersShow({ user, stats, projects, kudos, can_give_kudos
 
           {projects.length === 0 ? (
             <div className="p-12 text-center">
-              <span className="material-symbols-outlined text-5xl text-stone-700 mb-4">rocket_launch</span>
+              <span className="text-5xl mb-4 block">⚒️</span>
               <p className="text-stone-500 text-sm">No public projects yet.</p>
             </div>
           ) : (

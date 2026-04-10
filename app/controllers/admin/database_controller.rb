@@ -24,6 +24,7 @@ class Admin::DatabaseController < Admin::ApplicationController
         result = ActiveRecord::Base.connection.exec_query(sql)
       end
 
+      audit!("database.queried", metadata: { sql: sql, row_count: result.rows.size })
       render json: {
         columns: result.columns,
         rows: result.rows,

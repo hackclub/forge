@@ -31,7 +31,7 @@ export default function ProjectsNew() {
           className="group bg-[#1c1b1b] ghost-border p-8 hover:bg-[#2a2a2a] transition-colors flex flex-col gap-4 border border-[#ee671c]/20"
         >
           <div className="flex items-center gap-3">
-            <span className="material-symbols-outlined text-2xl text-[#ee671c]">rocket_launch</span>
+            <span className="text-2xl">⚒️</span>
             <h2 className="text-xl font-headline font-bold text-[#e5e2e1]">Advanced Project</h2>
           </div>
           <p className="text-stone-400 text-sm leading-relaxed">

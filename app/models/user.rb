@@ -120,7 +120,7 @@ class User < ApplicationRecord
 
   ROLE_DEFAULT_PERMISSIONS = {
     "admin" => AVAILABLE_PERMISSIONS - %w[superadmin],
-    "reviewer" => %w[pending_reviews projects ships],
+    "reviewer" => %w[pending_reviews projects ships hackatime],
     "support" => %w[projects users support],
     "fulfillment" => %w[projects ships]
   }.freeze

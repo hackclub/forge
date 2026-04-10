@@ -13,6 +13,7 @@ class Admin::FeatureFlagsController < Admin::ApplicationController
     flag = FeatureFlag.new(flag_params)
 
     if flag.save
+      audit!("feature_flag.created", target: flag, metadata: { name: flag.name, enabled: flag.enabled })
       redirect_to admin_feature_flags_path, notice: "Flag '#{flag.name}' created."
     else
       redirect_to admin_feature_flags_path, alert: flag.errors.full_messages.join(", ")
@@ -22,11 +23,13 @@ class Admin::FeatureFlagsController < Admin::ApplicationController
   def toggle
     flag = FeatureFlag.find(params[:id])
     flag.update!(enabled: !flag.enabled)
+    audit!("feature_flag.toggled", target: flag, metadata: { name: flag.name, enabled: flag.enabled })
     redirect_to admin_feature_flags_path, notice: "Flag '#{flag.name}' #{flag.enabled? ? 'enabled' : 'disabled'}."
   end
 
   def destroy
     flag = FeatureFlag.find(params[:id])
+    audit!("feature_flag.destroyed", target: flag, label: flag.name, metadata: { name: flag.name })
     flag.destroy
     redirect_to admin_feature_flags_path, notice: "Flag '#{flag.name}' deleted."
   end

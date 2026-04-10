@@ -59,6 +59,7 @@ class Admin::SupportTicketsController < Admin::ApplicationController
       )
     end
 
+    audit!("support_ticket.replied", target: @ticket, label: @ticket.slack_display_name, metadata: { message: text })
     redirect_to admin_support_ticket_path(@ticket), notice: "Reply sent."
   rescue StandardError => e
     Rails.logger.error("Support reply failed: #{e.message}")
@@ -77,6 +78,7 @@ class Admin::SupportTicketsController < Admin::ApplicationController
     )
 
     update_bts_message(@ticket)
+    audit!("support_ticket.claimed", target: @ticket, label: @ticket.slack_display_name)
     redirect_to admin_support_ticket_path(@ticket), notice: "Ticket claimed."
   end
 
@@ -102,6 +104,7 @@ class Admin::SupportTicketsController < Admin::ApplicationController
       name: "white_check_mark"
     )
     update_bts_message(@ticket)
+    audit!("support_ticket.resolved", target: @ticket, label: @ticket.slack_display_name)
     redirect_to admin_support_ticket_path(@ticket), notice: "Ticket resolved."
   rescue StandardError => e
     Rails.logger.error("Support resolve failed: #{e.message}")
@@ -110,6 +113,7 @@ class Admin::SupportTicketsController < Admin::ApplicationController
 
   def destroy
     authorize @ticket
+    audit!("support_ticket.destroyed", target: @ticket, label: @ticket.slack_display_name, metadata: { ticket_id: @ticket.id })
     @ticket.destroy
     redirect_to admin_support_tickets_path, notice: "Ticket permanently deleted."
   end

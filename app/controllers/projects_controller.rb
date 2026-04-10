@@ -41,6 +41,7 @@ class ProjectsController < ApplicationController
     authorize @project
 
     if @project.save
+      audit!("project.created", target: @project, metadata: { tier: @project.tier })
       redirect_to @project, notice: "Project created as draft."
     else
       redirect_back fallback_location: new_project_path(tier: @project.tier), inertia: { errors: @project.errors.messages }
@@ -70,6 +71,7 @@ class ProjectsController < ApplicationController
     authorize @project
 
     if @project.update(project_params)
+      audit!("project.updated", target: @project, metadata: { changed: project_params.keys })
       redirect_to @project, notice: "Project updated."
     else
       redirect_back fallback_location: edit_project_path(@project), inertia: { errors: @project.errors.messages }
@@ -79,7 +81,8 @@ class ProjectsController < ApplicationController
   def destroy
     authorize @project
     @project.discard
-    redirect_to projects_path, notice: "Project deleted."
+    audit!("project.soft_deleted", target: @project, metadata: { via: "owner" })
+    redirect_to explore_path, notice: "Project deleted."
   end
 
   def import_from_github
@@ -169,6 +172,7 @@ class ProjectsController < ApplicationController
     end
 
     SyncJournalJob.perform_now(@project.id)
+    audit!("project.journal_synced", target: @project)
     redirect_to @project, notice: "Journal synced."
   end
 
@@ -212,6 +216,7 @@ class ProjectsController < ApplicationController
     end
 
     @project.submit_build_for_review!
+    audit!("project.build_submitted", target: @project)
     if @project.slack_channel_id.present? && @project.slack_message_ts.present?
       SlackNotifyJob.perform_later(
         channel_id: @project.slack_channel_id,
@@ -274,9 +279,11 @@ class ProjectsController < ApplicationController
       end
 
       @project.submit_build_for_review!
+      audit!("project.build_submitted", target: @project)
       redirect_to @project, notice: "Build submitted for review."
     else
       @project.submit_for_review!
+      audit!("project.submitted_for_review", target: @project)
       redirect_to @project, notice: "Project submitted for review."
     end
   end

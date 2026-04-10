@@ -36,6 +36,15 @@ class AuthController < ApplicationController
         }.to_json)
       end
 
+      AuditEvent.create!(
+        actor: user,
+        action: "auth.signed_in",
+        target: user,
+        target_label: user.display_name,
+        ip_address: request.remote_ip,
+        metadata: { is_staff: user.staff? }
+      )
+
       redirect_to root_path, notice: "Welcome back, #{user.display_name}!"
     rescue StandardError => e
       Rails.logger.tagged("Authentication") do
@@ -49,6 +58,7 @@ class AuthController < ApplicationController
   end
 
   def destroy
+    audit!("auth.signed_out", target: current_user) if current_user
     terminate_session
     redirect_to root_path, notice: "Signed out successfully. Cya!"
   end
