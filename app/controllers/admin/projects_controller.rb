@@ -69,6 +69,7 @@ class Admin::ProjectsController < Admin::ApplicationController
   def toggle_hidden
     authorize @project, :update?
     @project.update!(hidden: !@project.hidden)
+    audit!("project.visibility_toggled", target: @project, metadata: { hidden: @project.hidden })
     status = @project.hidden? ? "hidden" : "visible"
     redirect_to admin_project_path(@project), notice: "Project is now #{status} on explore."
   end
@@ -76,6 +77,7 @@ class Admin::ProjectsController < Admin::ApplicationController
   def toggle_staff_pick
     authorize @project, :update?
     @project.update!(staff_pick_at: @project.staff_pick? ? nil : Time.current)
+    audit!("project.staff_pick_toggled", target: @project, metadata: { staff_pick: @project.staff_pick? })
     status = @project.staff_pick? ? "added to staff picks" : "removed from staff picks"
     redirect_to admin_project_path(@project), notice: "Project #{status}."
   end
@@ -83,6 +85,7 @@ class Admin::ProjectsController < Admin::ApplicationController
   def restore
     authorize @project
     @project.undiscard
+    audit!("project.restored", target: @project)
     redirect_to admin_project_path(@project), notice: "Project '#{@project.name}' has been restored."
   end
 
@@ -90,10 +93,12 @@ class Admin::ProjectsController < Admin::ApplicationController
     authorize @project
     name = @project.name
     if @project.discarded?
+      audit!("project.destroyed", target: @project, label: name)
       @project.destroy
       redirect_to admin_projects_path, notice: "Project '#{name}' has been permanently deleted."
     else
       @project.discard
+      audit!("project.soft_deleted", target: @project)
       redirect_to admin_projects_path, notice: "Project '#{name}' has been soft-deleted."
     end
   end
@@ -107,18 +112,22 @@ class Admin::ProjectsController < Admin::ApplicationController
     case decision
     when "approve"
       @project.update!(status: :approved, reviewer: current_user, reviewed_at: Time.current, review_feedback: feedback)
+      audit!("project.approved", target: @project, metadata: { feedback: feedback })
       notify_slack_decision(@project, "approved", feedback)
       redirect_to admin_project_path(@project), notice: "Project approved."
     when "return"
       @project.update!(status: :returned, reviewer: current_user, reviewed_at: Time.current, review_feedback: feedback)
+      audit!("project.returned", target: @project, metadata: { feedback: feedback })
       notify_slack_decision(@project, "returned for changes", feedback)
       redirect_to admin_project_path(@project), notice: "Project returned to builder."
     when "reject"
       @project.update!(status: :rejected, reviewer: current_user, reviewed_at: Time.current, review_feedback: feedback)
+      audit!("project.rejected", target: @project, metadata: { feedback: feedback })
       notify_slack_decision(@project, "rejected", feedback)
       redirect_to admin_project_path(@project), notice: "Project rejected."
     when "draft"
       @project.update!(status: :draft, reviewer: current_user, reviewed_at: Time.current, review_feedback: feedback)
+      audit!("project.reverted_to_draft", target: @project, metadata: { feedback: feedback })
       redirect_to admin_project_path(@project), notice: "Project reverted to draft."
     when "approve_build"
       hcb_link = params[:hcb_grant_link].to_s.strip
@@ -131,14 +140,17 @@ class Admin::ProjectsController < Admin::ApplicationController
         override_hours: params[:override_hours].presence,
         override_hours_justification: params[:override_hours_justification].presence
       )
+      audit!("project.build_approved", target: @project, metadata: { feedback: feedback, hcb_grant_link: hcb_link.presence, override_hours: params[:override_hours].presence })
       notify_slack_decision(@project, "build approved! :tada:", feedback)
       redirect_to admin_project_path(@project), notice: "Build approved."
     when "return_build"
       @project.update!(status: :approved, reviewer: current_user, reviewed_at: Time.current, review_feedback: feedback)
+      audit!("project.build_returned", target: @project, metadata: { feedback: feedback })
       notify_slack_decision(@project, "build returned for more work", feedback)
       redirect_to admin_project_path(@project), notice: "Build returned to builder."
     when "reject_build"
       @project.update!(status: :rejected, reviewer: current_user, reviewed_at: Time.current, review_feedback: feedback)
+      audit!("project.build_rejected", target: @project, metadata: { feedback: feedback })
       notify_slack_decision(@project, "build rejected", feedback)
       redirect_to admin_project_path(@project), notice: "Build rejected."
     when "save_review_notes"
@@ -147,9 +159,11 @@ class Admin::ProjectsController < Admin::ApplicationController
         override_hours_justification: params[:override_hours_justification].presence,
         hcb_grant_link: params[:hcb_grant_link].presence
       )
+      audit!("project.review_notes_saved", target: @project, metadata: { override_hours: params[:override_hours].presence, hcb_grant_link: params[:hcb_grant_link].presence })
       redirect_to admin_project_path(@project), notice: "Review notes saved."
     when "refresh_readme"
       FetchReadmeJob.perform_later(@project.id)
+      audit!("project.readme_refreshed", target: @project)
       redirect_to admin_project_path(@project), notice: "Fetching latest README..."
     else
       redirect_to admin_project_path(@project), alert: "Invalid review decision."

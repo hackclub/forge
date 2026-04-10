@@ -25,6 +25,7 @@ class Admin::RsvpsController < Admin::ApplicationController
   def destroy
     rsvp = Rsvp.find(params[:id])
     email = rsvp.email
+    audit!("rsvp.destroyed", target: rsvp, label: email, metadata: { email: email })
     rsvp.destroy
     redirect_to admin_rsvps_path, notice: "Removed #{email}."
   end
@@ -37,6 +38,7 @@ class Admin::RsvpsController < Admin::ApplicationController
       end
     end
 
+    audit!("rsvp.exported", metadata: { count: Rsvp.count })
     send_data csv, filename: "forge-rsvps-#{Date.current}.csv", type: "text/csv"
   end
 end

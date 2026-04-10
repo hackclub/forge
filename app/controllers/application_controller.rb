@@ -4,6 +4,7 @@ class ApplicationController < ActionController::Base
   include SentryContext
   include Pagy::Method
   include InertiaPagination
+  include Auditable
 
   before_action :gate_beta_access
   before_action :track_ahoy_visit

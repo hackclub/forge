@@ -62,7 +62,8 @@ class UsersController < ApplicationController
       return
     end
 
-    target.kudos.create!(content: content, author: current_user)
+    kudo = target.kudos.create!(content: content, author: current_user)
+    audit!("user.kudo_added", target: target, metadata: { kudo_id: kudo.id, content: kudo.content, via: "profile" })
     redirect_to user_path(target), notice: "Kudos sent."
   end
 
@@ -74,6 +75,7 @@ class UsersController < ApplicationController
       raise ActionController::RoutingError, "Not Found"
     end
 
+    audit!("user.kudo_destroyed", target: target, metadata: { kudo_id: kudo.id, content: kudo.content, via: "profile" })
     kudo.destroy
     redirect_to user_path(target), notice: "Kudos deleted."
   end

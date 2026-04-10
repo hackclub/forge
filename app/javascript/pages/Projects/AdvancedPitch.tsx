@@ -9,7 +9,7 @@ export default function ProjectsAdvancedPitch() {
       </Link>
 
       <div className="flex items-center gap-3 mb-4">
-        <span className="material-symbols-outlined text-3xl text-[#ee671c]">rocket_launch</span>
+        <span className="text-3xl">⚒️</span>
         <h1 className="text-4xl font-headline font-bold text-[#e5e2e1] tracking-tight">Advanced Project</h1>
       </div>
 

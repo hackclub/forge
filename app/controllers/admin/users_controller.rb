@@ -38,7 +38,8 @@ class Admin::UsersController < Admin::ApplicationController
   def add_kudo
     @user = User.find(params[:id])
     authorize @user, :show?
-    @user.kudos.create!(content: params[:content], author: current_user)
+    kudo = @user.kudos.create!(content: params[:content], author: current_user)
+    audit!("user.kudo_added", target: @user, metadata: { kudo_id: kudo.id, content: kudo.content })
     redirect_to admin_user_path(@user), notice: "Kudos added."
   end
 
@@ -46,6 +47,7 @@ class Admin::UsersController < Admin::ApplicationController
     @user = User.find(params[:id])
     authorize @user, :show?
     kudo = @user.kudos.find(params[:kudo_id])
+    audit!("user.kudo_destroyed", target: @user, metadata: { kudo_id: kudo.id, content: kudo.content })
     kudo.destroy
     redirect_to admin_user_path(@user), notice: "Kudos deleted."
   end
@@ -53,7 +55,8 @@ class Admin::UsersController < Admin::ApplicationController
   def add_note
     @user = User.find(params[:id])
     authorize @user, :show?
-    @user.user_notes.create!(content: params[:content], author: current_user)
+    note = @user.user_notes.create!(content: params[:content], author: current_user)
+    audit!("user.note_added", target: @user, metadata: { note_id: note.id, content: note.content })
     redirect_to admin_user_path(@user), notice: "Note added."
   end
 
@@ -61,6 +64,7 @@ class Admin::UsersController < Admin::ApplicationController
     @user = User.find(params[:id])
     authorize @user, :show?
     note = @user.user_notes.find(params[:note_id])
+    audit!("user.note_destroyed", target: @user, metadata: { note_id: note.id, content: note.content })
     note.destroy
     redirect_to admin_user_path(@user), notice: "Note deleted."
   end
@@ -70,10 +74,12 @@ class Admin::UsersController < Admin::ApplicationController
     authorize @user
     name = @user.display_name
     if @user.discarded?
+      audit!("user.destroyed", target: @user, label: name)
       @user.destroy
       redirect_to admin_users_path, notice: "User '#{name}' has been permanently deleted."
     else
       @user.discard
+      audit!("user.soft_deleted", target: @user)
       redirect_to admin_users_path, notice: "User '#{name}' has been soft-deleted."
     end
   end
@@ -87,13 +93,16 @@ class Admin::UsersController < Admin::ApplicationController
       return
     end
     @user.update!(is_banned: true, ban_reason: reason)
+    audit!("user.banned", target: @user, metadata: { reason: reason })
     redirect_to admin_user_path(@user), notice: "#{@user.display_name} has been banned."
   end
 
   def unban
     @user = User.find(params[:id])
     authorize @user, :destroy?
+    previous_reason = @user.ban_reason
     @user.update!(is_banned: false, ban_reason: nil)
+    audit!("user.unbanned", target: @user, metadata: { previous_reason: previous_reason })
     redirect_to admin_user_path(@user), notice: "#{@user.display_name} has been unbanned."
   end
 
@@ -101,6 +110,7 @@ class Admin::UsersController < Admin::ApplicationController
     @user = User.find(params[:id])
     authorize @user
     @user.undiscard
+    audit!("user.restored", target: @user)
     redirect_to admin_user_path(@user), notice: "User '#{@user.display_name}' has been restored."
   end
 
@@ -109,9 +119,11 @@ class Admin::UsersController < Admin::ApplicationController
     authorize @user, :update?
     new_roles = params[:roles].select(&:present?)
     added_roles = new_roles - @user.roles
+    removed_roles = @user.roles - new_roles
     @user.roles = new_roles
     added_roles.each { |role| @user.apply_default_permissions_for_role(role) }
     @user.save!
+    audit!("user.roles_updated", target: @user, metadata: { added: added_roles, removed: removed_roles, current: new_roles })
     redirect_to admin_user_path(@user), notice: "Roles updated."
   end
 
@@ -127,7 +139,10 @@ class Admin::UsersController < Admin::ApplicationController
       return
     end
 
+    added = requested - @user.permissions
+    removed = @user.permissions - requested
     @user.update!(permissions: requested)
+    audit!("user.permissions_updated", target: @user, metadata: { added: added, removed: removed, current: requested })
     redirect_to admin_user_path(@user), notice: "Permissions updated."
   end
 
@@ -141,6 +156,7 @@ class Admin::UsersController < Admin::ApplicationController
     end
 
     @user.update!(is_beta_approved: !@user.is_beta_approved)
+    audit!("user.beta_approval_toggled", target: @user, metadata: { is_beta_approved: @user.is_beta_approved })
     redirect_to admin_user_path(@user), notice: @user.is_beta_approved ? "#{@user.display_name} approved for beta." : "Beta access revoked."
   end
 

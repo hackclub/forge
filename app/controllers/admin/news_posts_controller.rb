@@ -13,6 +13,7 @@ class Admin::NewsPostsController < Admin::ApplicationController
     post = NewsPost.new(post_params.merge(author: current_user))
 
     if post.save
+      audit!("news_post.created", target: post, metadata: { title: post.title, published: post.published })
       redirect_to admin_news_posts_path, notice: "News post created."
     else
       redirect_to admin_news_posts_path, alert: post.errors.full_messages.join(", ")
@@ -23,6 +24,7 @@ class Admin::NewsPostsController < Admin::ApplicationController
     post = NewsPost.find(params[:id])
 
     if post.update(post_params)
+      audit!("news_post.updated", target: post, metadata: { title: post.title, published: post.published })
       redirect_to admin_news_posts_path, notice: "News post updated."
     else
       redirect_to admin_news_posts_path, alert: post.errors.full_messages.join(", ")
@@ -32,11 +34,13 @@ class Admin::NewsPostsController < Admin::ApplicationController
   def toggle
     post = NewsPost.find(params[:id])
     post.update!(published: !post.published)
+    audit!("news_post.publish_toggled", target: post, metadata: { title: post.title, published: post.published })
     redirect_to admin_news_posts_path, notice: "News post #{post.published? ? 'published' : 'unpublished'}."
   end
 
   def destroy
     post = NewsPost.find(params[:id])
+    audit!("news_post.destroyed", target: post, label: post.title, metadata: { title: post.title })
     post.destroy
     redirect_to admin_news_posts_path, notice: "News post deleted."
   end
