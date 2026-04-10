@@ -172,6 +172,7 @@ Rails.application.routes.draw do
 
   get "explore" => "explore#index", as: :explore
   get "news" => "news#index", as: :news
+  get "news/:id" => "news#show", as: :news_post
 
   resources :projects, except: :index do
     collection do
