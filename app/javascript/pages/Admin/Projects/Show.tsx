@@ -443,7 +443,20 @@ export default function AdminProjectsShow({
               </button>
             </div>
             {project.hidden && (
-              <p className="text-stone-600 text-xs">This project won't appear on the explore page or public API.</p>
+              <p className="text-stone-600 text-xs mb-4">This project won't appear on the explore page or public API.</p>
+            )}
+
+            <div className="flex items-center justify-between mt-4 mb-2">
+              <span className="text-stone-400 text-sm">Staff pick</span>
+              <button
+                onClick={() => router.post(`/admin/projects/${project.id}/toggle_staff_pick`)}
+                className={`relative inline-flex h-6 w-11 items-center transition-colors cursor-pointer ${project.staff_pick ? 'bg-[#ee671c]' : 'bg-stone-700'}`}
+              >
+                <span className={`inline-block h-4 w-4 transform bg-white transition-transform ${project.staff_pick ? 'translate-x-6' : 'translate-x-1'}`} />
+              </button>
+            </div>
+            {project.staff_pick && (
+              <p className="text-stone-600 text-xs">Featured under Staff Picks on the dashboard.</p>
             )}
           </div>
 

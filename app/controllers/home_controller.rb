@@ -2,6 +2,7 @@ class HomeController < ApplicationController
   def index
     projects = current_user.projects.kept.order(updated_at: :desc).to_a
     news_posts = NewsPost.includes(:author).published.limit(3)
+    staff_picks = Project.kept.where(hidden: false).includes(:user).staff_picks.limit(3)
 
     render inertia: "Home/Index", props: {
       user: {
@@ -30,6 +31,17 @@ class HomeController < ApplicationController
           body: post.body,
           published_at: post.published_at.strftime("%b %d, %Y"),
           author_name: post.author.display_name
+        }
+      },
+      staff_picks: staff_picks.map { |p|
+        {
+          id: p.id,
+          name: p.name,
+          subtitle: p.subtitle,
+          cover_image_url: p.cover_image_url,
+          user_id: p.user_id,
+          user_display_name: p.user.display_name,
+          user_avatar: p.user.avatar
         }
       }
     }

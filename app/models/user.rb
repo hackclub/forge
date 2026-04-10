@@ -54,6 +54,8 @@ class User < ApplicationRecord
   has_many :ships, through: :projects
   has_many :reviewed_ships, class_name: "Ship", foreign_key: :reviewer_id, dependent: :nullify, inverse_of: :reviewer
   has_many :user_notes, dependent: :destroy
+  has_many :kudos, dependent: :destroy
+  has_many :authored_kudos, class_name: "Kudo", foreign_key: :author_id, dependent: :nullify, inverse_of: :author
 
   encrypts :hca_token
 
@@ -113,10 +115,11 @@ class User < ApplicationRecord
     support
     hackatime
     news
+    superadmin
   ].freeze
 
   ROLE_DEFAULT_PERMISSIONS = {
-    "admin" => AVAILABLE_PERMISSIONS.dup,
+    "admin" => AVAILABLE_PERMISSIONS - %w[superadmin],
     "reviewer" => %w[pending_reviews projects ships],
     "support" => %w[projects users support],
     "fulfillment" => %w[projects ships]
@@ -124,6 +127,10 @@ class User < ApplicationRecord
 
   def has_permission?(perm)
     permissions.include?(perm.to_s)
+  end
+
+  def superadmin?
+    has_permission?("superadmin")
   end
 
   def grant_permission(perm)

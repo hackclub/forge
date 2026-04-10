@@ -21,11 +21,22 @@ interface DashboardProject {
   updated_at: string
 }
 
+interface StaffPick {
+  id: number
+  name: string
+  subtitle: string | null
+  cover_image_url: string | null
+  user_id: number
+  user_display_name: string
+  user_avatar: string
+}
+
 interface Props {
   user: DashboardUser
   stats: Stats
   projects: DashboardProject[]
   news_posts: NewsPostSummary[]
+  staff_picks: StaffPick[]
 }
 
 const STATUS_LABELS: Record<ProjectStatus, string> = {
@@ -48,7 +59,7 @@ const STATUS_COLORS: Record<ProjectStatus, string> = {
   build_approved: 'bg-emerald-500/15 text-emerald-400',
 }
 
-export default function HomeIndex({ user, projects, news_posts }: Props) {
+export default function HomeIndex({ user, projects, news_posts, staff_picks }: Props) {
   return (
     <>
       <Head title="Dashboard — Forge" />
@@ -124,6 +135,63 @@ export default function HomeIndex({ user, projects, news_posts }: Props) {
           )}
         </section>
 
+        {staff_picks.length > 0 && (
+          <section className="bg-[#1c1b1b] ghost-border p-8">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-headline font-bold text-[#e5e2e1] tracking-tight">Staff picks</h2>
+              <Link
+                href="/explore"
+                className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 hover:text-[#ffb595] transition-colors flex items-center gap-1"
+              >
+                Explore all
+                <span className="material-symbols-outlined text-sm">arrow_forward</span>
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {staff_picks.map((pick) => (
+                <div
+                  key={pick.id}
+                  className="group bg-[#0e0e0e] ghost-border hover:bg-[#161616] transition-colors flex flex-col min-w-0 overflow-hidden"
+                >
+                  <Link href={`/projects/${pick.id}`} className="block">
+                    <div className="aspect-[16/10] overflow-hidden bg-[#1c1b1b] flex items-center justify-center">
+                      {pick.cover_image_url ? (
+                        <img src={pick.cover_image_url} alt={pick.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="material-symbols-outlined text-5xl text-stone-800 group-hover:text-stone-700 transition-colors">
+                          precision_manufacturing
+                        </span>
+                      )}
+                    </div>
+                    <div className="p-5 pb-3">
+                      <h3 className="font-headline font-bold text-[#e5e2e1] group-hover:text-[#ffb595] transition-colors tracking-tight mb-2 break-words">
+                        {pick.name}
+                      </h3>
+                      {pick.subtitle && (
+                        <p className="text-stone-500 text-xs line-clamp-2 break-words">{pick.subtitle}</p>
+                      )}
+                    </div>
+                  </Link>
+                  <Link
+                    href={`/users/${pick.user_id}`}
+                    className="px-5 pb-5 mt-auto pt-2 flex items-center gap-2 text-stone-500 hover:text-[#ffb595] transition-colors"
+                  >
+                    <img
+                      src={pick.user_avatar}
+                      alt={pick.user_display_name}
+                      className="w-5 h-5 rounded-full border border-white/10"
+                    />
+                    <span className="text-[10px] uppercase tracking-widest truncate">
+                      by {pick.user_display_name}
+                    </span>
+                  </Link>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
         <section className="bg-[#1c1b1b] ghost-border p-8">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-headline font-bold text-[#e5e2e1] tracking-tight">Latest news</h2>
@@ -143,23 +211,19 @@ export default function HomeIndex({ user, projects, news_posts }: Props) {
             </div>
           ) : (
             <div className="space-y-4">
-              {news_posts.map((post, idx) => (
+              {news_posts.map((post) => (
                 <Link
                   key={post.id}
                   href={`/news/${post.id}`}
-                  className={
-                    idx === 0
-                      ? 'signature-smolder block p-6 text-[#4c1a00] hover:brightness-110 transition min-w-0 overflow-hidden'
-                      : 'block bg-[#0e0e0e] ghost-border p-6 hover:bg-[#161616] transition-colors min-w-0 overflow-hidden'
-                  }
+                  className="block bg-[#0e0e0e] ghost-border p-6 hover:bg-[#161616] transition-colors group min-w-0 overflow-hidden"
                 >
-                  <p className={`text-[10px] font-bold uppercase tracking-[0.2em] mb-2 ${idx === 0 ? 'text-[#4c1a00]/70' : 'text-stone-600'}`}>
-                    {idx === 0 ? 'Program Announcement · ' : ''}{post.published_at}
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
+                    {post.published_at}
                   </p>
-                  <h3 className={`font-headline font-bold text-lg tracking-tight mb-2 break-words ${idx === 0 ? 'text-[#4c1a00]' : 'text-[#e5e2e1]'}`}>
+                  <h3 className="font-headline font-bold text-lg tracking-tight text-[#e5e2e1] group-hover:text-[#ffb595] transition-colors mb-2 break-words">
                     {post.title}
                   </h3>
-                  <p className={`text-sm leading-relaxed line-clamp-3 break-words [overflow-wrap:anywhere] ${idx === 0 ? 'text-[#4c1a00]/90' : 'text-stone-400'}`}>
+                  <p className="text-sm leading-relaxed text-stone-400 line-clamp-3 break-words [overflow-wrap:anywhere]">
                     {post.body}
                   </p>
                 </Link>

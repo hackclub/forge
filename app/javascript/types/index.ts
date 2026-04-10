@@ -6,6 +6,7 @@ export interface User {
   roles: string[]
   is_admin: boolean
   is_staff: boolean
+  is_superadmin: boolean
   is_banned: boolean
 }
 
@@ -70,6 +71,7 @@ export interface ProjectDetail {
   tier: 'normal' | 'advanced'
   from_slack: boolean
   cover_image_url: string | null
+  user_id: number
   user_display_name: string
   user_has_address: boolean
   user_address: UserAddress | null
@@ -133,6 +135,14 @@ export interface UserNote {
   created_at: string
 }
 
+export interface KudoEntry {
+  id: number
+  content: string
+  author_name: string
+  author_avatar: string
+  created_at: string
+}
+
 export interface AdminProjectRow {
   id: number
   name: string
@@ -177,6 +187,7 @@ export interface AdminProjectDetail {
   total_hours: number
   devlogs: AdminDevlog[]
   hidden: boolean
+  staff_pick: boolean
   is_discarded: boolean
   discarded_at: string | null
   user_id: number

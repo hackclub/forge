@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { Link, router } from '@inertiajs/react'
-import type { AdminUserDetail, UserNote, HackatimeInfo } from '@/types'
+import { Link, router, usePage } from '@inertiajs/react'
+import type { AdminUserDetail, UserNote, KudoEntry, HackatimeInfo, SharedProps } from '@/types'
 
 const permissionLabels: Record<string, string> = {
   pending_reviews: 'Pitch Reviews',
@@ -14,6 +14,7 @@ const permissionLabels: Record<string, string> = {
   support: 'Support Tickets',
   hackatime: 'Hackatime',
   news: 'News',
+  superadmin: 'Superadmin',
 }
 
 const roleDescriptions: Record<string, string> = {
@@ -28,6 +29,7 @@ export default function AdminUsersShow({
   user,
   projects,
   notes,
+  kudos,
   hackatime,
   can,
   available_roles,
@@ -36,14 +38,20 @@ export default function AdminUsersShow({
   user: AdminUserDetail
   projects: { id: number; name: string; ships_count: number; created_at: string }[]
   notes: UserNote[]
+  kudos: KudoEntry[]
   hackatime: HackatimeInfo | null
   can: { destroy: boolean; restore: boolean }
   available_roles: string[]
   available_permissions: string[]
 }) {
+  const currentUser = usePage<SharedProps>().props.auth.user
+  const isSuperadmin = !!currentUser?.is_superadmin
+  const visiblePermissions = available_permissions.filter((p) => p !== 'superadmin' || isSuperadmin)
+
   const [banReason, setBanReason] = useState('')
   const [showBanForm, setShowBanForm] = useState(false)
   const [noteContent, setNoteContent] = useState('')
+  const [kudoContent, setKudoContent] = useState('')
 
   function handleBan() {
     if (!banReason.trim()) {
@@ -184,15 +192,17 @@ export default function AdminUsersShow({
         </div>
       )}
 
-      <div className="mb-10">
-        <button
-          onClick={() => router.post(`/admin/users/${user.id}/toggle_beta_approval`)}
-          className={`px-5 py-2 text-xs font-bold uppercase tracking-[0.2em] flex items-center gap-2 cursor-pointer transition-colors ${user.is_beta_approved ? 'bg-red-500/10 hover:bg-red-500/20 text-red-400' : 'signature-smolder text-[#4c1a00]'}`}
-        >
-          <span className="material-symbols-outlined text-sm">{user.is_beta_approved ? 'block' : 'verified_user'}</span>
-          {user.is_beta_approved ? 'Revoke Beta Access' : 'Approve for Beta'}
-        </button>
-      </div>
+      {isSuperadmin && (
+        <div className="mb-10">
+          <button
+            onClick={() => router.post(`/admin/users/${user.id}/toggle_beta_approval`)}
+            className={`px-5 py-2 text-xs font-bold uppercase tracking-[0.2em] flex items-center gap-2 cursor-pointer transition-colors ${user.is_beta_approved ? 'bg-red-500/10 hover:bg-red-500/20 text-red-400' : 'signature-smolder text-[#4c1a00]'}`}
+          >
+            <span className="material-symbols-outlined text-sm">{user.is_beta_approved ? 'block' : 'verified_user'}</span>
+            {user.is_beta_approved ? 'Revoke Beta Access' : 'Approve for Beta'}
+          </button>
+        </div>
+      )}
 
       <div className="mb-10">
         <h2 className="text-xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-4">Roles</h2>
@@ -239,15 +249,18 @@ export default function AdminUsersShow({
         </div>
         <p className="text-stone-500 text-sm mb-4">Toggle individual permissions. Assigning a role auto-grants its defaults, but you can override them.</p>
         <div className="grid grid-cols-2 gap-2">
-          {available_permissions.map((perm) => {
+          {visiblePermissions.map((perm) => {
             const active = user.permissions.includes(perm)
+            const isSuper = perm === 'superadmin'
             return (
               <button
                 key={perm}
                 onClick={() => togglePermission(perm)}
                 className={`px-4 py-3 text-left text-sm font-medium transition-colors cursor-pointer flex items-center gap-3 ${
                   active
-                    ? 'bg-emerald-500/10 text-emerald-400 ghost-border'
+                    ? isSuper
+                      ? 'bg-[#ee671c]/15 text-[#ffb595] ghost-border'
+                      : 'bg-emerald-500/10 text-emerald-400 ghost-border'
                     : 'bg-[#1c1b1b] text-stone-500 ghost-border hover:bg-[#2a2a2a] hover:text-stone-300'
                 }`}
               >
@@ -309,6 +322,57 @@ export default function AdminUsersShow({
           </div>
         ) : (
           <p className="text-stone-600 text-sm">No notes yet.</p>
+        )}
+      </div>
+
+      <div className="mb-10">
+        <h2 className="text-xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-2">Kudos</h2>
+        <p className="text-stone-500 text-sm mb-4">Public shoutouts shown on the user's profile.</p>
+
+        <div className="mb-4">
+          <textarea
+            value={kudoContent}
+            onChange={(e) => setKudoContent(e.target.value)}
+            placeholder="Give them some kudos..."
+            rows={3}
+            className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 resize-y mb-2"
+          />
+          <button
+            onClick={() => {
+              if (!kudoContent.trim()) return
+              router.post(`/admin/users/${user.id}/add_kudo`, { content: kudoContent })
+              setKudoContent('')
+            }}
+            disabled={!kudoContent.trim()}
+            className="signature-smolder text-[#4c1a00] px-5 py-2 text-xs font-bold uppercase tracking-[0.15em] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Add Kudos
+          </button>
+        </div>
+
+        {kudos.length > 0 ? (
+          <div className="space-y-2">
+            {kudos.map((kudo) => (
+              <div key={kudo.id} className="bg-[#1c1b1b] ghost-border px-5 py-4 flex gap-3">
+                <img src={kudo.author_avatar} alt={kudo.author_name} className="w-8 h-8 border border-white/10 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-headline font-bold text-[#e5e2e1] text-sm">{kudo.author_name}</span>
+                    <span className="text-stone-600 text-xs">{kudo.created_at}</span>
+                  </div>
+                  <p className="text-stone-300 text-sm whitespace-pre-wrap break-words">{kudo.content}</p>
+                </div>
+                <button
+                  onClick={() => { if (confirm('Delete this kudos?')) router.delete(`/admin/users/${user.id}/kudos/${kudo.id}`) }}
+                  className="text-stone-600 hover:text-red-400 transition-colors shrink-0 cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-sm">close</span>
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-stone-600 text-sm">No kudos yet.</p>
         )}
       </div>
 
