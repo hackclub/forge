@@ -144,24 +144,25 @@ export default function HomeIndex({ user, projects, news_posts }: Props) {
           ) : (
             <div className="space-y-4">
               {news_posts.map((post, idx) => (
-                <article
+                <Link
                   key={post.id}
+                  href={`/news/${post.id}`}
                   className={
                     idx === 0
-                      ? 'signature-smolder p-6 text-[#4c1a00]'
-                      : 'bg-[#0e0e0e] ghost-border p-6'
+                      ? 'signature-smolder block p-6 text-[#4c1a00] hover:brightness-110 transition min-w-0 overflow-hidden'
+                      : 'block bg-[#0e0e0e] ghost-border p-6 hover:bg-[#161616] transition-colors min-w-0 overflow-hidden'
                   }
                 >
                   <p className={`text-[10px] font-bold uppercase tracking-[0.2em] mb-2 ${idx === 0 ? 'text-[#4c1a00]/70' : 'text-stone-600'}`}>
                     {idx === 0 ? 'Program Announcement · ' : ''}{post.published_at}
                   </p>
-                  <h3 className={`font-headline font-bold text-lg tracking-tight mb-2 ${idx === 0 ? 'text-[#4c1a00]' : 'text-[#e5e2e1]'}`}>
+                  <h3 className={`font-headline font-bold text-lg tracking-tight mb-2 break-words ${idx === 0 ? 'text-[#4c1a00]' : 'text-[#e5e2e1]'}`}>
                     {post.title}
                   </h3>
-                  <p className={`text-sm leading-relaxed whitespace-pre-wrap ${idx === 0 ? 'text-[#4c1a00]/90' : 'text-stone-400'}`}>
+                  <p className={`text-sm leading-relaxed line-clamp-3 break-words [overflow-wrap:anywhere] ${idx === 0 ? 'text-[#4c1a00]/90' : 'text-stone-400'}`}>
                     {post.body}
                   </p>
-                </article>
+                </Link>
               ))}
             </div>
           )}

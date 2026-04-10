@@ -1,4 +1,4 @@
-import { Head } from '@inertiajs/react'
+import { Head, Link } from '@inertiajs/react'
 import type { NewsPostSummary } from '@/types'
 
 export default function NewsIndex({ posts }: { posts: NewsPostSummary[] }) {
@@ -22,17 +22,21 @@ export default function NewsIndex({ posts }: { posts: NewsPostSummary[] }) {
         ) : (
           <div className="space-y-6">
             {posts.map((post) => (
-              <article key={post.id} className="bg-[#1c1b1b] ghost-border p-8">
+              <Link
+                key={post.id}
+                href={`/news/${post.id}`}
+                className="block bg-[#1c1b1b] ghost-border p-8 hover:bg-[#2a2a2a] transition-colors group min-w-0 overflow-hidden"
+              >
                 <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-3">
                   {post.published_at} · {post.author_name}
                 </p>
-                <h2 className="text-2xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-4">
+                <h2 className="text-2xl font-headline font-bold text-[#e5e2e1] group-hover:text-[#ffb595] tracking-tight mb-4 transition-colors break-words">
                   {post.title}
                 </h2>
-                <p className="text-stone-400 text-sm leading-relaxed whitespace-pre-wrap">
+                <p className="text-stone-400 text-sm leading-relaxed line-clamp-3 break-words [overflow-wrap:anywhere]">
                   {post.body}
                 </p>
-              </article>
+              </Link>
             ))}
           </div>
         )}
