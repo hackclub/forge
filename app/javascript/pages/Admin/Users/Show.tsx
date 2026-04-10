@@ -14,6 +14,7 @@ const permissionLabels: Record<string, string> = {
   support: 'Support Tickets',
   hackatime: 'Hackatime',
   news: 'News',
+  orders: 'Orders',
   superadmin: 'Superadmin',
 }
 
@@ -25,11 +26,28 @@ const roleDescriptions: Record<string, string> = {
   fulfillment: 'Handles project fulfillment',
 }
 
+interface CoinSummary {
+  balance: number
+  earned: number
+  spent: number
+  adjusted: number
+}
+
+interface CoinAdjustment {
+  id: number
+  amount: number
+  reason: string
+  actor_name: string
+  created_at: string
+}
+
 export default function AdminUsersShow({
   user,
   projects,
   notes,
   kudos,
+  coins,
+  coin_adjustments,
   hackatime,
   can,
   available_roles,
@@ -39,6 +57,8 @@ export default function AdminUsersShow({
   projects: { id: number; name: string; ships_count: number; created_at: string }[]
   notes: UserNote[]
   kudos: KudoEntry[]
+  coins: CoinSummary
+  coin_adjustments: CoinAdjustment[]
   hackatime: HackatimeInfo | null
   can: { destroy: boolean; restore: boolean }
   available_roles: string[]
@@ -52,6 +72,8 @@ export default function AdminUsersShow({
   const [showBanForm, setShowBanForm] = useState(false)
   const [noteContent, setNoteContent] = useState('')
   const [kudoContent, setKudoContent] = useState('')
+  const [coinAmount, setCoinAmount] = useState('')
+  const [coinReason, setCoinReason] = useState('')
 
   function handleBan() {
     if (!banReason.trim()) {
@@ -272,6 +294,79 @@ export default function AdminUsersShow({
             )
           })}
         </div>
+      </div>
+
+      <div className="mb-10">
+        <h2 className="text-xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-2">Steel Coins</h2>
+        <p className="text-stone-500 text-sm mb-4">Manually adjust this user's coin balance. Use a positive number to grant, negative to remove.</p>
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+          <div className="bg-[#1c1b1b] ghost-border p-4">
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-1">Balance</p>
+            <p className="text-2xl font-headline font-bold text-[#ee671c]">{coins.balance}c</p>
+          </div>
+          <div className="bg-[#1c1b1b] ghost-border p-4">
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-1">Earned</p>
+            <p className="text-2xl font-headline font-bold text-[#e5e2e1]">{coins.earned}c</p>
+          </div>
+          <div className="bg-[#1c1b1b] ghost-border p-4">
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-1">Spent</p>
+            <p className="text-2xl font-headline font-bold text-[#e5e2e1]">{coins.spent}c</p>
+          </div>
+          <div className="bg-[#1c1b1b] ghost-border p-4">
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-1">Adjusted</p>
+            <p className="text-2xl font-headline font-bold text-[#e5e2e1]">{coins.adjusted}c</p>
+          </div>
+        </div>
+
+        <div className="bg-[#1c1b1b] ghost-border p-5 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <input
+              type="number"
+              step="0.01"
+              value={coinAmount}
+              onChange={(e) => setCoinAmount(e.target.value)}
+              placeholder="Amount (+ or -)"
+              className="bg-[#0e0e0e] border-none px-4 py-3 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600"
+            />
+            <input
+              type="text"
+              value={coinReason}
+              onChange={(e) => setCoinReason(e.target.value)}
+              placeholder="Reason"
+              className="md:col-span-2 bg-[#0e0e0e] border-none px-4 py-3 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600"
+            />
+          </div>
+          <button
+            onClick={() => {
+              const amt = parseFloat(coinAmount)
+              if (!amt || !coinReason.trim()) return
+              router.post(`/admin/users/${user.id}/adjust_coins`, { amount: amt, reason: coinReason }, {
+                onSuccess: () => { setCoinAmount(''); setCoinReason('') },
+              })
+            }}
+            disabled={!coinAmount || !coinReason.trim()}
+            className="signature-smolder text-[#4c1a00] px-5 py-2 mt-3 text-xs font-bold uppercase tracking-[0.15em] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Apply Adjustment
+          </button>
+        </div>
+
+        {coin_adjustments.length > 0 && (
+          <div className="space-y-2">
+            {coin_adjustments.map((adj) => (
+              <div key={adj.id} className="bg-[#1c1b1b] ghost-border px-5 py-3 flex items-center justify-between gap-4 flex-wrap">
+                <div className="min-w-0">
+                  <p className="text-stone-300 text-sm break-words">{adj.reason}</p>
+                  <p className="text-stone-600 text-xs mt-0.5">by {adj.actor_name} · {adj.created_at}</p>
+                </div>
+                <span className={`text-lg font-headline font-bold shrink-0 ${adj.amount >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                  {adj.amount >= 0 ? '+' : ''}{adj.amount}c
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="mb-10">

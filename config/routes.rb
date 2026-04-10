@@ -120,6 +120,7 @@ Rails.application.routes.draw do
           delete "notes/:note_id" => "users#destroy_note", as: :destroy_note
           post :add_kudo
           delete "kudos/:kudo_id" => "users#destroy_kudo", as: :destroy_kudo
+          post :adjust_coins
         end
       end
       resources :feature_flags, only: [ :index, :create, :destroy ] do
@@ -132,6 +133,14 @@ Rails.application.routes.draw do
           post :toggle
         end
       end
+      resources :orders, only: [ :index, :show ] do
+        member do
+          post :approve
+          post :reject
+          post :fulfill
+        end
+      end
+      resources :shop_items, only: [ :index, :create, :update, :destroy ]
       resources :rsvps, only: [ :index, :destroy ] do
         collection do
           get :export
@@ -174,6 +183,8 @@ Rails.application.routes.draw do
   post "rsvp" => "rsvps#create"
 
   get "explore" => "explore#index", as: :explore
+  get "shop" => "shop#index", as: :shop
+  post "shop/orders" => "shop#create", as: :shop_orders
   get "users/:id" => "users#show", as: :user
   post "users/:id/kudos" => "users#add_kudo", as: :user_kudos
   delete "users/:id/kudos/:kudo_id" => "users#destroy_kudo", as: :user_kudo
@@ -194,6 +205,7 @@ Rails.application.routes.draw do
       post :upload_cover_image
       patch :set_devlog_mode
       patch :link_repo
+      post :mark_built
     end
     resources :devlogs, only: [ :create, :destroy ]
   end

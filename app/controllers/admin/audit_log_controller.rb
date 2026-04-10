@@ -78,6 +78,8 @@ class Admin::AuditLogController < Admin::ApplicationController
     when "FeatureFlag" then admin_feature_flags_path
     when "NewsPost" then admin_news_posts_path
     when "SupportTicket" then admin_support_ticket_path(event.target_id)
+    when "Order" then admin_order_path(event.target_id)
+    when "ShopItem" then admin_shop_items_path
     end
   end
 
@@ -115,6 +117,7 @@ class Admin::AuditLogController < Admin::ApplicationController
     "user.note_destroyed" => "Deleted internal note from",
     "user.kudo_added" => "Gave kudos to",
     "user.kudo_destroyed" => "Removed kudos from",
+    "user.coins_adjusted" => "Adjusted coins for",
     "feature_flag.created" => "Created feature flag",
     "feature_flag.toggled" => "Toggled feature flag",
     "feature_flag.destroyed" => "Deleted feature flag",
@@ -128,6 +131,14 @@ class Admin::AuditLogController < Admin::ApplicationController
     "support_ticket.destroyed" => "Deleted support ticket from",
     "rsvp.destroyed" => "Removed RSVP",
     "rsvp.exported" => "Exported RSVPs",
-    "database.queried" => "Ran database query"
+    "database.queried" => "Ran database query",
+    "order.created" => "Placed order",
+    "order.approved" => "Approved order",
+    "order.rejected" => "Rejected order",
+    "order.fulfilled" => "Fulfilled order",
+    "shop_item.created" => "Created shop item",
+    "shop_item.updated" => "Updated shop item",
+    "shop_item.destroyed" => "Deleted shop item",
+    "project.marked_built" => "Marked built"
   }.freeze
 end

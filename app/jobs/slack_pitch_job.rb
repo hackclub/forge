@@ -22,7 +22,7 @@ class SlackPitchJob < ApplicationJob
       repo_link: repo_link,
       tags: parsed[:tags],
       status: :pending,
-      tier: "advanced",
+      tier: "tier_4",
       slack_channel_id: channel_id,
       slack_message_ts: message_ts
     )

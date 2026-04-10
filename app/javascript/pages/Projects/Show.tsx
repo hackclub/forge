@@ -134,7 +134,7 @@ export default function ProjectsShow({
   const status = statusConfig[project.status]
   const isApproved = project.status === 'approved'
   const isBuildingPhase = isApproved || project.status === 'build_pending' || project.status === 'build_approved'
-  const isNormalTier = project.tier === 'normal'
+  const isNormalTier = project.tier !== 'tier_4'
   const isGitMode = project.devlog_mode === 'git'
   const isWebMode = project.devlog_mode === 'website'
   const canLog = isNormalTier || isBuildingPhase
@@ -673,7 +673,7 @@ export default function ProjectsShow({
             </div>
           )}
 
-          {can.update && project.status === 'returned' && project.tier === 'advanced' && project.from_slack && (
+          {can.update && project.status === 'returned' && project.tier === 'tier_4' && project.from_slack && (
             <div className="bg-[#1c1b1b] ghost-border p-8">
               <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">Resubmit Pitch</h4>
               <p className="text-stone-400 text-sm mb-4">
@@ -689,7 +689,7 @@ export default function ProjectsShow({
             </div>
           )}
 
-          {can.submit_for_review && !(project.status === 'returned' && project.tier === 'advanced' && project.from_slack) && (
+          {can.submit_for_review && !(project.status === 'returned' && project.tier === 'tier_4' && project.from_slack) && (
             <div className="bg-[#1c1b1b] ghost-border p-8">
               <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">{isNormalTier ? 'Submit Build for Review' : 'Submit for Review'}</h4>
               {(() => {
@@ -737,6 +737,52 @@ export default function ProjectsShow({
                   </>
                 )
               })()}
+            </div>
+          )}
+
+          {can.update && project.status === 'build_approved' && (
+            <div className="bg-[#1c1b1b] ghost-border p-6">
+              <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">Mark as Built</h4>
+              {project.built_at ? (
+                <div className="bg-emerald-500/10 border border-emerald-500/20 p-4 text-sm">
+                  <p className="text-emerald-300 font-headline font-bold mb-2 flex items-center gap-2">
+                    <span className="material-symbols-outlined text-base">check_circle</span>
+                    Built on {project.built_at}
+                  </p>
+                  {project.build_proof_url && (
+                    <a href={project.build_proof_url} target="_blank" rel="noopener" className="text-[#ffb595] hover:text-[#ee671c] text-xs flex items-center gap-1 break-all">
+                      View proof
+                      <span className="material-symbols-outlined text-xs">open_in_new</span>
+                    </a>
+                  )}
+                </div>
+              ) : (
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault()
+                    const form = e.currentTarget as HTMLFormElement
+                    const url = (form.elements.namedItem('build_proof_url') as HTMLInputElement).value
+                    router.post(`/projects/${project.id}/mark_built`, { build_proof_url: url })
+                  }}
+                  className="space-y-3"
+                >
+                  <p className="text-stone-400 text-xs">Drop a link to a photo, video, or anything that shows you built this. Required to redeem direct grants and order shop items.</p>
+                  <input
+                    type="url"
+                    name="build_proof_url"
+                    placeholder="https://..."
+                    required
+                    className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600"
+                  />
+                  <button
+                    type="submit"
+                    className="w-full signature-smolder text-[#4c1a00] font-headline font-bold py-3 uppercase tracking-wider text-xs flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-base">check_circle</span>
+                    Mark as Built
+                  </button>
+                </form>
+              )}
             </div>
           )}
 

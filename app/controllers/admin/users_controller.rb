@@ -28,6 +28,13 @@ class Admin::UsersController < Admin::ApplicationController
       projects: @projects.map { |p| serialize_project_row(p) },
       notes: @user.user_notes.includes(:author).order(created_at: :desc).map { |n| serialize_note(n) },
       kudos: @user.kudos.includes(:author).order(created_at: :desc).map { |k| serialize_kudo(k) },
+      coins: {
+        balance: @user.coin_balance,
+        earned: @user.coins_earned.round(2),
+        spent: @user.coins_spent.round(2),
+        adjusted: @user.coins_adjusted.round(2)
+      },
+      coin_adjustments: @user.coin_adjustments.includes(:actor).order(created_at: :desc).map { |a| serialize_adjustment(a) },
       hackatime: hackatime ? serialize_hackatime(hackatime) : nil,
       can: { destroy: policy(@user).destroy?, restore: policy(@user).restore? },
       available_roles: %w[user admin reviewer support fulfillment],
@@ -50,6 +57,28 @@ class Admin::UsersController < Admin::ApplicationController
     audit!("user.kudo_destroyed", target: @user, metadata: { kudo_id: kudo.id, content: kudo.content })
     kudo.destroy
     redirect_to admin_user_path(@user), notice: "Kudos deleted."
+  end
+
+  def adjust_coins
+    @user = User.find(params[:id])
+    authorize @user, :show?
+
+    amount = params[:amount].to_f
+    reason = params[:reason].to_s.strip
+
+    if amount.zero?
+      redirect_to admin_user_path(@user), alert: "Amount must be non-zero."
+      return
+    end
+
+    if reason.blank?
+      redirect_to admin_user_path(@user), alert: "Provide a reason for the adjustment."
+      return
+    end
+
+    @user.coin_adjustments.create!(actor: current_user, amount: amount, reason: reason)
+    audit!("user.coins_adjusted", target: @user, metadata: { amount: amount, reason: reason, new_balance: @user.coin_balance })
+    redirect_to admin_user_path(@user), notice: "Adjusted #{@user.display_name}'s balance by #{amount}c."
   end
 
   def add_note
@@ -235,6 +264,16 @@ class Admin::UsersController < Admin::ApplicationController
       author_name: kudo.author.display_name,
       author_avatar: kudo.author.avatar,
       created_at: kudo.created_at.strftime("%b %d, %Y")
+    }
+  end
+
+  def serialize_adjustment(adj)
+    {
+      id: adj.id,
+      amount: adj.amount.to_f,
+      reason: adj.reason,
+      actor_name: adj.actor&.display_name || "System",
+      created_at: adj.created_at.strftime("%b %d, %Y %H:%M")
     }
   end
 end
