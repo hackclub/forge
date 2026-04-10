@@ -8,6 +8,7 @@ interface AdminDashboardProps {
     users: number
     ships: number
     feature_flags: number
+    pending_orders: number
   }
   permissions: Record<string, boolean>
   is_admin: boolean
@@ -46,7 +47,7 @@ export default function AdminStaticPagesIndex({ user_name, counts, permissions, 
         </div>
       )}
 
-      {(can('projects') || can('users') || can('support') || can('feature_flags') || can('audit_log') || can('jobs') || can('news')) && (
+      {(can('projects') || can('users') || can('support') || can('news') || can('orders')) && (
         <div>
           <h2 className="text-xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-4">Dashboards</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -54,8 +55,18 @@ export default function AdminStaticPagesIndex({ user_name, counts, permissions, 
             {can('users') && <DashboardLink href="/admin/users" label={`Users (${counts.users})`} />}
             {can('support') && <DashboardLink href="/admin/support" label="Support Tickets" />}
             {is_admin && <DashboardLink href="/admin/rsvps" label="RSVPs" />}
-            {can('feature_flags') && <DashboardLink href="/admin/feature_flags" label={`Feature Flags (${counts.feature_flags})`} />}
             {can('news') && <DashboardLink href="/admin/news_posts" label="News" />}
+            {can('orders') && <DashboardLink href="/admin/orders" label={`Shop Orders (${counts.pending_orders})`} />}
+            {can('orders') && <DashboardLink href="/admin/shop_items" label="Shop Items" />}
+          </div>
+        </div>
+      )}
+
+      {(can('feature_flags') || can('audit_log') || can('jobs') || is_admin) && (
+        <div>
+          <h2 className="text-xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-4">Dev</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {can('feature_flags') && <DashboardLink href="/admin/feature_flags" label={`Feature Flags (${counts.feature_flags})`} />}
             {can('audit_log') && <DashboardLink href="/admin/audit_log" label="Audit Log" />}
             {is_admin && <DashboardLink href="/admin/database" label="Database" />}
             {can('jobs') && <DashboardLink href="/admin/jobs" label="Jobs" external />}

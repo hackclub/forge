@@ -68,9 +68,11 @@ export interface ProjectDetail {
   devlog_mode: 'website' | 'git' | null
   hcb_grant_link: string | null
   review_feedback: string | null
-  tier: 'normal' | 'advanced'
+  tier: ProjectTier
   from_slack: boolean
   cover_image_url: string | null
+  built_at: string | null
+  build_proof_url: string | null
   user_id: number
   user_display_name: string
   user_has_address: boolean
@@ -78,7 +80,7 @@ export interface ProjectDetail {
   created_at: string
 }
 
-export type ProjectTier = 'normal' | 'advanced'
+export type ProjectTier = 'tier_1' | 'tier_2' | 'tier_3' | 'tier_4'
 
 export interface ProjectForm {
   id?: number
@@ -177,7 +179,7 @@ export interface AdminProjectDetail {
   hcb_grant_link: string | null
   from_slack: boolean
   slack_url: string | null
-  tier: 'normal' | 'advanced'
+  tier: ProjectTier
   budget: string | null
   cover_image_url: string | null
   override_hours: number | null

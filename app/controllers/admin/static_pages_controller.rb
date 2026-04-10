@@ -6,7 +6,8 @@ class Admin::StaticPagesController < Admin::ApplicationController
         projects: Project.kept.count,
         users: User.kept.count,
         ships: Ship.count,
-        feature_flags: FeatureFlag.count
+        feature_flags: FeatureFlag.count,
+        pending_orders: Order.pending.count
       }
     end
 

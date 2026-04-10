@@ -4,6 +4,8 @@
 #
 #  id                           :bigint           not null, primary key
 #  budget                       :text
+#  build_proof_url              :string
+#  built_at                     :datetime
 #  cover_image_url              :string
 #  description                  :text
 #  devlog_mode                  :string
@@ -24,7 +26,7 @@
 #  status                       :integer          default("draft"), not null
 #  subtitle                     :string
 #  tags                         :string           default([]), not null, is an Array
-#  tier                         :string           default("normal"), not null
+#  tier                         :string           default("tier_1"), not null
 #  created_at                   :datetime         not null
 #  updated_at                   :datetime         not null
 #  reviewer_id                  :bigint

@@ -4,6 +4,8 @@
 #
 #  id                           :bigint           not null, primary key
 #  budget                       :text
+#  build_proof_url              :string
+#  built_at                     :datetime
 #  cover_image_url              :string
 #  description                  :text
 #  devlog_mode                  :string
@@ -24,7 +26,7 @@
 #  status                       :integer          default("draft"), not null
 #  subtitle                     :string
 #  tags                         :string           default([]), not null, is an Array
-#  tier                         :string           default("normal"), not null
+#  tier                         :string           default("tier_1"), not null
 #  created_at                   :datetime         not null
 #  updated_at                   :datetime         not null
 #  reviewer_id                  :bigint
@@ -63,15 +65,31 @@ class Project < ApplicationRecord
 
   enum :status, { draft: 0, pending: 1, approved: 2, returned: 3, rejected: 4, build_pending: 5, build_approved: 6 }
 
+  TIERS = %w[tier_1 tier_2 tier_3 tier_4].freeze
+  TIER_COIN_RATES = {
+    "tier_1" => 7.25,
+    "tier_2" => 5.5,
+    "tier_3" => 4.5,
+    "tier_4" => 4.0
+  }.freeze
+
   validates :name, presence: true
   validates :repo_link, format: { with: /\Ahttps?:\/\/\S+\z/i, message: "must be a valid URL starting with http:// or https://" }, allow_blank: true
-  validates :tier, inclusion: { in: %w[normal advanced] }
+  validates :tier, inclusion: { in: TIERS }
 
   scope :reviewable, -> { where(status: :pending) }
   scope :staff_picks, -> { where.not(staff_pick_at: nil).order(staff_pick_at: :desc) }
 
   def staff_pick?
     staff_pick_at.present?
+  end
+
+  def built?
+    built_at.present?
+  end
+
+  def has_fulfilled_direct_grant?
+    Order.where(project_id: id, kind: "direct_grant").where.not(status: :rejected).exists?
   end
 
   def submit_for_review!
@@ -87,11 +105,15 @@ class Project < ApplicationRecord
   end
 
   def advanced?
-    tier == "advanced"
+    tier == "tier_4"
   end
 
   def normal?
-    tier == "normal"
+    tier != "tier_4"
+  end
+
+  def coin_rate
+    TIER_COIN_RATES[tier] || 0.0
   end
 
   def total_hours
@@ -102,6 +124,12 @@ class Project < ApplicationRecord
       match = d.time_spent.match(/([\d.]+)\s*(?:hrs?|hours?)/i)
       match ? match[1].to_f : 0
     end
+  end
+
+  def coins_earned
+    return 0.0 unless approved? || build_pending? || build_approved?
+
+    (total_hours * coin_rate).round(2)
   end
 
   private

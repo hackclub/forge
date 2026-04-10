@@ -56,6 +56,8 @@ class User < ApplicationRecord
   has_many :user_notes, dependent: :destroy
   has_many :kudos, dependent: :destroy
   has_many :authored_kudos, class_name: "Kudo", foreign_key: :author_id, dependent: :nullify, inverse_of: :author
+  has_many :orders, dependent: :destroy
+  has_many :coin_adjustments, dependent: :destroy
 
   encrypts :hca_token
 
@@ -115,6 +117,7 @@ class User < ApplicationRecord
     support
     hackatime
     news
+    orders
     superadmin
   ].freeze
 
@@ -122,7 +125,7 @@ class User < ApplicationRecord
     "admin" => AVAILABLE_PERMISSIONS - %w[superadmin],
     "reviewer" => %w[pending_reviews projects ships hackatime],
     "support" => %w[projects users support],
-    "fulfillment" => %w[projects ships]
+    "fulfillment" => %w[projects ships orders]
   }.freeze
 
   def has_permission?(perm)
@@ -131,6 +134,26 @@ class User < ApplicationRecord
 
   def superadmin?
     has_permission?("superadmin")
+  end
+
+  def coins_earned
+    projects.kept.sum(&:coins_earned)
+  end
+
+  def coins_spent
+    orders.where(status: %i[pending approved fulfilled]).sum(:coin_cost).to_f
+  end
+
+  def coins_adjusted
+    coin_adjustments.sum(:amount).to_f
+  end
+
+  def coin_balance
+    (coins_earned + coins_adjusted - coins_spent).round(2)
+  end
+
+  def has_built_project?
+    projects.kept.where.not(built_at: nil).exists?
   end
 
   def grant_permission(perm)

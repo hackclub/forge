@@ -101,11 +101,9 @@ export default function AdminProjectsShow({
               {project.user_display_name}
             </Link>
             {' · '}Created {project.created_at}
-            {project.tier === 'advanced' && (
-              <span className="ml-2 bg-[#ee671c]/15 text-[#ee671c] px-2 py-0.5 text-[10px] uppercase font-bold tracking-widest">
-                Advanced{project.budget ? ` · ${project.budget}` : ''}
-              </span>
-            )}
+            <span className="ml-2 bg-[#ee671c]/15 text-[#ee671c] px-2 py-0.5 text-[10px] uppercase font-bold tracking-widest">
+              {project.tier.replace('_', ' ')}{project.budget ? ` · ${project.budget}` : ''}
+            </span>
             {project.slack_url ? (
               <a href={project.slack_url} target="_blank" rel="noopener noreferrer" className="ml-2 bg-[#4A154B]/20 text-[#E01E5A] px-2 py-0.5 text-[10px] uppercase font-bold tracking-widest hover:bg-[#4A154B]/30 transition-colors inline-flex items-center gap-1">
                 Slack Pitch
@@ -136,7 +134,7 @@ export default function AdminProjectsShow({
             </div>
           )}
 
-          {(isBuildReview || project.status === 'build_approved' || (project.tier === 'normal' && project.devlogs.length > 0)) && (
+          {(isBuildReview || project.status === 'build_approved' || (project.tier !== 'tier_4' && project.devlogs.length > 0)) && (
             <>
               {project.cover_image_url && (
                 <div className="bg-[#1c1b1b] ghost-border rounded-xl p-8 mb-8">

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_10_113233) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_10_131743) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -101,6 +101,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_10_113233) do
     t.index ["target_type", "target_id"], name: "index_audit_events_on_target_type_and_target_id"
   end
 
+  create_table "coin_adjustments", force: :cascade do |t|
+    t.bigint "actor_id"
+    t.decimal "amount", precision: 10, scale: 2, null: false
+    t.datetime "created_at", null: false
+    t.text "reason", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["actor_id"], name: "index_coin_adjustments_on_actor_id"
+    t.index ["user_id"], name: "index_coin_adjustments_on_user_id"
+  end
+
   create_table "devlogs", force: :cascade do |t|
     t.text "content"
     t.datetime "created_at", null: false
@@ -142,8 +153,34 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_10_113233) do
     t.index ["published", "published_at"], name: "index_news_posts_on_published_and_published_at"
   end
 
+  create_table "orders", force: :cascade do |t|
+    t.decimal "amount_usd", precision: 10, scale: 2
+    t.decimal "coin_cost", precision: 10, scale: 2, null: false
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.datetime "fulfilled_at"
+    t.string "hcb_grant_link"
+    t.string "kind", null: false
+    t.bigint "project_id"
+    t.text "review_notes"
+    t.datetime "reviewed_at"
+    t.bigint "reviewer_id"
+    t.bigint "shop_item_id"
+    t.integer "status", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["kind"], name: "index_orders_on_kind"
+    t.index ["project_id"], name: "index_orders_on_project_id"
+    t.index ["reviewer_id"], name: "index_orders_on_reviewer_id"
+    t.index ["shop_item_id"], name: "index_orders_on_shop_item_id"
+    t.index ["status"], name: "index_orders_on_status"
+    t.index ["user_id"], name: "index_orders_on_user_id"
+  end
+
   create_table "projects", force: :cascade do |t|
     t.text "budget"
+    t.string "build_proof_url"
+    t.datetime "built_at"
     t.string "cover_image_url"
     t.datetime "created_at", null: false
     t.text "description"
@@ -167,7 +204,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_10_113233) do
     t.integer "status", default: 0, null: false
     t.string "subtitle"
     t.string "tags", default: [], null: false, array: true
-    t.string "tier", default: "normal", null: false
+    t.string "tier", default: "tier_1", null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.index ["discarded_at"], name: "index_projects_on_discarded_at"
@@ -200,6 +237,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_10_113233) do
     t.index ["project_id"], name: "index_ships_on_project_id"
     t.index ["reviewer_id"], name: "index_ships_on_reviewer_id"
     t.index ["status"], name: "index_ships_on_status"
+  end
+
+  create_table "shop_items", force: :cascade do |t|
+    t.decimal "coin_cost", precision: 10, scale: 2, null: false
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.boolean "enabled", default: true, null: false
+    t.string "image_url"
+    t.string "internal_order_link"
+    t.decimal "internal_price_usd", precision: 10, scale: 2
+    t.string "name", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "solid_queue_blocked_executions", force: :cascade do |t|
@@ -399,10 +448,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_10_113233) do
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "audit_events", "users", column: "actor_id"
+  add_foreign_key "coin_adjustments", "users"
+  add_foreign_key "coin_adjustments", "users", column: "actor_id"
   add_foreign_key "devlogs", "projects"
   add_foreign_key "kudos", "users"
   add_foreign_key "kudos", "users", column: "author_id"
   add_foreign_key "news_posts", "users", column: "author_id"
+  add_foreign_key "orders", "projects"
+  add_foreign_key "orders", "shop_items"
+  add_foreign_key "orders", "users"
+  add_foreign_key "orders", "users", column: "reviewer_id"
   add_foreign_key "projects", "users"
   add_foreign_key "projects", "users", column: "reviewer_id"
   add_foreign_key "ships", "projects"

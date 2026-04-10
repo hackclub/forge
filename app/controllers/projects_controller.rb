@@ -1,5 +1,5 @@
 class ProjectsController < ApplicationController
-  before_action :set_project, only: %i[show edit update destroy submit_for_review submit_build sync_journal set_devlog_mode link_repo resubmit_pitch upload_cover_image export_devlogs]
+  before_action :set_project, only: %i[show edit update destroy submit_for_review submit_build sync_journal set_devlog_mode link_repo resubmit_pitch upload_cover_image export_devlogs mark_built]
 
   def show
     authorize @project
@@ -21,15 +21,15 @@ class ProjectsController < ApplicationController
     authorize @project
 
     case params[:tier]
-    when "normal"
+    when "tier_4"
+      render inertia: "Projects/AdvancedPitch", props: {}
+    when "tier_1", "tier_2", "tier_3"
       render inertia: "Projects/Form", props: {
-        project: { name: "", subtitle: "", repo_link: "", tags: [], tier: "normal" },
+        project: { name: "", subtitle: "", repo_link: "", tags: [], tier: params[:tier] },
         title: "New Project",
         submit_url: projects_path,
         method: "post"
       }
-    when "advanced"
-      render inertia: "Projects/AdvancedPitch", props: {}
     else
       render inertia: "Projects/New", props: {}
     end
@@ -157,6 +157,20 @@ class ProjectsController < ApplicationController
     }
   rescue JSON::ParserError
     render json: { error: "Could not parse AI response" }, status: :unprocessable_entity
+  end
+
+  def mark_built
+    authorize @project, :update?
+
+    proof_url = params[:build_proof_url].to_s.strip
+    if proof_url.blank? || !proof_url.match?(/\Ahttps?:\/\/\S+\z/i)
+      redirect_to @project, alert: "Paste a valid URL with proof (image, video, or repo link)."
+      return
+    end
+
+    @project.update!(build_proof_url: proof_url, built_at: Time.current)
+    audit!("project.marked_built", target: @project, metadata: { build_proof_url: proof_url })
+    redirect_to @project, notice: "Marked as built. Nice work!"
   end
 
   def sync_journal
@@ -346,6 +360,8 @@ class ProjectsController < ApplicationController
       tier: project.tier,
       from_slack: project.slack_message_ts.present?,
       cover_image_url: project.cover_image_url,
+      built_at: project.built_at&.strftime("%b %d, %Y"),
+      build_proof_url: project.build_proof_url,
       user_id: project.user_id,
       user_display_name: project.user.display_name,
       user_has_address: project.user.address_line1.present?,
