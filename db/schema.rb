@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_09_125539) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_10_103144) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -104,6 +104,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_09_125539) do
     t.index ["name"], name: "index_feature_flags_on_name", unique: true
   end
 
+  create_table "kudos", force: :cascade do |t|
+    t.bigint "author_id", null: false
+    t.text "content", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["author_id"], name: "index_kudos_on_author_id"
+    t.index ["user_id"], name: "index_kudos_on_user_id"
+  end
+
   create_table "news_posts", force: :cascade do |t|
     t.bigint "author_id", null: false
     t.text "body", null: false
@@ -137,6 +147,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_09_125539) do
     t.bigint "reviewer_id"
     t.string "slack_channel_id"
     t.string "slack_message_ts"
+    t.datetime "staff_pick_at"
     t.integer "status", default: 0, null: false
     t.string "subtitle"
     t.string "tags", default: [], null: false, array: true
@@ -144,6 +155,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_09_125539) do
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.index ["discarded_at"], name: "index_projects_on_discarded_at"
+    t.index ["staff_pick_at"], name: "index_projects_on_staff_pick_at"
     t.index ["status"], name: "index_projects_on_status"
     t.index ["tags"], name: "index_projects_on_tags", using: :gin
     t.index ["user_id"], name: "index_projects_on_user_id"
@@ -371,6 +383,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_09_125539) do
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "devlogs", "projects"
+  add_foreign_key "kudos", "users"
+  add_foreign_key "kudos", "users", column: "author_id"
   add_foreign_key "news_posts", "users", column: "author_id"
   add_foreign_key "projects", "users"
   add_foreign_key "projects", "users", column: "reviewer_id"

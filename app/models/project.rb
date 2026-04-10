@@ -20,6 +20,7 @@
 #  review_feedback              :text
 #  reviewed_at                  :datetime
 #  slack_message_ts             :string
+#  staff_pick_at                :datetime
 #  status                       :integer          default("draft"), not null
 #  subtitle                     :string
 #  tags                         :string           default([]), not null, is an Array
@@ -32,10 +33,11 @@
 #
 # Indexes
 #
-#  index_projects_on_discarded_at  (discarded_at)
-#  index_projects_on_status        (status)
-#  index_projects_on_tags          (tags) USING gin
-#  index_projects_on_user_id       (user_id)
+#  index_projects_on_discarded_at   (discarded_at)
+#  index_projects_on_staff_pick_at  (staff_pick_at)
+#  index_projects_on_status         (status)
+#  index_projects_on_tags           (tags) USING gin
+#  index_projects_on_user_id        (user_id)
 #
 # Foreign Keys
 #
@@ -66,6 +68,11 @@ class Project < ApplicationRecord
   validates :tier, inclusion: { in: %w[normal advanced] }
 
   scope :reviewable, -> { where(status: :pending) }
+  scope :staff_picks, -> { where.not(staff_pick_at: nil).order(staff_pick_at: :desc) }
+
+  def staff_pick?
+    staff_pick_at.present?
+  end
 
   def submit_for_review!
     update!(status: :pending)

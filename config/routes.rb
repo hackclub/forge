@@ -105,6 +105,7 @@ Rails.application.routes.draw do
           post :review
           post :restore
           post :toggle_hidden
+          post :toggle_staff_pick
         end
       end
       resources :users, only: [ :index, :show, :destroy ] do
@@ -117,6 +118,8 @@ Rails.application.routes.draw do
           post :toggle_beta_approval
           post :add_note
           delete "notes/:note_id" => "users#destroy_note", as: :destroy_note
+          post :add_kudo
+          delete "kudos/:kudo_id" => "users#destroy_kudo", as: :destroy_kudo
         end
       end
       resources :feature_flags, only: [ :index, :create, :destroy ] do
@@ -171,6 +174,9 @@ Rails.application.routes.draw do
   post "rsvp" => "rsvps#create"
 
   get "explore" => "explore#index", as: :explore
+  get "users/:id" => "users#show", as: :user
+  post "users/:id/kudos" => "users#add_kudo", as: :user_kudos
+  delete "users/:id/kudos/:kudo_id" => "users#destroy_kudo", as: :user_kudo
   get "news" => "news#index", as: :news
   get "news/:id" => "news#show", as: :news_post
 

@@ -1,6 +1,6 @@
 class Admin::ProjectsController < Admin::ApplicationController
   before_action :require_projects_permission!
-  before_action :set_project, only: [ :show, :review, :destroy, :restore, :toggle_hidden ]
+  before_action :set_project, only: [ :show, :review, :destroy, :restore, :toggle_hidden, :toggle_staff_pick ]
 
   def index
     scope = policy_scope(Project).includes(:user, :ships)
@@ -71,6 +71,13 @@ class Admin::ProjectsController < Admin::ApplicationController
     @project.update!(hidden: !@project.hidden)
     status = @project.hidden? ? "hidden" : "visible"
     redirect_to admin_project_path(@project), notice: "Project is now #{status} on explore."
+  end
+
+  def toggle_staff_pick
+    authorize @project, :update?
+    @project.update!(staff_pick_at: @project.staff_pick? ? nil : Time.current)
+    status = @project.staff_pick? ? "added to staff picks" : "removed from staff picks"
+    redirect_to admin_project_path(@project), notice: "Project #{status}."
   end
 
   def restore
@@ -255,6 +262,7 @@ class Admin::ProjectsController < Admin::ApplicationController
       total_hours: project.total_hours,
       devlogs: project.devlogs.order(created_at: :desc).map { |d| serialize_devlog(d) },
       hidden: project.hidden,
+      staff_pick: project.staff_pick?,
       user_id: project.user_id,
       user_display_name: project.user.display_name,
       user_email: project.user.email,

@@ -27,11 +27,27 @@ class Admin::UsersController < Admin::ApplicationController
       user: serialize_user_detail(@user),
       projects: @projects.map { |p| serialize_project_row(p) },
       notes: @user.user_notes.includes(:author).order(created_at: :desc).map { |n| serialize_note(n) },
+      kudos: @user.kudos.includes(:author).order(created_at: :desc).map { |k| serialize_kudo(k) },
       hackatime: hackatime ? serialize_hackatime(hackatime) : nil,
       can: { destroy: policy(@user).destroy?, restore: policy(@user).restore? },
       available_roles: %w[user admin reviewer support fulfillment],
       available_permissions: User::AVAILABLE_PERMISSIONS
     }
+  end
+
+  def add_kudo
+    @user = User.find(params[:id])
+    authorize @user, :show?
+    @user.kudos.create!(content: params[:content], author: current_user)
+    redirect_to admin_user_path(@user), notice: "Kudos added."
+  end
+
+  def destroy_kudo
+    @user = User.find(params[:id])
+    authorize @user, :show?
+    kudo = @user.kudos.find(params[:kudo_id])
+    kudo.destroy
+    redirect_to admin_user_path(@user), notice: "Kudos deleted."
   end
 
   def add_note
@@ -102,13 +118,28 @@ class Admin::UsersController < Admin::ApplicationController
   def update_permissions
     @user = User.find(params[:id])
     authorize @user, :update?
-    @user.update!(permissions: Array(params[:permissions]).select(&:present?))
+
+    requested = Array(params[:permissions]).select(&:present?)
+    superadmin_changing = requested.include?("superadmin") != @user.permissions.include?("superadmin")
+
+    if superadmin_changing && !current_user.superadmin?
+      redirect_to admin_user_path(@user), alert: "Only superadmins can grant or revoke the superadmin permission."
+      return
+    end
+
+    @user.update!(permissions: requested)
     redirect_to admin_user_path(@user), notice: "Permissions updated."
   end
 
   def toggle_beta_approval
     @user = User.find(params[:id])
     authorize @user, :update?
+
+    unless current_user.superadmin?
+      redirect_to admin_user_path(@user), alert: "Only superadmins can approve users for beta."
+      return
+    end
+
     @user.update!(is_beta_approved: !@user.is_beta_approved)
     redirect_to admin_user_path(@user), notice: @user.is_beta_approved ? "#{@user.display_name} approved for beta." : "Beta access revoked."
   end
@@ -178,6 +209,16 @@ class Admin::UsersController < Admin::ApplicationController
       author_name: note.author.display_name,
       author_avatar: note.author.avatar,
       created_at: note.created_at.strftime("%b %d, %Y %H:%M")
+    }
+  end
+
+  def serialize_kudo(kudo)
+    {
+      id: kudo.id,
+      content: kudo.content,
+      author_name: kudo.author.display_name,
+      author_avatar: kudo.author.avatar,
+      created_at: kudo.created_at.strftime("%b %d, %Y")
     }
   end
 end

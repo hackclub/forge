@@ -233,10 +233,13 @@ export default function ProjectsShow({
           ) : null}
 
           <div className="flex items-center gap-6 pt-4 border-t border-white/5 text-xs text-stone-500">
-            <div className="flex items-center gap-2">
+            <Link
+              href={`/users/${project.user_id}`}
+              className="flex items-center gap-2 text-stone-400 hover:text-[#ffb595] transition-colors"
+            >
               <span className="material-symbols-outlined text-sm">person</span>
-              <span className="text-stone-400">{project.user_display_name}</span>
-            </div>
+              <span>{project.user_display_name}</span>
+            </Link>
             <div className="flex items-center gap-2">
               <span className="material-symbols-outlined text-sm">calendar_today</span>
               <span>{project.created_at}</span>

@@ -27,10 +27,10 @@ export default function Nav() {
         <div className="flex justify-center">
           <Link
             href={shared.auth.user ? '/home' : '/'}
-            className="flex items-center gap-2 text-3xl font-bold tracking-tighter uppercase font-headline text-[#ee671c] hover:text-[#ffb595] transition-colors"
+            className="flex items-center gap-2 text-3xl font-bold tracking-tighter uppercase font-headline text-[#ee671c] hover:brightness-110 transition-all"
           >
             <span
-              className="material-symbols-outlined text-4xl text-[#ffb595]"
+              className="material-symbols-outlined text-4xl text-[#ee671c]"
               style={{ fontVariationSettings: "'FILL' 1" }}
             >
               precision_manufacturing
@@ -48,7 +48,7 @@ export default function Nav() {
                 href={item.href}
                 className={`px-4 py-3 flex items-center gap-3 transition-all duration-150 font-headline font-medium tracking-tight corner-accents ${
                   isActive
-                    ? 'text-[#FFB595] bg-[#353534]'
+                    ? 'text-[#ee671c] bg-[#353534]'
                     : 'text-stone-500 hover:text-stone-200 hover:bg-[#353534]'
                 }`}
               >
@@ -68,7 +68,7 @@ export default function Nav() {
               href="/admin"
               className={`px-4 py-3 flex items-center gap-3 transition-all duration-150 font-headline font-medium tracking-tight corner-accents ${
                 currentPath.startsWith('/admin')
-                  ? 'text-[#FFB595] bg-[#353534]'
+                  ? 'text-[#ee671c] bg-[#353534]'
                   : 'text-stone-500 hover:text-stone-200 hover:bg-[#353534]'
               }`}
             >

@@ -25,6 +25,7 @@ class ApplicationController < ActionController::Base
           roles: u.roles,
           is_admin: u.admin?,
           is_staff: u.staff?,
+          is_superadmin: u.superadmin?,
           is_banned: u.is_banned
         }
       }

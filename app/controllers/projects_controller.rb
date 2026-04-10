@@ -339,6 +339,7 @@ class ProjectsController < ApplicationController
       tier: project.tier,
       from_slack: project.slack_message_ts.present?,
       cover_image_url: project.cover_image_url,
+      user_id: project.user_id,
       user_display_name: project.user.display_name,
       user_has_address: project.user.address_line1.present?,
       user_address: project.user.address_line1.present? ? {
