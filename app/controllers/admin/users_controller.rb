@@ -87,6 +87,22 @@ class Admin::UsersController < Admin::ApplicationController
     redirect_to admin_user_path(@user), notice: @user.shop_unlocked? ? "#{@user.display_name}'s shop access unlocked." : "#{@user.display_name}'s shop access locked."
   end
 
+  def generate_referral_code
+    @user = User.find(params[:id])
+    authorize @user, :update?
+
+    loop do
+      candidate = SecureRandom.alphanumeric(8).upcase
+      unless User.exists?(referral_code: candidate)
+        @user.update!(referral_code: candidate)
+        break
+      end
+    end
+
+    audit!("user.referral_code_generated", target: @user, metadata: { referral_code: @user.referral_code })
+    redirect_to admin_user_path(@user), notice: "Referral code generated: #{@user.referral_code}"
+  end
+
   def adjust_coins
     @user = User.find(params[:id])
     authorize @user, :show?
@@ -253,6 +269,7 @@ class Admin::UsersController < Admin::ApplicationController
       ban_reason: user.ban_reason,
       is_beta_approved: user.is_beta_approved,
       shop_unlocked: user.shop_unlocked,
+      referral_code: user.referral_code,
       is_discarded: user.discarded?,
       discarded_at: user.discarded_at&.strftime("%b %d, %Y"),
       created_at: user.created_at.strftime("%B %d, %Y")

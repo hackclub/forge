@@ -124,6 +124,7 @@ Rails.application.routes.draw do
           post :adjust_coins
           get :coin_history
           post :toggle_shop_unlocked
+          post :generate_referral_code
         end
       end
       resources :feature_flags, only: [ :index, :create, :destroy ] do
