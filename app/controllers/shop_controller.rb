@@ -5,7 +5,7 @@ class ShopController < ApplicationController
       .order(updated_at: :desc)
 
     orders = current_user.orders.includes(:project, :shop_item).order(created_at: :desc)
-    items = ShopItem.enabled.sorted
+    items = ShopItem.enabled.order(:coin_cost, :name)
 
     render inertia: "Shop/Index", props: {
       balance: {

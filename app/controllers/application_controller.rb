@@ -41,9 +41,9 @@ class ApplicationController < ActionController::Base
   def gate_beta_access
     return if current_user&.staff?
     return if current_user&.is_beta_approved
-    return if request.path == "/rsvp" || request.path.start_with?("/auth") || request.path.start_with?("/slack") || request.path.start_with?("/up") || request.path.start_with?("/rails/active_storage")
+    return if request.path == "/rsvp" || request.path == "/rsvp/referral" || request.path.start_with?("/auth") || request.path.start_with?("/slack") || request.path.start_with?("/up") || request.path.start_with?("/rails/active_storage")
 
-    redirect_to "/rsvp"
+    redirect_to(current_user ? "/rsvp/referral" : "/rsvp")
   end
 
   def track_ahoy_visit
