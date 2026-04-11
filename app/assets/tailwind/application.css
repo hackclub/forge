@@ -2,10 +2,10 @@
 
 .markdown-content {
   max-width: 48rem;
-  margin: 2rem auto;
-  padding: 0 1rem;
+  margin: 0;
+  padding: 0;
   line-height: 1.75;
-  color: #1a202c;
+  color: #a8a29e;
 }
 
 .markdown-content h1 {
@@ -14,6 +14,7 @@
   margin-top: 0;
   margin-bottom: 1rem;
   line-height: 1.2;
+  color: #e5e2e1;
 }
 
 .markdown-content h2 {
@@ -22,8 +23,9 @@
   margin-top: 2rem;
   margin-bottom: 0.75rem;
   line-height: 1.3;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid rgba(168, 138, 126, 0.2);
   padding-bottom: 0.25rem;
+  color: #e5e2e1;
 }
 
 .markdown-content h3 {
@@ -31,6 +33,7 @@
   font-weight: 600;
   margin-top: 1.5rem;
   margin-bottom: 0.5rem;
+  color: #e5e2e1;
 }
 
 .markdown-content h4 {
@@ -38,6 +41,7 @@
   font-weight: 600;
   margin-top: 1.25rem;
   margin-bottom: 0.5rem;
+  color: #e5e2e1;
 }
 
 .markdown-content p {
@@ -45,12 +49,12 @@
 }
 
 .markdown-content a {
-  color: #2563eb;
+  color: #ffb595;
   text-decoration: underline;
 }
 
 .markdown-content a:hover {
-  color: #1d4ed8;
+  color: #ffd4be;
 }
 
 .markdown-content ul,
@@ -78,26 +82,27 @@
 }
 
 .markdown-content blockquote {
-  border-left: 4px solid #e2e8f0;
+  border-left: 4px solid rgba(238, 103, 28, 0.4);
   padding: 0.5rem 1rem;
   margin: 1rem 0;
-  color: #4a5568;
+  color: #d6d3d1;
+  background-color: rgba(42, 42, 42, 0.7);
 }
 
 .markdown-content code {
-  background-color: #f1f5f9;
+  background-color: #0e0e0e;
   padding: 0.125rem 0.375rem;
-  border-radius: 0.25rem;
   font-size: 0.875em;
+  color: #f5f5f4;
 }
 
 .markdown-content pre {
-  background-color: #1e293b;
-  color: #e2e8f0;
+  background-color: #0e0e0e;
+  color: #e7e5e4;
   padding: 1rem;
-  border-radius: 0.5rem;
   overflow-x: auto;
   margin-bottom: 1rem;
+  border: 1px solid rgba(168, 138, 126, 0.2);
 }
 
 .markdown-content pre code {
@@ -115,28 +120,28 @@
 }
 
 .markdown-content th {
-  background-color: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background-color: #2a2a2a;
+  border: 1px solid rgba(168, 138, 126, 0.25);
   padding: 0.5rem 0.75rem;
   text-align: left;
   font-weight: 600;
+  color: #e7e5e4;
 }
 
 .markdown-content td {
-  border: 1px solid #e2e8f0;
+  border: 1px solid rgba(168, 138, 126, 0.2);
   padding: 0.5rem 0.75rem;
 }
 
 .markdown-content hr {
   border: none;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid rgba(168, 138, 126, 0.2);
   margin: 2rem 0;
 }
 
 .markdown-content img {
   max-width: 100%;
   height: auto;
-  border-radius: 0.5rem;
 }
 
 .markdown-content input[type="checkbox"] {
@@ -144,11 +149,10 @@
 }
 
 .markdown-content aside {
-  background-color: #eff6ff;
-  border-left: 4px solid #3b82f6;
+  background-color: rgba(42, 42, 42, 0.7);
+  border-left: 4px solid rgba(238, 103, 28, 0.5);
   padding: 1rem;
   margin: 1rem 0;
-  border-radius: 0 0.25rem 0.25rem 0;
 }
 
 .markdown-content sup {
@@ -158,6 +162,6 @@
 .markdown-content .footnotes {
   margin-top: 2rem;
   padding-top: 1rem;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid rgba(168, 138, 126, 0.2);
   font-size: 0.875rem;
 }

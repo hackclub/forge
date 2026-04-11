@@ -1,19 +1,11 @@
-| title | Forge Docs |
-| description | Everything you need to know about Forge |
+| title | Forge Overview |
+| description | FORGE!! |
 | --- | --- |
 
-# Welcome to Forge!
+# Welcome to forge!
 
-Forge is a [Hack Club](https://hackclub.com) program where teens like yourself can design and build hardware projects, and get them funded!
+Forge is a Hack Club YSWS (You ship, we ship) program where teens like yourself can design and build hardware projects, and get them funded!
 
-- [How It Works](/docs/how-it-works) - How to use Forge, from start to finish!
-- [Pitching Your Project](/docs/pitching) - How to write a great pitch
-- [JOURNAL.md Format](/docs/journal) - How to document your build
-- [About Cost](/docs/cost) - How to effectively source parts and use grant funds
-- [Sourcing Parts](/docs/sourcing-parts) - where to find the best (and cheapest) parts
-- [Shipping](/docs/shipping) - How to structure and ship a project
-- [FAQ](/docs/faq) - Frequently Asked Questions 
+The docs section is a WIP (poke @cybdo on slack for anything inaccurate or misspelled)
 
-More coming soon! 
-
-In the meantime, check out [hwdocs.hackclub.dev](https://hwdocs.hackclub.dev/) - A massive collection of guides by [@alexren](https://github.com/qcoral)!
+in the meantime, check out [hwdocs.hackclub.com](https://hwdocs.hackclub.com) by [@alexren](https://github.com/qcoral)!

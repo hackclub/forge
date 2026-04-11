@@ -41,7 +41,7 @@ Shipping (at least in this context) involves publishing your design out there fo
 
 **Misc projects:**
 
-- [PiGRRL](https://github.com/adafruit/Adafruit-PiGRRL-PCB) Game console
+- [Cyberboard V2](https://github.com/notaroomba/cyberboard) STM32 Devboard
 - [Nevermore filters](https://github.com/nevermore3d/Nevermore_Micro) (I’ll admit \- this one is a little excessive)
 
 **When you make your repository nothing but a dump of files and 2 sentences for a README**, what happens is that it’s hard for other people to recognize your work, nor does it make it easy to learn from. _It’s not real_. It only lives on in your tiny corner of this earth.

@@ -14,7 +14,7 @@ You'll get a confirmation reply in your Slack thread, and your project will appe
 
 **Note: #into-the-forge is a threaded channel ONLY for project pitches! Please use #forge for general discussions.**
 
-See [Pitching Your Project](/docs/pitching) for the pitch format.
+See [Pitching Your Project](/docs/Requirements-and-Shipping/pitching) for the pitch format.
 
 ## Step 2: Get Approved
 
@@ -31,9 +31,9 @@ Once approved, your project page unlocks the **Devlog** section. Document your p
 - Add devlog entries directly on your project page, OR
 - Create a `JOURNAL.md` file in your GitHub repo and sync it
 
-See [JOURNAL.md Format](/docs/journal) for details.
+See [JOURNAL.md Format](/docs/Requirements-and-Shipping/journal-format) for details.
 
 ## Step 4: Ship It
 
 When you've finished, ship it! This involves publishing your functioning design out there for the world to see.
-See [Shipping](/docs/shipping) for more details.
+See [Shipping](/docs/Requirements-and-Shipping/shipping) for more details.

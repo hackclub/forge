@@ -6,14 +6,14 @@
 
 You can document your build in two ways:
 
-1. **On Forge** — Add devlog entries directly on your project page (click "New Entry")
-2. **In your repo** — Create a `JOURNAL.md` file in the root of your GitHub repo and click "Sync JOURNAL.md" on your project page
+1. **On Forge** -> Add devlog entries directly on your project page (click "New Entry")
+2. **In your repo** -> Create a `JOURNAL.md` file in the root of your GitHub repo and click "Sync JOURNAL.md" on your project page
 
-Both methods are equally valid. Use whichever feels more natural.
+This document applies only to journals on a Git repo.
 
 ## File Format
 
-Your `JOURNAL.md` should have a YAML frontmatter header, followed by entries separated by `# ` headers:
+Your `JOURNAL.md` should have a YAML frontmatter header, followed by entries separated by `# ` headers, with each entry having at least **one image/screenshot** and containing a summary of how long you spent (in hours):
 
 ```markdown
 ---
@@ -54,10 +54,10 @@ bridged on the QFN package — had to wick and redo them.
 
 - **Each entry starts with `# `** followed by the date and a brief title
 - **Include `**Total time spent: X**`** at the end of each entry
-- **Add images** — photos of your progress, screenshots of your design, etc.
-- **Be authentic** — write in your own words. AI-generated content will be rejected.
+- **Add images** to show your progress, screenshots of your design, etc.
+- **Be authentic** i.e. write in your own words. AI-generated content will be rejected.
 - **Small, consistent entries** are better than one massive dump at the end
-- **Include both successes and failures** — the real story matters
+- **Include both successes and failures** We want to see what you learned along the way!
 
 ## What Makes a Good Entry
 
