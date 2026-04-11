@@ -2,7 +2,7 @@ class LeaderboardController < ApplicationController
   LIMIT = 25
 
   def index
-    counts = Referral.where.not(status: :pending).group(:referrer_id).count
+    counts = Referral.group(:referrer_id).count
     top_ids = counts.sort_by { |_, v| -v }.first(LIMIT).map(&:first)
     users_by_id = User.where(id: top_ids).index_by(&:id)
 
