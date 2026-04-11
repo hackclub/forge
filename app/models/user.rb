@@ -42,9 +42,16 @@ class User < ApplicationRecord
   has_paper_trail
 
   after_commit :bust_cache
+  after_update_commit :enqueue_beta_channel_invite, if: :saved_change_to_is_beta_approved?
 
   def bust_cache
     Rails.cache.delete("user/#{id}")
+  end
+
+  def enqueue_beta_channel_invite
+    return unless is_beta_approved? && slack_id.present?
+
+    SlackInviteToBetaChannelJob.perform_later(id)
   end
 
   pg_search_scope :search, against: [ :display_name, :email ], using: { tsearch: { prefix: true } }
