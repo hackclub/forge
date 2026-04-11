@@ -389,7 +389,6 @@ class ProjectsController < ApplicationController
       repo_link: project.repo_link,
       status: project.status,
       devlog_mode: project.devlog_mode,
-      hcb_grant_link: project.hcb_grant_link,
       review_feedback: project.review_feedback,
       tier: project.tier,
       from_slack: project.slack_message_ts.present?,

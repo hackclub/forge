@@ -43,7 +43,6 @@ export default function AdminProjectsShow({
   const isSuperadmin = !!usePage<SharedProps>().props.auth.user?.is_superadmin
   const [feedback, setFeedback] = useState('')
   const [refreshingReadme, setRefreshingReadme] = useState(false)
-  const [hcbLink, setHcbLink] = useState(project.hcb_grant_link || '')
   const [overrideHours, setOverrideHours] = useState<string>(project.override_hours != null ? String(project.override_hours) : '')
   const [overrideJustification, setOverrideJustification] = useState(project.override_hours_justification || '')
   const status = statusConfig[project.status] || statusConfig.draft
@@ -382,21 +381,8 @@ export default function AdminProjectsShow({
                 />
               </div>
 
-              <div className="mb-4">
-                <label className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
-                  HCB Grant Link
-                </label>
-                <input
-                  type="url"
-                  value={hcbLink}
-                  onChange={(e) => setHcbLink(e.target.value)}
-                  className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600"
-                  placeholder="https://hcb.hackclub.com/..."
-                />
-              </div>
-
               <button
-                onClick={() => router.post(`/admin/projects/${project.id}/review`, { decision: 'save_review_notes', override_hours: overrideHours, override_hours_justification: overrideJustification, hcb_grant_link: hcbLink })}
+                onClick={() => router.post(`/admin/projects/${project.id}/review`, { decision: 'save_review_notes', override_hours: overrideHours, override_hours_justification: overrideJustification })}
                 className="w-full mb-4 py-2 ghost-border bg-[#0e0e0e] hover:bg-[#2a2a2a] text-stone-400 hover:text-[#ffb595] text-xs uppercase tracking-wider font-bold flex items-center justify-center gap-2 cursor-pointer transition-colors"
               >
                 <span className="material-symbols-outlined text-sm">save</span>
@@ -418,7 +404,7 @@ export default function AdminProjectsShow({
 
               <div className="flex flex-col gap-3">
                 <button
-                  onClick={() => router.post(`/admin/projects/${project.id}/review`, { decision: 'approve_build', feedback, hcb_grant_link: hcbLink, override_hours: overrideHours, override_hours_justification: overrideJustification })}
+                  onClick={() => router.post(`/admin/projects/${project.id}/review`, { decision: 'approve_build', feedback, override_hours: overrideHours, override_hours_justification: overrideJustification })}
                   className="w-full py-3 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 font-headline font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <span className="material-symbols-outlined text-lg">verified</span>

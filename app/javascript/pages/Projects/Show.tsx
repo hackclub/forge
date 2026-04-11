@@ -86,6 +86,38 @@ export default function ProjectsShow({
     time_spent: '',
   })
 
+  const [editingDevlogId, setEditingDevlogId] = useState<number | null>(null)
+  const editDevlogForm = useForm({
+    title: '',
+    content: '',
+    time_spent: '',
+  })
+
+  function startEditDevlog(entry: DevlogEntry) {
+    setEditingDevlogId(entry.id)
+    editDevlogForm.setData({
+      title: entry.title,
+      content: entry.content,
+      time_spent: entry.time_spent || '',
+    })
+  }
+
+  function cancelEditDevlog() {
+    setEditingDevlogId(null)
+    editDevlogForm.reset()
+  }
+
+  function submitEditDevlog(e: React.FormEvent, id: number) {
+    e.preventDefault()
+    editDevlogForm.patch(`/projects/${project.id}/devlogs/${id}`, {
+      preserveScroll: true,
+      onSuccess: () => {
+        setEditingDevlogId(null)
+        editDevlogForm.reset()
+      },
+    })
+  }
+
   const addressForm = useForm({
     address_line1: project.user_address?.address_line1 || '',
     address_line2: project.user_address?.address_line2 || '',
@@ -178,7 +210,7 @@ export default function ProjectsShow({
 
   const totalHours = devlogs.reduce((sum, entry) => {
     if (!entry.time_spent) return sum
-    const match = entry.time_spent.match(/([\d.]+)\s*(?:hrs?|hours?)/i)
+    const match = entry.time_spent.match(/([\d.]+)/)
     return match ? sum + parseFloat(match[1]) : sum
   }, 0)
 
@@ -556,29 +588,95 @@ export default function ProjectsShow({
                 <div className="space-y-4">
                   {devlogs.map((entry) => (
                     <div key={entry.id} className="ghost-border bg-[#1c1b1b] p-6 overflow-hidden">
-                      <div className="flex items-start justify-between mb-3">
-                        <div>
-                          <h3 className="font-headline font-bold text-[#e5e2e1]">{entry.title}</h3>
-                          <div className="flex items-center gap-3 mt-1">
-                            <span className="text-stone-500 text-xs">{entry.created_at}</span>
-                            {entry.time_spent && (
-                              <span className="text-[#ffb595] text-xs flex items-center gap-1">
-                                <span className="material-symbols-outlined text-xs">schedule</span>
-                                {entry.time_spent}
-                              </span>
+                      {editingDevlogId === entry.id ? (
+                        <form onSubmit={(e) => submitEditDevlog(e, entry.id)} className="space-y-4">
+                          <div>
+                            <label className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">Title</label>
+                            <input
+                              type="text"
+                              value={editDevlogForm.data.title}
+                              onChange={(e) => editDevlogForm.setData('title', e.target.value)}
+                              className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 text-sm"
+                              required
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
+                              Content <span className="text-stone-600 normal-case tracking-normal">(markdown supported)</span>
+                            </label>
+                            <textarea
+                              value={editDevlogForm.data.content}
+                              onChange={(e) => editDevlogForm.setData('content', e.target.value)}
+                              rows={8}
+                              className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 text-sm resize-y font-mono"
+                              required
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">Time Spent</label>
+                            <input
+                              type="text"
+                              value={editDevlogForm.data.time_spent}
+                              onChange={(e) => editDevlogForm.setData('time_spent', e.target.value)}
+                              className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 text-sm"
+                              placeholder="e.g. 3 or 3 hours"
+                            />
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              type="submit"
+                              disabled={editDevlogForm.processing}
+                              className="signature-smolder text-[#4c1a00] px-6 py-3 font-bold uppercase tracking-wider text-xs flex items-center gap-2 cursor-pointer"
+                            >
+                              <span className="material-symbols-outlined text-lg">save</span>
+                              Save
+                            </button>
+                            <button
+                              type="button"
+                              onClick={cancelEditDevlog}
+                              className="ghost-border text-stone-400 px-6 py-3 text-xs font-bold uppercase tracking-wider hover:text-[#e5e2e1] transition-colors cursor-pointer"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </form>
+                      ) : (
+                        <>
+                          <div className="flex items-start justify-between mb-3">
+                            <div>
+                              <h3 className="font-headline font-bold text-[#e5e2e1]">{entry.title}</h3>
+                              <div className="flex items-center gap-3 mt-1">
+                                <span className="text-stone-500 text-xs">{entry.created_at}</span>
+                                {entry.time_spent && (
+                                  <span className="text-[#ffb595] text-xs flex items-center gap-1">
+                                    <span className="material-symbols-outlined text-xs">schedule</span>
+                                    {entry.time_spent}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            {can.update && (
+                              <div className="flex items-center gap-2 shrink-0">
+                                <button
+                                  onClick={() => startEditDevlog(entry)}
+                                  className="text-stone-600 hover:text-[#ffb595] transition-colors cursor-pointer"
+                                  aria-label="Edit devlog"
+                                >
+                                  <span className="material-symbols-outlined text-lg">edit</span>
+                                </button>
+                                <button
+                                  onClick={() => deleteDevlog(entry.id)}
+                                  className="text-stone-600 hover:text-red-400 transition-colors cursor-pointer"
+                                  aria-label="Delete devlog"
+                                >
+                                  <span className="material-symbols-outlined text-lg">delete</span>
+                                </button>
+                              </div>
                             )}
                           </div>
-                        </div>
-                        {can.update && (
-                          <button
-                            onClick={() => deleteDevlog(entry.id)}
-                            className="text-stone-600 hover:text-red-400 transition-colors cursor-pointer"
-                          >
-                            <span className="material-symbols-outlined text-lg">delete</span>
-                          </button>
-                        )}
-                      </div>
-                      <div className="prose prose-invert prose-sm max-w-none text-stone-300 prose-a:text-[#ffb595] prose-img:max-w-full prose-img:rounded-none break-words [overflow-wrap:anywhere]"><Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>{entry.content}</Markdown></div>
+                          <div className="prose prose-invert prose-sm max-w-none text-stone-300 prose-a:text-[#ffb595] prose-img:max-w-full prose-img:rounded-none break-words [overflow-wrap:anywhere]"><Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>{entry.content}</Markdown></div>
+                        </>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -598,6 +696,20 @@ export default function ProjectsShow({
         </div>
 
         <aside className="col-span-12 lg:col-span-4 space-y-6">
+          {showWebDevlog && devlogs.length > 0 && (
+            <div className="ghost-border bg-[#1c1b1b] p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="material-symbols-outlined text-[#ffb595] text-lg">schedule</span>
+                <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline">Time Logged</h4>
+              </div>
+              <p className="text-4xl font-headline font-bold text-[#e5e2e1] tracking-tight">
+                {totalHours}<span className="text-xl text-stone-500 ml-1">h</span>
+              </p>
+              <p className="text-stone-500 text-xs mt-2">
+                Across {devlogs.length} {devlogs.length === 1 ? 'entry' : 'entries'}
+              </p>
+            </div>
+          )}
           {can.update && !isSafeUrl(project.repo_link) && !showRepoForm && (
             <button
               onClick={() => setShowRepoForm(true)}
@@ -733,23 +845,11 @@ export default function ProjectsShow({
                 <span className="material-symbols-outlined text-emerald-400 text-lg">verified</span>
                 <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-400 font-headline">Build Approved!</h4>
               </div>
-              <p className="text-stone-400 text-sm mb-4">
+              <p className="text-stone-400 text-sm">
                 {can.update
-                  ? 'Your build has been approved and your grant is ready.'
-                  : 'This build has been approved and has been funded!'}
+                  ? 'Your build has been approved.'
+                  : 'This build has been approved!'}
               </p>
-              {project.hcb_grant_link && (
-                <a
-                  href={project.hcb_grant_link}
-                  target="_blank"
-                  rel="noopener"
-                  className="w-full signature-smolder text-[#4c1a00] font-headline font-bold py-3 uppercase tracking-wider flex items-center justify-center gap-2"
-                >
-                  <span className="material-symbols-outlined text-lg">account_balance</span>
-                  Access Your Grant
-                  <span className="material-symbols-outlined text-sm">open_in_new</span>
-                </a>
-              )}
             </div>
           )}
 
