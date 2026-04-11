@@ -7,13 +7,14 @@ interface ProfileUser {
   display_name: string
   avatar: string
   joined_at: string
+  github_username: string | null
 }
 
 interface ProfileStats {
   total_hours: number
   projects_count: number
   approved_count: number
-  devlog_count: number
+  built_count: number
   kudos_count: number
 }
 
@@ -36,6 +37,8 @@ interface ProfileKudo {
   author_is_staff: boolean
   can_destroy: boolean
   created_at: string
+  project_id: number | null
+  project_name: string | null
 }
 
 interface Props {
@@ -44,6 +47,7 @@ interface Props {
   projects: ProfileProject[]
   kudos: ProfileKudo[]
   can_give_kudos: boolean
+  can_edit_profile: boolean
 }
 
 const STATUS_LABELS: Record<ProjectStatus, string> = {
@@ -78,8 +82,17 @@ function StatTile({ label, value, icon }: { label: string; value: string | numbe
   )
 }
 
-export default function UsersShow({ user, stats, projects, kudos, can_give_kudos }: Props) {
+export default function UsersShow({ user, stats, projects, kudos, can_give_kudos, can_edit_profile }: Props) {
   const [kudoContent, setKudoContent] = useState('')
+  const [editingGithub, setEditingGithub] = useState(false)
+  const [githubInput, setGithubInput] = useState(user.github_username || '')
+
+  function saveGithub(e: React.FormEvent) {
+    e.preventDefault()
+    router.patch(`/users/${user.id}/github`, { github_username: githubInput.trim() }, {
+      onSuccess: () => setEditingGithub(false),
+    })
+  }
 
   function submitKudo(e: React.FormEvent) {
     e.preventDefault()
@@ -118,10 +131,88 @@ export default function UsersShow({ user, stats, projects, kudos, can_give_kudos
             <StatTile label="Hours" value={stats.total_hours} icon="schedule" />
             <StatTile label="Projects" value={stats.projects_count} icon="folder_open" />
             <StatTile label="Approved" value={stats.approved_count} icon="verified" />
-            <StatTile label="Devlogs" value={stats.devlog_count} icon="edit_note" />
+            <StatTile label="Built" value={stats.built_count} icon="build" />
             <StatTile label="Kudos" value={stats.kudos_count} icon="favorite" />
           </div>
         </section>
+
+        {(user.github_username || can_edit_profile) && (
+          <section>
+            <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">GitHub</h2>
+            <div className="bg-[#1c1b1b] ghost-border p-6">
+              {editingGithub ? (
+                <form onSubmit={saveGithub} className="flex flex-col sm:flex-row gap-3">
+                  <div className="flex items-center gap-2 flex-1 bg-[#0e0e0e] px-4 py-3">
+                    <span className="text-stone-600 text-sm font-mono">github.com/</span>
+                    <input
+                      type="text"
+                      value={githubInput}
+                      onChange={(e) => setGithubInput(e.target.value)}
+                      placeholder="username"
+                      autoFocus
+                      className="flex-1 bg-transparent border-none text-[#e5e2e1] text-sm font-mono focus:ring-0 focus:outline-none placeholder:text-stone-700 min-w-0"
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      type="submit"
+                      className="signature-smolder text-[#4c1a00] px-5 py-3 text-xs font-bold uppercase tracking-wider cursor-pointer"
+                    >
+                      Save
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingGithub(false)
+                        setGithubInput(user.github_username || '')
+                      }}
+                      className="ghost-border text-stone-400 px-5 py-3 text-xs font-bold uppercase tracking-wider hover:text-[#e5e2e1] transition-colors cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              ) : user.github_username ? (
+                <div className="flex items-center gap-4">
+                  <img
+                    src={`https://github.com/${user.github_username}.png?size=120`}
+                    alt={user.github_username}
+                    className="w-14 h-14 border border-white/10 shrink-0"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <a
+                      href={`https://github.com/${user.github_username}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-headline font-bold text-[#e5e2e1] hover:text-[#ffb595] transition-colors text-lg flex items-center gap-2"
+                    >
+                      @{user.github_username}
+                      <span className="material-symbols-outlined text-sm">open_in_new</span>
+                    </a>
+                    <p className="text-stone-500 text-xs font-mono truncate">github.com/{user.github_username}</p>
+                  </div>
+                  {can_edit_profile && (
+                    <button
+                      onClick={() => setEditingGithub(true)}
+                      className="text-stone-500 hover:text-[#ffb595] transition-colors shrink-0 cursor-pointer"
+                      aria-label="Edit GitHub"
+                    >
+                      <span className="material-symbols-outlined">edit</span>
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <button
+                  onClick={() => setEditingGithub(true)}
+                  className="flex items-center gap-3 text-stone-500 hover:text-[#ffb595] transition-colors cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-2xl">add</span>
+                  <span className="text-sm">Link your GitHub profile</span>
+                </button>
+              )}
+            </div>
+          </section>
+        )}
 
         <section className="bg-[#1c1b1b] ghost-border p-8">
           <h2 className="text-2xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-6">Projects</h2>
@@ -219,6 +310,17 @@ export default function UsersShow({ user, stats, projects, kudos, can_give_kudos
                           <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 bg-[#ee671c]/15 text-[#ee671c]">
                             Staff
                           </span>
+                        )}
+                        {kudo.project_id && kudo.project_name && (
+                          <>
+                            <span className="text-stone-600 text-xs">on</span>
+                            <Link
+                              href={`/projects/${kudo.project_id}`}
+                              className="text-[#ffb595] hover:text-[#ee671c] transition-colors text-sm font-headline font-bold"
+                            >
+                              {kudo.project_name}
+                            </Link>
+                          </>
                         )}
                       </div>
                       <p className="text-[10px] uppercase tracking-[0.2em] text-stone-600">{kudo.created_at}</p>

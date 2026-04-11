@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_11_045544) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_11_100204) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -422,6 +422,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_11_045544) do
     t.string "display_name", null: false
     t.string "email", null: false
     t.string "first_name"
+    t.string "github_username"
     t.string "hca_id", null: false
     t.text "hca_token"
     t.boolean "is_adult", default: false, null: false
