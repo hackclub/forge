@@ -27,8 +27,12 @@ class SlackShopUpdateJob < ApplicationJob
   end
 
   def build_blocks(item, event)
-    lines = [ "<!channel>" ]
-    lines << ":moneybag: *Price updated*" if event == "price_changed"
+    lines = []
+    if event == "price_changed"
+      lines << ":moneybag: *Price updated*"
+    else
+      lines << "<!here>"
+    end
     lines << "*#{item.name}*"
     lines << item.description if item.description.present?
     lines << "Cost: #{format_cost(item.coin_cost)} Coins"
