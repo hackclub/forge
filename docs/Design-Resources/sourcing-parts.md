@@ -92,7 +92,7 @@ Coming soon.
     - 3D printed parts (3D printing as a Service, JLC3DP-alike)
         - [3Ding](https://www.3ding.in/)
 
-> confirmed more vendors? wanna add specific notes for your country? contribute [here](https://github.com/hackclub/forge/edit/main/docs/sourcing-parts.md)!! You'd be helping a ton of people!
+> confirmed more vendors? wanna add specific notes for your country? contribute [here](https://github.com/hackclub/forge/edit/main/docs/Design-Resources/sourcing-parts.md)!! You'd be helping a ton of people!
 
 ## Tips for specific vendors
 

@@ -1,0 +1,125 @@
+| title | Good Journalling |
+| description | How to write useful journal entries that document your process and decisions. |
+|---|---|
+
+# Journalling
+
+adapted from fallout.hackclub.com
+
+## Why Journal?
+
+We journal for ourselves, and for others!
+
+You’re building something new. You’re learning new skills, making new mistakes, and making new decisions. Your 2 AM crashouts, your hours spent agonizing over the smallest thing. When you look back at your project in a few years, you probably won’t remember most of that\!
+
+**Journaling is the keepsake of your journey. It's also a trove of knowledge others can learn from.**
+
+Also – without a journal, your steps are not documented.
+
+How did you piece this together? Why did you do X instead of Y?
+
+Journaling lets others glimpse a tiny sliver of your thought process and mistakes.
+
+We’ll be reviewing this way too\! After submitting your design, awesome people from the community — our Fallout Reviewers™— will check your work to make sure:
+
+1. Your decisions make sense - we want your project to work!
+2. Your work is original
+3. Your design is good to [ship](/docs/Requirements-and-Shipping/shipping)
+
+## How do you Journal?
+
+A good journal is a story. _Your story._
+
+You don’t need perfect English or grammar. In fact, no one on the team’s first language was English\! AI doesn't know your story, so it'll write bad journals. Don't use it!
+
+<aside class="callout callout-info">
+
+Click on a trunk and write one entry for one day’s work or when you reach a milestone\!
+
+</aside>
+
+### 1. Explain your decisions. Not just your actions
+
+The most important part of a journal entry is explaining _why_, not just _what_. It should answer:
+
+- What did you do?
+- Why did you do it?
+- What problems did you face?
+
+### 2. Screenshot and document everything. Take lots of pictures
+
+_Everything._ Screenshot your work at every meaningful step, not just when it’s polished. Show the messy intermediates. Show the before and after when you fix something. Same goes for pictures when you're working IRL.
+
+### 3. Make mistakes. Describe them. Fix them
+
+You will make mistakes. Footprints that are off, wiring that need to be redone. Write them, fix them. A journal with no mistakes is a manual, not a journal.
+
+## In Summary
+
+| Do ✅                                                                                                                                                                         | Don’t ❌                                                                                                                                                  |
+| :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| - Explain what you did, why you did it, how you did it<br>- Screenshot and document EVERYTHING (every meaningful step, not just the final result)<br>- Describe your mistakes | - State only what you did, without explaining why or how<br>- Have generic statements like: "I wired it up" or "I did CAD"<br>- Show only the end product |
+
+## Examples:
+
+#### ❌ BAD:
+
+> I added a buck converter and wired it up. I did CAD and added a case. I soldered everything together and it worked\!
+> ![Bad journal example image](https://fallout.hackclub.com/docs-assets/requirements/good-journaling/bad-journal-image.webp)
+
+- Why did you do this?
+- What is the buck converter and case for?
+- What features does the case have? Any special design choices?
+- How did you test to make sure it worked?
+- This image is generic and doesn't tell me anything useful about what _you_ did.
+- There are more problems, but you get the point\!
+
+#### ✅ GOOD:
+
+<small>_Taken from [@alexren](https://github.com/qcoral/)'s [hwdocs.hackclub.com](https://hwdocs.hackclub.dev/shipping/example-journal/)_</small>
+This is a retro game console Alex is building that runs on a Raspberry Pi Zero 2W!
+
+> #### June 8: Got the screen to work!!
+>
+> I got the raspberry pi to actualy display on the LCD! Can't believe it actually works
+
+> <br>
+I based the wiring off of the [pi-tin](https://github.com/jackw01/pi-tin) project originally, but they used an ili9341 display instead of the st7735r I was reusing from sprig. That meant that I had to figure out not only how they got it to display originally, but also how to modify that to use the ST7735R drivers instead
+
+> <br>
+![Good journal example image 1](https://fallout.hackclub.com/docs-assets/requirements/good-journaling/good-journal-image-1.webp)
+
+> <br>
+Fortunately for us, the pi-tin project actually documented how the software was set up! They actually cross-reference an adafruit script, which is a derivative of one from pimoroni.
+
+> <br>
+In short, here's how the original method worked:
+
+> <br>
+
+> - Install FBCP (framebuffer copy) drivers, which captures whatever would've been outputted to HDMI and allows you to redirect it somewhere else
+
+> - Modify the dtoverlays (device tree overlay) in /boot/config.txt to use the built-in kernel drivers for the ILI9341
+
+> - Reboot. The framebuffer should automatically redirect everything to the display.
+
+> <br>
+
+> The main problem was then figuring out what parameters I needed to add to /boot/config.txt to make it work with the new display. I wasn't even sure if there were the right drivers built into the linux kernel!
+
+> <br>
+Here's how I figured that out:
+
+> - the original [rpi-fbcp](https://github.com/tasanakorn/rpi-fbcp) repository mentions some sort of FBTFT driver
+> - a quick search links to [this](https://github.com/notro/fbtft) repository, which then mentions that the drivers were now in staging on the [linux kernel](https://git.kernel.org/pub/scm/linux/kernel/git/gregkh/staging.git/tree/drivers/staging/fbtft?h=staging-testing)
+> - a bunch more digging eventually leads me to stumble to this file: [st7735r.c](https://github.com/torvalds/linux/blob/master/drivers/gpu/drm/tiny/st7735r.c)
+
+> Bingo. The drivers exist.
+
+> <br>
+Anyhow, digging into the existing dtoverlays eventually led me to an st7735r generic overlay in the raspberrypi/linux repo! Using ChatGPT to then convert that to a dtparam, I eventually got video output:
+
+> <br>
+![Good journal example image 2](https://fallout.hackclub.com/docs-assets/requirements/good-journaling/good-journal-image-2.webp)
+
+> _The tl;dr_ is that raspberry pi provides the dtoverlay files for the ST7735R built in, so it's a matter of installing a framebuffer and redirecting that to the display in the /boot/config.txt file

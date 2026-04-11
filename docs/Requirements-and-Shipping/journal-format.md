@@ -13,7 +13,7 @@ This document applies only to journals on a Git repo.
 
 ## File Format
 
-Your `JOURNAL.md` should have a YAML frontmatter header, followed by entries separated by `# ` headers:
+Your `JOURNAL.md` should have a YAML frontmatter header, followed by entries separated by `# ` headers, with each entry having at least **one image/screenshot** and containing a summary of how long you spent (in hours):
 
 ```markdown
 ---
@@ -54,10 +54,10 @@ bridged on the QFN package — had to wick and redo them.
 
 - **Each entry starts with `# `** followed by the date and a brief title
 - **Include `**Total time spent: X**`** at the end of each entry
-- **Add images** — photos of your progress, screenshots of your design, etc.
-- **Be authentic** — write in your own words. AI-generated content will be rejected.
+- **Add images** to show your progress, screenshots of your design, etc.
+- **Be authentic** i.e. write in your own words. AI-generated content will be rejected.
 - **Small, consistent entries** are better than one massive dump at the end
-- **Include both successes and failures** — the real story matters
+- **Include both successes and failures** We want to see what you learned along the way!
 
 ## What Makes a Good Entry
 
