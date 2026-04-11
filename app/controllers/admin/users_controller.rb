@@ -79,6 +79,14 @@ class Admin::UsersController < Admin::ApplicationController
     }
   end
 
+  def toggle_shop_unlocked
+    @user = User.find(params[:id])
+    authorize @user, :update?
+    @user.update!(shop_unlocked: !@user.shop_unlocked)
+    audit!("user.shop_unlocked_toggled", target: @user, metadata: { shop_unlocked: @user.shop_unlocked })
+    redirect_to admin_user_path(@user), notice: @user.shop_unlocked? ? "#{@user.display_name}'s shop access unlocked." : "#{@user.display_name}'s shop access locked."
+  end
+
   def adjust_coins
     @user = User.find(params[:id])
     authorize @user, :show?
@@ -240,6 +248,7 @@ class Admin::UsersController < Admin::ApplicationController
       is_banned: user.is_banned,
       ban_reason: user.ban_reason,
       is_beta_approved: user.is_beta_approved,
+      shop_unlocked: user.shop_unlocked,
       is_discarded: user.discarded?,
       discarded_at: user.discarded_at&.strftime("%b %d, %Y"),
       created_at: user.created_at.strftime("%B %d, %Y")

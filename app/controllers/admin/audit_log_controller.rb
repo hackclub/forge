@@ -113,6 +113,7 @@ class Admin::AuditLogController < Admin::ApplicationController
     "user.roles_updated" => "Updated roles for",
     "user.permissions_updated" => "Updated permissions for",
     "user.beta_approval_toggled" => "Toggled beta approval for",
+    "user.shop_unlocked_toggled" => "Toggled shop access for",
     "user.note_added" => "Added internal note on",
     "user.note_destroyed" => "Deleted internal note from",
     "user.kudo_added" => "Gave kudos to",
