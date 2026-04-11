@@ -144,14 +144,12 @@ export default function UsersShow({ user, stats, projects, kudos, can_give_kudos
                   href={`/projects/${project.id}`}
                   className="group bg-[#0e0e0e] ghost-border hover:bg-[#161616] transition-colors flex flex-col min-w-0 overflow-hidden"
                 >
-                  <div className="aspect-[16/10] overflow-hidden bg-[#1c1b1b] flex items-center justify-center">
-                    {project.cover_image_url ? (
-                      <img src={project.cover_image_url} alt={project.name} className="w-full h-full object-cover" />
-                    ) : (
-                      <span className="material-symbols-outlined text-5xl text-stone-800 group-hover:text-stone-700 transition-colors">
-                        precision_manufacturing
-                      </span>
-                    )}
+                  <div className="aspect-[16/10] overflow-hidden bg-[#1c1b1b]">
+                    <img
+                      src={project.cover_image_url || '/orph-building.png'}
+                      alt={project.name}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                   <div className="p-5 flex-1 flex flex-col">
                     <div className="flex items-start justify-between gap-3 mb-2">
