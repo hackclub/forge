@@ -25,4 +25,19 @@ class ShopItem < ApplicationRecord
 
   scope :enabled, -> { where(enabled: true) }
   scope :sorted, -> { order(:name) }
+
+  after_create_commit :notify_slack_created
+  after_update_commit :notify_slack_price_changed
+
+  private
+
+  def notify_slack_created
+    SlackShopUpdateJob.perform_later(id, "created")
+  end
+
+  def notify_slack_price_changed
+    return unless saved_change_to_coin_cost?
+
+    SlackShopUpdateJob.perform_later(id, "price_changed")
+  end
 end
