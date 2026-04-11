@@ -177,6 +177,15 @@ module MarkdownHelper
     docs_section_metadata.find { |i| i[:path] == url }
   end
 
+  def docs_sidebar_tree
+    base = Rails.root.join("docs")
+    build_docs_sidebar_nodes(base, "")
+  end
+
+  def guide_metadata_for(path)
+    parse_guide_metadata(path)
+  end
+
   def menu_items_for(url_path)
     section = url_path.to_s.sub(%r{^/}, "")
     base = Rails.root.join("docs", section)
@@ -198,6 +207,58 @@ module MarkdownHelper
   end
 
   private
+
+  def build_docs_sidebar_nodes(base, rel_dir)
+    dir = rel_dir.blank? ? base : base.join(rel_dir)
+    entries = Dir.children(dir).sort_by(&:downcase)
+
+    folders = entries.select { |name| File.directory?(dir.join(name)) }
+    files = entries.select { |name| name.end_with?(".md") }
+
+    folder_nodes = folders.map do |folder_name|
+      child_rel_dir = rel_dir.blank? ? folder_name : File.join(rel_dir, folder_name)
+      child_nodes = build_docs_sidebar_nodes(base, child_rel_dir)
+      folder_index_path = dir.join(folder_name, "index.md")
+      folder_meta_title = File.exist?(folder_index_path) ? parse_guide_metadata(folder_index_path)[:title].presence : nil
+
+      {
+        type: "folder",
+        title: folder_meta_title || humanize_sidebar_name(folder_name),
+        path: docs_path_for_sidebar(child_rel_dir),
+        children: child_nodes
+      }
+    end
+
+    visible_files = files.reject { |file_name| rel_dir.present? && File.basename(file_name, ".md") == "index" }
+
+    sorted_files = visible_files.sort_by do |file_name|
+      [ File.basename(file_name, ".md") == "index" ? 0 : 1, file_name.downcase ]
+    end
+
+    page_nodes = sorted_files.map do |file_name|
+      file_rel_path = rel_dir.blank? ? file_name : File.join(rel_dir, file_name)
+      file_path = dir.join(file_name)
+      meta_title = parse_guide_metadata(file_path)[:title].presence
+      {
+        type: "page",
+        title: meta_title || humanize_sidebar_name(File.basename(file_name, ".md")),
+        path: docs_path_for_sidebar(file_rel_path)
+      }
+    end
+
+    rel_dir.blank? ? (page_nodes + folder_nodes) : (folder_nodes + page_nodes)
+  end
+
+  def docs_path_for_sidebar(rel_path)
+    slug = rel_path.to_s.sub(/\.md\z/, "")
+    slug = slug.sub(%r{/index\z}, "")
+    slug = "" if slug == "index"
+    slug.blank? ? "/docs" : "/docs/#{slug}"
+  end
+
+  def humanize_sidebar_name(name)
+    name.to_s.tr("-_", " ").split.map(&:capitalize).join(" ")
+  end
 
   def strip_front_matter_table(text)
     lines = text.lines

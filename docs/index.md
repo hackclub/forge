@@ -6,6 +6,7 @@
 
 Forge is a [Hack Club](https://hackclub.com) program where teens like yourself can design and build hardware projects, and get them funded!
 
+- [Overview](/docs/overview) - 
 - [How It Works](/docs/how-it-works) - How to use Forge, from start to finish!
 - [Pitching Your Project](/docs/pitching) - How to write a great pitch
 - [JOURNAL.md Format](/docs/journal) - How to document your build

@@ -6,10 +6,10 @@
 
 You can document your build in two ways:
 
-1. **On Forge** — Add devlog entries directly on your project page (click "New Entry")
-2. **In your repo** — Create a `JOURNAL.md` file in the root of your GitHub repo and click "Sync JOURNAL.md" on your project page
+1. **On Forge** -> Add devlog entries directly on your project page (click "New Entry")
+2. **In your repo** -> Create a `JOURNAL.md` file in the root of your GitHub repo and click "Sync JOURNAL.md" on your project page
 
-Both methods are equally valid. Use whichever feels more natural.
+This document applies only to journals on a Git repo.
 
 ## File Format
 
