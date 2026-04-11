@@ -1,8 +1,10 @@
 class Admin::DatabaseController < Admin::ApplicationController
   before_action :require_admin!
 
+  HIDDEN_TABLES = %w[audit_events versions].freeze
+
   def index
-    tables = ActiveRecord::Base.connection.tables.sort
+    tables = (ActiveRecord::Base.connection.tables - HIDDEN_TABLES).sort
 
     render inertia: "Admin/Database/Index", props: {
       tables: tables
@@ -14,6 +16,10 @@ class Admin::DatabaseController < Admin::ApplicationController
 
     if sql.blank?
       return render json: { error: "SQL query cannot be blank" }, status: :unprocessable_entity
+    end
+
+    if HIDDEN_TABLES.any? { |t| sql.match?(/\b#{Regexp.escape(t)}\b/i) }
+      return render json: { error: "Queries against #{HIDDEN_TABLES.join(', ')} are not allowed here." }, status: :forbidden
     end
 
     begin

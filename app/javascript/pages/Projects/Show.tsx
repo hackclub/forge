@@ -393,9 +393,15 @@ export default function ProjectsShow({
               {project.repo_link && devlogs.length === 0 && (
                 <div className="ghost-border bg-[#1c1b1b] p-8 text-center">
                   <span className="material-symbols-outlined text-3xl text-stone-700 mb-3">description</span>
-                  <p className="text-stone-400 text-sm mb-2">No journal entries yet.</p>
-                  <p className="text-stone-500 text-xs">Add a <code className="text-[#ffb595]">JOURNAL.md</code> to your repo and click "Sync JOURNAL.md" above.</p>
-                  <a href="/docs/journal" className="text-[#ffb595] text-xs hover:underline mt-2 inline-block">See the format guide</a>
+                  {can.update ? (
+                    <>
+                      <p className="text-stone-400 text-sm mb-2">No journal entries yet.</p>
+                      <p className="text-stone-500 text-xs">Add a <code className="text-[#ffb595]">JOURNAL.md</code> to your repo and click "Sync JOURNAL.md" above.</p>
+                      <a href="/docs/journal" className="text-[#ffb595] text-xs hover:underline mt-2 inline-block">See the format guide</a>
+                    </>
+                  ) : (
+                    <p className="text-stone-400 text-sm">{project.user_display_name} hasn't added a journal entry yet.</p>
+                  )}
                 </div>
               )}
 
@@ -537,7 +543,11 @@ export default function ProjectsShow({
               ) : (
                 <div className="ghost-border bg-[#1c1b1b] p-12 text-center">
                   <span className="material-symbols-outlined text-4xl text-stone-700 mb-3">description</span>
-                  <p className="text-stone-500 text-sm">No devlog entries yet. Start documenting your build!</p>
+                  <p className="text-stone-500 text-sm">
+                    {can.update
+                      ? 'No devlog entries yet. Start documenting your build!'
+                      : `${project.user_display_name} hasn't added a devlog entry yet.`}
+                  </p>
                 </div>
               )}
             </section>

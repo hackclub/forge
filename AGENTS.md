@@ -4,7 +4,7 @@ applyTo: "**"
 
 Keep your changes as low impact as possible. You do not need to give me a summary of changes. You do not need to test the changes. Try to reference other parts of the codebase to ensure your changes are consistent with the existing code style and practices. Keep your responses concise and focused.
 
-Never add "Co-Authored-By" lines to commits. Keep PR descriptions short and natural — avoid bullet-heavy AI-looking formatting. Do not push code or create PRs unless explicitly asked. Do not add co-authorship attribution of any kind.
+Never add "Co-Authored-By" lines to commits. PR descriptions should be a simple description of the changes — nothing more. No test plans, no checklists, no headings, no marketing copy. One short paragraph (or a couple of plain sentences) is enough. Do not push code or create PRs unless explicitly asked. Do not add co-authorship attribution of any kind.
 
 Read all context and instructions carefully before making changes. Code may be manually modified between messages. Do not suggest code that has been deleted or is no longer relevant.
 

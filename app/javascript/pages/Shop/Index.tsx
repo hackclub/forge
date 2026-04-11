@@ -196,7 +196,7 @@ export default function ShopIndex({ balance, can_buy_shop_items, eligible_projec
         {!can_buy_shop_items && (
           <div className="bg-amber-500/10 border border-amber-500/20 p-4 text-amber-200 text-sm flex items-start gap-3">
             <span className="material-symbols-outlined text-base shrink-0">lock</span>
-            <p>Shop items unlock once you've marked at least one project as built. Redeem a direct grant first, build the thing, then mark it built.</p>
+            <p>Shop items unlock once you've marked at least one project as built.</p>
           </div>
         )}
 
@@ -222,7 +222,7 @@ export default function ShopIndex({ balance, can_buy_shop_items, eligible_projec
                     <div className="p-4 flex-1 flex flex-col">
                       <h3 className="font-headline font-bold text-[#e5e2e1] tracking-tight mb-1 break-words text-sm">{item.name}</h3>
                       {item.description && (
-                        <p className="text-stone-500 text-xs mb-3 line-clamp-2 break-words">{item.description}</p>
+                        <p className="text-stone-400 text-sm leading-relaxed mb-3 line-clamp-4 break-words">{item.description}</p>
                       )}
                       <p className="text-[#ee671c] font-headline font-bold text-sm mb-3 mt-auto">{item.coin_cost}c</p>
                       <button

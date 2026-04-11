@@ -85,7 +85,12 @@ export default function HomeIndex({ user, projects, news_posts, staff_picks }: P
 
           {projects.length === 0 ? (
             <div className="p-16 text-center">
-              <span className="text-5xl mb-4 block">⚒️</span>
+              <span
+                className="material-symbols-outlined text-6xl text-[#ee671c] mb-4 block"
+                style={{ fontVariationSettings: "'FILL' 1" }}
+              >
+                precision_manufacturing
+              </span>
               <p className="text-stone-300 text-lg font-headline font-medium mb-2">No projects yet</p>
               <p className="text-stone-500 text-sm mb-6">Start a project to begin your build.</p>
               <Link

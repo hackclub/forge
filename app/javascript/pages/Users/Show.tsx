@@ -128,7 +128,12 @@ export default function UsersShow({ user, stats, projects, kudos, can_give_kudos
 
           {projects.length === 0 ? (
             <div className="p-12 text-center">
-              <span className="text-5xl mb-4 block">⚒️</span>
+              <span
+                className="material-symbols-outlined text-6xl text-[#ee671c] mb-4 block"
+                style={{ fontVariationSettings: "'FILL' 1" }}
+              >
+                precision_manufacturing
+              </span>
               <p className="text-stone-500 text-sm">No public projects yet.</p>
             </div>
           ) : (
