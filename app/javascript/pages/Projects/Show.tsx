@@ -65,10 +65,14 @@ export default function ProjectsShow({
     country: project.user_address?.country || '',
     postal_code: project.user_address?.postal_code || '',
   })
+  const [editingAddress, setEditingAddress] = useState(!project.user_has_address)
 
   function saveAddress(e: React.FormEvent) {
     e.preventDefault()
-    addressForm.patch('/profile/address', { preserveScroll: true })
+    addressForm.patch('/profile/address', {
+      preserveScroll: true,
+      onSuccess: () => setEditingAddress(false),
+    })
   }
 
   function uploadCoverImage(e: React.ChangeEvent<HTMLInputElement>) {
@@ -134,7 +138,7 @@ export default function ProjectsShow({
   const status = statusConfig[project.status]
   const isApproved = project.status === 'approved'
   const isBuildingPhase = isApproved || project.status === 'build_pending' || project.status === 'build_approved'
-  const isNormalTier = project.tier !== 'tier_4'
+  const isNormalTier = project.tier !== 'tier_1'
   const isGitMode = project.devlog_mode === 'git'
   const isWebMode = project.devlog_mode === 'website'
   const canLog = isNormalTier || isBuildingPhase
@@ -611,29 +615,53 @@ export default function ProjectsShow({
             </div>
           )}
 
-          {can.update && isApproved && (
+          {can.update && (
             <div className="bg-[#1c1b1b] ghost-border p-8">
-              <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-2">
-                Shipping Address
-                {project.user_has_address && <span className="ml-2 text-emerald-400 normal-case tracking-normal text-[10px]">✓ Saved</span>}
-              </h4>
-              <p className="text-stone-500 text-xs mb-4">Required before submitting for review.</p>
-              <form onSubmit={saveAddress} className="space-y-3">
-                <input type="text" value={addressForm.data.address_line1} onChange={(e) => addressForm.setData('address_line1', e.target.value)} placeholder="Address Line 1" className="w-full bg-[#0e0e0e] border-none px-3 py-2 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600" required />
-                <input type="text" value={addressForm.data.address_line2} onChange={(e) => addressForm.setData('address_line2', e.target.value)} placeholder="Address Line 2 (optional)" className="w-full bg-[#0e0e0e] border-none px-3 py-2 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600" />
-                <div className="grid grid-cols-2 gap-3">
-                  <input type="text" value={addressForm.data.city} onChange={(e) => addressForm.setData('city', e.target.value)} placeholder="City" className="bg-[#0e0e0e] border-none px-3 py-2 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600" required />
-                  <input type="text" value={addressForm.data.state} onChange={(e) => addressForm.setData('state', e.target.value)} placeholder="State / Province" className="bg-[#0e0e0e] border-none px-3 py-2 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600" />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <input type="text" value={addressForm.data.country} onChange={(e) => addressForm.setData('country', e.target.value)} placeholder="Country" className="bg-[#0e0e0e] border-none px-3 py-2 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600" required />
-                  <input type="text" value={addressForm.data.postal_code} onChange={(e) => addressForm.setData('postal_code', e.target.value)} placeholder="ZIP / Postal Code" className="bg-[#0e0e0e] border-none px-3 py-2 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600" required />
-                </div>
-                <button type="submit" disabled={addressForm.processing} className="w-full signature-smolder text-[#4c1a00] font-bold py-2 uppercase tracking-wider text-xs flex items-center justify-center gap-2 cursor-pointer">
-                  <span className="material-symbols-outlined text-sm">save</span>
-                  Save Address
-                </button>
-              </form>
+              <div className="flex items-center justify-between gap-3 mb-2">
+                <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline">
+                  Shipping Address
+                  {project.user_has_address && <span className="ml-2 text-emerald-400 normal-case tracking-normal text-[10px]">✓ Saved</span>}
+                </h4>
+                {project.user_has_address && !editingAddress && (
+                  <button
+                    onClick={() => setEditingAddress(true)}
+                    className="text-stone-500 hover:text-[#ffb595] text-[10px] uppercase tracking-wider font-bold cursor-pointer transition-colors"
+                  >
+                    Edit
+                  </button>
+                )}
+              </div>
+
+              {editingAddress ? (
+                <>
+                  <p className="text-stone-500 text-xs mb-4">Required before submitting for review.</p>
+                  <form onSubmit={saveAddress} className="space-y-3">
+                    <input type="text" value={addressForm.data.address_line1} onChange={(e) => addressForm.setData('address_line1', e.target.value)} placeholder="Address Line 1" className="w-full bg-[#0e0e0e] border-none px-3 py-2 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600" required />
+                    <input type="text" value={addressForm.data.address_line2} onChange={(e) => addressForm.setData('address_line2', e.target.value)} placeholder="Address Line 2 (optional)" className="w-full bg-[#0e0e0e] border-none px-3 py-2 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600" />
+                    <div className="grid grid-cols-2 gap-3">
+                      <input type="text" value={addressForm.data.city} onChange={(e) => addressForm.setData('city', e.target.value)} placeholder="City" className="bg-[#0e0e0e] border-none px-3 py-2 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600" required />
+                      <input type="text" value={addressForm.data.state} onChange={(e) => addressForm.setData('state', e.target.value)} placeholder="State / Province" className="bg-[#0e0e0e] border-none px-3 py-2 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <input type="text" value={addressForm.data.country} onChange={(e) => addressForm.setData('country', e.target.value)} placeholder="Country" className="bg-[#0e0e0e] border-none px-3 py-2 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600" required />
+                      <input type="text" value={addressForm.data.postal_code} onChange={(e) => addressForm.setData('postal_code', e.target.value)} placeholder="ZIP / Postal Code" className="bg-[#0e0e0e] border-none px-3 py-2 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600" required />
+                    </div>
+                    <button type="submit" disabled={addressForm.processing} className="w-full signature-smolder text-[#4c1a00] font-bold py-2 uppercase tracking-wider text-xs flex items-center justify-center gap-2 cursor-pointer">
+                      <span className="material-symbols-outlined text-sm">save</span>
+                      Save Address
+                    </button>
+                  </form>
+                </>
+              ) : (
+                <p className="text-stone-400 text-xs leading-relaxed whitespace-pre-line break-words">
+                  {[
+                    addressForm.data.address_line1,
+                    addressForm.data.address_line2,
+                    [addressForm.data.city, addressForm.data.state, addressForm.data.postal_code].filter(Boolean).join(', '),
+                    addressForm.data.country,
+                  ].filter(Boolean).join('\n')}
+                </p>
+              )}
             </div>
           )}
 
@@ -673,7 +701,7 @@ export default function ProjectsShow({
             </div>
           )}
 
-          {can.update && project.status === 'returned' && project.tier === 'tier_4' && project.from_slack && (
+          {can.update && project.status === 'returned' && project.tier === 'tier_1' && project.from_slack && (
             <div className="bg-[#1c1b1b] ghost-border p-8">
               <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">Resubmit Pitch</h4>
               <p className="text-stone-400 text-sm mb-4">
@@ -689,7 +717,7 @@ export default function ProjectsShow({
             </div>
           )}
 
-          {can.submit_for_review && !(project.status === 'returned' && project.tier === 'tier_4' && project.from_slack) && (
+          {can.submit_for_review && !(project.status === 'returned' && project.tier === 'tier_1' && project.from_slack) && (
             <div className="bg-[#1c1b1b] ghost-border p-8">
               <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">{isNormalTier ? 'Submit Build for Review' : 'Submit for Review'}</h4>
               {(() => {

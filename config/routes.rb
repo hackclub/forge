@@ -121,6 +121,7 @@ Rails.application.routes.draw do
           post :add_kudo
           delete "kudos/:kudo_id" => "users#destroy_kudo", as: :destroy_kudo
           post :adjust_coins
+          get :coin_history
         end
       end
       resources :feature_flags, only: [ :index, :create, :destroy ] do

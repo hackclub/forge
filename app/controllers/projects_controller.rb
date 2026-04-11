@@ -21,9 +21,9 @@ class ProjectsController < ApplicationController
     authorize @project
 
     case params[:tier]
-    when "tier_4"
+    when "tier_1"
       render inertia: "Projects/AdvancedPitch", props: {}
-    when "tier_1", "tier_2", "tier_3"
+    when "tier_2", "tier_3", "tier_4"
       render inertia: "Projects/Form", props: {
         project: { name: "", subtitle: "", repo_link: "", tags: [], tier: params[:tier] },
         title: "New Project",

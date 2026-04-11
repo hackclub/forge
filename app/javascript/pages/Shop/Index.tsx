@@ -41,12 +41,20 @@ interface Order {
   created_at: string
 }
 
+interface Transaction {
+  date: string
+  type: 'adjustment' | 'order_placed' | 'order_refunded' | 'order_fulfilled' | 'earned'
+  amount: number
+  label: string
+}
+
 interface Props {
   balance: Balance
   can_buy_shop_items: boolean
   eligible_projects: EligibleProject[]
   shop_items: ShopItem[]
   orders: Order[]
+  transactions: Transaction[]
   direct_grant_ratio: number
 }
 
@@ -57,9 +65,10 @@ const STATUS_STYLES: Record<Order['status'], string> = {
   rejected: 'bg-red-500/15 text-red-400',
 }
 
-export default function ShopIndex({ balance, can_buy_shop_items, eligible_projects, shop_items, orders, direct_grant_ratio }: Props) {
+export default function ShopIndex({ balance, can_buy_shop_items, eligible_projects, shop_items, orders, transactions, direct_grant_ratio }: Props) {
   const [showDirectForm, setShowDirectForm] = useState(false)
   const [showOrders, setShowOrders] = useState(false)
+  const [showTransactions, setShowTransactions] = useState(false)
   const [projectId, setProjectId] = useState<string>(eligible_projects[0]?.id.toString() || '')
   const [amount, setAmount] = useState<string>('')
   const [description, setDescription] = useState('')
@@ -150,11 +159,11 @@ export default function ShopIndex({ balance, can_buy_shop_items, eligible_projec
                 <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">Amount (USD)</label>
                 <input
                   type="number"
-                  min="1"
-                  step="1"
+                  min="0.01"
+                  step="0.01"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
-                  placeholder="50"
+                  placeholder="50.00"
                   className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600"
                   required
                 />
@@ -232,13 +241,45 @@ export default function ShopIndex({ balance, can_buy_shop_items, eligible_projec
         </section>
 
         <section>
-          <button
-            onClick={() => setShowOrders((v) => !v)}
-            className="text-stone-500 hover:text-[#e5e2e1] text-xs font-bold uppercase tracking-[0.2em] flex items-center gap-1 transition-colors cursor-pointer"
-          >
-            {showOrders ? 'Hide' : 'Show'} order history ({orders.length})
-            <span className="material-symbols-outlined text-sm">{showOrders ? 'expand_less' : 'expand_more'}</span>
-          </button>
+          <div className="flex gap-6 flex-wrap">
+            <button
+              onClick={() => setShowOrders((v) => !v)}
+              className="text-stone-500 hover:text-[#e5e2e1] text-xs font-bold uppercase tracking-[0.2em] flex items-center gap-1 transition-colors cursor-pointer"
+            >
+              {showOrders ? 'Hide' : 'Show'} order history ({orders.length})
+              <span className="material-symbols-outlined text-sm">{showOrders ? 'expand_less' : 'expand_more'}</span>
+            </button>
+            <button
+              onClick={() => setShowTransactions((v) => !v)}
+              className="text-stone-500 hover:text-[#e5e2e1] text-xs font-bold uppercase tracking-[0.2em] flex items-center gap-1 transition-colors cursor-pointer"
+            >
+              {showTransactions ? 'Hide' : 'Show'} coin history ({transactions.length})
+              <span className="material-symbols-outlined text-sm">{showTransactions ? 'expand_less' : 'expand_more'}</span>
+            </button>
+          </div>
+
+          {showTransactions && (
+            <div className="mt-4 space-y-1.5">
+              {transactions.length === 0 ? (
+                <p className="text-stone-500 text-sm">No coin activity yet.</p>
+              ) : (
+                transactions.map((tx, idx) => (
+                  <div key={idx} className="bg-[#1c1b1b] ghost-border px-4 py-3 flex items-center justify-between gap-4 min-w-0">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[#e5e2e1] text-sm break-words">{tx.label}</p>
+                      <p className="text-[10px] uppercase tracking-[0.2em] text-stone-600 mt-0.5">{tx.date}</p>
+                    </div>
+                    {tx.amount !== 0 && (
+                      <span className={`text-base font-headline font-bold shrink-0 ${tx.amount >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                        {tx.amount >= 0 ? '+' : ''}{tx.amount}c
+                      </span>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+
           {showOrders && (
             <div className="mt-4 space-y-2">
               {orders.length === 0 ? (

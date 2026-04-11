@@ -59,6 +59,26 @@ class Admin::UsersController < Admin::ApplicationController
     redirect_to admin_user_path(@user), notice: "Kudos deleted."
   end
 
+  def coin_history
+    @user = User.find(params[:id])
+    authorize @user, :show?
+
+    render inertia: "Admin/Users/CoinHistory", props: {
+      user: {
+        id: @user.id,
+        display_name: @user.display_name,
+        avatar: @user.avatar
+      },
+      coins: {
+        balance: @user.coin_balance,
+        earned: @user.coins_earned.round(2),
+        spent: @user.coins_spent.round(2),
+        adjusted: @user.coins_adjusted.round(2)
+      },
+      entries: CoinHistory.new(@user).serialize
+    }
+  end
+
   def adjust_coins
     @user = User.find(params[:id])
     authorize @user, :show?

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_10_131743) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_11_033522) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -204,7 +204,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_10_131743) do
     t.integer "status", default: 0, null: false
     t.string "subtitle"
     t.string "tags", default: [], null: false, array: true
-    t.string "tier", default: "tier_1", null: false
+    t.string "tier", default: "tier_4", null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.index ["discarded_at"], name: "index_projects_on_discarded_at"
