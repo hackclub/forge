@@ -149,6 +149,16 @@ Rails.application.routes.draw do
           get :export
         end
       end
+      resources :referrals, only: [ :index, :show ] do
+        member do
+          post :approve_all
+        end
+        collection do
+          post "approve/:referral_id" => "referrals#approve_one", as: :approve_one
+          post :draw_winner
+          post :reset_pool
+        end
+      end
       get "audit_log" => "audit_log#index", as: :audit_log
       get "audit_log/:id" => "audit_log#show", as: :audit_log_entry
       get "database" => "database#index", as: :database
@@ -184,8 +194,11 @@ Rails.application.routes.draw do
   patch "profile/address" => "profile#update_address", as: :update_address
   get "rsvp" => "rsvps#index", as: :rsvp
   post "rsvp" => "rsvps#create"
+  get "rsvp/referral" => "rsvps#referral", as: :rsvp_referral
 
   get "explore" => "explore#index", as: :explore
+  get "leaderboard" => "leaderboard#index", as: :leaderboard
+  get "referrals" => "referrals#index", as: :referrals
   get "shop" => "shop#index", as: :shop
   post "shop/orders" => "shop#create", as: :shop_orders
   get "users/:id" => "users#show", as: :user

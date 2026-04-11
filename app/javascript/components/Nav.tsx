@@ -6,6 +6,8 @@ const navItems = [
   { href: '/explore', label: 'Explore', icon: 'explore', authOnly: false },
   { href: '/home', label: 'Dashboard', icon: 'dashboard', authOnly: true },
   { href: '/shop', label: 'Shop', icon: 'storefront', authOnly: true },
+  { href: '/leaderboard', label: 'Leaderboard', icon: 'emoji_events', authOnly: true },
+  { href: '/referrals', label: 'Referrals', icon: 'group_add', authOnly: true },
   { href: '/news', label: 'News', icon: 'campaign', authOnly: true },
   { href: '/docs', label: 'Resources', icon: 'menu_book', authOnly: false },
 ]

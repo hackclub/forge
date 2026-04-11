@@ -22,6 +22,7 @@
 #  last_name           :string
 #  permissions         :string           default([]), not null, is an Array
 #  postal_code         :string
+#  referral_code       :string
 #  roles               :string           default([]), not null, is an Array
 #  shop_unlocked       :boolean          default(FALSE), not null
 #  state               :string
@@ -34,7 +35,8 @@
 #
 # Indexes
 #
-#  index_users_on_discarded_at  (discarded_at)
+#  index_users_on_discarded_at   (discarded_at)
+#  index_users_on_referral_code  (referral_code) UNIQUE
 #
 class User < ApplicationRecord
   include Discardable
@@ -64,9 +66,14 @@ class User < ApplicationRecord
   has_many :reviewed_ships, class_name: "Ship", foreign_key: :reviewer_id, dependent: :nullify, inverse_of: :reviewer
   has_many :user_notes, dependent: :destroy
   has_many :kudos, dependent: :destroy
-  has_many :authored_kudos, class_name: "Kudo", foreign_key: :author_id, dependent: :nullify, inverse_of: :author
+  has_many :authored_kudos, class_name: "Kudo", foreign_key: :author_id, dependent: :destroy, inverse_of: :author
+  has_many :audit_events, class_name: "AuditEvent", foreign_key: :actor_id, dependent: :nullify, inverse_of: :actor
   has_many :orders, dependent: :destroy
   has_many :coin_adjustments, dependent: :destroy
+  has_many :referrals_made, class_name: "Referral", foreign_key: :referrer_id, dependent: :destroy, inverse_of: :referrer
+  has_one :referral_received, class_name: "Referral", foreign_key: :referred_id, dependent: :destroy, inverse_of: :referred
+
+  before_validation :ensure_referral_code, on: :create
 
   encrypts :hca_token
 
@@ -127,6 +134,7 @@ class User < ApplicationRecord
     hackatime
     news
     orders
+    referrals
     superadmin
   ].freeze
 
@@ -351,6 +359,18 @@ class User < ApplicationRecord
   end
 
   private
+
+  def ensure_referral_code
+    return if referral_code.present?
+
+    loop do
+      candidate = SecureRandom.alphanumeric(8).upcase
+      unless User.exists?(referral_code: candidate)
+        self.referral_code = candidate
+        break
+      end
+    end
+  end
 
   def self.determine_is_adult(identity)
     birthday_str = identity["birthday"]

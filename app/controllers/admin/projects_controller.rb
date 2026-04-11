@@ -144,6 +144,7 @@ class Admin::ProjectsController < Admin::ApplicationController
         override_hours_justification: params[:override_hours_justification].presence
       )
       audit!("project.build_approved", target: @project, metadata: { feedback: feedback, override_hours: params[:override_hours].presence })
+      ReferralEligibility.mark(@project)
       notify_slack_decision(@project, "build approved! :tada:", feedback)
       redirect_to admin_project_path(@project), notice: "Build approved."
     when "return_build"

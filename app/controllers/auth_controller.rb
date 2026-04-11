@@ -6,6 +6,7 @@ class AuthController < ApplicationController
   def new
     state = SecureRandom.hex(24)
     session[:state] = state
+    session[:referral_code] = params[:ref].to_s.strip.upcase if params[:ref].present?
 
     redirect_to HcaService.authorize_url(hca_callback_url, state), allow_other_host: true
   end
@@ -27,6 +28,7 @@ class AuthController < ApplicationController
     begin
       user = User.exchange_hca_token(params[:code], hca_callback_url)
       session[:user_id] = user.id
+      attribute_referral(user)
 
       Rails.logger.tagged("Authentication") do
         Rails.logger.info({
@@ -61,5 +63,19 @@ class AuthController < ApplicationController
     audit!("auth.signed_out", target: current_user) if current_user
     terminate_session
     redirect_to root_path, notice: "Signed out successfully. Cya!"
+  end
+
+  private
+
+  def attribute_referral(user)
+    code = session.delete(:referral_code)
+    return if code.blank?
+    return if user.referral_received.present?
+    return if user.created_at < 2.minutes.ago
+
+    referrer = User.find_by(referral_code: code)
+    return if referrer.nil? || referrer.id == user.id
+
+    Referral.create(referrer: referrer, referred: user, status: :pending)
   end
 end

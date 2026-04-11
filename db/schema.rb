@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_11_102651) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_11_124432) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -214,6 +214,32 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_11_102651) do
     t.index ["status"], name: "index_projects_on_status"
     t.index ["tags"], name: "index_projects_on_tags", using: :gin
     t.index ["user_id"], name: "index_projects_on_user_id"
+  end
+
+  create_table "referral_prize_pools", force: :cascade do |t|
+    t.decimal "amount", precision: 10, scale: 2, default: "0.0", null: false
+    t.datetime "created_at", null: false
+    t.decimal "total_paid_out", precision: 10, scale: 2, default: "0.0", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "referrals", force: :cascade do |t|
+    t.datetime "approved_at"
+    t.bigint "approver_id"
+    t.datetime "created_at", null: false
+    t.datetime "eligible_at"
+    t.bigint "payout_adjustment_id"
+    t.bigint "qualifying_project_id"
+    t.bigint "referred_id", null: false
+    t.bigint "referrer_id", null: false
+    t.integer "status", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.index ["approver_id"], name: "index_referrals_on_approver_id"
+    t.index ["payout_adjustment_id"], name: "index_referrals_on_payout_adjustment_id"
+    t.index ["qualifying_project_id"], name: "index_referrals_on_qualifying_project_id"
+    t.index ["referred_id"], name: "index_referrals_on_referred_id", unique: true
+    t.index ["referrer_id"], name: "index_referrals_on_referrer_id"
+    t.index ["status"], name: "index_referrals_on_status"
   end
 
   create_table "rsvps", force: :cascade do |t|
@@ -430,6 +456,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_11_102651) do
     t.string "last_name"
     t.string "permissions", default: [], null: false, array: true
     t.string "postal_code"
+    t.string "referral_code"
     t.string "roles", default: [], null: false, array: true
     t.boolean "shop_unlocked", default: false, null: false
     t.string "slack_id", null: false
@@ -438,6 +465,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_11_102651) do
     t.datetime "updated_at", null: false
     t.string "verification_status"
     t.index ["discarded_at"], name: "index_users_on_discarded_at"
+    t.index ["referral_code"], name: "index_users_on_referral_code", unique: true
   end
 
   create_table "versions", force: :cascade do |t|
@@ -466,6 +494,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_11_102651) do
   add_foreign_key "orders", "users", column: "reviewer_id"
   add_foreign_key "projects", "users"
   add_foreign_key "projects", "users", column: "reviewer_id"
+  add_foreign_key "referrals", "coin_adjustments", column: "payout_adjustment_id"
+  add_foreign_key "referrals", "projects", column: "qualifying_project_id"
+  add_foreign_key "referrals", "users", column: "approver_id"
+  add_foreign_key "referrals", "users", column: "referred_id"
+  add_foreign_key "referrals", "users", column: "referrer_id"
   add_foreign_key "ships", "projects"
   add_foreign_key "ships", "users", column: "reviewer_id"
   add_foreign_key "solid_queue_blocked_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade

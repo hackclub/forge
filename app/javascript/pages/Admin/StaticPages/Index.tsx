@@ -53,7 +53,7 @@ export default function AdminStaticPagesIndex({ user_name, counts, permissions, 
         </div>
       )}
 
-      {(can('projects') || can('users') || can('support') || can('news') || can('orders')) && (
+      {(can('projects') || can('users') || can('support') || can('news') || can('orders') || can('referrals')) && (
         <div>
           <h2 className="text-xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-4">Dashboards</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -64,6 +64,7 @@ export default function AdminStaticPagesIndex({ user_name, counts, permissions, 
             {can('news') && <DashboardLink href="/admin/news_posts" label="News" />}
             {can('orders') && <DashboardLink href="/admin/orders" label={`Shop Orders (${counts.pending_orders})`} />}
             {can('orders') && <DashboardLink href="/admin/shop_items" label="Shop Items" />}
+            {can('referrals') && <DashboardLink href="/admin/referrals" label="Referrals" />}
           </div>
         </div>
       )}
