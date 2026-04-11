@@ -30,13 +30,7 @@ We’ll be reviewing this way too\! After submitting your design, awesome people
 
 A good journal is a story. _Your story._
 
-You don’t need perfect English or grammar. In fact, no one on the team’s first language was English\! AI doesn't know your story, so it'll write bad journals. Don't use it!
-
-<aside class="callout callout-info">
-
-Click on a trunk and write one entry for one day’s work or when you reach a milestone\!
-
-</aside>
+You don’t need perfect English or grammar. AI doesn't know your story, so it'll write bad journals. Don't use it!
 
 ### 1. Explain your decisions. Not just your actions
 
