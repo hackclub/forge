@@ -36,6 +36,9 @@ class ShopController < ApplicationController
         }
       },
       orders: orders.map { |o| serialize_order(o) },
+      transactions: CoinHistory.new(current_user).serialize.map { |t|
+        { date: t[:date], type: t[:type], amount: t[:amount], label: t[:label] }
+      },
       direct_grant_ratio: Order::DIRECT_GRANT_RATIO
     }
   end

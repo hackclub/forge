@@ -93,6 +93,11 @@ class Admin::ProjectsController < Admin::ApplicationController
     authorize @project
     name = @project.name
     if @project.discarded?
+      unless current_user.superadmin?
+        redirect_to admin_project_path(@project), alert: "Only superadmins can permanently delete projects."
+        return
+      end
+
       audit!("project.destroyed", target: @project, label: name)
       @project.destroy
       redirect_to admin_projects_path, notice: "Project '#{name}' has been permanently deleted."

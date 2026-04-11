@@ -26,7 +26,7 @@
 #  status                       :integer          default("draft"), not null
 #  subtitle                     :string
 #  tags                         :string           default([]), not null, is an Array
-#  tier                         :string           default("tier_1"), not null
+#  tier                         :string           default("tier_4"), not null
 #  created_at                   :datetime         not null
 #  updated_at                   :datetime         not null
 #  reviewer_id                  :bigint
@@ -105,11 +105,11 @@ class Project < ApplicationRecord
   end
 
   def advanced?
-    tier == "tier_4"
+    tier == "tier_1"
   end
 
   def normal?
-    tier != "tier_4"
+    tier != "tier_1"
   end
 
   def coin_rate

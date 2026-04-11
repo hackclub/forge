@@ -1,9 +1,9 @@
 import { useState } from 'react'
-import { Link, router } from '@inertiajs/react'
+import { Link, router, usePage } from '@inertiajs/react'
 import Markdown from 'react-markdown'
 import rehypeRaw from 'rehype-raw'
 import remarkGfm from 'remark-gfm'
-import type { AdminProjectDetail, ProjectStatus } from '@/types'
+import type { AdminProjectDetail, ProjectStatus, SharedProps } from '@/types'
 
 function isSafeUrl(url: string | null): boolean {
   if (!url) return false
@@ -40,7 +40,9 @@ export default function AdminProjectsShow({
   }[]
   can: { review: boolean; destroy: boolean; restore: boolean }
 }) {
+  const isSuperadmin = !!usePage<SharedProps>().props.auth.user?.is_superadmin
   const [feedback, setFeedback] = useState('')
+  const [refreshingReadme, setRefreshingReadme] = useState(false)
   const [hcbLink, setHcbLink] = useState(project.hcb_grant_link || '')
   const [overrideHours, setOverrideHours] = useState<string>(project.override_hours != null ? String(project.override_hours) : '')
   const [overrideJustification, setOverrideJustification] = useState(project.override_hours_justification || '')
@@ -134,7 +136,7 @@ export default function AdminProjectsShow({
             </div>
           )}
 
-          {(isBuildReview || project.status === 'build_approved' || (project.tier !== 'tier_4' && project.devlogs.length > 0)) && (
+          {(isBuildReview || project.status === 'build_approved' || (project.tier !== 'tier_1' && project.devlogs.length > 0)) && (
             <>
               {project.cover_image_url && (
                 <div className="bg-[#1c1b1b] ghost-border rounded-xl p-8 mb-8">
@@ -151,11 +153,22 @@ export default function AdminProjectsShow({
                       <span className="text-stone-600 text-[10px] uppercase tracking-wider">Fetched {project.readme_fetched_at}</span>
                     )}
                     <button
-                      onClick={() => router.post(`/admin/projects/${project.id}/review`, { decision: 'refresh_readme' })}
-                      className="ghost-border bg-[#0e0e0e] hover:bg-[#2a2a2a] text-stone-400 hover:text-[#ffb595] px-3 py-1.5 text-[10px] uppercase tracking-[0.15em] font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                      disabled={refreshingReadme}
+                      onClick={() => {
+                        setRefreshingReadme(true)
+                        router.post(`/admin/projects/${project.id}/review`, { decision: 'refresh_readme' }, {
+                          preserveScroll: true,
+                          onFinish: () => {
+                            setTimeout(() => {
+                              router.reload({ only: ['project'], onFinish: () => setRefreshingReadme(false) })
+                            }, 1500)
+                          },
+                        })
+                      }}
+                      className="ghost-border bg-[#0e0e0e] hover:bg-[#2a2a2a] text-stone-400 hover:text-[#ffb595] disabled:opacity-50 disabled:cursor-not-allowed px-3 py-1.5 text-[10px] uppercase tracking-[0.15em] font-bold flex items-center gap-1 cursor-pointer transition-colors"
                     >
-                      <span className="material-symbols-outlined text-sm">sync</span>
-                      Refresh
+                      <span className={`material-symbols-outlined text-sm ${refreshingReadme ? 'animate-spin' : ''}`}>sync</span>
+                      {refreshingReadme ? 'Fetching...' : 'Refresh'}
                     </button>
                   </div>
                 </div>
@@ -492,7 +505,7 @@ export default function AdminProjectsShow({
             </div>
           )}
 
-          {can.destroy && (
+          {can.destroy && (!project.is_discarded || isSuperadmin) && (
             <div className="border border-red-500/20 p-6">
               <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-red-400 font-headline mb-2">Danger Zone</h4>
               <p className="text-stone-500 text-sm mb-4">
@@ -507,6 +520,13 @@ export default function AdminProjectsShow({
                 <span className="material-symbols-outlined text-lg">delete_forever</span>
                 {project.is_discarded ? 'Permanently Destroy' : 'Delete Project'}
               </button>
+            </div>
+          )}
+          {can.destroy && project.is_discarded && !isSuperadmin && (
+            <div className="border border-stone-500/20 p-6">
+              <p className="text-stone-500 text-sm">
+                This project is soft-deleted. Only a superadmin can permanently destroy it.
+              </p>
             </div>
           )}
         </aside>

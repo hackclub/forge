@@ -297,7 +297,16 @@ export default function AdminUsersShow({
       </div>
 
       <div className="mb-10">
-        <h2 className="text-xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-2">Steel Coins</h2>
+        <div className="flex items-center justify-between mb-2 gap-3 flex-wrap">
+          <h2 className="text-xl font-headline font-bold text-[#e5e2e1] tracking-tight">Steel Coins</h2>
+          <Link
+            href={`/admin/users/${user.id}/coin_history`}
+            className="ghost-border bg-[#1c1b1b] text-stone-400 hover:text-[#e5e2e1] hover:bg-[#2a2a2a] px-4 py-2 text-[10px] font-bold uppercase tracking-[0.15em] transition-colors flex items-center gap-1"
+          >
+            <span className="material-symbols-outlined text-sm">history</span>
+            View History
+          </Link>
+        </div>
         <p className="text-stone-500 text-sm mb-4">Manually adjust this user's coin balance. Use a positive number to grant, negative to remove.</p>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
