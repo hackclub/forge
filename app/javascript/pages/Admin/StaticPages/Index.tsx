@@ -1,4 +1,4 @@
-import { Link } from '@inertiajs/react'
+import { Link, router } from '@inertiajs/react'
 
 interface AdminDashboardProps {
   user_name: string
@@ -12,6 +12,7 @@ interface AdminDashboardProps {
   }
   permissions: Record<string, boolean>
   is_admin: boolean
+  is_superadmin: boolean
 }
 
 function DashboardLink({ href, label, external }: { href: string; label: string; external?: boolean }) {
@@ -23,8 +24,13 @@ function DashboardLink({ href, label, external }: { href: string; label: string;
   return <Link href={href} className={cls}>{label}</Link>
 }
 
-export default function AdminStaticPagesIndex({ user_name, counts, permissions, is_admin }: AdminDashboardProps) {
+export default function AdminStaticPagesIndex({ user_name, counts, permissions, is_admin, is_superadmin }: AdminDashboardProps) {
   const can = (perm: string) => permissions[perm]
+
+  function syncBetaChannel() {
+    if (!confirm('Queue invites for every beta-approved user to the Slack beta channel?')) return
+    router.post('/admin/sync_beta_channel')
+  }
 
   return (
     <div className="p-12 max-w-5xl mx-auto space-y-12">
@@ -79,6 +85,20 @@ export default function AdminStaticPagesIndex({ user_name, counts, permissions, 
           <h2 className="text-xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-4">3rd Party</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <DashboardLink href="https://sentry.io" label="Sentry" external />
+          </div>
+        </div>
+      )}
+
+      {is_superadmin && (
+        <div>
+          <h2 className="text-xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-4">Superadmin</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <button
+              onClick={syncBetaChannel}
+              className="ghost-border bg-[#1c1b1b] hover:bg-[#2a2a2a] px-6 py-4 text-sm font-headline font-bold uppercase tracking-[0.15em] text-stone-400 hover:text-[#e5e2e1] transition-colors text-center cursor-pointer"
+            >
+              Sync Beta Slack Channel
+            </button>
           </div>
         </div>
       )}

@@ -133,6 +133,7 @@ class Admin::AuditLogController < Admin::ApplicationController
     "rsvp.destroyed" => "Removed RSVP",
     "rsvp.exported" => "Exported RSVPs",
     "database.queried" => "Ran database query",
+    "system.beta_channel_synced" => "Synced beta Slack channel",
     "order.created" => "Placed order",
     "order.approved" => "Approved order",
     "order.rejected" => "Rejected order",

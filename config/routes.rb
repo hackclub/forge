@@ -97,6 +97,7 @@ Rails.application.routes.draw do
   constraints StaffConstraint.new do
     namespace :admin do
       get "/" => "static_pages#index", as: :root
+      post "sync_beta_channel" => "static_pages#sync_beta_channel", as: :sync_beta_channel
       get "pitches" => "projects#pitches", as: :pitches
       get "reviews" => "projects#reviews", as: :reviews
 
