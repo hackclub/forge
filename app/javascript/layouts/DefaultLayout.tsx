@@ -6,7 +6,7 @@ export default function DefaultLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-[#0E0E0E] text-[#e5e2e1]">
       <Nav />
-      <main className="ml-64 min-h-screen">
+      <main className="md:ml-64 min-h-screen pt-14 md:pt-0">
         <FlashMessages />
         {children}
       </main>

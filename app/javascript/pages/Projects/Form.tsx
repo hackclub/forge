@@ -84,7 +84,7 @@ export default function ProjectsForm({
   }
 
   return (
-    <div className="p-12 max-w-2xl mx-auto">
+    <div className="p-5 md:p-12 max-w-2xl mx-auto">
       <h1 className="text-4xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-8">{title}</h1>
 
       {method === 'post' && !showImport && (
@@ -106,20 +106,20 @@ export default function ProjectsForm({
               <span className="material-symbols-outlined text-lg">close</span>
             </button>
           </div>
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-3">
             <input
               type="url"
               value={importUrl}
               onChange={(e) => setImportUrl(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleImport())}
-              className="flex-1 bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 text-sm"
+              className="flex-1 bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 text-sm min-w-0"
               placeholder="https://github.com/username/repo"
             />
             <button
               type="button"
               onClick={handleImport}
               disabled={importing}
-              className="signature-smolder text-[#4c1a00] px-6 py-3 font-bold uppercase tracking-wider text-xs flex items-center gap-2"
+              className="signature-smolder text-[#4c1a00] px-6 py-3 font-bold uppercase tracking-wider text-xs flex items-center justify-center gap-2"
             >
               {importing ? (
                 <span className="material-symbols-outlined text-lg animate-spin">progress_activity</span>

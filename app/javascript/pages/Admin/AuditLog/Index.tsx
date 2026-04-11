@@ -76,7 +76,7 @@ export default function AdminAuditLogIndex({
   }
 
   return (
-    <div className="p-12 max-w-[1400px] mx-auto">
+    <div className="p-5 md:p-12 max-w-[1400px] mx-auto">
       <h1 className="text-4xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-2">Audit Log</h1>
 
       <div className="flex flex-wrap gap-4 mb-8">

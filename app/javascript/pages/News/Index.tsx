@@ -5,7 +5,7 @@ export default function NewsIndex({ posts }: { posts: NewsPostSummary[] }) {
   return (
     <>
       <Head title="News — Forge" />
-      <div className="p-12 max-w-4xl mx-auto space-y-12">
+      <div className="p-5 md:p-12 max-w-4xl mx-auto space-y-12">
         <section>
           <h1 className="text-5xl font-medium font-headline tracking-tight text-white leading-tight mb-2">
             Latest <span className="text-[#ee671c]">News</span>

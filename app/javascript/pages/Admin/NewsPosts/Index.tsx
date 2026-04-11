@@ -56,7 +56,7 @@ export default function AdminNewsPostsIndex({ posts }: { posts: NewsPost[] }) {
   return (
     <>
       <Head title="News — Admin" />
-      <div className="p-12 max-w-[1400px] mx-auto">
+      <div className="p-5 md:p-12 max-w-[1400px] mx-auto">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-4xl font-headline font-bold text-[#e5e2e1] tracking-tight">News</h1>
           <button
@@ -113,8 +113,8 @@ export default function AdminNewsPostsIndex({ posts }: { posts: NewsPost[] }) {
         )}
 
         {posts.length > 0 ? (
-          <div className="ghost-border overflow-hidden">
-            <table className="w-full">
+          <div className="ghost-border overflow-x-auto">
+            <table className="w-full min-w-[640px]">
               <thead>
                 <tr className="border-b border-white/5">
                   <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">Title</th>

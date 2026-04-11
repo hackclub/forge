@@ -33,7 +33,7 @@ export default function AdminSupportTicketsIndex({
   }
 
   return (
-    <div className="p-12 max-w-[1400px] mx-auto">
+    <div className="p-5 md:p-12 max-w-[1400px] mx-auto">
       <h1 className="text-4xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-8">Support Tickets</h1>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">

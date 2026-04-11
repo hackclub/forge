@@ -12,7 +12,7 @@ export default function NewsShow({ post }: { post: NewsPost }) {
   return (
     <>
       <Head title={`${post.title} — News`} />
-      <div className="p-12 max-w-3xl mx-auto space-y-8">
+      <div className="p-5 md:p-12 max-w-3xl mx-auto space-y-8">
         <Link
           href="/news"
           className="ghost-border inline-flex items-center gap-2 px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-stone-500 hover:text-[#e5e2e1] transition-colors"

@@ -29,7 +29,7 @@ export default function AdminUsersIndex({
   }
 
   return (
-    <div className="p-12 max-w-[1400px] mx-auto">
+    <div className="p-5 md:p-12 max-w-[1400px] mx-auto">
       <h1 className="text-4xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-8">Users</h1>
 
       <form onSubmit={search} className="mb-4">
@@ -63,8 +63,8 @@ export default function AdminUsersIndex({
         ))}
       </div>
 
-      <div className="space-y-2">
-        <div className="grid grid-cols-[1fr_1fr_auto_auto_auto] gap-4 px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">
+      <div className="space-y-2 overflow-x-auto">
+        <div className="hidden md:grid grid-cols-[1fr_1fr_auto_auto_auto] gap-4 px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600 min-w-[720px]">
           <span>Name</span>
           <span>Email</span>
           <span>Roles</span>
@@ -75,7 +75,7 @@ export default function AdminUsersIndex({
           <Link
             key={user.id}
             href={`/admin/users/${user.id}`}
-            className={`grid grid-cols-[1fr_1fr_auto_auto_auto] gap-4 bg-[#1c1b1b] px-5 py-4 ghost-border hover:bg-[#2a2a2a] transition-all group ${user.is_discarded ? 'opacity-50' : ''}`}
+            className={`flex flex-col gap-1 md:grid md:grid-cols-[1fr_1fr_auto_auto_auto] md:gap-4 bg-[#1c1b1b] px-5 py-4 ghost-border hover:bg-[#2a2a2a] transition-all group md:min-w-[720px] ${user.is_discarded ? 'opacity-50' : ''}`}
           >
             <span className="font-headline font-bold text-[#e5e2e1] group-hover:text-[#ffb595] transition-colors truncate flex items-center gap-2">
               {user.display_name}

@@ -71,7 +71,7 @@ export default function AdminProjectsShow({
   }
 
   return (
-    <div className="p-12 max-w-[1400px] mx-auto">
+    <div className="p-5 md:p-12 max-w-[1400px] mx-auto">
       <Link href="/admin/projects" className="text-stone-500 text-sm hover:text-[#ffb595] transition-colors flex items-center gap-1 mb-8">
         <span className="material-symbols-outlined text-sm">arrow_back</span>
         Back to projects
