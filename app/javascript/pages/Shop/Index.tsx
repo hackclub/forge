@@ -24,6 +24,7 @@ interface ShopItem {
   description: string | null
   image_url: string | null
   coin_cost: number
+  max_quantity: number | null
 }
 
 interface Order {
@@ -31,6 +32,7 @@ interface Order {
   kind: 'direct_grant' | 'shop_item'
   kind_label: string
   status: 'pending' | 'approved' | 'fulfilled' | 'rejected'
+  quantity: number
   amount_usd: number | null
   coin_cost: number
   description: string | null
@@ -94,11 +96,25 @@ export default function ShopIndex({ balance, can_buy_shop_items, eligible_projec
     })
   }
 
+  const [quantities, setQuantities] = useState<Record<number, number>>({})
+
+  function getQuantity(item: ShopItem) {
+    return quantities[item.id] ?? 1
+  }
+
+  function setQuantity(item: ShopItem, qty: number) {
+    const max = item.max_quantity ?? 999
+    const clamped = Math.max(1, Math.min(qty, max))
+    setQuantities((prev) => ({ ...prev, [item.id]: clamped }))
+  }
+
   function buyItem(item: ShopItem) {
     if (!can_buy_shop_items) return
-    if (item.coin_cost > balance.balance) return
-    if (!confirm(`Spend ${item.coin_cost}c on ${item.name}?`)) return
-    router.post('/shop/orders', { kind: 'shop_item', shop_item_id: item.id })
+    const qty = getQuantity(item)
+    const total = +(item.coin_cost * qty).toFixed(2)
+    if (total > balance.balance) return
+    if (!confirm(`Spend ${total}c on ${qty}× ${item.name}?`)) return
+    router.post('/shop/orders', { kind: 'shop_item', shop_item_id: item.id, quantity: qty })
   }
 
   return (
@@ -196,7 +212,7 @@ export default function ShopIndex({ balance, can_buy_shop_items, eligible_projec
         {!can_buy_shop_items && (
           <div className="bg-amber-500/10 border border-amber-500/20 p-4 text-amber-200 text-sm flex items-start gap-3">
             <span className="material-symbols-outlined text-base shrink-0">lock</span>
-            <p>Shop items unlock once you've marked at least one project as built. Redeem a direct grant first, build the thing, then mark it built.</p>
+            <p>Shop items unlock once you've marked at least one project as built.</p>
           </div>
         )}
 
@@ -208,8 +224,12 @@ export default function ShopIndex({ balance, can_buy_shop_items, eligible_projec
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {shop_items.map((item) => {
-                const affordable = item.coin_cost <= balance.balance
+                const qty = getQuantity(item)
+                const totalCost = +(item.coin_cost * qty).toFixed(2)
+                const affordable = totalCost <= balance.balance
                 const enabled = can_buy_shop_items && affordable
+                const max = item.max_quantity ?? 999
+                const showQuantity = max > 1
                 return (
                   <div key={item.id} className="bg-[#1c1b1b] ghost-border flex flex-col min-w-0 overflow-hidden">
                     <div className="aspect-square bg-[#0e0e0e] flex items-center justify-center">
@@ -222,16 +242,51 @@ export default function ShopIndex({ balance, can_buy_shop_items, eligible_projec
                     <div className="p-4 flex-1 flex flex-col">
                       <h3 className="font-headline font-bold text-[#e5e2e1] tracking-tight mb-1 break-words text-sm">{item.name}</h3>
                       {item.description && (
-                        <p className="text-stone-500 text-xs mb-3 line-clamp-2 break-words">{item.description}</p>
+                        <p className="text-stone-400 text-sm leading-relaxed mb-3 line-clamp-4 break-words">{item.description}</p>
                       )}
-                      <p className="text-[#ee671c] font-headline font-bold text-sm mb-3 mt-auto">{item.coin_cost}c</p>
-                      <button
-                        onClick={() => buyItem(item)}
-                        disabled={!enabled}
-                        className={`w-full py-2 text-[10px] font-bold uppercase tracking-[0.15em] transition-colors ${enabled ? 'signature-smolder text-[#4c1a00] cursor-pointer' : 'bg-stone-700/40 text-stone-500 cursor-not-allowed'}`}
-                      >
-                        {!can_buy_shop_items ? 'Locked' : affordable ? 'Buy' : "Can't afford"}
-                      </button>
+                      <div className="mt-auto space-y-2">
+                        <p className="text-[#ee671c] font-headline font-bold text-sm">
+                          {item.coin_cost}c{qty > 1 ? ` × ${qty} = ${totalCost}c` : ''}
+                        </p>
+                        {showQuantity && (
+                          <div className="flex items-center justify-between bg-[#0e0e0e] ghost-border px-2 py-1">
+                            <button
+                              type="button"
+                              onClick={() => setQuantity(item, qty - 1)}
+                              disabled={qty <= 1}
+                              className="text-stone-400 hover:text-[#ffb595] disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer w-6 text-center"
+                            >
+                              −
+                            </button>
+                            <input
+                              type="text"
+                              inputMode="numeric"
+                              pattern="[0-9]*"
+                              value={qty}
+                              onChange={(e) => setQuantity(item, parseInt(e.target.value.replace(/\D/g, '')) || 1)}
+                              className="bg-transparent border-none text-center text-[#e5e2e1] text-sm w-12 focus:outline-none focus:ring-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setQuantity(item, qty + 1)}
+                              disabled={qty >= max}
+                              className="text-stone-400 hover:text-[#ffb595] disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer w-6 text-center"
+                            >
+                              +
+                            </button>
+                          </div>
+                        )}
+                        {item.max_quantity != null && (
+                          <p className="text-stone-600 text-[9px] uppercase tracking-wider text-center">Max {item.max_quantity} per order</p>
+                        )}
+                        <button
+                          onClick={() => buyItem(item)}
+                          disabled={!enabled}
+                          className={`w-full py-2 text-[10px] font-bold uppercase tracking-[0.15em] transition-colors ${enabled ? 'signature-smolder text-[#4c1a00] cursor-pointer' : 'bg-stone-700/40 text-stone-500 cursor-not-allowed'}`}
+                        >
+                          {!can_buy_shop_items ? 'Locked' : affordable ? 'Buy' : "Can't afford"}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 )
@@ -292,7 +347,9 @@ export default function ShopIndex({ balance, can_buy_shop_items, eligible_projec
                     )}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-3 flex-wrap">
-                        <p className="text-[#e5e2e1] text-sm font-headline font-bold break-words">{order.kind_label}</p>
+                        <p className="text-[#e5e2e1] text-sm font-headline font-bold break-words">
+                          {order.quantity > 1 ? `${order.quantity}× ` : ''}{order.kind_label}
+                        </p>
                         <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 ${STATUS_STYLES[order.status]}`}>
                           {order.status}
                         </span>

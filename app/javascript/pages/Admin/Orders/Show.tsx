@@ -6,6 +6,7 @@ interface OrderDetail {
   kind: 'direct_grant' | 'shop_item'
   kind_label: string
   status: 'pending' | 'approved' | 'fulfilled' | 'rejected'
+  quantity: number
   amount_usd: number | null
   coin_cost: number
   description: string | null
@@ -109,7 +110,7 @@ export default function AdminOrdersShow({ order, warnings }: { order: OrderDetai
             <div className="min-w-0">
               <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-1">{order.created_at}</p>
               <h1 className="text-3xl font-headline font-bold text-[#e5e2e1] tracking-tight break-words">
-                {order.kind_label}
+                {order.quantity > 1 ? `${order.quantity}× ` : ''}{order.kind_label}
               </h1>
             </div>
             <span className={`text-[10px] font-bold uppercase tracking-wider px-3 py-1 ${STATUS_STYLES[order.status]}`}>

@@ -15,6 +15,7 @@
 #  image_url           :string
 #  internal_order_link :string
 #  internal_price_usd  :decimal(10, 2)
+#  max_quantity        :integer
 #  name                :string           not null
 #  created_at          :datetime         not null
 #  updated_at          :datetime         not null

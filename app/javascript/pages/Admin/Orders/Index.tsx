@@ -7,6 +7,7 @@ interface OrderRow {
   kind: string
   kind_label: string
   status: 'pending' | 'approved' | 'fulfilled' | 'rejected'
+  quantity: number
   amount_usd: number | null
   coin_cost: number
   user_id: number
@@ -84,7 +85,7 @@ export default function AdminOrdersIndex({ orders, pagy, filters, counts }: Prop
                           <div className="min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
                               <Link href={`/admin/orders/${order.id}`} className="font-headline font-bold text-[#e5e2e1] hover:text-[#ffb595] transition-colors text-sm">
-                                {order.kind_label}
+                                {order.quantity > 1 ? `${order.quantity}× ` : ''}{order.kind_label}
                               </Link>
                               {order.needs_attention && (
                                 <span className="bg-amber-500/15 text-amber-400 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider flex items-center gap-1">

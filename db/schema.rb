@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_11_033522) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_11_043532) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -135,9 +135,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_11_033522) do
     t.bigint "author_id", null: false
     t.text "content", null: false
     t.datetime "created_at", null: false
+    t.bigint "project_id"
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.index ["author_id"], name: "index_kudos_on_author_id"
+    t.index ["project_id"], name: "index_kudos_on_project_id"
     t.index ["user_id"], name: "index_kudos_on_user_id"
   end
 
@@ -162,6 +164,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_11_033522) do
     t.string "hcb_grant_link"
     t.string "kind", null: false
     t.bigint "project_id"
+    t.integer "quantity", default: 1, null: false
     t.text "review_notes"
     t.datetime "reviewed_at"
     t.bigint "reviewer_id"
@@ -247,6 +250,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_11_033522) do
     t.string "image_url"
     t.string "internal_order_link"
     t.decimal "internal_price_usd", precision: 10, scale: 2
+    t.integer "max_quantity"
     t.string "name", null: false
     t.datetime "updated_at", null: false
   end
@@ -451,6 +455,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_11_033522) do
   add_foreign_key "coin_adjustments", "users"
   add_foreign_key "coin_adjustments", "users", column: "actor_id"
   add_foreign_key "devlogs", "projects"
+  add_foreign_key "kudos", "projects"
   add_foreign_key "kudos", "users"
   add_foreign_key "kudos", "users", column: "author_id"
   add_foreign_key "news_posts", "users", column: "author_id"

@@ -9,6 +9,7 @@
 #  image_url           :string
 #  internal_order_link :string
 #  internal_price_usd  :decimal(10, 2)
+#  max_quantity        :integer
 #  name                :string           not null
 #  created_at          :datetime         not null
 #  updated_at          :datetime         not null
@@ -20,6 +21,7 @@ class ShopItem < ApplicationRecord
 
   validates :name, presence: true
   validates :coin_cost, numericality: { greater_than: 0 }
+  validates :max_quantity, numericality: { only_integer: true, greater_than: 0 }, allow_nil: true
 
   scope :enabled, -> { where(enabled: true) }
   scope :sorted, -> { order(:name) }

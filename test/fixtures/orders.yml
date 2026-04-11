@@ -15,6 +15,7 @@
 #  fulfilled_at   :datetime
 #  hcb_grant_link :string
 #  kind           :string           not null
+#  quantity       :integer          default(1), not null
 #  review_notes   :text
 #  reviewed_at    :datetime
 #  status         :integer          default("pending"), not null
