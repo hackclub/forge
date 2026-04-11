@@ -23,6 +23,17 @@ interface DevlogEntry {
   created_at: string
 }
 
+interface ProjectKudo {
+  id: number
+  content: string
+  author_id: number
+  author_name: string
+  author_avatar: string
+  author_is_staff: boolean
+  can_destroy: boolean
+  created_at: string
+}
+
 const statusConfig: Record<ProjectStatus, { label: string; bg: string; text: string; icon: string }> = {
   draft: { label: 'Draft', bg: 'bg-stone-500/10', text: 'text-stone-400', icon: 'edit_note' },
   pending: { label: 'Pending Review', bg: 'bg-amber-500/10', text: 'text-amber-400', icon: 'schedule' },
@@ -36,14 +47,32 @@ const statusConfig: Record<ProjectStatus, { label: string; bg: string; text: str
 export default function ProjectsShow({
   project,
   devlogs,
+  kudos,
   can,
   is_admin_view,
 }: {
   project: ProjectDetail
   devlogs: DevlogEntry[]
-  can: { update: boolean; destroy: boolean; submit_for_review: boolean }
+  kudos: ProjectKudo[]
+  can: { update: boolean; destroy: boolean; submit_for_review: boolean; give_kudos: boolean }
   is_admin_view: boolean
 }) {
+  const [kudoContent, setKudoContent] = useState('')
+
+  function submitKudo(e: React.FormEvent) {
+    e.preventDefault()
+    if (!kudoContent.trim()) return
+    router.post(`/projects/${project.id}/add_kudo`, { content: kudoContent }, {
+      preserveScroll: true,
+      onSuccess: () => setKudoContent(''),
+    })
+  }
+
+  function deleteKudo(kudoId: number) {
+    if (!confirm('Delete this kudos?')) return
+    router.delete(`/projects/${project.id}/kudos/${kudoId}`, { preserveScroll: true })
+  }
+
   const [showDevlogForm, setShowDevlogForm] = useState(false)
   const [showRepoForm, setShowRepoForm] = useState(false)
   const [repoUrl, setRepoUrl] = useState('')
@@ -823,6 +852,66 @@ export default function ProjectsShow({
               )}
             </div>
           )}
+
+          <div className="bg-[#1c1b1b] ghost-border p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <span className="material-symbols-outlined text-[#ee671c] text-base">favorite</span>
+              <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline">Kudos ({kudos.length})</h4>
+            </div>
+
+            {can.give_kudos && (
+              <form onSubmit={submitKudo} className="mb-4">
+                <textarea
+                  value={kudoContent}
+                  onChange={(e) => setKudoContent(e.target.value)}
+                  rows={2}
+                  placeholder={`Drop ${project.user_display_name.split(' ')[0]} some kudos...`}
+                  className="w-full bg-[#0e0e0e] border-none px-3 py-2 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 resize-y mb-2"
+                />
+                <button
+                  type="submit"
+                  disabled={!kudoContent.trim()}
+                  className="w-full signature-smolder text-[#4c1a00] py-2 text-[10px] font-bold uppercase tracking-[0.15em] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1"
+                >
+                  <span className="material-symbols-outlined text-sm">favorite</span>
+                  Send Kudos
+                </button>
+              </form>
+            )}
+
+            {kudos.length === 0 ? (
+              <p className="text-stone-600 text-xs">No kudos yet.</p>
+            ) : (
+              <div className="space-y-2">
+                {kudos.map((kudo) => (
+                  <div key={kudo.id} className="bg-[#0e0e0e] ghost-border p-3 min-w-0 overflow-hidden">
+                    <div className="flex items-start gap-2 mb-1">
+                      <img src={kudo.author_avatar} alt={kudo.author_name} className="w-6 h-6 border border-white/10 shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <Link href={`/users/${kudo.author_id}`} className="text-[#e5e2e1] text-xs font-bold hover:text-[#ffb595] transition-colors truncate">
+                            {kudo.author_name}
+                          </Link>
+                          {kudo.author_is_staff && (
+                            <span className="text-[8px] font-bold uppercase tracking-wider px-1 py-0.5 bg-[#ee671c]/15 text-[#ee671c]">staff</span>
+                          )}
+                        </div>
+                        <p className="text-[9px] uppercase tracking-[0.15em] text-stone-600">{kudo.created_at}</p>
+                      </div>
+                      {kudo.can_destroy && (
+                        <button onClick={() => deleteKudo(kudo.id)} className="text-stone-600 hover:text-red-400 transition-colors shrink-0 cursor-pointer">
+                          <span className="material-symbols-outlined text-xs">close</span>
+                        </button>
+                      )}
+                    </div>
+                    <p className="text-stone-300 text-xs leading-relaxed whitespace-pre-wrap break-words [overflow-wrap:anywhere] pl-8">
+                      {kudo.content}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
 
           {(can.update || can.destroy) && (
             <div className="bg-[#1c1b1b] ghost-border p-6">

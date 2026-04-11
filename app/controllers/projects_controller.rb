@@ -1,5 +1,5 @@
 class ProjectsController < ApplicationController
-  before_action :set_project, only: %i[show edit update destroy submit_for_review submit_build sync_journal set_devlog_mode link_repo resubmit_pitch upload_cover_image export_devlogs mark_built]
+  before_action :set_project, only: %i[show edit update destroy submit_for_review submit_build sync_journal set_devlog_mode link_repo resubmit_pitch upload_cover_image export_devlogs mark_built add_kudo destroy_kudo]
 
   def show
     authorize @project
@@ -11,8 +11,10 @@ class ProjectsController < ApplicationController
       can: {
         update: policy(@project).update?,
         destroy: policy(@project).destroy?,
-        submit_for_review: policy(@project).submit_for_review?
-      }
+        submit_for_review: policy(@project).submit_for_review?,
+        give_kudos: current_user.present? && current_user.id != @project.user_id
+      },
+      kudos: @project.kudos.includes(:author).order(created_at: :desc).map { |k| serialize_project_kudo(k) }
     }
   end
 
@@ -171,6 +173,38 @@ class ProjectsController < ApplicationController
     @project.update!(build_proof_url: proof_url, built_at: Time.current)
     audit!("project.marked_built", target: @project, metadata: { build_proof_url: proof_url })
     redirect_to @project, notice: "Marked as built. Nice work!"
+  end
+
+  def add_kudo
+    authorize @project, :show?
+
+    if current_user.id == @project.user_id
+      redirect_to @project, alert: "You can't give yourself kudos."
+      return
+    end
+
+    content = params[:content].to_s.strip
+    if content.blank?
+      redirect_to @project, alert: "Kudos can't be empty."
+      return
+    end
+
+    kudo = @project.kudos.create!(content: content, author: current_user, user: @project.user)
+    audit!("project.kudo_added", target: @project, metadata: { kudo_id: kudo.id, content: content })
+    redirect_to @project, notice: "Kudos sent."
+  end
+
+  def destroy_kudo
+    authorize @project, :show?
+    kudo = @project.kudos.find(params[:kudo_id])
+
+    unless current_user.id == kudo.author_id || current_user.has_permission?("users")
+      raise ActionController::RoutingError, "Not Found"
+    end
+
+    audit!("project.kudo_destroyed", target: @project, metadata: { kudo_id: kudo.id })
+    kudo.destroy
+    redirect_to @project, notice: "Kudos deleted."
   end
 
   def sync_journal
@@ -384,6 +418,19 @@ class ProjectsController < ApplicationController
       content: devlog.content,
       time_spent: devlog.time_spent,
       created_at: devlog.created_at.strftime("%B %d, %Y")
+    }
+  end
+
+  def serialize_project_kudo(kudo)
+    {
+      id: kudo.id,
+      content: kudo.content,
+      author_id: kudo.author_id,
+      author_name: kudo.author.display_name,
+      author_avatar: kudo.author.avatar,
+      author_is_staff: kudo.author.staff?,
+      can_destroy: current_user.present? && (current_user.id == kudo.author_id || current_user.has_permission?("users")),
+      created_at: kudo.created_at.strftime("%b %d, %Y")
     }
   end
 end

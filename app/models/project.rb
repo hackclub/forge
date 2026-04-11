@@ -58,6 +58,7 @@ class Project < ApplicationRecord
   belongs_to :reviewer, class_name: "User", optional: true
   has_many :ships, dependent: :destroy
   has_many :devlogs, dependent: :destroy
+  has_many :kudos, dependent: :destroy
   has_one_attached :cover_image
 
   after_commit :sync_to_airtable, on: [ :create, :update ], if: -> { approved? || build_approved? }

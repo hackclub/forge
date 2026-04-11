@@ -139,6 +139,8 @@ class Admin::AuditLogController < Admin::ApplicationController
     "shop_item.created" => "Created shop item",
     "shop_item.updated" => "Updated shop item",
     "shop_item.destroyed" => "Deleted shop item",
-    "project.marked_built" => "Marked built"
+    "project.marked_built" => "Marked built",
+    "project.kudo_added" => "Kudos added on",
+    "project.kudo_destroyed" => "Kudos removed from"
   }.freeze
 end

@@ -207,6 +207,8 @@ Rails.application.routes.draw do
       patch :set_devlog_mode
       patch :link_repo
       post :mark_built
+      post :add_kudo
+      delete "kudos/:kudo_id" => "projects#destroy_kudo", as: :destroy_kudo
     end
     resources :devlogs, only: [ :create, :destroy ]
   end

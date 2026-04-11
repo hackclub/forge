@@ -9,6 +9,7 @@
 #  fulfilled_at   :datetime
 #  hcb_grant_link :string
 #  kind           :string           not null
+#  quantity       :integer          default(1), not null
 #  review_notes   :text
 #  reviewed_at    :datetime
 #  status         :integer          default("pending"), not null
@@ -50,6 +51,7 @@ class Order < ApplicationRecord
 
   validates :kind, inclusion: { in: KINDS }
   validates :coin_cost, numericality: { greater_than: 0 }
+  validates :quantity, numericality: { only_integer: true, greater_than: 0 }
   validates :amount_usd, numericality: { greater_than: 0 }, if: :direct_grant?
   validate :direct_grant_must_have_owned_project
   validate :shop_item_must_be_present

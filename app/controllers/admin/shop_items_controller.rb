@@ -45,7 +45,7 @@ class Admin::ShopItemsController < Admin::ApplicationController
   end
 
   def item_params
-    params.expect(shop_item: [ :name, :description, :image_url, :coin_cost, :enabled, :internal_order_link, :internal_price_usd ])
+    params.expect(shop_item: [ :name, :description, :image_url, :coin_cost, :enabled, :internal_order_link, :internal_price_usd, :max_quantity ])
   end
 
   def serialize_item(item)
@@ -57,7 +57,8 @@ class Admin::ShopItemsController < Admin::ApplicationController
       coin_cost: item.coin_cost.to_f,
       enabled: item.enabled,
       internal_order_link: item.internal_order_link,
-      internal_price_usd: item.internal_price_usd&.to_f
+      internal_price_usd: item.internal_price_usd&.to_f,
+      max_quantity: item.max_quantity
     }
   end
 end

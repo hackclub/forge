@@ -32,7 +32,8 @@ class ShopController < ApplicationController
           name: i.name,
           description: i.description,
           image_url: i.image_url,
-          coin_cost: i.coin_cost.to_f
+          coin_cost: i.coin_cost.to_f,
+          max_quantity: i.max_quantity
         }
       },
       orders: orders.map { |o| serialize_order(o) },
@@ -107,21 +108,31 @@ class ShopController < ApplicationController
       return
     end
 
-    if item.coin_cost > current_user.coin_balance
-      redirect_to shop_path, alert: "Not enough steel coins."
+    quantity = params[:quantity].to_i
+    quantity = 1 if quantity < 1
+
+    if item.max_quantity.present? && quantity > item.max_quantity
+      redirect_to shop_path, alert: "You can only buy up to #{item.max_quantity} of #{item.name}."
+      return
+    end
+
+    total_cost = (item.coin_cost * quantity).round(2)
+    if total_cost > current_user.coin_balance
+      redirect_to shop_path, alert: "Not enough steel coins. Need #{total_cost}c, have #{current_user.coin_balance}c."
       return
     end
 
     order = current_user.orders.build(
       kind: "shop_item",
       shop_item: item,
-      coin_cost: item.coin_cost,
+      quantity: quantity,
+      coin_cost: total_cost,
       description: params[:description].to_s.strip.presence
     )
 
     if order.save
-      audit!("order.created", target: order, label: item.name, metadata: { kind: "shop_item", shop_item_id: item.id, coin_cost: item.coin_cost.to_f })
-      redirect_to shop_path, notice: "Order placed for #{item.name}. Awaiting staff review."
+      audit!("order.created", target: order, label: item.name, metadata: { kind: "shop_item", shop_item_id: item.id, quantity: quantity, coin_cost: total_cost })
+      redirect_to shop_path, notice: "Order placed for #{quantity}× #{item.name}. Awaiting staff review."
     else
       redirect_to shop_path, alert: order.errors.full_messages.join(", ")
     end
@@ -133,6 +144,7 @@ class ShopController < ApplicationController
       kind: order.kind,
       kind_label: order.kind_label,
       status: order.status,
+      quantity: order.quantity,
       amount_usd: order.amount_usd&.to_f,
       coin_cost: order.coin_cost.to_f,
       description: order.description,

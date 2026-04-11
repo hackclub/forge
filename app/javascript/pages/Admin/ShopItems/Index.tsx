@@ -10,9 +10,10 @@ interface ShopItem {
   enabled: boolean
   internal_order_link: string | null
   internal_price_usd: number | null
+  max_quantity: number | null
 }
 
-const blank = { name: '', description: '', image_url: '', coin_cost: '', enabled: true, internal_order_link: '', internal_price_usd: '' }
+const blank = { name: '', description: '', image_url: '', coin_cost: '', enabled: true, internal_order_link: '', internal_price_usd: '', max_quantity: '' }
 
 export default function AdminShopItemsIndex({ items }: { items: ShopItem[] }) {
   const [editingId, setEditingId] = useState<number | null>(null)
@@ -35,6 +36,7 @@ export default function AdminShopItemsIndex({ items }: { items: ShopItem[] }) {
       enabled: item.enabled,
       internal_order_link: item.internal_order_link || '',
       internal_price_usd: item.internal_price_usd?.toString() || '',
+      max_quantity: item.max_quantity?.toString() || '',
     })
     setShowForm(true)
   }
@@ -46,6 +48,7 @@ export default function AdminShopItemsIndex({ items }: { items: ShopItem[] }) {
         ...form,
         coin_cost: parseFloat(form.coin_cost) || 0,
         internal_price_usd: form.internal_price_usd ? parseFloat(form.internal_price_usd) : null,
+        max_quantity: form.max_quantity ? parseInt(form.max_quantity) : null,
       },
     }
     if (editingId) {
@@ -102,6 +105,19 @@ export default function AdminShopItemsIndex({ items }: { items: ShopItem[] }) {
                   placeholder="20"
                 />
               </div>
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">Max purchase quantity</label>
+              <input
+                type="number"
+                min="1"
+                step="1"
+                value={form.max_quantity}
+                onChange={(e) => setForm({ ...form, max_quantity: e.target.value })}
+                className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ee671c]/30"
+                placeholder="Leave blank for no cap"
+              />
+              <p className="text-stone-600 text-[10px] mt-1">Maximum a user can buy in a single order. Leave blank for unlimited.</p>
             </div>
             <div>
               <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">Image URL</label>
