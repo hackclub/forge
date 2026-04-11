@@ -109,14 +109,12 @@ export default function HomeIndex({ user, projects, news_posts, staff_picks }: P
                   href={`/projects/${project.id}`}
                   className="group bg-[#0e0e0e] ghost-border hover:bg-[#161616] transition-colors flex flex-col"
                 >
-                  <div className="aspect-[16/10] overflow-hidden bg-[#1c1b1b] flex items-center justify-center">
-                    {project.cover_image_url ? (
-                      <img src={project.cover_image_url} alt={project.name} className="w-full h-full object-cover" />
-                    ) : (
-                      <span className="material-symbols-outlined text-5xl text-stone-800 group-hover:text-stone-700 transition-colors">
-                        precision_manufacturing
-                      </span>
-                    )}
+                  <div className="aspect-[16/10] overflow-hidden bg-[#1c1b1b]">
+                    <img
+                      src={project.cover_image_url || '/orph-building.png'}
+                      alt={project.name}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                   <div className="p-5 flex-1 flex flex-col">
                     <div className="flex items-start justify-between gap-3 mb-2">
@@ -160,14 +158,12 @@ export default function HomeIndex({ user, projects, news_posts, staff_picks }: P
                   className="group bg-[#0e0e0e] ghost-border hover:bg-[#161616] transition-colors flex flex-col min-w-0 overflow-hidden"
                 >
                   <Link href={`/projects/${pick.id}`} className="block">
-                    <div className="aspect-[16/10] overflow-hidden bg-[#1c1b1b] flex items-center justify-center">
-                      {pick.cover_image_url ? (
-                        <img src={pick.cover_image_url} alt={pick.name} className="w-full h-full object-cover" />
-                      ) : (
-                        <span className="material-symbols-outlined text-5xl text-stone-800 group-hover:text-stone-700 transition-colors">
-                          precision_manufacturing
-                        </span>
-                      )}
+                    <div className="aspect-[16/10] overflow-hidden bg-[#1c1b1b]">
+                      <img
+                        src={pick.cover_image_url || '/orph-building.png'}
+                        alt={pick.name}
+                        className="w-full h-full object-cover"
+                      />
                     </div>
                     <div className="p-5 pb-3">
                       <h3 className="font-headline font-bold text-[#e5e2e1] group-hover:text-[#ffb595] transition-colors tracking-tight mb-2 break-words">
