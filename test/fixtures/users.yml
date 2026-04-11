@@ -16,6 +16,7 @@
 #  display_name        :string           not null
 #  email               :string           not null
 #  first_name          :string
+#  github_username     :string
 #  hca_token           :text
 #  is_adult            :boolean          default(FALSE), not null
 #  is_banned           :boolean          default(FALSE), not null

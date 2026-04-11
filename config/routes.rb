@@ -191,6 +191,7 @@ Rails.application.routes.draw do
   get "users/:id" => "users#show", as: :user
   post "users/:id/kudos" => "users#add_kudo", as: :user_kudos
   delete "users/:id/kudos/:kudo_id" => "users#destroy_kudo", as: :user_kudo
+  patch "users/:id/github" => "users#update_github", as: :user_github
   get "news" => "news#index", as: :news
   get "news/:id" => "news#show", as: :news_post
 
