@@ -158,7 +158,7 @@ class User < ApplicationRecord
   end
 
   def can_buy_shop_items?
-    shop_unlocked? || has_built_project?
+    (has_attribute?(:shop_unlocked) && shop_unlocked?) || has_built_project?
   end
 
   def grant_permission(perm)
