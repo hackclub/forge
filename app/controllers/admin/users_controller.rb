@@ -174,6 +174,12 @@ class Admin::UsersController < Admin::ApplicationController
   def update_roles
     @user = User.find(params[:id])
     authorize @user, :update?
+
+    unless current_user.superadmin?
+      redirect_to admin_user_path(@user), alert: "Only superadmins can change roles."
+      return
+    end
+
     new_roles = params[:roles].select(&:present?)
     added_roles = new_roles - @user.roles
     removed_roles = @user.roles - new_roles
@@ -188,14 +194,12 @@ class Admin::UsersController < Admin::ApplicationController
     @user = User.find(params[:id])
     authorize @user, :update?
 
-    requested = Array(params[:permissions]).select(&:present?)
-    superadmin_changing = requested.include?("superadmin") != @user.permissions.include?("superadmin")
-
-    if superadmin_changing && !current_user.superadmin?
-      redirect_to admin_user_path(@user), alert: "Only superadmins can grant or revoke the superadmin permission."
+    unless current_user.superadmin?
+      redirect_to admin_user_path(@user), alert: "Only superadmins can change permissions."
       return
     end
 
+    requested = Array(params[:permissions]).select(&:present?)
     added = requested - @user.permissions
     removed = @user.permissions - requested
     @user.update!(permissions: requested)
