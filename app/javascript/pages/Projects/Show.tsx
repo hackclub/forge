@@ -1,9 +1,9 @@
 import { useState } from 'react'
-import { router, Link, useForm } from '@inertiajs/react'
+import { router, Link, useForm, usePage } from '@inertiajs/react'
 import Markdown from 'react-markdown'
 import rehypeRaw from 'rehype-raw'
 import remarkGfm from 'remark-gfm'
-import type { ProjectDetail, ProjectStatus } from '@/types'
+import type { ProjectDetail, ProjectStatus, SharedProps } from '@/types'
 
 function isSafeUrl(url: string | null): boolean {
   if (!url) return false
@@ -182,14 +182,27 @@ export default function ProjectsShow({
     return match ? sum + parseFloat(match[1]) : sum
   }, 0)
 
+  const isStaff = !!usePage<SharedProps>().props.auth.user?.is_staff
+
   return (
     <div className="p-12 max-w-[1400px] mx-auto">
       {is_admin_view && (
-        <div className="mb-6 border border-amber-500/40 bg-amber-500/10 px-5 py-3 flex items-center gap-3">
+        <div className="mb-6 border border-amber-500/40 bg-amber-500/10 px-5 py-3 flex items-center gap-3 flex-wrap">
           <span className="material-symbols-outlined text-amber-400">shield_person</span>
-          <p className="text-amber-300 text-sm">
+          <p className="text-amber-300 text-sm flex-1 min-w-0">
             <span className="font-bold">Admin view.</span> You're editing <span className="font-bold">{project.user_display_name}'s</span> project. Changes affect them, not you.
           </p>
+        </div>
+      )}
+      {isStaff && (
+        <div className="mb-6 flex justify-end">
+          <Link
+            href={`/admin/projects/${project.id}`}
+            className="ghost-border bg-[#1c1b1b] hover:bg-[#2a2a2a] text-stone-400 hover:text-[#ffb595] px-4 py-2 text-[10px] font-bold uppercase tracking-[0.15em] inline-flex items-center gap-2 transition-colors"
+          >
+            <span className="material-symbols-outlined text-sm">shield_person</span>
+            View on Admin Page
+          </Link>
         </div>
       )}
       <header className="mb-10 ghost-border bg-[#1c1b1b] overflow-hidden">

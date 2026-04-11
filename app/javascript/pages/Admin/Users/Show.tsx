@@ -228,39 +228,58 @@ export default function AdminUsersShow({
 
       <div className="mb-10">
         <h2 className="text-xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-4">Roles</h2>
-        <p className="text-stone-500 text-sm mb-4">Assigning a staff role auto-grants its default permissions. You can still manually adjust permissions below.</p>
-        <div className="grid grid-cols-2 gap-2">
-          {available_roles.map((role) => {
-            const active = user.roles.includes(role)
-            return (
-              <button
-                key={role}
-                onClick={() => toggleRole(role)}
-                className={`px-4 py-3 text-left transition-colors cursor-pointer flex items-center gap-3 ${
-                  active
-                    ? 'signature-smolder text-[#4c1a00]'
-                    : 'ghost-border bg-[#1c1b1b] text-stone-500 hover:text-stone-300 hover:bg-[#2a2a2a]'
-                }`}
-              >
-                <span className="material-symbols-outlined text-sm">
-                  {active ? 'check_circle' : 'radio_button_unchecked'}
-                </span>
-                <div>
-                  <span className="text-xs font-bold uppercase tracking-[0.15em]">{role}</span>
-                  {roleDescriptions[role] && (
-                    <p className={`text-[10px] mt-0.5 ${active ? 'text-[#4c1a00]/70' : 'text-stone-600'}`}>{roleDescriptions[role]}</p>
-                  )}
-                </div>
-              </button>
-            )
-          })}
-        </div>
+        {isSuperadmin ? (
+          <>
+            <p className="text-stone-500 text-sm mb-4">Assigning a staff role auto-grants its default permissions. You can still manually adjust permissions below.</p>
+            <div className="grid grid-cols-2 gap-2">
+              {available_roles.map((role) => {
+                const active = user.roles.includes(role)
+                return (
+                  <button
+                    key={role}
+                    onClick={() => toggleRole(role)}
+                    className={`px-4 py-3 text-left transition-colors cursor-pointer flex items-center gap-3 ${
+                      active
+                        ? 'signature-smolder text-[#4c1a00]'
+                        : 'ghost-border bg-[#1c1b1b] text-stone-500 hover:text-stone-300 hover:bg-[#2a2a2a]'
+                    }`}
+                  >
+                    <span className="material-symbols-outlined text-sm">
+                      {active ? 'check_circle' : 'radio_button_unchecked'}
+                    </span>
+                    <div>
+                      <span className="text-xs font-bold uppercase tracking-[0.15em]">{role}</span>
+                      {roleDescriptions[role] && (
+                        <p className={`text-[10px] mt-0.5 ${active ? 'text-[#4c1a00]/70' : 'text-stone-600'}`}>{roleDescriptions[role]}</p>
+                      )}
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          </>
+        ) : (
+          <>
+            <p className="text-stone-500 text-sm mb-4">Only superadmins can change roles.</p>
+            <div className="flex flex-wrap gap-2">
+              {user.roles.length === 0 ? (
+                <span className="text-stone-600 text-xs">No roles</span>
+              ) : (
+                user.roles.map((role) => (
+                  <span key={role} className="px-3 py-1.5 ghost-border bg-[#1c1b1b] text-stone-300 text-[10px] font-bold uppercase tracking-[0.15em]">
+                    {role}
+                  </span>
+                ))
+              )}
+            </div>
+          </>
+        )}
       </div>
 
       <div className="mb-10">
         <div className="flex items-center justify-between mb-2">
           <h2 className="text-xl font-headline font-bold text-[#e5e2e1] tracking-tight">Permissions</h2>
-          {user.permissions.length > 0 && (
+          {isSuperadmin && user.permissions.length > 0 && (
             <button
               onClick={revokeAllPermissions}
               className="bg-red-500/20 border border-red-500/40 text-red-400 hover:bg-red-500/30 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.15em] transition-colors cursor-pointer"
@@ -269,31 +288,50 @@ export default function AdminUsersShow({
             </button>
           )}
         </div>
-        <p className="text-stone-500 text-sm mb-4">Toggle individual permissions. Assigning a role auto-grants its defaults, but you can override them.</p>
-        <div className="grid grid-cols-2 gap-2">
-          {visiblePermissions.map((perm) => {
-            const active = user.permissions.includes(perm)
-            const isSuper = perm === 'superadmin'
-            return (
-              <button
-                key={perm}
-                onClick={() => togglePermission(perm)}
-                className={`px-4 py-3 text-left text-sm font-medium transition-colors cursor-pointer flex items-center gap-3 ${
-                  active
-                    ? isSuper
-                      ? 'bg-[#ee671c]/15 text-[#ffb595] ghost-border'
-                      : 'bg-emerald-500/10 text-emerald-400 ghost-border'
-                    : 'bg-[#1c1b1b] text-stone-500 ghost-border hover:bg-[#2a2a2a] hover:text-stone-300'
-                }`}
-              >
-                <span className="material-symbols-outlined text-lg">
-                  {active ? 'toggle_on' : 'toggle_off'}
-                </span>
-                {permissionLabels[perm] || perm}
-              </button>
-            )
-          })}
-        </div>
+        {isSuperadmin ? (
+          <>
+            <p className="text-stone-500 text-sm mb-4">Toggle individual permissions. Assigning a role auto-grants its defaults, but you can override them.</p>
+            <div className="grid grid-cols-2 gap-2">
+              {visiblePermissions.map((perm) => {
+                const active = user.permissions.includes(perm)
+                const isSuper = perm === 'superadmin'
+                return (
+                  <button
+                    key={perm}
+                    onClick={() => togglePermission(perm)}
+                    className={`px-4 py-3 text-left text-sm font-medium transition-colors cursor-pointer flex items-center gap-3 ${
+                      active
+                        ? isSuper
+                          ? 'bg-[#ee671c]/15 text-[#ffb595] ghost-border'
+                          : 'bg-emerald-500/10 text-emerald-400 ghost-border'
+                        : 'bg-[#1c1b1b] text-stone-500 ghost-border hover:bg-[#2a2a2a] hover:text-stone-300'
+                    }`}
+                  >
+                    <span className="material-symbols-outlined text-lg">
+                      {active ? 'toggle_on' : 'toggle_off'}
+                    </span>
+                    {permissionLabels[perm] || perm}
+                  </button>
+                )
+              })}
+            </div>
+          </>
+        ) : (
+          <>
+            <p className="text-stone-500 text-sm mb-4">Only superadmins can change permissions.</p>
+            <div className="flex flex-wrap gap-2">
+              {user.permissions.length === 0 ? (
+                <span className="text-stone-600 text-xs">No permissions</span>
+              ) : (
+                user.permissions.map((perm) => (
+                  <span key={perm} className="px-3 py-1.5 ghost-border bg-[#1c1b1b] text-stone-300 text-[10px] font-bold uppercase tracking-[0.15em]">
+                    {permissionLabels[perm] || perm}
+                  </span>
+                ))
+              )}
+            </div>
+          </>
+        )}
       </div>
 
       <div className="mb-10">
