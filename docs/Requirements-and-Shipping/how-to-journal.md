@@ -20,7 +20,7 @@ How did you piece this together? Why did you do X instead of Y?
 
 Journaling lets others glimpse a tiny sliver of your thought process and mistakes.
 
-We’ll be reviewing this way too\! After submitting your design, awesome people from the community — our Fallout Reviewers™— will check your work to make sure:
+We’ll be reviewing this way too\! After submitting your design, awesome people from the community (our Forge reviewers) will check your work to make sure:
 
 1. Your decisions make sense - we want your project to work!
 2. Your work is original
