@@ -36,8 +36,7 @@ class AirtableSyncJob < ApplicationJob
       "Slack ID" => user.slack_id,
       "Optional - Override Hours Spent" => project.override_hours&.to_f,
       "Optional - Override Hours Spent Justification" => project.override_hours_justification,
-      "Forge Status" => project.status,
-      "HCB Grant Link" => project.hcb_grant_link
+      "Forge Status" => project.status
     }
 
     if project.cover_image_url.present?

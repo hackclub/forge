@@ -66,7 +66,6 @@ export interface ProjectDetail {
   repo_link: string | null
   status: ProjectStatus
   devlog_mode: 'website' | 'git' | null
-  hcb_grant_link: string | null
   review_feedback: string | null
   tier: ProjectTier
   from_slack: boolean
@@ -177,7 +176,6 @@ export interface AdminProjectDetail {
   reviewed_at: string | null
   reviewer_display_name: string | null
   pitch_text: string | null
-  hcb_grant_link: string | null
   from_slack: boolean
   slack_url: string | null
   tier: ProjectTier

@@ -6,7 +6,7 @@ class UsersController < ApplicationController
 
     total_hours = projects.sum(&:total_hours)
     approved_count = projects.count { |p| p.approved? || p.build_pending? || p.build_approved? }
-    built_count = projects.count(&:build_approved?)
+    built_count = projects.count(&:built?)
 
     render inertia: "Users/Show", props: {
       user: {

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_11_100204) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_11_102651) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -189,7 +189,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_11_100204) do
     t.text "description"
     t.string "devlog_mode"
     t.datetime "discarded_at"
-    t.string "hcb_grant_link"
     t.boolean "hidden", default: false, null: false
     t.string "name", null: false
     t.decimal "override_hours"

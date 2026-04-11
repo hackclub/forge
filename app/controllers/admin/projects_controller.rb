@@ -135,17 +135,15 @@ class Admin::ProjectsController < Admin::ApplicationController
       audit!("project.reverted_to_draft", target: @project, metadata: { feedback: feedback })
       redirect_to admin_project_path(@project), notice: "Project reverted to draft."
     when "approve_build"
-      hcb_link = params[:hcb_grant_link].to_s.strip
       @project.update!(
         status: :build_approved,
         reviewer: current_user,
         reviewed_at: Time.current,
         review_feedback: feedback,
-        hcb_grant_link: hcb_link.presence,
         override_hours: params[:override_hours].presence,
         override_hours_justification: params[:override_hours_justification].presence
       )
-      audit!("project.build_approved", target: @project, metadata: { feedback: feedback, hcb_grant_link: hcb_link.presence, override_hours: params[:override_hours].presence })
+      audit!("project.build_approved", target: @project, metadata: { feedback: feedback, override_hours: params[:override_hours].presence })
       notify_slack_decision(@project, "build approved! :tada:", feedback)
       redirect_to admin_project_path(@project), notice: "Build approved."
     when "return_build"
@@ -161,10 +159,9 @@ class Admin::ProjectsController < Admin::ApplicationController
     when "save_review_notes"
       @project.update!(
         override_hours: params[:override_hours].presence,
-        override_hours_justification: params[:override_hours_justification].presence,
-        hcb_grant_link: params[:hcb_grant_link].presence
+        override_hours_justification: params[:override_hours_justification].presence
       )
-      audit!("project.review_notes_saved", target: @project, metadata: { override_hours: params[:override_hours].presence, hcb_grant_link: params[:hcb_grant_link].presence })
+      audit!("project.review_notes_saved", target: @project, metadata: { override_hours: params[:override_hours].presence })
       redirect_to admin_project_path(@project), notice: "Review notes saved."
     when "refresh_readme"
       FetchReadmeJob.perform_later(@project.id)
@@ -268,7 +265,6 @@ class Admin::ProjectsController < Admin::ApplicationController
       is_discarded: project.discarded?,
       discarded_at: project.discarded_at&.strftime("%b %d, %Y"),
       pitch_text: project.pitch_text,
-      hcb_grant_link: project.hcb_grant_link,
       from_slack: project.slack_message_ts.present?,
       slack_url: project.slack_channel_id.present? && project.slack_message_ts.present? ? "https://hackclub.slack.com/archives/#{project.slack_channel_id}/p#{project.slack_message_ts.to_s.delete('.')}" : nil,
       tier: project.tier,
