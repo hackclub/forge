@@ -185,7 +185,7 @@ export default function ProjectsShow({
   const isStaff = !!usePage<SharedProps>().props.auth.user?.is_staff
 
   return (
-    <div className="p-12 max-w-[1400px] mx-auto">
+    <div className="p-5 md:p-12 max-w-[1400px] mx-auto">
       {is_admin_view && (
         <div className="mb-6 border border-amber-500/40 bg-amber-500/10 px-5 py-3 flex items-center gap-3 flex-wrap">
           <span className="material-symbols-outlined text-amber-400">shield_person</span>
@@ -278,7 +278,7 @@ export default function ProjectsShow({
             </button>
           ) : null}
 
-          <div className="flex items-center gap-6 pt-4 border-t border-white/5 text-xs text-stone-500">
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 pt-4 border-t border-white/5 text-xs text-stone-500">
             <Link
               href={`/users/${project.user_id}`}
               className="flex items-center gap-2 text-stone-400 hover:text-[#ffb595] transition-colors"

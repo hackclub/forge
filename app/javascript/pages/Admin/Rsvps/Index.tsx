@@ -33,8 +33,8 @@ export default function AdminRsvpsIndex({
   }
 
   return (
-    <div className="p-12 max-w-[1400px] mx-auto">
-      <div className="flex items-center justify-between mb-8 gap-4">
+    <div className="p-5 md:p-12 max-w-[1400px] mx-auto">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
         <div>
           <h1 className="text-4xl font-headline font-bold text-[#e5e2e1] tracking-tight">RSVPs</h1>
           <p className="text-stone-500 text-sm mt-1">{total} email{total === 1 ? '' : 's'} on the waitlist</p>
@@ -64,8 +64,8 @@ export default function AdminRsvpsIndex({
 
       {rsvps.length > 0 ? (
         <>
-          <div className="ghost-border overflow-hidden">
-            <table className="w-full">
+          <div className="ghost-border overflow-x-auto">
+            <table className="w-full min-w-[560px]">
               <thead>
                 <tr className="border-b border-white/5 bg-[#1c1b1b]">
                   <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">Email</th>

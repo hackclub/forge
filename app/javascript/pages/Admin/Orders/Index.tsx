@@ -41,7 +41,7 @@ export default function AdminOrdersIndex({ orders, pagy, filters, counts }: Prop
   return (
     <>
       <Head title="Orders — Admin" />
-      <div className="p-12 max-w-[1400px] mx-auto">
+      <div className="p-5 md:p-12 max-w-[1400px] mx-auto">
         <h1 className="text-4xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-2">Orders</h1>
         <p className="text-stone-500 text-sm mb-8">Steel coin orders awaiting review and fulfillment.</p>
 
@@ -63,8 +63,8 @@ export default function AdminOrdersIndex({ orders, pagy, filters, counts }: Prop
 
         {orders.length > 0 ? (
           <>
-            <div className="ghost-border overflow-hidden">
-              <table className="w-full">
+            <div className="ghost-border overflow-x-auto">
+              <table className="w-full min-w-[720px]">
                 <thead>
                   <tr className="border-b border-white/5">
                     <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">Order</th>

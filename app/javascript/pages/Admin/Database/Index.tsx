@@ -61,7 +61,7 @@ export default function AdminDatabaseIndex({ tables }: { tables: string[] }) {
   }
 
   return (
-    <div className="p-12 max-w-[1600px] mx-auto">
+    <div className="p-5 md:p-12 max-w-[1600px] mx-auto">
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-4xl font-headline font-bold text-[#e5e2e1] tracking-tight">Database Console</h1>
       </div>

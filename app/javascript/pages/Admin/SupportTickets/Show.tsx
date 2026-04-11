@@ -35,7 +35,7 @@ export default function AdminSupportTicketsShow({
   const status = statusConfig[ticket.status]
 
   return (
-    <div className="p-12 max-w-4xl mx-auto">
+    <div className="p-5 md:p-12 max-w-4xl mx-auto">
       <Link
         href="/admin/support"
         className="inline-flex items-center gap-1.5 text-stone-500 hover:text-[#e5e2e1] text-xs font-bold uppercase tracking-[0.2em] transition-colors mb-6"

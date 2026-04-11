@@ -27,7 +27,7 @@ export default function AdminAuditLogShow({ entry }: { entry: AuditEntryDetail }
   const metadataKeys = Object.keys(entry.metadata)
 
   return (
-    <div className="p-12 max-w-4xl mx-auto">
+    <div className="p-5 md:p-12 max-w-4xl mx-auto">
       <Link href="/admin/audit_log" className="text-stone-500 text-sm hover:text-[#ffb595] transition-colors flex items-center gap-1 mb-8">
         <span className="material-symbols-outlined text-sm">arrow_back</span>
         Back to audit log
@@ -93,8 +93,8 @@ export default function AdminAuditLogShow({ entry }: { entry: AuditEntryDetail }
       {metadataKeys.length > 0 && (
         <div>
           <h2 className="text-xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-4">Details</h2>
-          <div className="ghost-border overflow-hidden">
-            <table className="w-full">
+          <div className="ghost-border overflow-x-auto">
+            <table className="w-full min-w-[480px]">
               <tbody>
                 {metadataKeys.map((key) => (
                   <tr key={key} className="border-b border-white/5">

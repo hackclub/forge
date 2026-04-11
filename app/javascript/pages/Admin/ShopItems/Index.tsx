@@ -66,8 +66,8 @@ export default function AdminShopItemsIndex({ items }: { items: ShopItem[] }) {
   return (
     <>
       <Head title="Shop Items — Admin" />
-      <div className="p-12 max-w-[1400px] mx-auto">
-        <div className="flex items-center justify-between mb-8">
+      <div className="p-5 md:p-12 max-w-[1400px] mx-auto">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
           <h1 className="text-4xl font-headline font-bold text-[#e5e2e1] tracking-tight">Shop Items</h1>
           <button
             onClick={() => (showForm ? reset() : setShowForm(true))}

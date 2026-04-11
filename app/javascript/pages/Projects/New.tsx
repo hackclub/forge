@@ -41,7 +41,7 @@ const TIERS: TierOption[] = [
 
 export default function ProjectsNew() {
   return (
-    <div className="p-12 max-w-4xl mx-auto">
+    <div className="p-5 md:p-12 max-w-4xl mx-auto">
       <h1 className="text-4xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-3">New Project</h1>
       <p className="text-stone-400 text-sm mb-10">Pick a tier. Each tier earns a different rate of steel coins per hour you log on the project.</p>
 

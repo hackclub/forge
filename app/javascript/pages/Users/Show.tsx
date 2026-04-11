@@ -97,8 +97,8 @@ export default function UsersShow({ user, stats, projects, kudos, can_give_kudos
   return (
     <>
       <Head title={`${user.display_name} — Forge`} />
-      <div className="p-12 max-w-6xl mx-auto space-y-10">
-        <section className="bg-[#1c1b1b] ghost-border p-8 flex items-center gap-6">
+      <div className="p-5 md:p-12 max-w-6xl mx-auto space-y-10">
+        <section className="bg-[#1c1b1b] ghost-border p-5 md:p-8 flex flex-col sm:flex-row items-center gap-6 text-center sm:text-left">
           <img
             src={user.avatar}
             alt={user.display_name}
