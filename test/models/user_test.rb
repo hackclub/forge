@@ -22,6 +22,7 @@
 #  permissions         :string           default([]), not null, is an Array
 #  postal_code         :string
 #  roles               :string           default([]), not null, is an Array
+#  shop_unlocked       :boolean          default(FALSE), not null
 #  state               :string
 #  timezone            :string           not null
 #  verification_status :string

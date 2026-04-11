@@ -90,7 +90,7 @@ class Admin::OrdersController < Admin::ApplicationController
       project_id: order.project_id,
       project_name: order.project&.name,
       shop_item_image: order.shop_item&.image_url,
-      needs_attention: order.shop_item? && (!order.user.has_built_project? || ungranted_projects(order.user).any?),
+      needs_attention: order.shop_item? && (!order.user.can_buy_shop_items? || ungranted_projects(order.user).any?),
       created_at: order.created_at.strftime("%b %d, %Y %H:%M")
     }
   end
@@ -129,7 +129,7 @@ class Admin::OrdersController < Admin::ApplicationController
     warnings = []
 
     if order.shop_item?
-      unless order.user.has_built_project?
+      unless order.user.can_buy_shop_items?
         warnings << {
           severity: "warning",
           message: "#{order.user.display_name} hasn't marked any project as built yet. They should redeem a direct grant and build it before spending coins on shop items."

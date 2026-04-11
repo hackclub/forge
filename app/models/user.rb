@@ -22,6 +22,7 @@
 #  permissions         :string           default([]), not null, is an Array
 #  postal_code         :string
 #  roles               :string           default([]), not null, is an Array
+#  shop_unlocked       :boolean          default(FALSE), not null
 #  state               :string
 #  timezone            :string           not null
 #  verification_status :string
@@ -154,6 +155,10 @@ class User < ApplicationRecord
 
   def has_built_project?
     projects.kept.where.not(built_at: nil).exists?
+  end
+
+  def can_buy_shop_items?
+    shop_unlocked? || has_built_project?
   end
 
   def grant_permission(perm)

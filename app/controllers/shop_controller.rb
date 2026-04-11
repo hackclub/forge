@@ -13,7 +13,7 @@ class ShopController < ApplicationController
         earned: current_user.coins_earned.round(2),
         spent: current_user.coins_spent.round(2)
       },
-      can_buy_shop_items: current_user.has_built_project?,
+      can_buy_shop_items: current_user.can_buy_shop_items?,
       eligible_projects: eligible_projects.map { |p|
         {
           id: p.id,
@@ -103,7 +103,7 @@ class ShopController < ApplicationController
       return
     end
 
-    unless current_user.has_built_project?
+    unless current_user.can_buy_shop_items?
       redirect_to shop_path, alert: "Mark a project as built before spending coins on shop items."
       return
     end

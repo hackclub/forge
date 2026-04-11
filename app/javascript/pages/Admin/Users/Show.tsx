@@ -361,6 +361,19 @@ export default function AdminUsersShow({
           </button>
         </div>
 
+        <div className="bg-[#1c1b1b] ghost-border p-5 mb-4 flex items-center justify-between gap-4">
+          <div>
+            <p className="text-[#e5e2e1] text-sm font-headline font-bold">Shop access</p>
+            <p className="text-stone-500 text-xs">Override the "must have a built project" gate. Enable to let this user buy shop items right away.</p>
+          </div>
+          <button
+            onClick={() => router.post(`/admin/users/${user.id}/toggle_shop_unlocked`)}
+            className={`relative inline-flex h-6 w-11 items-center transition-colors cursor-pointer shrink-0 ${user.shop_unlocked ? 'bg-[#ee671c]' : 'bg-stone-700'}`}
+          >
+            <span className={`inline-block h-4 w-4 transform bg-white transition-transform ${user.shop_unlocked ? 'translate-x-6' : 'translate-x-1'}`} />
+          </button>
+        </div>
+
         {coin_adjustments.length > 0 && (
           <div className="space-y-2">
             {coin_adjustments.map((adj) => (
