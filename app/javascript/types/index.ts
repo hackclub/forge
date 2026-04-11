@@ -114,6 +114,7 @@ export interface AdminUserDetail {
   ban_reason: string | null
   is_beta_approved: boolean
   shop_unlocked: boolean
+  referral_code: string | null
   is_discarded: boolean
   discarded_at: string | null
   created_at: string

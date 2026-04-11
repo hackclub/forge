@@ -15,6 +15,7 @@ const permissionLabels: Record<string, string> = {
   hackatime: 'Hackatime',
   news: 'News',
   orders: 'Orders',
+  referrals: 'Referrals',
   superadmin: 'Superadmin',
 }
 
@@ -409,6 +410,29 @@ export default function AdminUsersShow({
             className={`relative inline-flex h-6 w-11 items-center transition-colors cursor-pointer shrink-0 ${user.shop_unlocked ? 'bg-[#ee671c]' : 'bg-stone-700'}`}
           >
             <span className={`inline-block h-4 w-4 transform bg-white transition-transform ${user.shop_unlocked ? 'translate-x-6' : 'translate-x-1'}`} />
+          </button>
+        </div>
+
+        <div className="bg-[#1c1b1b] ghost-border p-5 mb-4 flex items-center justify-between gap-4">
+          <div className="min-w-0">
+            <p className="text-[#e5e2e1] text-sm font-headline font-bold">Referral code</p>
+            {user.referral_code ? (
+              <p className="text-stone-500 text-xs mt-1">Current code: <span className="font-mono text-[#ffb595]">{user.referral_code}</span></p>
+            ) : (
+              <p className="text-stone-500 text-xs mt-1">No code set yet.</p>
+            )}
+          </div>
+          <button
+            onClick={() => {
+              const msg = user.referral_code
+                ? `Regenerate ${user.display_name}'s referral code? The old one will stop working.`
+                : `Generate a referral code for ${user.display_name}?`
+              if (!confirm(msg)) return
+              router.post(`/admin/users/${user.id}/generate_referral_code`)
+            }}
+            className="ghost-border bg-[#1c1b1b] hover:bg-[#2a2a2a] text-stone-400 hover:text-[#e5e2e1] px-4 py-2 text-xs font-bold uppercase tracking-wider cursor-pointer shrink-0"
+          >
+            {user.referral_code ? 'Regenerate' : 'Generate'}
           </button>
         </div>
 
