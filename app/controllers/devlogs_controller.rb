@@ -40,14 +40,15 @@ class DevlogsController < ApplicationController
       return
     end
 
-    blob = ActiveStorage::Blob.create_and_upload!(io: file, filename: file.original_filename, content_type: file.content_type)
-    app_url = ENV.fetch("APP_URL") { Rails.env.development? ? "http://localhost:3000" : "https://forge.hackclub.com" }
-    blob_url = Rails.application.routes.url_helpers.rails_blob_url(blob, host: app_url)
+    cdn_url = HcCdnService.upload(io: file.tempfile, filename: file.original_filename, content_type: file.content_type)
 
-    cdn_url = HcCdnService.mirror(blob_url)
-    url = cdn_url.presence || blob_url
-
-    blob.purge_later if cdn_url.present?
+    if cdn_url.present?
+      url = cdn_url
+    else
+      blob = ActiveStorage::Blob.create_and_upload!(io: file, filename: file.original_filename, content_type: file.content_type)
+      app_url = ENV.fetch("APP_URL") { Rails.env.development? ? "http://localhost:3000" : "https://forge.hackclub.com" }
+      url = Rails.application.routes.url_helpers.rails_blob_url(blob, host: app_url)
+    end
 
     render json: { url: url, markdown: "![#{file.original_filename}](#{url})" }
   end
