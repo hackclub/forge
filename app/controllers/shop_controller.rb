@@ -6,8 +6,9 @@ class ShopController < ApplicationController
 
     orders = current_user.orders.includes(:project, :shop_item).order(created_at: :desc)
     user_region = current_user.region || "rest_of_world"
-    items = ShopItem.enabled.includes(:shop_item_regions).order(:coin_cost, :name)
+    items = ShopItem.enabled.includes(:shop_item_regions)
                     .select { |i| i.enabled_for_region?(user_region) }
+                    .sort_by { |i| [ i.coin_cost_for_region(user_region), i.name ] }
 
     render inertia: "Shop/Index", props: {
       regions: HasRegion::REGIONS,
