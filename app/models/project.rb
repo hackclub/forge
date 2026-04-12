@@ -60,7 +60,7 @@ class Project < ApplicationRecord
   has_many :kudos, dependent: :destroy
   has_one_attached :cover_image
 
-  after_commit :sync_to_airtable, on: [ :create, :update ], if: -> { approved? || build_approved? }
+  after_commit :sync_to_airtable, on: [ :create, :update ], if: -> { build_approved? }
   after_update_commit :process_cover_image_upload, if: -> { cover_image.attached? && cover_image_url.blank? }
 
   enum :status, { draft: 0, pending: 1, approved: 2, returned: 3, rejected: 4, build_pending: 5, build_approved: 6 }
