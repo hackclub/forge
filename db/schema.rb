@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_11_124432) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_12_062558) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -157,6 +157,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_11_124432) do
 
   create_table "orders", force: :cascade do |t|
     t.decimal "amount_usd", precision: 10, scale: 2
+    t.bigint "assigned_to_id"
     t.decimal "coin_cost", precision: 10, scale: 2, null: false
     t.datetime "created_at", null: false
     t.text "description"
@@ -165,6 +166,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_11_124432) do
     t.string "kind", null: false
     t.bigint "project_id"
     t.integer "quantity", default: 1, null: false
+    t.string "region"
     t.text "review_notes"
     t.datetime "reviewed_at"
     t.bigint "reviewer_id"
@@ -172,8 +174,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_11_124432) do
     t.integer "status", default: 0, null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
+    t.index ["assigned_to_id"], name: "index_orders_on_assigned_to_id"
     t.index ["kind"], name: "index_orders_on_kind"
     t.index ["project_id"], name: "index_orders_on_project_id"
+    t.index ["region"], name: "index_orders_on_region"
     t.index ["reviewer_id"], name: "index_orders_on_reviewer_id"
     t.index ["shop_item_id"], name: "index_orders_on_shop_item_id"
     t.index ["status"], name: "index_orders_on_status"
@@ -265,6 +269,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_11_124432) do
     t.index ["project_id"], name: "index_ships_on_project_id"
     t.index ["reviewer_id"], name: "index_ships_on_reviewer_id"
     t.index ["status"], name: "index_ships_on_status"
+  end
+
+  create_table "shop_item_regions", force: :cascade do |t|
+    t.decimal "coin_cost", precision: 10, scale: 2, null: false
+    t.datetime "created_at", null: false
+    t.boolean "enabled", default: true, null: false
+    t.string "region", null: false
+    t.bigint "shop_item_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["region"], name: "index_shop_item_regions_on_region"
+    t.index ["shop_item_id", "region"], name: "index_shop_item_regions_on_shop_item_id_and_region", unique: true
+    t.index ["shop_item_id"], name: "index_shop_item_regions_on_shop_item_id"
   end
 
   create_table "shop_items", force: :cascade do |t|
@@ -447,6 +463,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_11_124432) do
     t.string "display_name", null: false
     t.string "email", null: false
     t.string "first_name"
+    t.string "fulfillment_regions", default: [], null: false, array: true
     t.string "github_username"
     t.string "hca_id", null: false
     t.text "hca_token"
@@ -457,6 +474,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_11_124432) do
     t.string "permissions", default: [], null: false, array: true
     t.string "postal_code"
     t.string "referral_code"
+    t.string "region", default: "rest_of_world"
     t.string "roles", default: [], null: false, array: true
     t.boolean "shop_unlocked", default: false, null: false
     t.string "slack_id", null: false
@@ -491,6 +509,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_11_124432) do
   add_foreign_key "orders", "projects"
   add_foreign_key "orders", "shop_items"
   add_foreign_key "orders", "users"
+  add_foreign_key "orders", "users", column: "assigned_to_id"
   add_foreign_key "orders", "users", column: "reviewer_id"
   add_foreign_key "projects", "users"
   add_foreign_key "projects", "users", column: "reviewer_id"
@@ -501,6 +520,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_11_124432) do
   add_foreign_key "referrals", "users", column: "referrer_id"
   add_foreign_key "ships", "projects"
   add_foreign_key "ships", "users", column: "reviewer_id"
+  add_foreign_key "shop_item_regions", "shop_items"
   add_foreign_key "solid_queue_blocked_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_claimed_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_failed_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade

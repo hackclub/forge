@@ -14,6 +14,7 @@
 #  display_name        :string           not null
 #  email               :string           not null
 #  first_name          :string
+#  fulfillment_regions :string           default([]), not null, is an Array
 #  github_username     :string
 #  hca_token           :text
 #  is_adult            :boolean          default(FALSE), not null
@@ -23,6 +24,7 @@
 #  permissions         :string           default([]), not null, is an Array
 #  postal_code         :string
 #  referral_code       :string
+#  region              :string           default("rest_of_world")
 #  roles               :string           default([]), not null, is an Array
 #  shop_unlocked       :boolean          default(FALSE), not null
 #  state               :string
@@ -40,6 +42,7 @@
 #
 class User < ApplicationRecord
   include Discardable
+  include HasRegion
   include PgSearch::Model
 
   has_paper_trail
@@ -69,6 +72,7 @@ class User < ApplicationRecord
   has_many :authored_kudos, class_name: "Kudo", foreign_key: :author_id, dependent: :destroy, inverse_of: :author
   has_many :audit_events, class_name: "AuditEvent", foreign_key: :actor_id, dependent: :nullify, inverse_of: :actor
   has_many :orders, dependent: :destroy
+  has_many :assigned_orders, class_name: "Order", foreign_key: :assigned_to_id, dependent: :nullify, inverse_of: :assigned_to
   has_many :coin_adjustments, dependent: :destroy
   has_many :referrals_made, class_name: "Referral", foreign_key: :referrer_id, dependent: :destroy, inverse_of: :referrer
   has_one :referral_received, class_name: "Referral", foreign_key: :referred_id, dependent: :destroy, inverse_of: :referred
@@ -82,6 +86,7 @@ class User < ApplicationRecord
   validates :hca_id, presence: true
   validates :roles, presence: true
   validates :is_banned, inclusion: { in: [ true, false ] }
+  validates :region, inclusion: { in: REGION_KEYS }, allow_nil: true
 
   def has_role?(role)
     roles.include?(role.to_s)

@@ -38,7 +38,8 @@ class Admin::UsersController < Admin::ApplicationController
       hackatime: hackatime ? serialize_hackatime(hackatime) : nil,
       can: { destroy: policy(@user).destroy?, restore: policy(@user).restore? },
       available_roles: %w[user admin reviewer support fulfillment],
-      available_permissions: User::AVAILABLE_PERMISSIONS
+      available_permissions: User::AVAILABLE_PERMISSIONS,
+      available_regions: HasRegion::REGIONS
     }
   end
 
@@ -101,6 +102,15 @@ class Admin::UsersController < Admin::ApplicationController
 
     audit!("user.referral_code_generated", target: @user, metadata: { referral_code: @user.referral_code })
     redirect_to admin_user_path(@user), notice: "Referral code generated: #{@user.referral_code}"
+  end
+
+  def update_fulfillment_regions
+    @user = User.find(params[:id])
+    authorize @user, :update?
+    regions = Array(params[:fulfillment_regions]).select(&:present?) & HasRegion::REGION_KEYS
+    @user.update!(fulfillment_regions: regions)
+    audit!("user.fulfillment_regions_updated", target: @user, metadata: { regions: regions })
+    redirect_to admin_user_path(@user), notice: "Fulfillment regions updated."
   end
 
   def adjust_coins
@@ -270,6 +280,7 @@ class Admin::UsersController < Admin::ApplicationController
       is_beta_approved: user.is_beta_approved,
       shop_unlocked: user.shop_unlocked,
       referral_code: user.referral_code,
+      fulfillment_regions: user.fulfillment_regions,
       is_discarded: user.discarded?,
       discarded_at: user.discarded_at&.strftime("%b %d, %Y"),
       created_at: user.created_at.strftime("%B %d, %Y")

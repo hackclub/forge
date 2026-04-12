@@ -15,9 +15,13 @@
 #  updated_at          :datetime         not null
 #
 class ShopItem < ApplicationRecord
+  include HasRegion
+
   has_paper_trail
 
   has_many :orders, dependent: :nullify
+  has_many :shop_item_regions, dependent: :destroy
+  accepts_nested_attributes_for :shop_item_regions, allow_destroy: true
 
   validates :name, presence: true
   validates :coin_cost, numericality: { greater_than: 0 }
@@ -25,6 +29,15 @@ class ShopItem < ApplicationRecord
 
   scope :enabled, -> { where(enabled: true) }
   scope :sorted, -> { order(:name) }
+
+  def coin_cost_for_region(region)
+    shop_item_regions.find { |sir| sir.region == region }&.coin_cost || coin_cost
+  end
+
+  def enabled_for_region?(region)
+    sir = shop_item_regions.find { |s| s.region == region }
+    sir ? sir.enabled : enabled
+  end
 
   after_create_commit :notify_slack_created
   after_update_commit :notify_slack_price_changed

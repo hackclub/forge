@@ -125,6 +125,7 @@ Rails.application.routes.draw do
           get :coin_history
           post :toggle_shop_unlocked
           post :generate_referral_code
+          patch :update_fulfillment_regions
         end
       end
       resources :feature_flags, only: [ :index, :create, :destroy ] do
@@ -142,6 +143,7 @@ Rails.application.routes.draw do
           post :approve
           post :reject
           post :fulfill
+          post :reassign
         end
       end
       resources :shop_items, only: [ :index, :create, :update, :destroy ]
@@ -202,6 +204,7 @@ Rails.application.routes.draw do
   get "referrals" => "referrals#index", as: :referrals
   get "shop" => "shop#index", as: :shop
   post "shop/orders" => "shop#create", as: :shop_orders
+  patch "shop/region" => "shop#update_region", as: :shop_region
   get "users/:id" => "users#show", as: :user
   post "users/:id/kudos" => "users#add_kudo", as: :user_kudos
   delete "users/:id/kudos/:kudo_id" => "users#destroy_kudo", as: :user_kudo

@@ -1,31 +1,46 @@
 class Admin::OrdersController < Admin::ApplicationController
   before_action :require_orders_permission!
-  before_action :set_order, only: [ :show, :approve, :reject, :fulfill ]
+  before_action :set_order, only: [ :show, :approve, :reject, :fulfill, :reassign ]
 
   def index
-    scope = Order.includes(:user, :project, :shop_item, :reviewer).order(created_at: :desc)
+    scope = Order.includes(:user, :project, :shop_item, :reviewer, :assigned_to).order(created_at: :desc)
     scope = scope.where(status: params[:status]) if params[:status].present?
     scope = scope.where(kind: params[:kind]) if params[:kind].present?
+    scope = scope.where(region: params[:region]) if params[:region].present?
+    if current_user.fulfillment? && !params.key?(:assigned_to)
+      scope = scope.where(assigned_to_id: current_user.id)
+    elsif params[:assigned_to] == "me"
+      scope = scope.where(assigned_to_id: current_user.id)
+    end
     @pagy, @orders = pagy(scope, limit: 50)
 
     render inertia: "Admin/Orders/Index", props: {
       orders: @orders.map { |o| serialize_row(o) },
       pagy: pagy_props(@pagy),
-      filters: { status: params[:status].to_s, kind: params[:kind].to_s },
+      filters: {
+        status: params[:status].to_s,
+        kind: params[:kind].to_s,
+        region: params[:region].to_s,
+        assigned_to: (current_user.fulfillment? && !params.key?(:assigned_to)) ? "me" : params[:assigned_to].to_s
+      },
       counts: {
         all: Order.count,
         pending: Order.pending.count,
         approved: Order.approved.count,
         fulfilled: Order.fulfilled.count,
         rejected: Order.rejected.count
-      }
+      },
+      regions: HasRegion::REGIONS,
+      fulfillment_users: fulfillment_users_list
     }
   end
 
   def show
     render inertia: "Admin/Orders/Show", props: {
       order: serialize_detail(@order),
-      warnings: build_warnings(@order)
+      warnings: build_warnings(@order),
+      regions: HasRegion::REGIONS,
+      fulfillment_users: fulfillment_users_list
     }
   end
 
@@ -66,6 +81,20 @@ class Admin::OrdersController < Admin::ApplicationController
     redirect_to admin_order_path(@order), notice: "Order marked fulfilled."
   end
 
+  def reassign
+    assignee_id = params[:assigned_to_id].presence
+    if assignee_id
+      assignee = User.find(assignee_id)
+      @order.update!(assigned_to: assignee)
+      audit!("order.reassigned", target: @order, metadata: { assigned_to_id: assignee.id, assigned_to_name: assignee.display_name })
+      redirect_to admin_order_path(@order), notice: "Order reassigned to #{assignee.display_name}."
+    else
+      @order.update!(assigned_to: nil)
+      audit!("order.unassigned", target: @order)
+      redirect_to admin_order_path(@order), notice: "Order unassigned."
+    end
+  end
+
   private
 
   def set_order
@@ -91,6 +120,9 @@ class Admin::OrdersController < Admin::ApplicationController
       project_name: order.project&.name,
       shop_item_image: order.shop_item&.image_url,
       needs_attention: order.shop_item? && (!order.user.can_buy_shop_items? || ungranted_projects(order.user).any?),
+      region: order.region,
+      assigned_to_id: order.assigned_to_id,
+      assigned_to_name: order.assigned_to&.display_name,
       created_at: order.created_at.strftime("%b %d, %Y %H:%M")
     }
   end
@@ -118,6 +150,9 @@ class Admin::OrdersController < Admin::ApplicationController
       shop_item_id: order.shop_item_id,
       shop_item_name: order.shop_item&.name,
       shop_item_image: order.shop_item&.image_url,
+      region: order.region,
+      assigned_to_id: order.assigned_to_id,
+      assigned_to_name: order.assigned_to&.display_name,
       reviewer_name: order.reviewer&.display_name,
       reviewed_at: order.reviewed_at&.strftime("%b %d, %Y %H:%M"),
       fulfilled_at: order.fulfilled_at&.strftime("%b %d, %Y %H:%M"),
@@ -150,5 +185,11 @@ class Admin::OrdersController < Admin::ApplicationController
 
   def ungranted_projects(user)
     user.projects.kept.where(status: %i[approved build_pending build_approved]).reject(&:has_fulfilled_direct_grant?)
+  end
+
+  def fulfillment_users_list
+    User.where("'fulfillment' = ANY(roles)").order(:display_name).map { |u|
+      { id: u.id, display_name: u.display_name }
+    }
   end
 end

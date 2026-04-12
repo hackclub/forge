@@ -58,6 +58,8 @@ interface Props {
   orders: Order[]
   transactions: Transaction[]
   direct_grant_ratio: number
+  regions: Record<string, string>
+  user_region: string
 }
 
 const STATUS_STYLES: Record<Order['status'], string> = {
@@ -67,7 +69,7 @@ const STATUS_STYLES: Record<Order['status'], string> = {
   rejected: 'bg-red-500/15 text-red-400',
 }
 
-export default function ShopIndex({ balance, can_buy_shop_items, eligible_projects, shop_items, orders, transactions, direct_grant_ratio }: Props) {
+export default function ShopIndex({ balance, can_buy_shop_items, eligible_projects, shop_items, orders, transactions, direct_grant_ratio, regions, user_region }: Props) {
   const [showDirectForm, setShowDirectForm] = useState(false)
   const [showOrders, setShowOrders] = useState(false)
   const [showTransactions, setShowTransactions] = useState(false)
@@ -136,6 +138,22 @@ export default function ShopIndex({ balance, can_buy_shop_items, eligible_projec
               <p>Spent {balance.spent}c</p>
             </div>
           </div>
+        </section>
+
+        <section className="bg-[#1c1b1b] ghost-border p-5 flex items-center justify-between gap-4 flex-wrap">
+          <div className="min-w-0">
+            <p className="font-headline font-bold text-[#e5e2e1]">Your region</p>
+            <p className="text-stone-500 text-xs">Prices and availability vary by region.</p>
+          </div>
+          <select
+            value={user_region}
+            onChange={(e) => router.patch('/shop/region', { region: e.target.value }, { preserveState: false })}
+            className="bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ee671c]/30 cursor-pointer"
+          >
+            {Object.entries(regions).map(([key, label]) => (
+              <option key={key} value={key}>{label}</option>
+            ))}
+          </select>
         </section>
 
         <section className="bg-[#1c1b1b] ghost-border p-5 flex items-center justify-between gap-4 flex-wrap">
@@ -231,7 +249,7 @@ export default function ShopIndex({ balance, can_buy_shop_items, eligible_projec
                 const max = item.max_quantity ?? 999
                 const showQuantity = max > 1
                 return (
-                  <div key={item.id} className="bg-[#1c1b1b] ghost-border flex flex-col min-w-0 overflow-hidden group relative hover:z-10">
+                  <div key={item.id} className="bg-[#1c1b1b] ghost-border flex flex-col min-w-0 overflow-hidden">
                     <div className="aspect-square bg-[#0e0e0e] flex items-center justify-center">
                       {item.image_url ? (
                         <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
@@ -241,9 +259,7 @@ export default function ShopIndex({ balance, can_buy_shop_items, eligible_projec
                     </div>
                     <div className="p-4 flex-1 flex flex-col">
                       <h3 className="font-headline font-bold text-[#e5e2e1] tracking-tight mb-1 break-words text-sm">{item.name}</h3>
-                      {item.description && (
-                        <p className="text-stone-400 text-sm leading-relaxed mb-3 line-clamp-4 group-hover:line-clamp-none break-words whitespace-pre-line">{item.description}</p>
-                      )}
+                      <ItemDescription description={item.description} />
                       <div className="mt-auto space-y-2">
                         <p className="text-[#ee671c] font-headline font-bold text-sm">
                           {item.coin_cost}c{qty > 1 ? ` × ${qty} = ${totalCost}c` : ''}
@@ -373,5 +389,24 @@ export default function ShopIndex({ balance, can_buy_shop_items, eligible_projec
         </section>
       </div>
     </>
+  )
+}
+
+function ItemDescription({ description }: { description: string | null }) {
+  const [expanded, setExpanded] = useState(false)
+  if (!description) return null
+
+  return (
+    <div className="mb-3">
+      <p className={`text-stone-400 text-sm leading-relaxed break-words whitespace-pre-line ${expanded ? '' : 'line-clamp-3'}`}>
+        {description}
+      </p>
+      <button
+        onClick={() => setExpanded((v) => !v)}
+        className="text-[#ffb595] hover:text-[#ee671c] text-xs mt-1 cursor-pointer"
+      >
+        {expanded ? 'Show less' : 'See more'}
+      </button>
+    </div>
   )
 }

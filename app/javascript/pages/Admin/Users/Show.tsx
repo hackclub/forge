@@ -53,6 +53,7 @@ export default function AdminUsersShow({
   can,
   available_roles,
   available_permissions,
+  available_regions,
 }: {
   user: AdminUserDetail
   projects: { id: number; name: string; ships_count: number; created_at: string }[]
@@ -64,6 +65,7 @@ export default function AdminUsersShow({
   can: { destroy: boolean; restore: boolean }
   available_roles: string[]
   available_permissions: string[]
+  available_regions: Record<string, string>
 }) {
   const currentUser = usePage<SharedProps>().props.auth.user
   const isSuperadmin = !!currentUser?.is_superadmin
@@ -435,6 +437,36 @@ export default function AdminUsersShow({
             {user.referral_code ? 'Regenerate' : 'Generate'}
           </button>
         </div>
+
+        {user.roles.includes('fulfillment') && (
+          <div className="bg-[#1c1b1b] ghost-border p-5 mb-4">
+            <p className="text-[#e5e2e1] text-sm font-headline font-bold mb-2">Fulfillment Regions</p>
+            <p className="text-stone-500 text-xs mb-3">Regions this fulfillment team member handles. Orders from matching regions auto-assign to them.</p>
+            <div className="grid grid-cols-2 gap-2">
+              {Object.entries(available_regions).map(([key, label]) => {
+                const active = user.fulfillment_regions.includes(key)
+                return (
+                  <button
+                    key={key}
+                    onClick={() => {
+                      const newRegions = active
+                        ? user.fulfillment_regions.filter((r) => r !== key)
+                        : [...user.fulfillment_regions, key]
+                      router.patch(`/admin/users/${user.id}/update_fulfillment_regions`, { fulfillment_regions: newRegions })
+                    }}
+                    className={`px-3 py-2 text-xs font-bold uppercase tracking-[0.15em] transition-colors cursor-pointer ${
+                      active
+                        ? 'signature-smolder text-[#4c1a00]'
+                        : 'ghost-border bg-[#0e0e0e] text-stone-500 hover:text-stone-300 hover:bg-[#2a2a2a]'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )}
 
         {coin_adjustments.length > 0 && (
           <div className="space-y-2">

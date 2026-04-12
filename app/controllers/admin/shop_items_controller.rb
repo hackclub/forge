@@ -2,10 +2,11 @@ class Admin::ShopItemsController < Admin::ApplicationController
   before_action :require_orders_permission!
 
   def index
-    items = ShopItem.order(:name)
+    items = ShopItem.includes(:shop_item_regions).order(:name)
 
     render inertia: "Admin/ShopItems/Index", props: {
-      items: items.map { |i| serialize_item(i) }
+      items: items.map { |i| serialize_item(i) },
+      regions: HasRegion::REGIONS
     }
   end
 
@@ -45,7 +46,11 @@ class Admin::ShopItemsController < Admin::ApplicationController
   end
 
   def item_params
-    params.expect(shop_item: [ :name, :description, :image_url, :coin_cost, :enabled, :internal_order_link, :internal_price_usd, :max_quantity ])
+    params.require(:shop_item).permit(
+      :name, :description, :image_url, :coin_cost, :enabled,
+      :internal_order_link, :internal_price_usd, :max_quantity,
+      shop_item_regions_attributes: [ :id, :region, :coin_cost, :enabled, :_destroy ]
+    )
   end
 
   def serialize_item(item)
@@ -58,7 +63,10 @@ class Admin::ShopItemsController < Admin::ApplicationController
       enabled: item.enabled,
       internal_order_link: item.internal_order_link,
       internal_price_usd: item.internal_price_usd&.to_f,
-      max_quantity: item.max_quantity
+      max_quantity: item.max_quantity,
+      region_pricing: item.shop_item_regions.map { |sir|
+        { id: sir.id, region: sir.region, coin_cost: sir.coin_cost.to_f, enabled: sir.enabled }
+      }
     }
   end
 end
