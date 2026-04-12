@@ -231,6 +231,7 @@ Rails.application.routes.draw do
       delete "kudos/:kudo_id" => "projects#destroy_kudo", as: :destroy_kudo
     end
     resources :devlogs, only: [ :create, :update, :destroy ]
+    post "devlog_image" => "devlogs#upload_image", as: :devlog_image
   end
 
   get "docs" => "markdown#show", as: :docs

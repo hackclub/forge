@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { router, Link, useForm, usePage } from '@inertiajs/react'
 import Markdown from 'react-markdown'
 import rehypeRaw from 'rehype-raw'
@@ -176,6 +176,54 @@ export default function ProjectsShow({
   function deleteDevlog(id: number) {
     if (confirm('Delete this devlog entry?')) {
       router.delete(`/projects/${project.id}/devlogs/${id}`)
+    }
+  }
+
+  const contentRef = useRef('')
+
+  function handleImagePaste(
+    e: React.ClipboardEvent<HTMLTextAreaElement>,
+    setContent: (val: string) => void,
+    currentContent: string,
+  ) {
+    const items = e.clipboardData?.items
+    if (!items) return
+
+    for (const item of Array.from(items)) {
+      if (!item.type.startsWith('image/')) continue
+      e.preventDefault()
+      const file = item.getAsFile()
+      if (!file) return
+
+      const textarea = e.currentTarget
+      const start = textarea.selectionStart
+      const placeholder = `![Uploading ${file.name}...]()`
+      const before = currentContent.slice(0, start)
+      const after = currentContent.slice(textarea.selectionEnd)
+      const withPlaceholder = before + placeholder + after
+      setContent(withPlaceholder)
+      contentRef.current = withPlaceholder
+
+      const formData = new FormData()
+      formData.append('file', file)
+      const csrfToken = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content
+      fetch(`/projects/${project.id}/devlog_image`, {
+        method: 'POST',
+        headers: csrfToken ? { 'X-CSRF-Token': csrfToken } : {},
+        body: formData,
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          const updated = contentRef.current.replace(placeholder, data.markdown)
+          contentRef.current = updated
+          setContent(updated)
+        })
+        .catch(() => {
+          const updated = contentRef.current.replace(placeholder, `![upload failed]()`)
+          contentRef.current = updated
+          setContent(updated)
+        })
+      return
     }
   }
 
@@ -553,9 +601,10 @@ export default function ProjectsShow({
                     <textarea
                       value={devlogForm.data.content}
                       onChange={(e) => devlogForm.setData('content', e.target.value)}
+                      onPaste={(e) => handleImagePaste(e, (v) => devlogForm.setData('content', v), devlogForm.data.content)}
                       rows={8}
                       className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 text-sm resize-y font-mono"
-                      placeholder="What did you work on? Include images, progress, challenges..."
+                      placeholder="What did you work on? Paste images directly..."
                       required
                     />
                   </div>
@@ -607,6 +656,7 @@ export default function ProjectsShow({
                             <textarea
                               value={editDevlogForm.data.content}
                               onChange={(e) => editDevlogForm.setData('content', e.target.value)}
+                              onPaste={(e) => handleImagePaste(e, (v) => editDevlogForm.setData('content', v), editDevlogForm.data.content)}
                               rows={8}
                               className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 text-sm resize-y font-mono"
                               required

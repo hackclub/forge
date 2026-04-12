@@ -31,6 +31,27 @@ class DevlogsController < ApplicationController
     redirect_to @project, notice: "Devlog entry removed."
   end
 
+  def upload_image
+    authorize @project, :update?
+
+    file = params[:file]
+    unless file.respond_to?(:read)
+      render json: { error: "No file uploaded." }, status: :unprocessable_entity
+      return
+    end
+
+    blob = ActiveStorage::Blob.create_and_upload!(io: file, filename: file.original_filename, content_type: file.content_type)
+    app_url = ENV.fetch("APP_URL") { Rails.env.development? ? "http://localhost:3000" : "https://forge.hackclub.com" }
+    blob_url = Rails.application.routes.url_helpers.rails_blob_url(blob, host: app_url)
+
+    cdn_url = HcCdnService.mirror(blob_url)
+    url = cdn_url.presence || blob_url
+
+    blob.purge_later if cdn_url.present?
+
+    render json: { url: url, markdown: "![#{file.original_filename}](#{url})" }
+  end
+
   private
 
   def set_project
