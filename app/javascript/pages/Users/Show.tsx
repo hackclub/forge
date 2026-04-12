@@ -84,11 +84,11 @@ function StatTile({ label, value, icon }: { label: string; value: string | numbe
   )
 }
 
-const GIT_PROVIDERS: Record<string, { label: string; baseUrl: string; hasAvatar: boolean }> = {
-  github: { label: 'GitHub', baseUrl: 'https://github.com', hasAvatar: true },
-  gitlab: { label: 'GitLab', baseUrl: 'https://gitlab.com', hasAvatar: false },
-  codeberg: { label: 'Codeberg', baseUrl: 'https://codeberg.org', hasAvatar: false },
-  gitea: { label: 'Gitea', baseUrl: '', hasAvatar: false },
+const GIT_PROVIDERS: Record<string, { label: string; baseUrl: string }> = {
+  github: { label: 'GitHub', baseUrl: 'https://github.com' },
+  gitlab: { label: 'GitLab', baseUrl: 'https://gitlab.com' },
+  codeberg: { label: 'Codeberg', baseUrl: 'https://codeberg.org' },
+  gitea: { label: 'Gitea', baseUrl: '' },
 }
 
 function gitProfileUrl(user: ProfileUser): string {
@@ -98,8 +98,11 @@ function gitProfileUrl(user: ProfileUser): string {
 }
 
 function gitAvatarUrl(user: ProfileUser): string | null {
-  if (user.git_provider === 'github') return `https://github.com/${user.github_username}.png?size=120`
-  return null
+  const base = user.git_provider === 'gitea' && user.git_instance_url
+    ? user.git_instance_url.replace(/\/+$/, '')
+    : GIT_PROVIDERS[user.git_provider]?.baseUrl
+  if (!base) return null
+  return `${base}/${user.github_username}.png?size=120`
 }
 
 export default function UsersShow({ user, stats, projects, kudos, can_give_kudos, can_edit_profile }: Props) {
