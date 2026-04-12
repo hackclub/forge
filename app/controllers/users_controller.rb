@@ -14,7 +14,9 @@ class UsersController < ApplicationController
         display_name: user.display_name,
         avatar: user.avatar,
         joined_at: user.created_at.strftime("%B %Y"),
-        github_username: user.github_username
+        github_username: user.github_username,
+        git_provider: user.git_provider || "github",
+        git_instance_url: user.git_instance_url
       },
       can_edit_profile: current_user.present? && current_user.id == user.id,
       stats: {
@@ -84,6 +86,8 @@ class UsersController < ApplicationController
     redirect_to user_path(target), notice: "Kudos deleted."
   end
 
+  GIT_PROVIDERS = %w[github gitlab codeberg gitea].freeze
+
   def update_github
     unless current_user&.id == params[:id].to_i
       redirect_to user_path(params[:id]), alert: "You can only edit your own profile."
@@ -91,12 +95,29 @@ class UsersController < ApplicationController
     end
 
     username = params[:github_username].to_s.strip
-    if username.present? && !username.match?(/\A[a-zA-Z0-9](?:[a-zA-Z0-9]|-(?=[a-zA-Z0-9])){0,38}\z/)
-      redirect_to user_path(current_user), alert: "Invalid GitHub username."
+    provider = params[:git_provider].to_s.strip.presence || "github"
+    instance_url = params[:git_instance_url].to_s.strip.presence
+
+    unless GIT_PROVIDERS.include?(provider)
+      redirect_to user_path(current_user), alert: "Invalid git provider."
       return
     end
 
-    current_user.update!(github_username: username.presence)
-    redirect_to user_path(current_user), notice: "GitHub profile updated."
+    if username.present? && !username.match?(/\A[a-zA-Z0-9](?:[a-zA-Z0-9]|[-_.](?=[a-zA-Z0-9])){0,38}\z/)
+      redirect_to user_path(current_user), alert: "Invalid username."
+      return
+    end
+
+    if provider == "gitea" && instance_url.present? && !instance_url.match?(/\Ahttps?:\/\/\S+\z/i)
+      redirect_to user_path(current_user), alert: "Invalid Gitea instance URL."
+      return
+    end
+
+    current_user.update!(
+      github_username: username.presence,
+      git_provider: username.present? ? provider : "github",
+      git_instance_url: provider == "gitea" ? instance_url : nil
+    )
+    redirect_to user_path(current_user), notice: "Git profile updated."
   end
 end

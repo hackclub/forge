@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_12_062558) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_12_121418) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -464,6 +464,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_12_062558) do
     t.string "email", null: false
     t.string "first_name"
     t.string "fulfillment_regions", default: [], null: false, array: true
+    t.string "git_instance_url"
+    t.string "git_provider", default: "github"
     t.string "github_username"
     t.string "hca_id", null: false
     t.text "hca_token"
