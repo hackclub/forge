@@ -35,7 +35,8 @@ class SlackShopUpdateJob < ApplicationJob
     end
     lines << "*#{item.name}*"
     lines << item.description if item.description.present?
-    lines << "Cost: #{format_cost(item.coin_cost)} Coins"
+    lines << "Base cost: #{format_cost(item.coin_cost)} Coins"
+    lines << region_pricing_line(item) if item.shop_item_regions.any?
 
     blocks = [
       { type: "section", text: { type: "mrkdwn", text: lines.join("\n") } }
@@ -44,6 +45,14 @@ class SlackShopUpdateJob < ApplicationJob
       blocks << { type: "image", image_url: item.image_url, alt_text: item.name }
     end
     blocks
+  end
+
+  def region_pricing_line(item)
+    parts = item.shop_item_regions.sort_by { |r| HasRegion::REGION_KEYS.index(r.region) || 99 }.map { |r|
+      status = r.enabled ? "#{format_cost(r.coin_cost)}c" : "unavailable"
+      "#{HasRegion::REGIONS[r.region]}: #{status}"
+    }
+    parts.join(" · ")
   end
 
   def format_cost(cost)
