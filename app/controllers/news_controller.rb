@@ -7,7 +7,7 @@ class NewsController < ApplicationController
         {
           id: post.id,
           title: post.title,
-          body: post.body,
+          body_html: helpers.render_markdown(post.body),
           published_at: post.published_at.strftime("%b %d, %Y"),
           author_name: post.author.display_name
         }

@@ -231,7 +231,7 @@ export default function ShopIndex({ balance, can_buy_shop_items, eligible_projec
                 const max = item.max_quantity ?? 999
                 const showQuantity = max > 1
                 return (
-                  <div key={item.id} className="bg-[#1c1b1b] ghost-border flex flex-col min-w-0 overflow-hidden">
+                  <div key={item.id} className="bg-[#1c1b1b] ghost-border flex flex-col min-w-0 overflow-hidden group relative hover:z-10">
                     <div className="aspect-square bg-[#0e0e0e] flex items-center justify-center">
                       {item.image_url ? (
                         <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
@@ -242,7 +242,7 @@ export default function ShopIndex({ balance, can_buy_shop_items, eligible_projec
                     <div className="p-4 flex-1 flex flex-col">
                       <h3 className="font-headline font-bold text-[#e5e2e1] tracking-tight mb-1 break-words text-sm">{item.name}</h3>
                       {item.description && (
-                        <p className="text-stone-400 text-sm leading-relaxed mb-3 line-clamp-4 break-words">{item.description}</p>
+                        <p className="text-stone-400 text-sm leading-relaxed mb-3 line-clamp-4 group-hover:line-clamp-none break-words whitespace-pre-line">{item.description}</p>
                       )}
                       <div className="mt-auto space-y-2">
                         <p className="text-[#ee671c] font-headline font-bold text-sm">

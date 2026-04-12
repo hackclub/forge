@@ -15,7 +15,7 @@ export type FlashData = Record<string, string>
 export interface NewsPostSummary {
   id: number
   title: string
-  body: string
+  body_html: string
   published_at: string
   author_name: string
 }

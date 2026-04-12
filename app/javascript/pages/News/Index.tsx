@@ -33,9 +33,10 @@ export default function NewsIndex({ posts }: { posts: NewsPostSummary[] }) {
                 <h2 className="text-2xl font-headline font-bold text-[#e5e2e1] group-hover:text-[#ffb595] tracking-tight mb-4 transition-colors break-words">
                   {post.title}
                 </h2>
-                <p className="text-stone-400 text-sm leading-relaxed line-clamp-3 break-words [overflow-wrap:anywhere]">
-                  {post.body}
-                </p>
+                <div
+                  className="markdown-content text-stone-400 text-sm leading-relaxed line-clamp-3 break-words [overflow-wrap:anywhere] !max-w-none !mx-0 !my-0 !px-0"
+                  dangerouslySetInnerHTML={{ __html: post.body_html }}
+                />
               </Link>
             ))}
           </div>

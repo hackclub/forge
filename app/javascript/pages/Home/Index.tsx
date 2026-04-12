@@ -224,9 +224,10 @@ export default function HomeIndex({ user, projects, news_posts, staff_picks }: P
                   <h3 className="font-headline font-bold text-lg tracking-tight text-[#e5e2e1] group-hover:text-[#ffb595] transition-colors mb-2 break-words">
                     {post.title}
                   </h3>
-                  <p className="text-sm leading-relaxed text-stone-400 line-clamp-3 break-words [overflow-wrap:anywhere]">
-                    {post.body}
-                  </p>
+                  <div
+                    className="markdown-content text-sm leading-relaxed text-stone-400 line-clamp-3 break-words [overflow-wrap:anywhere] !max-w-none !mx-0 !my-0 !px-0"
+                    dangerouslySetInnerHTML={{ __html: post.body_html }}
+                  />
                 </Link>
               ))}
             </div>
