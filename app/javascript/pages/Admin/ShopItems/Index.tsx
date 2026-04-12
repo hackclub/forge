@@ -1,6 +1,13 @@
 import { useState } from 'react'
 import { Head, router } from '@inertiajs/react'
 
+interface RegionPricing {
+  id: number | null
+  region: string
+  coin_cost: number
+  enabled: boolean
+}
+
 interface ShopItem {
   id: number
   name: string
@@ -11,17 +18,31 @@ interface ShopItem {
   internal_order_link: string | null
   internal_price_usd: number | null
   max_quantity: number | null
+  region_pricing: RegionPricing[]
+}
+
+interface RegionPricingForm {
+  id: number | null
+  region: string
+  coin_cost: string
+  enabled: boolean
 }
 
 const blank = { name: '', description: '', image_url: '', coin_cost: '', enabled: true, internal_order_link: '', internal_price_usd: '', max_quantity: '' }
 
-export default function AdminShopItemsIndex({ items }: { items: ShopItem[] }) {
+export default function AdminShopItemsIndex({ items, regions }: { items: ShopItem[]; regions: Record<string, string> }) {
   const [editingId, setEditingId] = useState<number | null>(null)
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState<typeof blank>(blank)
+  const [regionPricing, setRegionPricing] = useState<RegionPricingForm[]>([])
+
+  function defaultRegionPricing(): RegionPricingForm[] {
+    return Object.keys(regions).map((r) => ({ id: null, region: r, coin_cost: '', enabled: true }))
+  }
 
   function reset() {
     setForm(blank)
+    setRegionPricing([])
     setEditingId(null)
     setShowForm(false)
   }
@@ -38,17 +59,38 @@ export default function AdminShopItemsIndex({ items }: { items: ShopItem[] }) {
       internal_price_usd: item.internal_price_usd?.toString() || '',
       max_quantity: item.max_quantity?.toString() || '',
     })
+    const existing = Object.keys(regions).map((r) => {
+      const found = item.region_pricing.find((rp) => rp.region === r)
+      return found
+        ? { id: found.id, region: r, coin_cost: found.coin_cost.toString(), enabled: found.enabled }
+        : { id: null, region: r, coin_cost: '', enabled: true }
+    })
+    setRegionPricing(existing)
     setShowForm(true)
   }
 
   function submit(e: React.FormEvent) {
     e.preventDefault()
+    const baseCost = parseFloat(form.coin_cost) || 0
+    const attrs = regionPricing
+      .filter((rp) => rp.coin_cost.trim() !== '' || !rp.enabled)
+      .map((rp) => ({
+        id: rp.id,
+        region: rp.region,
+        coin_cost: rp.coin_cost.trim() !== '' ? parseFloat(rp.coin_cost) || baseCost : baseCost,
+        enabled: rp.enabled,
+      }))
+    const destroys = regionPricing
+      .filter((rp) => rp.id && rp.coin_cost.trim() === '' && rp.enabled)
+      .map((rp) => ({ id: rp.id, _destroy: true }))
+
     const payload = {
       shop_item: {
         ...form,
         coin_cost: parseFloat(form.coin_cost) || 0,
         internal_price_usd: form.internal_price_usd ? parseFloat(form.internal_price_usd) : null,
         max_quantity: form.max_quantity ? parseInt(form.max_quantity) : null,
+        shop_item_regions_attributes: [...attrs, ...destroys],
       },
     }
     if (editingId) {
@@ -168,6 +210,53 @@ export default function AdminShopItemsIndex({ items }: { items: ShopItem[] }) {
               </div>
             </div>
 
+            <div className="border-t border-white/5 pt-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500">Region Pricing</p>
+                {regionPricing.length === 0 && (
+                  <button type="button" onClick={() => setRegionPricing(defaultRegionPricing())} className="text-[#ffb595] text-xs hover:text-[#ee671c] cursor-pointer">
+                    Set up regions
+                  </button>
+                )}
+              </div>
+              <p className="text-stone-600 text-[10px]">Leave cost blank to use the default price above. Clear a filled cost to remove that region's override.</p>
+              {regionPricing.length > 0 && (
+                <div className="space-y-2">
+                  {regionPricing.map((rp, idx) => (
+                    <div key={rp.region} className="grid grid-cols-[1fr_120px_auto] gap-3 items-center">
+                      <span className="text-stone-300 text-sm">{regions[rp.region]}</span>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0.01"
+                        value={rp.coin_cost}
+                        onChange={(e) => {
+                          const updated = [...regionPricing]
+                          updated[idx] = { ...rp, coin_cost: e.target.value }
+                          setRegionPricing(updated)
+                        }}
+                        placeholder={form.coin_cost || 'default'}
+                        className="bg-[#0e0e0e] border-none px-3 py-2 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ee671c]/30"
+                      />
+                      <label className="flex items-center gap-2 text-xs text-stone-400 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={rp.enabled}
+                          onChange={(e) => {
+                            const updated = [...regionPricing]
+                            updated[idx] = { ...rp, enabled: e.target.checked }
+                            setRegionPricing(updated)
+                          }}
+                          className="accent-[#ee671c]"
+                        />
+                        On
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <label className="flex items-center gap-3 text-sm text-stone-400 cursor-pointer">
               <input
                 type="checkbox"
@@ -175,7 +264,7 @@ export default function AdminShopItemsIndex({ items }: { items: ShopItem[] }) {
                 onChange={(e) => setForm({ ...form, enabled: e.target.checked })}
                 className="accent-[#ee671c]"
               />
-              Enabled
+              Enabled (global)
             </label>
             <div className="flex gap-3">
               <button type="submit" className="signature-smolder text-[#4c1a00] px-6 py-3 font-bold uppercase tracking-wider text-xs cursor-pointer">

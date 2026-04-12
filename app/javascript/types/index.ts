@@ -115,6 +115,7 @@ export interface AdminUserDetail {
   is_beta_approved: boolean
   shop_unlocked: boolean
   referral_code: string | null
+  fulfillment_regions: string[]
   is_discarded: boolean
   discarded_at: string | null
   created_at: string

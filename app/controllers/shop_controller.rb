@@ -5,9 +5,13 @@ class ShopController < ApplicationController
       .order(updated_at: :desc)
 
     orders = current_user.orders.includes(:project, :shop_item).order(created_at: :desc)
-    items = ShopItem.enabled.order(:coin_cost, :name)
+    user_region = current_user.region || "rest_of_world"
+    items = ShopItem.enabled.includes(:shop_item_regions).order(:coin_cost, :name)
+                    .select { |i| i.enabled_for_region?(user_region) }
 
     render inertia: "Shop/Index", props: {
+      regions: HasRegion::REGIONS,
+      user_region: user_region,
       balance: {
         balance: current_user.coin_balance,
         earned: current_user.coins_earned.round(2),
@@ -32,7 +36,7 @@ class ShopController < ApplicationController
           name: i.name,
           description: i.description,
           image_url: i.image_url,
-          coin_cost: i.coin_cost.to_f,
+          coin_cost: i.coin_cost_for_region(user_region).to_f,
           max_quantity: i.max_quantity
         }
       },
@@ -55,6 +59,18 @@ class ShopController < ApplicationController
     else
       redirect_to shop_path, alert: "Invalid order type."
     end
+  end
+
+  def update_region
+    region = params[:region].to_s
+    unless HasRegion::REGION_KEYS.include?(region)
+      redirect_to shop_path, alert: "Invalid region."
+      return
+    end
+
+    current_user.update!(region: region)
+    Rails.cache.delete("user/#{current_user.id}")
+    redirect_to shop_path
   end
 
   private
@@ -96,10 +112,11 @@ class ShopController < ApplicationController
   end
 
   def create_shop_item_order
-    item = ShopItem.enabled.find_by(id: params[:shop_item_id])
+    user_region = current_user.region || "rest_of_world"
+    item = ShopItem.enabled.includes(:shop_item_regions).find_by(id: params[:shop_item_id])
 
-    if item.nil?
-      redirect_to shop_path, alert: "That item isn't available."
+    if item.nil? || !item.enabled_for_region?(user_region)
+      redirect_to shop_path, alert: "That item isn't available in your region."
       return
     end
 
@@ -116,7 +133,8 @@ class ShopController < ApplicationController
       return
     end
 
-    total_cost = (item.coin_cost * quantity).round(2)
+    region_cost = item.coin_cost_for_region(user_region)
+    total_cost = (region_cost * quantity).round(2)
     if total_cost > current_user.coin_balance
       redirect_to shop_path, alert: "Not enough steel coins. Need #{total_cost}c, have #{current_user.coin_balance}c."
       return
@@ -127,6 +145,7 @@ class ShopController < ApplicationController
       shop_item: item,
       quantity: quantity,
       coin_cost: total_cost,
+      region: user_region,
       description: params[:description].to_s.strip.presence
     )
 

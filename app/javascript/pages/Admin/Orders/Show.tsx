@@ -23,6 +23,9 @@ interface OrderDetail {
   shop_item_id: number | null
   shop_item_name: string | null
   shop_item_image: string | null
+  region: string | null
+  assigned_to_id: number | null
+  assigned_to_name: string | null
   reviewer_name: string | null
   reviewed_at: string | null
   fulfilled_at: string | null
@@ -41,7 +44,7 @@ const STATUS_STYLES: Record<OrderDetail['status'], string> = {
   rejected: 'bg-red-500/15 text-red-400',
 }
 
-export default function AdminOrdersShow({ order, warnings }: { order: OrderDetail; warnings: Warning[] }) {
+export default function AdminOrdersShow({ order, warnings, regions, fulfillment_users }: { order: OrderDetail; warnings: Warning[]; regions: Record<string, string>; fulfillment_users: { id: number; display_name: string }[] }) {
   const [reviewNotes, setReviewNotes] = useState('')
   const [grantLink, setGrantLink] = useState('')
 
@@ -154,6 +157,28 @@ export default function AdminOrdersShow({ order, warnings }: { order: OrderDetai
           )}
         </div>
 
+        {order.kind === 'shop_item' && (
+          <div className="bg-[#1c1b1b] ghost-border p-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-3">Region</p>
+              <p className="text-[#e5e2e1] text-sm">{order.region ? regions[order.region] || order.region : 'Not set'}</p>
+            </div>
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-3">Assigned to</p>
+              <select
+                value={order.assigned_to_id?.toString() || ''}
+                onChange={(e) => router.post(`/admin/orders/${order.id}/reassign`, { assigned_to_id: e.target.value })}
+                className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ee671c]/30 cursor-pointer"
+              >
+                <option value="">Unassigned</option>
+                {fulfillment_users.map((u) => (
+                  <option key={u.id} value={u.id}>{u.display_name}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+        )}
+
         {order.description && (
           <div className="bg-[#1c1b1b] ghost-border p-6">
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-3">Notes from user</p>
@@ -225,7 +250,7 @@ export default function AdminOrdersShow({ order, warnings }: { order: OrderDetai
         {order.status === 'approved' && (
           <div className="bg-[#1c1b1b] ghost-border p-6 space-y-4">
             <h2 className="text-xl font-headline font-bold text-[#e5e2e1] tracking-tight">Mark fulfilled</h2>
-            <p className="text-stone-500 text-sm">Issue the HCB grant manually, then paste the link below to close the order.</p>
+            <p className="text-stone-500 text-sm">Issue the HCB grant manually or paste the tracking link!</p>
             <input
               type="url"
               value={grantLink}

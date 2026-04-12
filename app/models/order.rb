@@ -10,11 +10,13 @@
 #  hcb_grant_link :string
 #  kind           :string           not null
 #  quantity       :integer          default(1), not null
+#  region         :string
 #  review_notes   :text
 #  reviewed_at    :datetime
 #  status         :integer          default("pending"), not null
 #  created_at     :datetime         not null
 #  updated_at     :datetime         not null
+#  assigned_to_id :bigint
 #  project_id     :bigint
 #  reviewer_id    :bigint
 #  shop_item_id   :bigint
@@ -22,21 +24,26 @@
 #
 # Indexes
 #
-#  index_orders_on_kind          (kind)
-#  index_orders_on_project_id    (project_id)
-#  index_orders_on_reviewer_id   (reviewer_id)
-#  index_orders_on_shop_item_id  (shop_item_id)
-#  index_orders_on_status        (status)
-#  index_orders_on_user_id       (user_id)
+#  index_orders_on_assigned_to_id  (assigned_to_id)
+#  index_orders_on_kind            (kind)
+#  index_orders_on_project_id      (project_id)
+#  index_orders_on_region          (region)
+#  index_orders_on_reviewer_id     (reviewer_id)
+#  index_orders_on_shop_item_id    (shop_item_id)
+#  index_orders_on_status          (status)
+#  index_orders_on_user_id         (user_id)
 #
 # Foreign Keys
 #
+#  fk_rails_...  (assigned_to_id => users.id)
 #  fk_rails_...  (project_id => projects.id)
 #  fk_rails_...  (reviewer_id => users.id)
 #  fk_rails_...  (shop_item_id => shop_items.id)
 #  fk_rails_...  (user_id => users.id)
 #
 class Order < ApplicationRecord
+  include HasRegion
+
   has_paper_trail
 
   KINDS = %w[direct_grant shop_item].freeze
@@ -46,6 +53,7 @@ class Order < ApplicationRecord
   belongs_to :project, optional: true
   belongs_to :shop_item, optional: true
   belongs_to :reviewer, class_name: "User", optional: true
+  belongs_to :assigned_to, class_name: "User", optional: true
 
   enum :status, { pending: 0, approved: 1, fulfilled: 2, rejected: 3 }
 
@@ -53,8 +61,11 @@ class Order < ApplicationRecord
   validates :coin_cost, numericality: { greater_than: 0 }
   validates :quantity, numericality: { only_integer: true, greater_than: 0 }
   validates :amount_usd, numericality: { greater_than: 0 }, if: :direct_grant?
+  validates :region, inclusion: { in: REGION_KEYS }, allow_nil: true
   validate :direct_grant_must_have_owned_project
   validate :shop_item_must_be_present
+
+  before_create :assign_fulfillment_user, if: :shop_item?
 
   scope :open, -> { where(status: %i[pending approved]) }
 
@@ -90,5 +101,16 @@ class Order < ApplicationRecord
     return unless shop_item?
 
     errors.add(:shop_item_id, "is required") if shop_item_id.blank?
+  end
+
+  def assign_fulfillment_user
+    return if region.blank?
+
+    self.assigned_to = User
+      .where("'fulfillment' = ANY(roles)")
+      .where("? = ANY(fulfillment_regions)", region)
+      .select("users.*, (SELECT COUNT(*) FROM orders WHERE orders.assigned_to_id = users.id AND orders.status IN (0, 1)) AS open_count")
+      .order(Arel.sql("open_count ASC"))
+      .first
   end
 end
