@@ -8,6 +8,8 @@ interface ProfileUser {
   avatar: string
   joined_at: string
   github_username: string | null
+  git_provider: string
+  git_instance_url: string | null
 }
 
 interface ProfileStats {
@@ -82,14 +84,38 @@ function StatTile({ label, value, icon }: { label: string; value: string | numbe
   )
 }
 
+const GIT_PROVIDERS: Record<string, { label: string; baseUrl: string; hasAvatar: boolean }> = {
+  github: { label: 'GitHub', baseUrl: 'https://github.com', hasAvatar: true },
+  gitlab: { label: 'GitLab', baseUrl: 'https://gitlab.com', hasAvatar: false },
+  codeberg: { label: 'Codeberg', baseUrl: 'https://codeberg.org', hasAvatar: false },
+  gitea: { label: 'Gitea', baseUrl: '', hasAvatar: false },
+}
+
+function gitProfileUrl(user: ProfileUser): string {
+  const provider = GIT_PROVIDERS[user.git_provider] || GIT_PROVIDERS.github
+  const base = user.git_provider === 'gitea' && user.git_instance_url ? user.git_instance_url.replace(/\/+$/, '') : provider.baseUrl
+  return `${base}/${user.github_username}`
+}
+
+function gitAvatarUrl(user: ProfileUser): string | null {
+  if (user.git_provider === 'github') return `https://github.com/${user.github_username}.png?size=120`
+  return null
+}
+
 export default function UsersShow({ user, stats, projects, kudos, can_give_kudos, can_edit_profile }: Props) {
   const [kudoContent, setKudoContent] = useState('')
   const [editingGithub, setEditingGithub] = useState(false)
   const [githubInput, setGithubInput] = useState(user.github_username || '')
+  const [providerInput, setProviderInput] = useState(user.git_provider || 'github')
+  const [instanceUrlInput, setInstanceUrlInput] = useState(user.git_instance_url || '')
 
   function saveGithub(e: React.FormEvent) {
     e.preventDefault()
-    router.patch(`/users/${user.id}/github`, { github_username: githubInput.trim() }, {
+    router.patch(`/users/${user.id}/github`, {
+      github_username: githubInput.trim(),
+      git_provider: providerInput,
+      git_instance_url: providerInput === 'gitea' ? instanceUrlInput.trim() : '',
+    }, {
       onSuccess: () => setEditingGithub(false),
     })
   }
@@ -138,26 +164,40 @@ export default function UsersShow({ user, stats, projects, kudos, can_give_kudos
 
         {(user.github_username || can_edit_profile) && (
           <section>
-            <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">GitHub</h2>
+            <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">Git Profile</h2>
             <div className="bg-[#1c1b1b] ghost-border p-6">
               {editingGithub ? (
-                <form onSubmit={saveGithub} className="flex flex-col sm:flex-row gap-3">
-                  <div className="flex items-center gap-2 flex-1 bg-[#0e0e0e] px-4 py-3">
-                    <span className="text-stone-600 text-sm font-mono">github.com/</span>
+                <form onSubmit={saveGithub} className="space-y-3">
+                  <div className="flex gap-3 flex-wrap">
+                    <select
+                      value={providerInput}
+                      onChange={(e) => setProviderInput(e.target.value)}
+                      className="bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ee671c]/30 cursor-pointer"
+                    >
+                      {Object.entries(GIT_PROVIDERS).map(([key, { label }]) => (
+                        <option key={key} value={key}>{label}</option>
+                      ))}
+                    </select>
                     <input
                       type="text"
                       value={githubInput}
                       onChange={(e) => setGithubInput(e.target.value)}
                       placeholder="username"
                       autoFocus
-                      className="flex-1 bg-transparent border-none text-[#e5e2e1] text-sm font-mono focus:ring-0 focus:outline-none placeholder:text-stone-700 min-w-0"
+                      className="flex-1 bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm font-mono focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-700 min-w-0"
                     />
                   </div>
+                  {providerInput === 'gitea' && (
+                    <input
+                      type="url"
+                      value={instanceUrlInput}
+                      onChange={(e) => setInstanceUrlInput(e.target.value)}
+                      placeholder="https://gitea.example.com"
+                      className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm font-mono focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-700"
+                    />
+                  )}
                   <div className="flex gap-2">
-                    <button
-                      type="submit"
-                      className="signature-smolder text-[#4c1a00] px-5 py-3 text-xs font-bold uppercase tracking-wider cursor-pointer"
-                    >
+                    <button type="submit" className="signature-smolder text-[#4c1a00] px-5 py-3 text-xs font-bold uppercase tracking-wider cursor-pointer">
                       Save
                     </button>
                     <button
@@ -165,6 +205,8 @@ export default function UsersShow({ user, stats, projects, kudos, can_give_kudos
                       onClick={() => {
                         setEditingGithub(false)
                         setGithubInput(user.github_username || '')
+                        setProviderInput(user.git_provider || 'github')
+                        setInstanceUrlInput(user.git_instance_url || '')
                       }}
                       className="ghost-border text-stone-400 px-5 py-3 text-xs font-bold uppercase tracking-wider hover:text-[#e5e2e1] transition-colors cursor-pointer"
                     >
@@ -174,14 +216,16 @@ export default function UsersShow({ user, stats, projects, kudos, can_give_kudos
                 </form>
               ) : user.github_username ? (
                 <div className="flex items-center gap-4">
-                  <img
-                    src={`https://github.com/${user.github_username}.png?size=120`}
-                    alt={user.github_username}
-                    className="w-14 h-14 border border-white/10 shrink-0"
-                  />
+                  {gitAvatarUrl(user) ? (
+                    <img src={gitAvatarUrl(user)!} alt={user.github_username} className="w-14 h-14 border border-white/10 shrink-0" />
+                  ) : (
+                    <div className="w-14 h-14 bg-[#0e0e0e] border border-white/10 flex items-center justify-center shrink-0">
+                      <span className="material-symbols-outlined text-stone-600 text-2xl">code</span>
+                    </div>
+                  )}
                   <div className="flex-1 min-w-0">
                     <a
-                      href={`https://github.com/${user.github_username}`}
+                      href={gitProfileUrl(user)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="font-headline font-bold text-[#e5e2e1] hover:text-[#ffb595] transition-colors text-lg flex items-center gap-2"
@@ -189,13 +233,15 @@ export default function UsersShow({ user, stats, projects, kudos, can_give_kudos
                       @{user.github_username}
                       <span className="material-symbols-outlined text-sm">open_in_new</span>
                     </a>
-                    <p className="text-stone-500 text-xs font-mono truncate">github.com/{user.github_username}</p>
+                    <p className="text-stone-500 text-xs font-mono truncate">
+                      {GIT_PROVIDERS[user.git_provider]?.label || 'GitHub'}
+                      {user.git_provider === 'gitea' && user.git_instance_url && ` · ${user.git_instance_url.replace(/^https?:\/\//, '')}`}
+                    </p>
                   </div>
                   {can_edit_profile && (
                     <button
                       onClick={() => setEditingGithub(true)}
                       className="text-stone-500 hover:text-[#ffb595] transition-colors shrink-0 cursor-pointer"
-                      aria-label="Edit GitHub"
                     >
                       <span className="material-symbols-outlined">edit</span>
                     </button>
@@ -207,7 +253,7 @@ export default function UsersShow({ user, stats, projects, kudos, can_give_kudos
                   className="flex items-center gap-3 text-stone-500 hover:text-[#ffb595] transition-colors cursor-pointer"
                 >
                   <span className="material-symbols-outlined text-2xl">add</span>
-                  <span className="text-sm">Link your GitHub profile</span>
+                  <span className="text-sm">Link your git profile</span>
                 </button>
               )}
             </div>
