@@ -26,14 +26,14 @@ If you are ever stuck on cost optimizing, ask around in #forge, or check out our
 
 We're a nonprofit with limited resources, so please only use the money for the following:
 
-    ✓ Buying the minimum number of components & parts for your project
-    ✓ Buying the bare minimum of tools you need to build your project
+    ✓ Buying the minimum number of components & parts for your project (within reason)
+    ✓ Buying the bare minimum of tools you need to build your project (within reason)
     ✓ Paying for the cheapest manufacturing option to get a working part (PCBs, etc.)
     
 You MAY NOT use the money for:
 
     ✗ Buying extra components or parts that you don't need
-    ✗ Buying extra parts "just in case" (e.g. a spare MCU, extra spool of filament)
+    ✗ Buying too many extra parts "just in case" (e.g. a spare MCU, but a handful of diodes or resistors should be fine)
     ✗ Buying extra tools that you don't need
     ✗ Buying fancy tools or parts that aren't necessary to build your project
     ✗ Paying for the expensive manufacturing option when a cheaper one would work

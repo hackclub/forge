@@ -20,6 +20,10 @@ Not necessarily - Forge is about hardware. If your project involves firmware, gr
 
 Yes!
 
+## Why do I have to pitch?
+
+We want the community to help each other out with advanced projects! By pitching in #forgery, other Hack Clubbers can give you feedback and suggestions, and it also allows our reviewers to check your project before you start putting in the work.
+
 ## What happens if my pitch is rejected?
 
 You can edit and resubmit your pitch! Read the feedback and try again, just by editing your original slack message. Common reasons for rejection:

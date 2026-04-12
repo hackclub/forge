@@ -4,9 +4,18 @@
 
 # Pitching Your Project
 
-Post your pitch in **#into-the-forge** on the Hack Club Slack. Keep it structured, honest, and concise. Here's the format:
 
-## Pitch Format
+## Why do I have to pitch??
+
+So that you can give and recieve feedback to each other in the community! Feedback and sanity checking is extremely important when designing, especially for advanced hardware projects. Other Hack Clubbers can help catch places for improvement and suggest changes to your project!
+
+On top of that, our reviewers want to give a preliminary approval of your project before you start putting in the hours to make your idea come to life. What we want to see is research, a well thought out plan, a reasonable BOM and that it fits Forge's theme (hardware)!
+
+## How to pitch
+
+Post your pitch in **#forgery** on the Hack Club Slack. Keep it structured, honest, and concise. Here's the format:
+
+### Pitch Format
 
 ```
 Idea: [Short name for your project]
@@ -21,7 +30,7 @@ Rough BOM:
 * Total: $[total]
 ```
 
-## Example Pitch
+### Example Pitch
 
 ```
 Idea: 3D printer that fits inside a filament box
@@ -43,9 +52,18 @@ Rough BOM:
 * Total: $260
 ```
 
-## Tips
+### Tips
 
 - **Show your background.** One project could be next to impossible for one person but easy for another. Past projects help us understand your skill level.
 - **Keep costs reasonable.** We [don't have unlimited money](/docs/Design-Resources/cost), and we want to make it last to create as many cool projects as possible! A $100 project with a $900 monitor is not a $1000 project.
 - **Be specific about what you're designing.** "I'm building a robot" is vague. "I'm designing a custom PCB for motor control, 3D printing the chassis, and writing firmware in Rust" tells us exactly what you're doing.
 - **Extra detail goes in the thread.** Keep the main pitch concise. If you want to elaborate, reply to your own message in the thread.
+
+
+## What happens if my pitch is rejected?
+
+You can edit and resubmit your pitch! Read the feedback and try again, just by editing your original slack message. Common reasons for rejection:
+
+- Project is too vague
+- Cost is disproportionate to the engineering work
+- Project is primarily software, not hardware
