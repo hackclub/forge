@@ -7,6 +7,7 @@ class ApplicationController < ActionController::Base
   include Auditable
 
   before_action :track_ahoy_visit
+  before_action :track_user_activity
   before_action :set_paper_trail_whodunnit
 
   rescue_from Pundit::NotAuthorizedError, with: :user_not_authorized
@@ -26,7 +27,8 @@ class ApplicationController < ActionController::Base
           is_admin: u.admin?,
           is_staff: u.staff?,
           is_superadmin: u.superadmin?,
-          is_banned: u.is_banned
+          is_banned: u.is_banned,
+          current_streak: u.current_streak
         }
       }
     }
@@ -36,6 +38,18 @@ class ApplicationController < ActionController::Base
   inertia_share sign_out_path: -> { signout_path }
 
   private
+
+  def track_user_activity
+    return unless user_signed_in?
+
+    today = Date.current
+    return if session[:activity_tracked_on] == today.iso8601
+
+    current_user.record_activity!(today)
+    session[:activity_tracked_on] = today.iso8601
+  rescue StandardError => e
+    Rails.logger.warn("track_user_activity failed: #{e.class}: #{e.message}")
+  end
 
   def track_ahoy_visit
     return unless user_signed_in?

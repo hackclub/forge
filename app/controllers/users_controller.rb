@@ -1,7 +1,7 @@
 class UsersController < ApplicationController
   def show
     user = User.kept.find(params[:id])
-    projects = user.projects.kept.where(hidden: false).includes(:devlogs, :ships).order(created_at: :desc)
+    projects = user.projects.kept.where(hidden: false).includes(:devlogs).order(created_at: :desc)
     kudos = user.kudos.includes(:author, :project).order(created_at: :desc)
 
     total_hours = projects.sum(&:total_hours)
@@ -24,7 +24,13 @@ class UsersController < ApplicationController
         projects_count: projects.size,
         approved_count: approved_count,
         built_count: built_count,
-        kudos_count: kudos.size
+        kudos_count: kudos.size,
+        current_streak: user.current_streak,
+        longest_streak: user.longest_streak,
+        last_active_on: user.last_active_on&.strftime("%b %d, %Y"),
+        streak_multiplier: user.streak_multiplier,
+        next_streak_milestone: user.next_streak_milestone,
+        next_streak_multiplier: user.next_streak_multiplier
       },
       projects: projects.map { |p|
         {

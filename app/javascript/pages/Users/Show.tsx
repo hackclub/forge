@@ -18,6 +18,12 @@ interface ProfileStats {
   approved_count: number
   built_count: number
   kudos_count: number
+  current_streak: number
+  longest_streak: number
+  last_active_on: string | null
+  streak_multiplier: number
+  next_streak_milestone: number | null
+  next_streak_multiplier: number | null
 }
 
 interface ProfileProject {
@@ -146,15 +152,88 @@ export default function UsersShow({ user, stats, projects, kudos, can_give_kudos
             alt={user.display_name}
             className="w-24 h-24 border border-white/10 shrink-0"
           />
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <h1 className="text-4xl font-headline font-bold text-[#e5e2e1] tracking-tight break-words">
               {user.display_name}
             </h1>
             <p className="text-stone-500 text-sm mt-2">Forging since {user.joined_at}</p>
           </div>
+          <div
+            className={`flex items-center gap-3 px-5 py-3 ghost-border shrink-0 ${stats.current_streak > 0 ? 'bg-[#ee671c]/10' : 'bg-[#0e0e0e]'}`}
+            title={stats.current_streak > 0 ? `Active ${stats.current_streak} ${stats.current_streak === 1 ? 'day' : 'days'} in a row` : 'No current streak'}
+          >
+            <span className={`material-symbols-outlined text-3xl ${stats.current_streak > 0 ? 'text-[#ee671c]' : 'text-stone-600'}`}>local_fire_department</span>
+            <div className="text-left">
+              <p className={`text-2xl font-headline font-bold leading-none ${stats.current_streak > 0 ? 'text-[#ffb595]' : 'text-stone-500'}`}>
+                {stats.current_streak}
+              </p>
+              <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-500 mt-1">
+                {stats.current_streak === 1 ? 'Day streak' : 'Day streak'}
+              </p>
+            </div>
+          </div>
         </section>
 
         <section>
+          <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">Streak</h2>
+          <div className="bg-[#1c1b1b] ghost-border p-6 mb-8">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className={`w-14 h-14 flex items-center justify-center ${stats.current_streak > 0 ? 'bg-[#ee671c]/15' : 'bg-stone-500/10'}`}>
+                  <span className={`material-symbols-outlined text-3xl ${stats.current_streak > 0 ? 'text-[#ee671c]' : 'text-stone-600'}`}>local_fire_department</span>
+                </div>
+                <div>
+                  <p className="text-4xl font-headline font-bold text-[#e5e2e1] tracking-tight leading-none">
+                    {stats.current_streak}
+                    <span className="text-stone-600 text-lg ml-2">{stats.current_streak === 1 ? 'day' : 'days'}</span>
+                  </p>
+                  <p className="text-stone-500 text-xs mt-1">Current streak</p>
+                </div>
+              </div>
+              <div className="flex gap-6 text-sm">
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">Multiplier</p>
+                  <p className={`font-headline font-bold ${stats.streak_multiplier > 1 ? 'text-[#ffb595]' : 'text-[#e5e2e1]'}`}>
+                    {stats.streak_multiplier.toFixed(2)}×
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">Longest</p>
+                  <p className="text-[#e5e2e1] font-headline font-bold">{stats.longest_streak} {stats.longest_streak === 1 ? 'day' : 'days'}</p>
+                </div>
+                {stats.last_active_on && (
+                  <div>
+                    <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">Last active</p>
+                    <p className="text-[#e5e2e1] font-headline font-bold">{stats.last_active_on}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {stats.next_streak_milestone && stats.next_streak_multiplier && (
+              <div className="mt-5 pt-5 border-t border-white/5">
+                <div className="flex items-center justify-between gap-3 mb-2">
+                  <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-500">
+                    Next tier at {stats.next_streak_milestone} {stats.next_streak_milestone === 1 ? 'day' : 'days'}
+                  </p>
+                  <span className="text-[#ffb595] text-xs font-bold font-headline flex items-center gap-1">
+                    <span className="material-symbols-outlined text-sm">trending_up</span>
+                    {stats.next_streak_multiplier.toFixed(2)}× payout
+                  </span>
+                </div>
+                <div className="h-1.5 bg-[#0e0e0e] overflow-hidden">
+                  <div
+                    className="h-full signature-smolder transition-all"
+                    style={{ width: `${Math.min(100, (stats.current_streak / stats.next_streak_milestone) * 100)}%` }}
+                  />
+                </div>
+                <p className="text-stone-600 text-[10px] mt-2">
+                  {stats.next_streak_milestone - stats.current_streak} {stats.next_streak_milestone - stats.current_streak === 1 ? 'day' : 'days'} to go — keep the streak alive to boost project payouts.
+                </p>
+              </div>
+            )}
+          </div>
+
           <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">Achievements</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
             <StatTile label="Hours" value={stats.total_hours} icon="schedule" />

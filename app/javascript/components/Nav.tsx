@@ -151,21 +151,36 @@ export default function Nav() {
                 <span className="material-symbols-outlined text-lg">add</span>
                 <span>New Project</span>
               </Link>
-              <div className="flex items-center gap-3 px-2">
-                <img
-                  src={shared.auth.user.avatar}
-                  alt={shared.auth.user.display_name}
-                  className="w-10 h-10 rounded-full border border-white/10 shrink-0"
-                />
-                <div className="flex flex-col min-w-0 flex-1">
-                  <span className="text-xs font-bold text-[#e5e2e1] truncate">{shared.auth.user.display_name}</span>
-                  <button
-                    onClick={signOut}
-                    className="text-[10px] text-stone-500 uppercase tracking-wider text-left hover:text-stone-300 transition-colors"
+              <div className="flex items-center gap-3 px-2 group">
+                <Link
+                  href="/settings"
+                  className="flex items-center gap-3 min-w-0 flex-1 hover:opacity-90 transition-opacity"
+                  title="Settings"
+                >
+                  <img
+                    src={shared.auth.user.avatar}
+                    alt={shared.auth.user.display_name}
+                    className="w-10 h-10 rounded-full border border-white/10 shrink-0"
+                  />
+                  <div className="flex flex-col min-w-0 flex-1">
+                    <span className="text-xs font-bold text-[#e5e2e1] truncate group-hover:text-[#ffb595] transition-colors">{shared.auth.user.display_name}</span>
+                    <button
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); signOut() }}
+                      className="text-[10px] text-stone-500 uppercase tracking-wider text-left hover:text-stone-300 transition-colors"
+                    >
+                      Sign Out
+                    </button>
+                  </div>
+                </Link>
+                {shared.auth.user.current_streak > 0 && (
+                  <span
+                    className="flex items-center gap-1 bg-[#ee671c]/10 text-[#ffb595] px-2 py-1 shrink-0"
+                    title={`${shared.auth.user.current_streak} day streak`}
                   >
-                    Sign Out
-                  </button>
-                </div>
+                    <span className="material-symbols-outlined text-base">local_fire_department</span>
+                    <span className="text-xs font-bold font-headline">{shared.auth.user.current_streak}</span>
+                  </span>
+                )}
               </div>
             </>
           ) : (

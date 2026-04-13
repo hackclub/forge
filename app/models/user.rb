@@ -72,6 +72,70 @@ class User < ApplicationRecord
   has_many :coin_adjustments, dependent: :destroy
   has_many :referrals_made, class_name: "Referral", foreign_key: :referrer_id, dependent: :destroy, inverse_of: :referrer
   has_one :referral_received, class_name: "Referral", foreign_key: :referred_id, dependent: :destroy, inverse_of: :referred
+  has_many :activity_days, class_name: "UserActivityDay", dependent: :destroy
+
+  STREAK_MULTIPLIER_TIERS = [
+    [ 3,   1.02 ],
+    [ 7,   1.05 ],
+    [ 14,  1.10 ],
+    [ 30,  1.15 ],
+    [ 60,  1.20 ],
+    [ 100, 1.25 ]
+  ].freeze
+
+  def record_activity!(date = Date.current)
+    activity_days.find_or_create_by!(active_on: date)
+  rescue ActiveRecord::RecordNotUnique
+    nil
+  end
+
+  def streak_multiplier(streak = current_streak)
+    STREAK_MULTIPLIER_TIERS.reverse_each do |threshold, mult|
+      return mult if streak >= threshold
+    end
+    1.0
+  end
+
+  def next_streak_milestone(streak = current_streak)
+    STREAK_MULTIPLIER_TIERS.map(&:first).find { |d| d > streak }
+  end
+
+  def next_streak_multiplier(streak = current_streak)
+    pair = STREAK_MULTIPLIER_TIERS.find { |d, _| d > streak }
+    pair&.last
+  end
+
+  def current_streak(today: Date.current)
+    dates = activity_days.where(active_on: (today - 365)..today).order(active_on: :desc).pluck(:active_on).to_set
+    return 0 if dates.empty?
+
+    cursor = dates.include?(today) ? today : today - 1
+    return 0 unless dates.include?(cursor)
+
+    streak = 0
+    while dates.include?(cursor)
+      streak += 1
+      cursor -= 1
+    end
+    streak
+  end
+
+  def longest_streak
+    dates = activity_days.order(:active_on).pluck(:active_on)
+    return 0 if dates.empty?
+
+    longest = 1
+    run = 1
+    dates.each_cons(2) do |a, b|
+      run = (b == a + 1) ? run + 1 : 1
+      longest = run if run > longest
+    end
+    longest
+  end
+
+  def last_active_on
+    activity_days.maximum(:active_on)
+  end
 
   before_validation :ensure_referral_code, on: :create
 
