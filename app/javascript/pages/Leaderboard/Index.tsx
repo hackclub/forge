@@ -5,6 +5,9 @@ interface Row {
   display_name: string
   avatar: string
   value: number
+  referrals: number
+  hours: number
+  streak: number
 }
 
 interface Board {
@@ -35,41 +38,35 @@ function LeaderboardTable({
       <p className="text-stone-500 text-xs mb-4">{board.subtitle}</p>
 
       {board.rows.length > 0 ? (
-        <div className="ghost-border overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-white/5">
-                <th className="text-left px-4 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600 w-10">#</th>
-                <th className="text-left px-4 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">Builder</th>
-                <th className="text-right px-4 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">{board.valueLabel}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {board.rows.map((row, idx) => {
-                const rank = idx + 1
-                const isMe = current_user_id === row.id
-                return (
-                  <tr key={row.id} className={`border-b border-white/5 hover:bg-[#1c1b1b] transition-colors ${isMe ? 'bg-[#ee671c]/5' : ''}`}>
-                    <td className="px-4 py-3">
-                      <span className={`font-headline font-bold text-sm ${rank === 1 ? 'text-[#ee671c]' : rank <= 3 ? 'text-[#ffb595]' : 'text-stone-500'}`}>
-                        {rank}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <Link href={`/users/${row.id}`} className="flex items-center gap-2 group min-w-0">
-                        <img src={row.avatar} alt="" width={24} height={24} className="object-cover shrink-0" style={{ width: 24, height: 24 }} />
-                        <span className="font-headline font-bold text-[#e5e2e1] text-sm group-hover:text-[#ffb595] transition-colors truncate">
-                          {row.display_name}
-                          {isMe && <span className="ml-1 text-[9px] text-[#ee671c] uppercase tracking-widest">You</span>}
-                        </span>
-                      </Link>
-                    </td>
-                    <td className="px-4 py-3 text-right text-stone-400 text-sm font-mono whitespace-nowrap">{format(row.value)}</td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
+        <div className="ghost-border divide-y divide-white/5">
+          {board.rows.map((row, idx) => {
+            const rank = idx + 1
+            const isMe = current_user_id === row.id
+            return (
+              <Link
+                key={row.id}
+                href={`/users/${row.id}`}
+                className={`flex items-center gap-3 px-4 py-2.5 hover:bg-[#1c1b1b] transition-colors group ${isMe ? 'bg-[#ee671c]/5' : ''}`}
+              >
+                <span className={`font-headline font-bold text-sm w-6 shrink-0 ${rank === 1 ? 'text-[#ee671c]' : rank <= 3 ? 'text-[#ffb595]' : 'text-stone-500'}`}>
+                  {rank}
+                </span>
+                <img
+                  src={row.avatar}
+                  alt=""
+                  className="object-cover shrink-0 border border-white/5"
+                  style={{ width: 32, height: 32 }}
+                />
+                <span className="font-headline font-bold text-[#e5e2e1] text-sm group-hover:text-[#ffb595] transition-colors truncate flex-1 min-w-0">
+                  {row.display_name}
+                  {isMe && <span className="ml-1.5 text-[9px] text-[#ee671c] uppercase tracking-widest">You</span>}
+                </span>
+                <span className="text-[#ffb595] text-base font-headline font-bold tabular-nums shrink-0">
+                  {format(row.value)}
+                </span>
+              </Link>
+            )
+          })}
         </div>
       ) : (
         <div className="bg-[#1c1b1b] ghost-border p-8 text-center">
