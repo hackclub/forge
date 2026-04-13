@@ -118,9 +118,6 @@ export default function ProjectsShow({
     })
   }
 
-  function syncAddressFromHca() {
-    router.post('/profile/sync_address', {}, { preserveScroll: true })
-  }
 
   function uploadCoverImage(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -806,7 +803,7 @@ export default function ProjectsShow({
                           <p className="font-bold uppercase tracking-wider mb-2">Before submitting:</p>
                           <ul className="space-y-1">
                             {!hasCover && <li>• Upload a project cover image below</li>}
-                            {!hasAddress && <li>• Fill in your shipping address below</li>}
+                            {!hasAddress && <li>• Add your shipping address in <a href="/settings" className="underline hover:text-amber-100">settings</a></li>}
                           </ul>
                         </div>
                       )}
@@ -822,50 +819,6 @@ export default function ProjectsShow({
                   )
                 })()
               )}
-            </div>
-          )}
-
-          {can.update && (
-            <div className="bg-[#1c1b1b] ghost-border p-8">
-              <div className="flex items-center justify-between gap-3 mb-2">
-                <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline">
-                  Shipping Address
-                  {project.user_has_address && <span className="ml-2 text-emerald-400 normal-case tracking-normal text-[10px]">✓ Synced from HCA</span>}
-                </h4>
-              </div>
-
-              {project.user_has_address ? (
-                <p className="text-stone-400 text-xs leading-relaxed whitespace-pre-line break-words">
-                  {[
-                    project.user_address?.address_line1,
-                    project.user_address?.address_line2,
-                    [project.user_address?.city, project.user_address?.state, project.user_address?.postal_code].filter(Boolean).join(', '),
-                    project.user_address?.country,
-                    project.user_address?.phone_number && `☎ ${project.user_address.phone_number}`,
-                  ].filter(Boolean).join('\n')}
-                </p>
-              ) : (
-                <p className="text-stone-500 text-xs mb-4">Required before submitting for review. Add it on your Hack Club account — we'll pull it in automatically.</p>
-              )}
-
-              <div className="flex flex-col sm:flex-row gap-2 mt-4">
-                <a
-                  href={project.hca_address_portal_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="signature-smolder text-[#4c1a00] font-bold px-4 py-2 uppercase tracking-wider text-[10px] flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  <span className="material-symbols-outlined text-sm">open_in_new</span>
-                  {project.user_has_address ? 'Edit on HCA' : 'Add Address on HCA'}
-                </a>
-                <button
-                  onClick={syncAddressFromHca}
-                  className="ghost-border bg-[#0e0e0e] hover:bg-[#2a2a2a] text-stone-400 hover:text-[#ffb595] px-4 py-2 uppercase tracking-wider text-[10px] font-bold flex items-center justify-center gap-2 cursor-pointer transition-colors"
-                >
-                  <span className="material-symbols-outlined text-sm">sync</span>
-                  Refresh from HCA
-                </button>
-              </div>
             </div>
           )}
 

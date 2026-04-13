@@ -166,6 +166,7 @@ Rails.application.routes.draw do
           post :cancel
         end
       end
+      get "metrics" => "metrics#index", as: :metrics
       get "audit_log" => "audit_log#index", as: :audit_log
       get "audit_log/:id" => "audit_log#show", as: :audit_log_entry
       get "database" => "database#index", as: :database
@@ -199,6 +200,7 @@ Rails.application.routes.draw do
   get "sorry" => "bans#show", as: :sorry
 
   get "home" => "home#index", as: :home
+  get "settings" => "settings#show", as: :settings
   post "profile/sync_address" => "profile#sync_address", as: :sync_address
   get "rsvp" => "rsvps#index", as: :rsvp
   post "rsvp" => "rsvps#create"

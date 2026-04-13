@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_13_015344) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_13_050304) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -461,6 +461,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_13_015344) do
     t.index ["thread_ts"], name: "index_support_tickets_on_thread_ts", unique: true
   end
 
+  create_table "user_activity_days", force: :cascade do |t|
+    t.date "active_on", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["user_id", "active_on"], name: "index_user_activity_days_on_user_id_and_active_on", unique: true
+    t.index ["user_id"], name: "index_user_activity_days_on_user_id"
+  end
+
   create_table "user_notes", force: :cascade do |t|
     t.bigint "author_id", null: false
     t.text "content", null: false
@@ -554,6 +563,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_13_015344) do
   add_foreign_key "solid_queue_ready_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_recurring_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_scheduled_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
+  add_foreign_key "user_activity_days", "users"
   add_foreign_key "user_notes", "users"
   add_foreign_key "user_notes", "users", column: "author_id"
 end
