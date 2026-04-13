@@ -10,6 +10,7 @@
 #  description                  :text
 #  devlog_mode                  :string
 #  discarded_at                 :datetime
+#  green_flags                  :string           default([]), is an Array
 #  hidden                       :boolean          default(FALSE), not null
 #  name                         :string           not null
 #  override_hours               :decimal(, )
@@ -17,6 +18,7 @@
 #  pitch_text                   :text
 #  readme_cache                 :text
 #  readme_fetched_at            :datetime
+#  red_flags                    :string           default([]), is an Array
 #  repo_link                    :string
 #  review_feedback              :text
 #  reviewed_at                  :datetime

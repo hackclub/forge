@@ -6,7 +6,6 @@ class ApplicationController < ActionController::Base
   include InertiaPagination
   include Auditable
 
-  before_action :gate_beta_access
   before_action :track_ahoy_visit
   before_action :set_paper_trail_whodunnit
 
@@ -37,14 +36,6 @@ class ApplicationController < ActionController::Base
   inertia_share sign_out_path: -> { signout_path }
 
   private
-
-  def gate_beta_access
-    return if current_user&.staff?
-    return if current_user&.is_beta_approved
-    return if request.path == "/rsvp" || request.path == "/rsvp/referral" || request.path.start_with?("/auth") || request.path.start_with?("/slack") || request.path.start_with?("/up") || request.path.start_with?("/rails/active_storage")
-
-    redirect_to(current_user ? "/rsvp/referral" : "/rsvp")
-  end
 
   def track_ahoy_visit
     return unless user_signed_in?

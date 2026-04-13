@@ -24,7 +24,7 @@ class Admin::NewsPostsController < Admin::ApplicationController
     post = NewsPost.find(params[:id])
 
     if post.update(post_params)
-      audit!("news_post.updated", target: post, metadata: { title: post.title, published: post.published })
+      audit!("news_post.updated", target: post, metadata: { title: post.title, published: post.published, changes: audit_changes_for(post) })
       redirect_to admin_news_posts_path, notice: "News post updated."
     else
       redirect_to admin_news_posts_path, alert: post.errors.full_messages.join(", ")

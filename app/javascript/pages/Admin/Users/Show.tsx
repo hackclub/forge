@@ -167,7 +167,6 @@ export default function AdminUsersShow({
           { label: 'Timezone', value: user.timezone },
           { label: 'Joined', value: user.created_at },
           { label: 'Banned', value: user.is_banned ? 'Yes' : 'No' },
-          { label: 'Beta Approved', value: user.is_beta_approved ? 'Yes' : 'No' },
         ].map((item) => (
           <div key={item.label} className="bg-[#1c1b1b] ghost-border p-4">
             <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">{item.label}</span>
@@ -214,18 +213,6 @@ export default function AdminUsersShow({
               )}
             </div>
           )}
-        </div>
-      )}
-
-      {isSuperadmin && (
-        <div className="mb-10">
-          <button
-            onClick={() => router.post(`/admin/users/${user.id}/toggle_beta_approval`)}
-            className={`px-5 py-2 text-xs font-bold uppercase tracking-[0.2em] flex items-center gap-2 cursor-pointer transition-colors ${user.is_beta_approved ? 'bg-red-500/10 hover:bg-red-500/20 text-red-400' : 'signature-smolder text-[#4c1a00]'}`}
-          >
-            <span className="material-symbols-outlined text-sm">{user.is_beta_approved ? 'block' : 'verified_user'}</span>
-            {user.is_beta_approved ? 'Revoke Beta Access' : 'Approve for Beta'}
-          </button>
         </div>
       )}
 

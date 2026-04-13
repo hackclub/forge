@@ -80,6 +80,7 @@ class Admin::AuditLogController < Admin::ApplicationController
     when "SupportTicket" then admin_support_ticket_path(event.target_id)
     when "Order" then admin_order_path(event.target_id)
     when "ShopItem" then admin_shop_items_path
+    when "AirtableQueueItem" then admin_airtable_queue_path(event.target_id)
     end
   end
 
@@ -114,6 +115,7 @@ class Admin::AuditLogController < Admin::ApplicationController
     "user.permissions_updated" => "Updated permissions for",
     "user.beta_approval_toggled" => "Toggled beta approval for",
     "user.shop_unlocked_toggled" => "Toggled shop access for",
+    "user.address_synced" => "Synced address from HCA for",
     "user.note_added" => "Added internal note on",
     "user.note_destroyed" => "Deleted internal note from",
     "user.kudo_added" => "Gave kudos to",
@@ -141,6 +143,11 @@ class Admin::AuditLogController < Admin::ApplicationController
     "shop_item.created" => "Created shop item",
     "shop_item.updated" => "Updated shop item",
     "shop_item.destroyed" => "Deleted shop item",
+    "airtable.sent" => "Sent record to Airtable for",
+    "airtable.cancelled" => "Cancelled Airtable queue item for",
+    "devlog.created" => "Added devlog",
+    "devlog.updated" => "Edited devlog",
+    "devlog.destroyed" => "Deleted devlog from project",
     "project.marked_built" => "Marked built",
     "project.kudo_added" => "Kudos added on",
     "project.kudo_destroyed" => "Kudos removed from"

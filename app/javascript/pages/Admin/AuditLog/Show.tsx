@@ -23,6 +23,67 @@ function renderValue(value: unknown): string {
   return String(value)
 }
 
+function isChangeObject(value: unknown): value is Record<string, { from: unknown; to: unknown }> {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false
+  const entries = Object.values(value as Record<string, unknown>)
+  if (entries.length === 0) return false
+  return entries.every(
+    (v) => v !== null && typeof v === 'object' && !Array.isArray(v) && 'from' in (v as object) && 'to' in (v as object),
+  )
+}
+
+function ChangesTable({ changes }: { changes: Record<string, { from: unknown; to: unknown }> }) {
+  const keys = Object.keys(changes)
+  if (keys.length === 0) return <span className="text-stone-600">—</span>
+  return (
+    <table className="w-full text-xs">
+      <thead>
+        <tr className="text-left text-stone-600">
+          <th className="py-1 pr-3 font-bold uppercase tracking-[0.15em]">Field</th>
+          <th className="py-1 pr-3 font-bold uppercase tracking-[0.15em]">Before</th>
+          <th className="py-1 font-bold uppercase tracking-[0.15em]">After</th>
+        </tr>
+      </thead>
+      <tbody>
+        {keys.map((k) => (
+          <tr key={k} className="border-t border-white/5 align-top">
+            <td className="py-1 pr-3 text-[#e5e2e1] font-bold">{k}</td>
+            <td className="py-1 pr-3 text-red-300/80 break-words [overflow-wrap:anywhere]">{renderValue(changes[k].from)}</td>
+            <td className="py-1 text-emerald-300/80 break-words [overflow-wrap:anywhere]">{renderValue(changes[k].to)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  )
+}
+
+function QueryResultTable({ columns, rows }: { columns: string[]; rows: unknown[][] }) {
+  return (
+    <div className="overflow-x-auto ghost-border">
+      <table className="w-full text-xs">
+        <thead className="bg-[#0e0e0e]">
+          <tr className="text-left text-stone-500">
+            {columns.map((c) => (
+              <th key={c} className="px-3 py-2 font-bold uppercase tracking-[0.15em]">{c}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row, i) => (
+            <tr key={i} className="border-t border-white/5">
+              {row.map((cell, j) => (
+                <td key={j} className="px-3 py-2 text-stone-400 font-mono break-words [overflow-wrap:anywhere]">
+                  {renderValue(cell)}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
 export default function AdminAuditLogShow({ entry }: { entry: AuditEntryDetail }) {
   const metadataKeys = Object.keys(entry.metadata)
 
@@ -96,14 +157,30 @@ export default function AdminAuditLogShow({ entry }: { entry: AuditEntryDetail }
           <div className="ghost-border overflow-x-auto">
             <table className="w-full min-w-[480px]">
               <tbody>
-                {metadataKeys.map((key) => (
-                  <tr key={key} className="border-b border-white/5">
-                    <td className="px-5 py-3 font-headline font-bold text-[#e5e2e1] text-sm align-top w-48">{key}</td>
-                    <td className="px-5 py-3 text-stone-400 text-sm break-words [overflow-wrap:anywhere] font-mono">
-                      {renderValue(entry.metadata[key])}
-                    </td>
-                  </tr>
-                ))}
+                {metadataKeys.map((key) => {
+                  const value = entry.metadata[key]
+                  const isQueryRows =
+                    key === 'rows' &&
+                    Array.isArray(value) &&
+                    Array.isArray(entry.metadata.columns)
+                  return (
+                    <tr key={key} className="border-b border-white/5">
+                      <td className="px-5 py-3 font-headline font-bold text-[#e5e2e1] text-sm align-top w-48">{key}</td>
+                      <td className="px-5 py-3 text-stone-400 text-sm break-words [overflow-wrap:anywhere] font-mono">
+                        {isChangeObject(value) ? (
+                          <ChangesTable changes={value} />
+                        ) : isQueryRows ? (
+                          <QueryResultTable
+                            columns={entry.metadata.columns as string[]}
+                            rows={value as unknown[][]}
+                          />
+                        ) : (
+                          renderValue(value)
+                        )}
+                      </td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_12_121418) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_13_015344) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -83,6 +83,25 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_12_121418) do
     t.index ["user_id"], name: "index_ahoy_visits_on_user_id"
     t.index ["visit_token"], name: "index_ahoy_visits_on_visit_token", unique: true
     t.index ["visitor_token", "started_at"], name: "index_ahoy_visits_on_visitor_token_and_started_at"
+  end
+
+  create_table "airtable_queue_items", force: :cascade do |t|
+    t.string "airtable_record_id"
+    t.datetime "created_at", null: false
+    t.bigint "enqueued_by_id"
+    t.text "error"
+    t.string "forge_id", null: false
+    t.jsonb "payload", default: {}, null: false
+    t.bigint "project_id"
+    t.datetime "sent_at"
+    t.bigint "sent_by_id"
+    t.integer "status", default: 0, null: false
+    t.string "table_name", null: false
+    t.datetime "updated_at", null: false
+    t.index ["enqueued_by_id"], name: "index_airtable_queue_items_on_enqueued_by_id"
+    t.index ["project_id"], name: "index_airtable_queue_items_on_project_id"
+    t.index ["sent_by_id"], name: "index_airtable_queue_items_on_sent_by_id"
+    t.index ["status"], name: "index_airtable_queue_items_on_status"
   end
 
   create_table "audit_events", force: :cascade do |t|
@@ -193,6 +212,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_12_121418) do
     t.text "description"
     t.string "devlog_mode"
     t.datetime "discarded_at"
+    t.string "green_flags", default: [], array: true
     t.boolean "hidden", default: false, null: false
     t.string "name", null: false
     t.decimal "override_hours"
@@ -200,6 +220,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_12_121418) do
     t.text "pitch_text"
     t.text "readme_cache"
     t.datetime "readme_fetched_at"
+    t.string "red_flags", default: [], array: true
     t.string "repo_link"
     t.text "review_feedback"
     t.datetime "reviewed_at"
@@ -474,6 +495,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_12_121418) do
     t.boolean "is_beta_approved", default: false, null: false
     t.string "last_name"
     t.string "permissions", default: [], null: false, array: true
+    t.string "phone_number"
     t.string "postal_code"
     t.string "referral_code"
     t.string "region", default: "rest_of_world"
@@ -500,6 +522,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_12_121418) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "airtable_queue_items", "projects"
+  add_foreign_key "airtable_queue_items", "users", column: "enqueued_by_id"
+  add_foreign_key "airtable_queue_items", "users", column: "sent_by_id"
   add_foreign_key "audit_events", "users", column: "actor_id"
   add_foreign_key "coin_adjustments", "users"
   add_foreign_key "coin_adjustments", "users", column: "actor_id"

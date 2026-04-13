@@ -113,7 +113,7 @@ export default function AdminReferralsShow({
       )}
 
       <p className="text-stone-600 text-xs mt-8">
-        Approved referrals pay out 0.4c to the referrer and add 0.1c to the prize pool ({stats.prize_pool.toFixed(2)}c current).
+        Approved referrals pay out 0.25c to the referrer and add 0.1c to the prize pool ({stats.prize_pool.toFixed(2)}c current).
       </p>
     </div>
   )

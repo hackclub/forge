@@ -1,0 +1,38 @@
+# == Schema Information
+#
+# Table name: airtable_queue_items
+#
+#  id                 :bigint           not null, primary key
+#  error              :text
+#  payload            :jsonb            not null
+#  sent_at            :datetime
+#  status             :integer          default("pending"), not null
+#  table_name         :string           not null
+#  created_at         :datetime         not null
+#  updated_at         :datetime         not null
+#  airtable_record_id :string
+#  enqueued_by_id     :bigint
+#  forge_id           :string           not null
+#  project_id         :bigint
+#  sent_by_id         :bigint
+#
+# Indexes
+#
+#  index_airtable_queue_items_on_enqueued_by_id  (enqueued_by_id)
+#  index_airtable_queue_items_on_project_id      (project_id)
+#  index_airtable_queue_items_on_sent_by_id      (sent_by_id)
+#  index_airtable_queue_items_on_status          (status)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (enqueued_by_id => users.id)
+#  fk_rails_...  (project_id => projects.id)
+#  fk_rails_...  (sent_by_id => users.id)
+#
+require "test_helper"
+
+class AirtableQueueItemTest < ActiveSupport::TestCase
+  # test "the truth" do
+  #   assert true
+  # end
+end

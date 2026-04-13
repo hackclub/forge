@@ -135,15 +135,16 @@ class Admin::ProjectsController < Admin::ApplicationController
       audit!("project.reverted_to_draft", target: @project, metadata: { feedback: feedback })
       redirect_to admin_project_path(@project), notice: "Project reverted to draft."
     when "approve_build"
+      capped = capped_override_hours(@project, params[:override_hours])
       @project.update!(
         status: :build_approved,
         reviewer: current_user,
         reviewed_at: Time.current,
         review_feedback: feedback,
-        override_hours: params[:override_hours].presence,
+        override_hours: capped,
         override_hours_justification: params[:override_hours_justification].presence
       )
-      audit!("project.build_approved", target: @project, metadata: { feedback: feedback, override_hours: params[:override_hours].presence })
+      audit!("project.build_approved", target: @project, metadata: { feedback: feedback, override_hours: capped })
       ReferralEligibility.mark(@project)
       notify_slack_decision(@project, "build approved! :tada:", feedback)
       redirect_to admin_project_path(@project), notice: "Build approved."
@@ -158,11 +159,12 @@ class Admin::ProjectsController < Admin::ApplicationController
       notify_slack_decision(@project, "build rejected", feedback)
       redirect_to admin_project_path(@project), notice: "Build rejected."
     when "save_review_notes"
+      capped = capped_override_hours(@project, params[:override_hours])
       @project.update!(
-        override_hours: params[:override_hours].presence,
+        override_hours: capped,
         override_hours_justification: params[:override_hours_justification].presence
       )
-      audit!("project.review_notes_saved", target: @project, metadata: { override_hours: params[:override_hours].presence })
+      audit!("project.review_notes_saved", target: @project, metadata: { override_hours: capped })
       redirect_to admin_project_path(@project), notice: "Review notes saved."
     when "refresh_readme"
       FetchReadmeJob.perform_later(@project.id)
@@ -177,6 +179,15 @@ class Admin::ProjectsController < Admin::ApplicationController
 
   def require_projects_permission!
     require_permission!("projects")
+  end
+
+  def capped_override_hours(project, raw)
+    return nil if raw.blank?
+
+    value = raw.to_f
+    ceiling = project.devlog_hours
+    value = ceiling if value > ceiling
+    value
   end
 
   def notify_slack_decision(project, decision, feedback)
@@ -257,6 +268,8 @@ class Admin::ProjectsController < Admin::ApplicationController
       name: project.name,
       subtitle: project.subtitle,
       description: project.description,
+      red_flags: project.red_flags || [],
+      green_flags: project.green_flags || [],
       repo_link: project.repo_link,
       tags: project.tags,
       status: project.status,
@@ -276,6 +289,7 @@ class Admin::ProjectsController < Admin::ApplicationController
       readme_cache: project.readme_cache,
       readme_fetched_at: project.readme_fetched_at&.strftime("%b %d, %Y %H:%M"),
       total_hours: project.total_hours,
+      devlog_hours: project.devlog_hours,
       devlogs: project.devlogs.order(created_at: :desc).map { |d| serialize_devlog(d) },
       hidden: project.hidden,
       staff_pick: project.staff_pick?,

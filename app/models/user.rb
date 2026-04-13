@@ -15,6 +15,8 @@
 #  email               :string           not null
 #  first_name          :string
 #  fulfillment_regions :string           default([]), not null, is an Array
+#  git_instance_url    :string
+#  git_provider        :string           default("github")
 #  github_username     :string
 #  hca_token           :text
 #  is_adult            :boolean          default(FALSE), not null
@@ -22,6 +24,7 @@
 #  is_beta_approved    :boolean          default(FALSE), not null
 #  last_name           :string
 #  permissions         :string           default([]), not null, is an Array
+#  phone_number        :string
 #  postal_code         :string
 #  referral_code       :string
 #  region              :string           default("rest_of_world")
@@ -48,16 +51,9 @@ class User < ApplicationRecord
   has_paper_trail
 
   after_commit :bust_cache
-  after_update_commit :enqueue_beta_channel_invite, if: :saved_change_to_is_beta_approved?
 
   def bust_cache
     Rails.cache.delete("user/#{id}")
-  end
-
-  def enqueue_beta_channel_invite
-    return unless is_beta_approved? && slack_id.present?
-
-    SlackInviteToBetaChannelJob.perform_later(id)
   end
 
   pg_search_scope :search, against: [ :display_name, :email ], using: { tsearch: { prefix: true } }
@@ -237,13 +233,33 @@ class User < ApplicationRecord
       end
 
       user.update(hca_token: access_token, email: email)
+      user.apply_hca_identity(identity)
       user.refresh_profile_from_slack
       return user
     end
 
     user = create_from_hca(identity, access_token)
+    user.apply_hca_identity(identity)
     user.refresh_profile_from_slack
     user
+  end
+
+  def apply_hca_identity(identity)
+    return if identity.blank?
+
+    addr = identity["address"].is_a?(Hash) ? identity["address"] : identity
+
+    attrs = {
+      address_line1: pick(addr, %w[address_line_1 address_line1 line_1 line1 street]).presence,
+      address_line2: pick(addr, %w[address_line_2 address_line2 line_2 line2]).presence,
+      city: pick(addr, %w[city locality]).presence,
+      state: pick(addr, %w[state state_province province region]).presence,
+      country: pick(addr, %w[country country_code]).presence,
+      postal_code: pick(addr, %w[postal_code zip zip_code postcode]).presence,
+      phone_number: pick(identity, %w[phone_number phone]).presence
+    }.compact
+
+    update(attrs) if attrs.any?
   end
 
   def self.create_from_hca(identity, access_token)
@@ -364,6 +380,16 @@ class User < ApplicationRecord
   end
 
   private
+
+  def pick(hash, keys)
+    return "" unless hash.is_a?(Hash)
+
+    keys.each do |k|
+      value = hash[k] || hash[k.to_sym]
+      return value.to_s if value.present?
+    end
+    ""
+  end
 
   def ensure_referral_code
     return if referral_code.present?

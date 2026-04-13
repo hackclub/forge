@@ -10,6 +10,7 @@
 #  description                  :text
 #  devlog_mode                  :string
 #  discarded_at                 :datetime
+#  green_flags                  :string           default([]), is an Array
 #  hidden                       :boolean          default(FALSE), not null
 #  name                         :string           not null
 #  override_hours               :decimal(, )
@@ -17,6 +18,7 @@
 #  pitch_text                   :text
 #  readme_cache                 :text
 #  readme_fetched_at            :datetime
+#  red_flags                    :string           default([]), is an Array
 #  repo_link                    :string
 #  review_feedback              :text
 #  reviewed_at                  :datetime
@@ -57,6 +59,7 @@ class Project < ApplicationRecord
   belongs_to :reviewer, class_name: "User", optional: true
   has_many :ships, dependent: :destroy
   has_many :devlogs, dependent: :destroy
+  has_many :airtable_queue_items, dependent: :destroy
   has_many :kudos, dependent: :destroy
   has_one_attached :cover_image
 
@@ -67,7 +70,7 @@ class Project < ApplicationRecord
 
   TIERS = %w[tier_1 tier_2 tier_3 tier_4].freeze
   TIER_COIN_RATES = {
-    "tier_1" => 7.25,
+    "tier_1" => 7.0,
     "tier_2" => 5.5,
     "tier_3" => 4.5,
     "tier_4" => 4.0
@@ -86,6 +89,10 @@ class Project < ApplicationRecord
 
   def built?
     built_at.present?
+  end
+
+  def airtable_sent?
+    airtable_queue_items.where(status: AirtableQueueItem.statuses[:sent]).exists?
   end
 
   def has_fulfilled_direct_grant?
@@ -116,14 +123,18 @@ class Project < ApplicationRecord
     TIER_COIN_RATES[tier] || 0.0
   end
 
-  def total_hours
-    return override_hours.to_f if override_hours.present?
-
+  def devlog_hours
     devlogs.sum do |d|
       next 0 unless d.time_spent
       match = d.time_spent.match(/([\d.]+)\s*(?:hrs?|hours?)/i)
       match ? match[1].to_f : 0
     end
+  end
+
+  def total_hours
+    return override_hours.to_f if override_hours.present?
+
+    devlog_hours
   end
 
   def coins_earned

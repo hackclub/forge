@@ -1,7 +1,7 @@
-import { useState, useMemo } from 'react'
+import { useMemo } from 'react'
 import { Head } from '@inertiajs/react'
 
-const FORGE_ICONS = ['hardware', 'memory', 'developer_board', 'precision_manufacturing', 'build', 'construction', 'handyman', 'architecture', 'terminal', 'chip_extraction', 'img:/flag-orpheus.svg', 'img:/hc-icon.svg']
+const FORGE_ICONS = ['hardware', 'memory', 'developer_board', 'precision_manufacturing', 'build', 'construction', 'handyman', 'architecture', 'terminal', 'chip_extraction', 'img:/flag-orpheus.svg']
 
 function FloatingIcons() {
   const icons = useMemo(() => {
@@ -26,7 +26,7 @@ function FloatingIcons() {
   }, [])
 
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+    <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
       <style dangerouslySetInnerHTML={{ __html: `@keyframes float { 0% { transform: translateY(110vh); } 100% { transform: translateY(-100px); } }` }} />
       {icons.map((item, i) =>
         item.icon.startsWith('img:') ? (
@@ -124,62 +124,24 @@ function Footer() {
 }
 
 export default function RsvpIndex() {
-  const [email, setEmail] = useState('')
-  const [state, setState] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle')
-  const [errorMsg, setErrorMsg] = useState('')
-
-  async function submit(e: React.FormEvent) {
-    e.preventDefault()
-    setState('submitting')
-    setErrorMsg('')
-
-    try {
-      const csrfToken = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content
-      const res = await fetch('/rsvp', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-          ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
-        },
-        body: JSON.stringify({ email }),
-      })
-
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}))
-        throw new Error(body.error || 'Something went wrong.')
-      }
-
-      setState('success')
-    } catch (err) {
-      setState('error')
-      setErrorMsg(err instanceof Error ? err.message : 'Something went wrong.')
-    }
-  }
-
   return (
     <>
-      <Head title="Forge — RSVP" />
+      <Head title="Forge" />
 
       <div className="min-h-screen bg-[#0e0e0e] text-[#e5e2e1] relative overflow-hidden flex flex-col">
         <FloatingIcons />
 
-        <div className="absolute inset-0 pointer-events-none" style={{
+        <div className="fixed inset-0 pointer-events-none z-0" style={{
           backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(168,138,126,0.04) 1px, transparent 0)',
           backgroundSize: '48px 48px',
         }} />
 
         <nav className="relative z-10 flex justify-between items-center px-8 md:px-16 py-8">
           <span className="text-2xl font-bold tracking-tighter text-[#ffb595] uppercase font-headline">Forge</span>
-          <a href="/auth/hca/start" className="text-stone-500 hover:text-[#ffb595] transition-colors text-xs font-bold uppercase tracking-[0.2em] flex items-center gap-2">
-            <span className="material-symbols-outlined text-sm">login</span>
-            Beta Sign In
-          </a>
         </nav>
 
-        <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 pb-24">
+        <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 pt-16 pb-48">
           <div className="text-center mb-12 max-w-2xl">
-            <p className="text-[10px] uppercase tracking-[0.3em] text-[#ee671c] font-bold mb-6">Coming Soon</p>
             <h1 className="text-5xl md:text-7xl font-headline font-bold tracking-tighter leading-[0.95] mb-6">
               Build hardware.
               <br />
@@ -188,67 +150,120 @@ export default function RsvpIndex() {
             <p className="text-stone-400 text-base md:text-lg leading-relaxed max-w-lg mx-auto">
               Got a hardware idea? We'll help you build it.
               Unlimited funding for teen makers, ages 13–18.
-              Drop your email to get notified when Forge launches.
+              Sign in to get started making!
+            </p>
+            <p className="text-stone-600 text-xs leading-relaxed max-w-lg mx-auto mt-6 flex items-start gap-2">
+              <span className="material-symbols-outlined text-sm text-stone-600 mt-0.5 shrink-0">info</span>
+              <span>
+                The Forge team reserves the right to revoke, change, or cancel funding at any time. Funding is only granted when a project is approved, at the sole discretion of the Forge team.
+              </span>
             </p>
           </div>
 
-          <div className="w-full max-w-xl bg-[#1c1b1b]/80 backdrop-blur-sm ghost-border p-8 md:p-10">
-            {state === 'success' ? (
-              <div className="text-center py-6">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-[#ee671c]/15 mb-6">
-                  <span className="material-symbols-outlined text-4xl text-[#ee671c]">local_fire_department</span>
-                </div>
-                <h2 className="text-2xl font-headline font-bold text-[#e5e2e1] mb-3">You&apos;re on the list!</h2>
-                <p className="text-stone-400 text-sm">
-                  Thanks for signing up! You'll be the first to know when Forge launches :)
-                </p>
-              </div>
-            ) : (
-              <form onSubmit={submit} className="space-y-5">
-                <div>
-                  <label htmlFor="email" className="block text-[10px] font-bold uppercase tracking-[0.25em] text-stone-500 mb-3">
-                    RSVP for Forge
-                  </label>
-                  <input
-                    type="email"
-                    id="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="you@example.com"
-                    required
-                    disabled={state === 'submitting'}
-                    className="w-full bg-[#0e0e0e] border-none px-5 py-4 text-[#e5e2e1] text-base focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600"
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={state === 'submitting'}
-                  className="w-full signature-smolder text-[#4c1a00] font-headline font-bold py-4 uppercase tracking-[0.2em] text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-transform disabled:opacity-60 disabled:cursor-not-allowed"
-                >
-                  {state === 'submitting' ? (
-                    <>
-                      <span className="material-symbols-outlined text-lg animate-spin">progress_activity</span>
-                      Submitting...
-                    </>
-                  ) : (
-                    <>
-                      <span className="material-symbols-outlined text-lg">local_fire_department</span>
-                      RSVP for Forge
-                    </>
-                  )}
-                </button>
-
-                {state === 'error' && errorMsg && (
-                  <p className="text-red-400 text-sm flex items-center gap-2 justify-center">
-                    <span className="material-symbols-outlined text-sm">error</span>
-                    {errorMsg}
-                  </p>
-                )}
-              </form>
-            )}
-          </div>
+          <a
+            href="/signin"
+            className="signature-smolder text-[#4c1a00] font-headline font-bold py-4 px-10 uppercase tracking-[0.2em] text-sm inline-flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
+          >
+            <span className="material-symbols-outlined text-lg">local_fire_department</span>
+            Get Started
+          </a>
+          <p className="text-stone-600 text-[10px] uppercase tracking-[0.2em] font-bold mt-4">
+            Sign in with Hack Club
+          </p>
         </main>
+
+        <section className="relative z-10 px-6 md:px-16 pt-24 pb-32 max-w-[1200px] mx-auto w-full">
+          <div className="text-center mb-10">
+            <p className="text-[10px] uppercase tracking-[0.3em] text-[#ee671c] font-bold mb-3">Previously, from Hack Club</p>
+            <h2 className="text-3xl md:text-4xl font-headline font-bold tracking-tight text-[#e5e2e1]">
+              Built by the same team
+            </h2>
+            <p className="text-stone-500 text-sm mt-3 max-w-xl mx-auto">
+              A few of the programs we've run for teen makers around the world.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {[
+              {
+                href: 'https://grounded.hackclub.com',
+                name: 'Grounded',
+                tag: 'Hardware Grants',
+                blurb: 'Turn hardware dreams into reality — tools, funding, and a community for teen builders.',
+                logo: '/landing/grounded.png',
+              },
+              {
+                href: 'https://blueprint.hackclub.com',
+                name: 'Blueprint',
+                tag: 'Design It. We Ship It.',
+                blurb: 'Design a macropad (or any hardware project up to $400) in CAD/KiCad — Hack Club ships you the parts.',
+                logo: '/landing/blueprint.webp',
+              },
+              {
+                href: 'https://highway.hackclub.com',
+                name: 'Highway',
+                tag: 'Road to Undercity',
+                blurb: 'Grants for hardware projects — earn points and an invite to Undercity, a 4-day hackathon at GitHub HQ.',
+                logo: '/landing/highway.png',
+              },
+            ].map((e) => (
+              <a
+                key={e.name}
+                href={e.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group bg-[#1c1b1b]/80 backdrop-blur-sm ghost-border p-6 hover:bg-[#2a2a2a] transition-colors flex flex-col"
+              >
+                <div className="bg-[#0e0e0e] ghost-border h-24 flex items-center justify-center mb-4 px-4">
+                  <img src={e.logo} alt={`${e.name} logo`} className="max-h-14 max-w-full object-contain" />
+                </div>
+                <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-500 mb-1">{e.tag}</p>
+                <h3 className="text-lg font-headline font-bold text-[#e5e2e1] tracking-tight mb-2">{e.name}</h3>
+                <p className="text-stone-400 text-sm leading-relaxed flex-1">{e.blurb}</p>
+                <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600 group-hover:text-[#ffb595] transition-colors mt-5 flex items-center gap-1">
+                  Visit
+                  <span className="material-symbols-outlined text-sm">arrow_outward</span>
+                </span>
+              </a>
+            ))}
+          </div>
+
+          <div className="text-center mt-8">
+          </div>
+        </section>
+
+        <section className="relative z-10 px-6 md:px-16 pt-8 pb-32 max-w-[1200px] mx-auto w-full">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.3em] text-[#ee671c] font-bold mb-3">Learn with us</p>
+              <h2 className="text-3xl md:text-4xl font-headline font-bold tracking-tight text-[#e5e2e1] mb-4">
+                Never made a circuit board before? No problem!
+              </h2>
+              <p className="text-stone-400 text-base leading-relaxed mb-5">
+                Join thousands of teenagers who are learning as well. Check out our written and video tutorials. Ask questions in the <span className="text-[#ffb595] font-mono">#forge</span> channel on Slack.
+              </p>
+              <a
+                href="https://hackclub.enterprise.slack.com/archives/C0ALJ6P00B1"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="ghost-border bg-[#1c1b1b] hover:bg-[#2a2a2a] text-stone-400 hover:text-[#ffb595] px-5 py-3 uppercase tracking-[0.2em] text-[10px] font-bold inline-flex items-center gap-2 transition-colors"
+              >
+                <span className="material-symbols-outlined text-sm">chat</span>
+                Join the Slack
+              </a>
+            </div>
+
+            <div className="ghost-border bg-[#0e0e0e] aspect-video w-full overflow-hidden">
+              <iframe
+                src="https://www.youtube-nocookie.com/embed/LrSKs35nR8k?start=2"
+                title="Hack Club electronics tutorial"
+                allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="w-full h-full"
+              />
+            </div>
+          </div>
+        </section>
 
         <Footer />
       </div>

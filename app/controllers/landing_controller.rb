@@ -4,6 +4,6 @@ class LandingController < ApplicationController
   def index
     return redirect_to home_path if user_signed_in?
 
-    render inertia: "Landing/Index"
+    render inertia: "Rsvp/Index"
   end
 end

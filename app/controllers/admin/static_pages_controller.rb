@@ -19,13 +19,4 @@ class Admin::StaticPagesController < Admin::ApplicationController
       is_superadmin: current_user.superadmin?
     }
   end
-
-  def sync_beta_channel
-    raise ActionController::RoutingError, "Not Found" unless current_user&.superadmin?
-
-    user_ids = User.kept.where(is_beta_approved: true).where.not(slack_id: nil).pluck(:id)
-    user_ids.each { |id| SlackInviteToBetaChannelJob.perform_later(id) }
-    audit!("system.beta_channel_synced", metadata: { count: user_ids.size })
-    redirect_to admin_root_path, notice: "Queued #{user_ids.size} beta member invites to the channel."
-  end
 end
