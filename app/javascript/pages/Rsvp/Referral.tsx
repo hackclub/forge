@@ -32,13 +32,11 @@ const STATUS_STYLES: Record<string, string> = {
 export default function RsvpReferral({
   referral_code,
   referral_url,
-  is_beta_approved,
   stats,
   referrals,
 }: {
   referral_code: string
   referral_url: string
-  is_beta_approved: boolean
   stats: Stats
   referrals: ReferralRow[]
 }) {
@@ -69,22 +67,6 @@ export default function RsvpReferral({
 
         <main className="flex-1 flex flex-col items-center px-6 pb-24 pt-8">
           <div className="w-full max-w-2xl">
-            {is_beta_approved && (
-              <a
-                href="/home"
-                className="signature-smolder text-[#4c1a00] ghost-border flex items-center justify-between gap-4 p-5 mb-8 group cursor-pointer"
-              >
-                <div className="flex items-center gap-4 min-w-0">
-                  <span className="material-symbols-outlined text-3xl shrink-0">local_fire_department</span>
-                  <div className="min-w-0">
-                    <p className="font-headline font-bold uppercase tracking-[0.15em] text-sm">Congrats! You've been approved for beta</p>
-                    <p className="text-[#4c1a00]/80 text-xs mt-1">Click here to get started</p>
-                  </div>
-                </div>
-                <span className="material-symbols-outlined text-2xl group-hover:translate-x-1 transition-transform shrink-0">arrow_forward</span>
-              </a>
-            )}
-
             <div className="text-center mb-10">
               <p className="text-[10px] uppercase tracking-[0.3em] text-[#ee671c] font-bold mb-4">You're on the waitlist</p>
               <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tighter leading-[0.95] mb-4">
@@ -93,7 +75,7 @@ export default function RsvpReferral({
                 <span className="text-[#ee671c]">Get payed</span>
               </h1>
               <p className="text-stone-400 text-sm md:text-base max-w-lg mx-auto">
-                Share your code. When they sign up and ship their first project, you earn 0.4 coins + a ticket into the prize pool draw.
+                Share your code. When they sign up and ship their first project, you earn 0.25 coins + a ticket into the prize pool draw.
               </p>
             </div>
 

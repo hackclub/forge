@@ -97,7 +97,6 @@ Rails.application.routes.draw do
   constraints StaffConstraint.new do
     namespace :admin do
       get "/" => "static_pages#index", as: :root
-      post "sync_beta_channel" => "static_pages#sync_beta_channel", as: :sync_beta_channel
       get "pitches" => "projects#pitches", as: :pitches
       get "reviews" => "projects#reviews", as: :reviews
 
@@ -116,7 +115,6 @@ Rails.application.routes.draw do
           post :restore
           post :ban
           post :unban
-          post :toggle_beta_approval
           post :add_note
           delete "notes/:note_id" => "users#destroy_note", as: :destroy_note
           post :add_kudo
@@ -162,6 +160,12 @@ Rails.application.routes.draw do
           post :reset_pool
         end
       end
+      resources :airtable_queue, only: [ :index, :show ] do
+        member do
+          post :send_to_airtable
+          post :cancel
+        end
+      end
       get "audit_log" => "audit_log#index", as: :audit_log
       get "audit_log/:id" => "audit_log#show", as: :audit_log_entry
       get "database" => "database#index", as: :database
@@ -187,14 +191,15 @@ Rails.application.routes.draw do
 
   root "landing#index"
 
-  get "auth/hca/start" => "auth#new", as: :signin
+  get "signin" => "auth#show", as: :signin
+  get "auth/hca/start" => "auth#new", as: :hca_start
   get "auth/hca/callback" => "auth#create", as: :hca_callback
   delete "auth/signout" => "auth#destroy", as: :signout
 
   get "sorry" => "bans#show", as: :sorry
 
   get "home" => "home#index", as: :home
-  patch "profile/address" => "profile#update_address", as: :update_address
+  post "profile/sync_address" => "profile#sync_address", as: :sync_address
   get "rsvp" => "rsvps#index", as: :rsvp
   post "rsvp" => "rsvps#create"
   get "rsvp/referral" => "rsvps#referral", as: :rsvp_referral

@@ -135,6 +135,48 @@ export default function AdminProjectsShow({
             </div>
           )}
 
+          {(project.green_flags?.length > 0 || project.red_flags?.length > 0) && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+              <div className="bg-[#1c1b1b] ghost-border rounded-xl p-6">
+                <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-400 font-headline mb-4 flex items-center gap-2">
+                  <span className="material-symbols-outlined text-sm">check_circle</span>
+                  Green Flags
+                </h4>
+                {project.green_flags?.length > 0 ? (
+                  <ul className="space-y-2">
+                    {project.green_flags.map((flag, i) => (
+                      <li key={i} className="text-stone-300 text-sm flex gap-2 leading-relaxed">
+                        <span className="text-emerald-400 mt-0.5">+</span>
+                        <span>{flag}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-stone-600 text-sm italic">None identified.</p>
+                )}
+              </div>
+
+              <div className="bg-[#1c1b1b] ghost-border rounded-xl p-6">
+                <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-red-400 font-headline mb-4 flex items-center gap-2">
+                  <span className="material-symbols-outlined text-sm">warning</span>
+                  Red Flags
+                </h4>
+                {project.red_flags?.length > 0 ? (
+                  <ul className="space-y-2">
+                    {project.red_flags.map((flag, i) => (
+                      <li key={i} className="text-stone-300 text-sm flex gap-2 leading-relaxed">
+                        <span className="text-red-400 mt-0.5">!</span>
+                        <span>{flag}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-stone-600 text-sm italic">None identified.</p>
+                )}
+              </div>
+            </div>
+          )}
+
           {(isBuildReview || project.status === 'build_approved' || (project.tier !== 'tier_1' && project.devlogs.length > 0)) && (
             <>
               {project.cover_image_url && (
@@ -361,11 +403,23 @@ export default function AdminProjectsShow({
                 <input
                   type="number"
                   step="0.5"
+                  min="0"
+                  max={project.devlog_hours}
                   value={overrideHours}
-                  onChange={(e) => setOverrideHours(e.target.value)}
+                  onChange={(e) => {
+                    const v = parseFloat(e.target.value)
+                    if (!isNaN(v) && v > project.devlog_hours) {
+                      setOverrideHours(String(project.devlog_hours))
+                    } else {
+                      setOverrideHours(e.target.value)
+                    }
+                  }}
                   className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600"
-                  placeholder={`Claimed: ${project.total_hours}h`}
+                  placeholder={`Claimed: ${project.devlog_hours}h`}
                 />
+                <p className="text-stone-600 text-[10px] uppercase tracking-[0.15em] mt-1">
+                  Max {project.devlog_hours}h (devlog total). Can only decrease, never increase.
+                </p>
               </div>
 
               <div className="mb-4">

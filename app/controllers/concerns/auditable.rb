@@ -14,6 +14,16 @@ module Auditable
     Rails.logger.error("Audit log failed: #{e.class}: #{e.message}")
   end
 
+  def audit_changes_for(record, except: %i[updated_at created_at id])
+    return {} unless record.respond_to?(:saved_changes)
+
+    record.saved_changes.each_with_object({}) do |(attr, (before, after)), memo|
+      next if except.map(&:to_s).include?(attr.to_s)
+
+      memo[attr] = { "from" => before, "to" => after }
+    end
+  end
+
   private
 
   def resolve_target_label(target)

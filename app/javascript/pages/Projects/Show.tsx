@@ -118,22 +118,8 @@ export default function ProjectsShow({
     })
   }
 
-  const addressForm = useForm({
-    address_line1: project.user_address?.address_line1 || '',
-    address_line2: project.user_address?.address_line2 || '',
-    city: project.user_address?.city || '',
-    state: project.user_address?.state || '',
-    country: project.user_address?.country || '',
-    postal_code: project.user_address?.postal_code || '',
-  })
-  const [editingAddress, setEditingAddress] = useState(!project.user_has_address)
-
-  function saveAddress(e: React.FormEvent) {
-    e.preventDefault()
-    addressForm.patch('/profile/address', {
-      preserveScroll: true,
-      onSuccess: () => setEditingAddress(false),
-    })
+  function syncAddressFromHca() {
+    router.post('/profile/sync_address', {}, { preserveScroll: true })
   }
 
   function uploadCoverImage(e: React.ChangeEvent<HTMLInputElement>) {
@@ -714,13 +700,23 @@ export default function ProjectsShow({
                                 >
                                   <span className="material-symbols-outlined text-lg">edit</span>
                                 </button>
-                                <button
-                                  onClick={() => deleteDevlog(entry.id)}
-                                  className="text-stone-600 hover:text-red-400 transition-colors cursor-pointer"
-                                  aria-label="Delete devlog"
-                                >
-                                  <span className="material-symbols-outlined text-lg">delete</span>
-                                </button>
+                                {project.airtable_sent ? (
+                                  <span
+                                    className="text-stone-700 cursor-not-allowed"
+                                    aria-label="Locked — already sent to Airtable"
+                                    title="Locked — this project has been sent to Airtable. Devlogs can be edited but not deleted."
+                                  >
+                                    <span className="material-symbols-outlined text-lg">lock</span>
+                                  </span>
+                                ) : (
+                                  <button
+                                    onClick={() => deleteDevlog(entry.id)}
+                                    className="text-stone-600 hover:text-red-400 transition-colors cursor-pointer"
+                                    aria-label="Delete devlog"
+                                  >
+                                    <span className="material-symbols-outlined text-lg">delete</span>
+                                  </button>
+                                )}
                               </div>
                             )}
                           </div>
@@ -834,48 +830,42 @@ export default function ProjectsShow({
               <div className="flex items-center justify-between gap-3 mb-2">
                 <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline">
                   Shipping Address
-                  {project.user_has_address && <span className="ml-2 text-emerald-400 normal-case tracking-normal text-[10px]">✓ Saved</span>}
+                  {project.user_has_address && <span className="ml-2 text-emerald-400 normal-case tracking-normal text-[10px]">✓ Synced from HCA</span>}
                 </h4>
-                {project.user_has_address && !editingAddress && (
-                  <button
-                    onClick={() => setEditingAddress(true)}
-                    className="text-stone-500 hover:text-[#ffb595] text-[10px] uppercase tracking-wider font-bold cursor-pointer transition-colors"
-                  >
-                    Edit
-                  </button>
-                )}
               </div>
 
-              {editingAddress ? (
-                <>
-                  <p className="text-stone-500 text-xs mb-4">Required before submitting for review.</p>
-                  <form onSubmit={saveAddress} className="space-y-3">
-                    <input type="text" value={addressForm.data.address_line1} onChange={(e) => addressForm.setData('address_line1', e.target.value)} placeholder="Address Line 1" className="w-full bg-[#0e0e0e] border-none px-3 py-2 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600" required />
-                    <input type="text" value={addressForm.data.address_line2} onChange={(e) => addressForm.setData('address_line2', e.target.value)} placeholder="Address Line 2 (optional)" className="w-full bg-[#0e0e0e] border-none px-3 py-2 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600" />
-                    <div className="grid grid-cols-2 gap-3">
-                      <input type="text" value={addressForm.data.city} onChange={(e) => addressForm.setData('city', e.target.value)} placeholder="City" className="bg-[#0e0e0e] border-none px-3 py-2 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600" required />
-                      <input type="text" value={addressForm.data.state} onChange={(e) => addressForm.setData('state', e.target.value)} placeholder="State / Province" className="bg-[#0e0e0e] border-none px-3 py-2 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600" />
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <input type="text" value={addressForm.data.country} onChange={(e) => addressForm.setData('country', e.target.value)} placeholder="Country" className="bg-[#0e0e0e] border-none px-3 py-2 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600" required />
-                      <input type="text" value={addressForm.data.postal_code} onChange={(e) => addressForm.setData('postal_code', e.target.value)} placeholder="ZIP / Postal Code" className="bg-[#0e0e0e] border-none px-3 py-2 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600" required />
-                    </div>
-                    <button type="submit" disabled={addressForm.processing} className="w-full signature-smolder text-[#4c1a00] font-bold py-2 uppercase tracking-wider text-xs flex items-center justify-center gap-2 cursor-pointer">
-                      <span className="material-symbols-outlined text-sm">save</span>
-                      Save Address
-                    </button>
-                  </form>
-                </>
-              ) : (
+              {project.user_has_address ? (
                 <p className="text-stone-400 text-xs leading-relaxed whitespace-pre-line break-words">
                   {[
-                    addressForm.data.address_line1,
-                    addressForm.data.address_line2,
-                    [addressForm.data.city, addressForm.data.state, addressForm.data.postal_code].filter(Boolean).join(', '),
-                    addressForm.data.country,
+                    project.user_address?.address_line1,
+                    project.user_address?.address_line2,
+                    [project.user_address?.city, project.user_address?.state, project.user_address?.postal_code].filter(Boolean).join(', '),
+                    project.user_address?.country,
+                    project.user_address?.phone_number && `☎ ${project.user_address.phone_number}`,
                   ].filter(Boolean).join('\n')}
                 </p>
+              ) : (
+                <p className="text-stone-500 text-xs mb-4">Required before submitting for review. Add it on your Hack Club account — we'll pull it in automatically.</p>
               )}
+
+              <div className="flex flex-col sm:flex-row gap-2 mt-4">
+                <a
+                  href={project.hca_address_portal_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="signature-smolder text-[#4c1a00] font-bold px-4 py-2 uppercase tracking-wider text-[10px] flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-sm">open_in_new</span>
+                  {project.user_has_address ? 'Edit on HCA' : 'Add Address on HCA'}
+                </a>
+                <button
+                  onClick={syncAddressFromHca}
+                  className="ghost-border bg-[#0e0e0e] hover:bg-[#2a2a2a] text-stone-400 hover:text-[#ffb595] px-4 py-2 uppercase tracking-wider text-[10px] font-bold flex items-center justify-center gap-2 cursor-pointer transition-colors"
+                >
+                  <span className="material-symbols-outlined text-sm">sync</span>
+                  Refresh from HCA
+                </button>
+              </div>
             </div>
           )}
 

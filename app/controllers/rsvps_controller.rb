@@ -15,7 +15,6 @@ class RsvpsController < ApplicationController
     render inertia: "Rsvp/Referral", props: {
       referral_code: current_user.referral_code,
       referral_url: referral_signup_url(current_user.referral_code),
-      is_beta_approved: current_user.is_beta_approved || current_user.staff?,
       stats: {
         total: referrals.size,
         pending: referrals.count(&:pending?),

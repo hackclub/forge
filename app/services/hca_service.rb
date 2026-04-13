@@ -15,10 +15,10 @@ module HcaService
   end
 
   def scopes
-    "openid email name profile verification_status slack_id"
+    "openid email name profile verification_status slack_id address phone"
   end
 
-  def authorize_url(redirect_uri, state)
+  def authorize_url(redirect_uri, state, login_hint: nil)
     params = {
       client_id: ENV.fetch("HCA_CLIENT_ID", nil),
       redirect_uri: redirect_uri,
@@ -26,6 +26,7 @@ module HcaService
       scope: scopes,
       state: state
     }
+    params[:login_hint] = login_hint if login_hint.present?
     "#{host}/oauth/authorize?#{params.to_query}"
   end
 

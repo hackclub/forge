@@ -15,6 +15,8 @@
 #  email               :string           not null
 #  first_name          :string
 #  fulfillment_regions :string           default([]), not null, is an Array
+#  git_instance_url    :string
+#  git_provider        :string           default("github")
 #  github_username     :string
 #  hca_token           :text
 #  is_adult            :boolean          default(FALSE), not null
@@ -22,6 +24,7 @@
 #  is_beta_approved    :boolean          default(FALSE), not null
 #  last_name           :string
 #  permissions         :string           default([]), not null, is an Array
+#  phone_number        :string
 #  postal_code         :string
 #  referral_code       :string
 #  region              :string           default("rest_of_world")

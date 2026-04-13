@@ -7,6 +7,7 @@ class DevlogsController < ApplicationController
     @devlog = @project.devlogs.build(devlog_params)
 
     if @devlog.save
+      audit!("devlog.created", target: @devlog, label: @devlog.title, metadata: { project_id: @project.id, title: @devlog.title, time_spent: @devlog.time_spent })
       redirect_to @project, notice: "Devlog entry added."
     else
       redirect_to @project, alert: @devlog.errors.full_messages.join(", ")
@@ -18,6 +19,11 @@ class DevlogsController < ApplicationController
     @devlog = @project.devlogs.find(params[:id])
 
     if @devlog.update(devlog_params)
+      audit!("devlog.updated", target: @devlog, label: @devlog.title, metadata: {
+        project_id: @project.id,
+        airtable_sent: @project.airtable_sent?,
+        changes: audit_changes_for(@devlog)
+      })
       redirect_to @project, notice: "Devlog entry updated."
     else
       redirect_to @project, alert: @devlog.errors.full_messages.join(", ")
@@ -27,7 +33,15 @@ class DevlogsController < ApplicationController
   def destroy
     @devlog = @project.devlogs.find(params[:id])
     authorize @project, :update?
+
+    if @project.airtable_sent? && !current_user&.superadmin?
+      redirect_to @project, alert: "This devlog can't be deleted — the project has already been sent to Airtable. You can still edit it."
+      return
+    end
+
+    snapshot = @devlog.attributes.except("created_at", "updated_at")
     @devlog.destroy
+    audit!("devlog.destroyed", target: @project, label: snapshot["title"], metadata: { project_id: @project.id, devlog_id: snapshot["id"], snapshot: snapshot })
     redirect_to @project, notice: "Devlog entry removed."
   end
 

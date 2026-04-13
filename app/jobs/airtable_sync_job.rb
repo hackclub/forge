@@ -2,19 +2,14 @@ class AirtableSyncJob < ApplicationJob
   queue_as :default
 
   def perform(project_id)
-    return unless AirtableService.enabled?
-
     project = Project.find_by(id: project_id)
     return unless project
 
-    user = project.user
-    fields = build_fields(project, user)
-    AirtableService.upsert_by_forge_id(project.id, fields)
+    AirtableQueueItem.enqueue_for_project(project)
   end
 
-  private
-
-  def build_fields(project, user)
+  def self.build_fields(project)
+    user = project.user
     app_url = ENV.fetch("APP_URL", "https://forge.hackclub.com")
     playable_url = "#{app_url}/projects/#{project.id}"
 
@@ -32,6 +27,7 @@ class AirtableSyncJob < ApplicationJob
       "State / Province" => user.state,
       "Country" => user.country,
       "ZIP / Postal Code" => user.postal_code,
+      "Phone Number" => user.phone_number,
       "Birthday" => user.birthday&.iso8601,
       "Slack ID" => user.slack_id,
       "Optional - Override Hours Spent" => project.override_hours&.to_f,
@@ -46,7 +42,7 @@ class AirtableSyncJob < ApplicationJob
     fields.compact
   end
 
-  def github_username(repo_url)
+  def self.github_username(repo_url)
     return nil if repo_url.blank?
 
     match = repo_url.match(%r{github\.com/([^/]+)/})

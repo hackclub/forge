@@ -32,7 +32,7 @@
 #  fk_rails_...  (referrer_id => users.id)
 #
 class Referral < ApplicationRecord
-  PAYOUT_AMOUNT = 0.4
+  PAYOUT_AMOUNT = 0.25
   PRIZE_POOL_CONTRIBUTION = 0.1
 
   has_paper_trail

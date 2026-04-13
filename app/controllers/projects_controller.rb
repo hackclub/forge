@@ -73,7 +73,7 @@ class ProjectsController < ApplicationController
     authorize @project
 
     if @project.update(project_params)
-      audit!("project.updated", target: @project, metadata: { changed: project_params.keys })
+      audit!("project.updated", target: @project, metadata: { changed: project_params.keys, changes: audit_changes_for(@project) })
       redirect_to @project, notice: "Project updated."
     else
       redirect_back fallback_location: edit_project_path(@project), inertia: { errors: @project.errors.messages }
@@ -395,6 +395,7 @@ class ProjectsController < ApplicationController
       cover_image_url: project.cover_image_url,
       built_at: project.built_at&.strftime("%b %d, %Y"),
       build_proof_url: project.build_proof_url,
+      airtable_sent: project.airtable_sent?,
       user_id: project.user_id,
       user_display_name: project.user.display_name,
       user_has_address: project.user.address_line1.present?,
@@ -404,8 +405,10 @@ class ProjectsController < ApplicationController
         city: project.user.city,
         state: project.user.state,
         country: project.user.country,
-        postal_code: project.user.postal_code
+        postal_code: project.user.postal_code,
+        phone_number: project.user.phone_number
       } : nil,
+      hca_address_portal_url: HcaService.address_portal_url(return_to: project_url(project)),
       created_at: project.created_at.strftime("%B %d, %Y")
     }
   end

@@ -30,7 +30,13 @@ class Admin::DatabaseController < Admin::ApplicationController
         result = ActiveRecord::Base.connection.exec_query(sql)
       end
 
-      audit!("database.queried", metadata: { sql: sql, row_count: result.rows.size })
+      audit!("database.queried", metadata: {
+        sql: sql,
+        row_count: result.rows.size,
+        columns: result.columns,
+        rows: result.rows.first(50),
+        truncated: result.rows.size > 50
+      })
       render json: {
         columns: result.columns,
         rows: result.rows,

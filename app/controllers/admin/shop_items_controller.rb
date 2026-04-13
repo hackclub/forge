@@ -14,7 +14,7 @@ class Admin::ShopItemsController < Admin::ApplicationController
     item = ShopItem.new(item_params)
 
     if item.save
-      audit!("shop_item.created", target: item, metadata: { name: item.name, coin_cost: item.coin_cost.to_f })
+      audit!("shop_item.created", target: item, metadata: { name: item.name, coin_cost: item.coin_cost.to_f, attributes: item.attributes.except("created_at", "updated_at") })
       redirect_to admin_shop_items_path, notice: "Item '#{item.name}' added."
     else
       redirect_to admin_shop_items_path, alert: item.errors.full_messages.join(", ")
@@ -25,7 +25,7 @@ class Admin::ShopItemsController < Admin::ApplicationController
     item = ShopItem.find(params[:id])
 
     if item.update(item_params)
-      audit!("shop_item.updated", target: item, metadata: { name: item.name, coin_cost: item.coin_cost.to_f })
+      audit!("shop_item.updated", target: item, metadata: { name: item.name, coin_cost: item.coin_cost.to_f, changes: audit_changes_for(item) })
       redirect_to admin_shop_items_path, notice: "Item updated."
     else
       redirect_to admin_shop_items_path, alert: item.errors.full_messages.join(", ")
@@ -34,7 +34,7 @@ class Admin::ShopItemsController < Admin::ApplicationController
 
   def destroy
     item = ShopItem.find(params[:id])
-    audit!("shop_item.destroyed", target: item, label: item.name, metadata: { name: item.name })
+    audit!("shop_item.destroyed", target: item, label: item.name, metadata: { name: item.name, attributes: item.attributes.except("created_at", "updated_at") })
     item.destroy
     redirect_to admin_shop_items_path, notice: "Item deleted."
   end

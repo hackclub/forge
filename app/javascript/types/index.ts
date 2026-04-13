@@ -56,6 +56,7 @@ export interface UserAddress {
   state: string | null
   country: string | null
   postal_code: string | null
+  phone_number: string | null
 }
 
 export interface ProjectDetail {
@@ -72,6 +73,8 @@ export interface ProjectDetail {
   cover_image_url: string | null
   built_at: string | null
   build_proof_url: string | null
+  airtable_sent: boolean
+  hca_address_portal_url: string
   user_id: number
   user_display_name: string
   user_has_address: boolean
@@ -112,7 +115,6 @@ export interface AdminUserDetail {
   timezone: string
   is_banned: boolean
   ban_reason: string | null
-  is_beta_approved: boolean
   shop_unlocked: boolean
   referral_code: string | null
   fulfillment_regions: string[]
@@ -171,6 +173,8 @@ export interface AdminProjectDetail {
   name: string
   subtitle: string | null
   description: string | null
+  red_flags: string[]
+  green_flags: string[]
   repo_link: string | null
   tags: string[]
   status: ProjectStatus
@@ -188,6 +192,7 @@ export interface AdminProjectDetail {
   readme_cache: string | null
   readme_fetched_at: string | null
   total_hours: number
+  devlog_hours: number
   devlogs: AdminDevlog[]
   hidden: boolean
   staff_pick: boolean

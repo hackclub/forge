@@ -233,20 +233,6 @@ class Admin::UsersController < Admin::ApplicationController
     redirect_to admin_user_path(@user), notice: "Permissions updated."
   end
 
-  def toggle_beta_approval
-    @user = User.find(params[:id])
-    authorize @user, :update?
-
-    unless current_user.superadmin?
-      redirect_to admin_user_path(@user), alert: "Only superadmins can approve users for beta."
-      return
-    end
-
-    @user.update!(is_beta_approved: !@user.is_beta_approved)
-    audit!("user.beta_approval_toggled", target: @user, metadata: { is_beta_approved: @user.is_beta_approved })
-    redirect_to admin_user_path(@user), notice: @user.is_beta_approved ? "#{@user.display_name} approved for beta." : "Beta access revoked."
-  end
-
   private
 
   def require_users_permission!
@@ -277,7 +263,6 @@ class Admin::UsersController < Admin::ApplicationController
       timezone: user.timezone,
       is_banned: user.is_banned,
       ban_reason: user.ban_reason,
-      is_beta_approved: user.is_beta_approved,
       shop_unlocked: user.shop_unlocked,
       referral_code: user.referral_code,
       fulfillment_regions: user.fulfillment_regions,

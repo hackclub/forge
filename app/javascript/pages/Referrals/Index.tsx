@@ -55,7 +55,7 @@ export default function ReferralsIndex({
       <div className="p-5 md:p-12 max-w-[1100px] mx-auto">
         <div className="mb-8">
           <h1 className="text-4xl font-headline font-bold text-[#ee671c] tracking-tight">Referrals</h1>
-          <p className="text-stone-500 text-sm mt-1">Share your code. When they ship their first project, you earn 0.4 coins + a prize pool ticket.</p>
+          <p className="text-stone-500 text-sm mt-1">Share your code. When they ship their first project, you earn 0.25 coins + a prize pool ticket.</p>
         </div>
 
         <div className="ghost-border bg-[#1c1b1b] p-6 md:p-8 mb-6">
