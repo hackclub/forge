@@ -87,12 +87,12 @@ export default function AdminMetricsIndex({
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-10">
-        <Stat label="Total users" value={summary.total_users} />
-        <Stat label={`Active in ${range_days}d`} value={summary.active_in_range} />
-        <Stat label="DAU (today ±7)" value={summary.dau_7} accent />
-        <Stat label="MAU (30d)" value={summary.dau_30} />
-        <Stat label={`Avg DAU (${range_days}d)`} value={summary.average_dau} />
-        <Stat label="Stickiness" value={`${summary.stickiness_percent}%`} hint="WAU/MAU" />
+        <Stat label="Total users" value={summary.total_users} hint="all signups" />
+        <Stat label={`Active in ${range_days}d`} value={summary.active_in_range} hint="unique users in range" />
+        <Stat label="WAU" value={summary.dau_7} hint="unique, last 7 days" accent />
+        <Stat label="MAU" value={summary.dau_30} hint="unique, last 30 days" />
+        <Stat label={`Avg DAU (${range_days}d)`} value={summary.average_dau} hint="mean active per day" />
+        <Stat label="Stickiness" value={`${summary.stickiness_percent}%`} hint="WAU ÷ MAU" />
       </div>
 
       <div className="bg-[#1c1b1b] ghost-border p-6 mb-10">
