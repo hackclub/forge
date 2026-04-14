@@ -25,10 +25,30 @@ class Slack::EventsController < ApplicationController
   def handle_event(event)
     return unless event
     return unless event["type"] == "message"
-    return if event["subtype"].present?
     return if event["bot_id"].present?
 
     channel = event["channel"]
+
+    if event["subtype"] == "message_changed"
+      inner = event["message"] || {}
+      return if inner["bot_id"].present?
+      return if inner["subtype"].present?
+
+      inner_ts = inner["ts"]
+      return unless channel == forge_channel_id && inner["thread_ts"].blank? && inner_ts.present?
+      return if Project.exists?(slack_message_ts: inner_ts)
+
+      SlackPitchJob.perform_later(
+        slack_user_id: inner["user"],
+        channel_id: channel,
+        message_ts: inner_ts,
+        text: inner["text"]
+      )
+      return
+    end
+
+    return if event["subtype"].present?
+
     is_thread = event["thread_ts"].present?
 
     if !is_thread && channel == forge_channel_id
