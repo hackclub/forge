@@ -8,7 +8,7 @@ class LeaderboardController < ApplicationController
     streak_totals = streak_user_ids.to_h { |id| [ id, User.find(id).longest_streak ] }
 
     referral_ids = referral_counts.sort_by { |_, v| -v }.first(LIMIT).map(&:first)
-    hours_ids = hours_totals.sort_by { |_, v| -v }.first(LIMIT).map(&:first)
+    hours_ids = hours_totals.select { |_, v| v > 0 }.sort_by { |_, v| -v }.first(LIMIT).map(&:first)
     streak_ids = streak_totals.sort_by { |_, v| -v }.first(LIMIT).map(&:first)
 
     users = User.kept.where(id: (referral_ids + hours_ids + streak_ids).uniq).index_by(&:id)

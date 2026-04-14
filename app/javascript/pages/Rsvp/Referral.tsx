@@ -72,7 +72,7 @@ export default function RsvpReferral({
               <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tighter leading-[0.95] mb-4">
                 Refer a friend!
                 <br />
-                <span className="text-[#ee671c]">Get payed</span>
+                <span className="text-[#ee671c]">Get paid</span>
               </h1>
               <p className="text-stone-400 text-sm md:text-base max-w-lg mx-auto">
                 Share your code. When they sign up and ship their first project, you earn 0.25 coins + a ticket into the prize pool draw.
