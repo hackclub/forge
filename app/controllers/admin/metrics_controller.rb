@@ -16,11 +16,9 @@ class Admin::MetricsController < Admin::ApplicationController
     totals = daily.map { |d| d[:count] }
     total_signups = User.kept.count
     active_any = UserActivityDay.where(active_on: start_date..today).distinct.count(:user_id)
-    active_7 = UserActivityDay.where(active_on: (today - 6)..today).distinct.count(:user_id)
-    active_30 = UserActivityDay.where(active_on: (today - 29)..today).distinct.count(:user_id)
+    active_today = UserActivityDay.where(active_on: today).distinct.count(:user_id)
+    active_now = User.kept.where("last_seen_at > ?", 5.minutes.ago).count
     avg_dau = totals.size.positive? ? (totals.sum.to_f / totals.size).round(1) : 0
-
-    stickiness = active_30.positive? ? ((active_7.to_f / active_30) * 100).round(1) : 0
 
     streaks = UserActivityDay.joins(:user).where(active_on: (today - 1)..today).distinct.pluck(:user_id).map do |uid|
       User.find(uid).current_streak
@@ -73,10 +71,9 @@ class Admin::MetricsController < Admin::ApplicationController
       summary: {
         total_users: total_signups,
         active_in_range: active_any,
-        dau_7: active_7,
-        dau_30: active_30,
-        average_dau: avg_dau,
-        stickiness_percent: stickiness
+        active_today: active_today,
+        active_now: active_now,
+        average_dau: avg_dau
       },
       daily: daily,
       streak_buckets: streak_buckets,

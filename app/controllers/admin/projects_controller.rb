@@ -116,25 +116,40 @@ class Admin::ProjectsController < Admin::ApplicationController
 
     case decision
     when "approve"
+      if guard_duplicate_transition!(@project, :approved, "Project already approved.")
+        return
+      end
       @project.update!(status: :approved, reviewer: current_user, reviewed_at: Time.current, review_feedback: feedback)
       audit!("project.approved", target: @project, metadata: { feedback: feedback })
       notify_slack_decision(@project, "approved", feedback)
       redirect_to admin_project_path(@project), notice: "Project approved."
     when "return"
+      if guard_duplicate_transition!(@project, :returned, "Project already returned.")
+        return
+      end
       @project.update!(status: :returned, reviewer: current_user, reviewed_at: Time.current, review_feedback: feedback)
       audit!("project.returned", target: @project, metadata: { feedback: feedback })
       notify_slack_decision(@project, "returned for changes", feedback)
       redirect_to admin_project_path(@project), notice: "Project returned to builder."
     when "reject"
+      if guard_duplicate_transition!(@project, :rejected, "Project already rejected.")
+        return
+      end
       @project.update!(status: :rejected, reviewer: current_user, reviewed_at: Time.current, review_feedback: feedback)
       audit!("project.rejected", target: @project, metadata: { feedback: feedback })
       notify_slack_decision(@project, "rejected", feedback)
       redirect_to admin_project_path(@project), notice: "Project rejected."
     when "draft"
+      if guard_duplicate_transition!(@project, :draft, "Project already in draft.")
+        return
+      end
       @project.update!(status: :draft, reviewer: current_user, reviewed_at: Time.current, review_feedback: feedback)
       audit!("project.reverted_to_draft", target: @project, metadata: { feedback: feedback })
       redirect_to admin_project_path(@project), notice: "Project reverted to draft."
     when "approve_build"
+      if guard_duplicate_transition!(@project, :build_approved, "Build already approved.")
+        return
+      end
       capped = capped_override_hours(@project, params[:override_hours])
       @project.update!(
         status: :build_approved,
@@ -149,11 +164,18 @@ class Admin::ProjectsController < Admin::ApplicationController
       notify_slack_decision(@project, "build approved! :tada:", feedback)
       redirect_to admin_project_path(@project), notice: "Build approved."
     when "return_build"
+      if @project.approved? && !@project.build_pending?
+        redirect_to admin_project_path(@project), alert: "Build already returned."
+        return
+      end
       @project.update!(status: :approved, reviewer: current_user, reviewed_at: Time.current, review_feedback: feedback)
       audit!("project.build_returned", target: @project, metadata: { feedback: feedback })
       notify_slack_decision(@project, "build returned for more work", feedback)
       redirect_to admin_project_path(@project), notice: "Build returned to builder."
     when "reject_build"
+      if guard_duplicate_transition!(@project, :rejected, "Build already rejected.")
+        return
+      end
       @project.update!(status: :rejected, reviewer: current_user, reviewed_at: Time.current, review_feedback: feedback)
       audit!("project.build_rejected", target: @project, metadata: { feedback: feedback })
       notify_slack_decision(@project, "build rejected", feedback)
@@ -179,6 +201,13 @@ class Admin::ProjectsController < Admin::ApplicationController
 
   def require_projects_permission!
     require_permission!("projects")
+  end
+
+  def guard_duplicate_transition!(project, target_status, message)
+    return false unless project.status.to_s == target_status.to_s
+
+    redirect_to admin_project_path(project), alert: message
+    true
   end
 
   def capped_override_hours(project, raw)

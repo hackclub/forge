@@ -61,12 +61,26 @@ export default function AdminProjectsShow({
     router.delete(`/admin/projects/${project.id}`)
   }
 
+  const [reviewing, setReviewing] = useState(false)
+
   function submitReview(decision: string) {
+    if (reviewing) return
     if (decision !== 'approve' && !feedback.trim()) {
       alert('Please provide feedback when returning or rejecting a project.')
       return
     }
-    router.post(`/admin/projects/${project.id}/review`, { decision, feedback })
+    setReviewing(true)
+    router.post(`/admin/projects/${project.id}/review`, { decision, feedback }, {
+      onFinish: () => setReviewing(false),
+    })
+  }
+
+  function submitBuildReview(decision: string, extra: Record<string, unknown> = {}) {
+    if (reviewing) return
+    setReviewing(true)
+    router.post(`/admin/projects/${project.id}/review`, { decision, feedback, ...extra }, {
+      onFinish: () => setReviewing(false),
+    })
   }
 
   return (
@@ -359,21 +373,24 @@ export default function AdminProjectsShow({
               <div className="flex flex-col gap-3">
                 <button
                   onClick={() => submitReview('approve')}
-                  className="w-full py-3 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 font-headline font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                  disabled={reviewing}
+                  className="w-full py-3 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 font-headline font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <span className="material-symbols-outlined text-lg">check_circle</span>
                   Approve
                 </button>
                 <button
                   onClick={() => submitReview('return')}
-                  className="w-full py-3 bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 font-headline font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                  disabled={reviewing}
+                  className="w-full py-3 bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 font-headline font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <span className="material-symbols-outlined text-lg">undo</span>
                   Return for Changes
                 </button>
                 <button
                   onClick={() => submitReview('reject')}
-                  className="w-full py-3 bg-red-500/20 hover:bg-red-500/30 text-red-400 font-headline font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                  disabled={reviewing}
+                  className="w-full py-3 bg-red-500/20 hover:bg-red-500/30 text-red-400 font-headline font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <span className="material-symbols-outlined text-lg">cancel</span>
                   Reject
@@ -458,22 +475,25 @@ export default function AdminProjectsShow({
 
               <div className="flex flex-col gap-3">
                 <button
-                  onClick={() => router.post(`/admin/projects/${project.id}/review`, { decision: 'approve_build', feedback, override_hours: overrideHours, override_hours_justification: overrideJustification })}
-                  className="w-full py-3 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 font-headline font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                  onClick={() => submitBuildReview('approve_build', { override_hours: overrideHours, override_hours_justification: overrideJustification })}
+                  disabled={reviewing}
+                  className="w-full py-3 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 font-headline font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <span className="material-symbols-outlined text-lg">verified</span>
                   Approve Build
                 </button>
                 <button
-                  onClick={() => router.post(`/admin/projects/${project.id}/review`, { decision: 'return_build', feedback })}
-                  className="w-full py-3 bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 font-headline font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                  onClick={() => submitBuildReview('return_build')}
+                  disabled={reviewing}
+                  className="w-full py-3 bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 font-headline font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <span className="material-symbols-outlined text-lg">undo</span>
                   Return for More Work
                 </button>
                 <button
-                  onClick={() => router.post(`/admin/projects/${project.id}/review`, { decision: 'reject_build', feedback })}
-                  className="w-full py-3 bg-red-500/20 hover:bg-red-500/30 text-red-400 font-headline font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                  onClick={() => submitBuildReview('reject_build')}
+                  disabled={reviewing}
+                  className="w-full py-3 bg-red-500/20 hover:bg-red-500/30 text-red-400 font-headline font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <span className="material-symbols-outlined text-lg">cancel</span>
                   Reject Build

@@ -9,10 +9,9 @@ interface DailyPoint {
 interface Summary {
   total_users: number
   active_in_range: number
-  dau_7: number
-  dau_30: number
+  active_today: number
+  active_now: number
   average_dau: number
-  stickiness_percent: number
 }
 
 interface Referrals {
@@ -86,13 +85,12 @@ export default function AdminMetricsIndex({
         ))}
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-10">
-        <Stat label="Total users" value={summary.total_users} hint="all signups" />
-        <Stat label={`Active in ${range_days}d`} value={summary.active_in_range} hint="unique users in range" />
-        <Stat label="WAU" value={summary.dau_7} hint="unique, last 7 days" accent />
-        <Stat label="MAU" value={summary.dau_30} hint="unique, last 30 days" />
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-10">
+        <Stat label="Active now" value={summary.active_now} hint="seen in last 5 min" accent />
+        <Stat label="Active today" value={summary.active_today} hint="unique today" />
         <Stat label={`Avg DAU (${range_days}d)`} value={summary.average_dau} hint="mean active per day" />
-        <Stat label="Stickiness" value={`${summary.stickiness_percent}%`} hint="WAU ÷ MAU" />
+        <Stat label={`Active in ${range_days}d`} value={summary.active_in_range} hint="unique users in range" />
+        <Stat label="Total users" value={summary.total_users} hint="all signups" />
       </div>
 
       <div className="bg-[#1c1b1b] ghost-border p-6 mb-10">
@@ -105,16 +103,16 @@ export default function AdminMetricsIndex({
             return (
               <div
                 key={d.date}
-                className="flex-1 flex flex-col items-center group relative min-w-0"
+                className="flex-1 h-full flex flex-col justify-end items-center group relative min-w-0"
                 title={`${d.label}: ${d.count}`}
               >
+                <span className="invisible group-hover:visible absolute -top-6 text-[10px] font-mono text-[#ffb595] whitespace-nowrap bg-[#0e0e0e] ghost-border px-1 z-10">
+                  {d.count}
+                </span>
                 <div
                   className="w-full bg-[#ee671c]/80 group-hover:bg-[#ee671c] transition-colors min-h-[1px]"
                   style={{ height: `${pct}%` }}
                 />
-                <span className="invisible group-hover:visible absolute -top-6 text-[10px] font-mono text-[#ffb595] whitespace-nowrap bg-[#0e0e0e] ghost-border px-1">
-                  {d.count}
-                </span>
               </div>
             )
           })}

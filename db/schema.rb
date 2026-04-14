@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_13_050304) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_14_043651) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -503,6 +503,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_13_050304) do
     t.boolean "is_banned", default: false, null: false
     t.boolean "is_beta_approved", default: false, null: false
     t.string "last_name"
+    t.datetime "last_seen_at"
     t.string "permissions", default: [], null: false, array: true
     t.string "phone_number"
     t.string "postal_code"
@@ -516,6 +517,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_13_050304) do
     t.datetime "updated_at", null: false
     t.string "verification_status"
     t.index ["discarded_at"], name: "index_users_on_discarded_at"
+    t.index ["last_seen_at"], name: "index_users_on_last_seen_at"
     t.index ["referral_code"], name: "index_users_on_referral_code", unique: true
   end
 

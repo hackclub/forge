@@ -23,6 +23,7 @@
 #  is_banned           :boolean          default(FALSE), not null
 #  is_beta_approved    :boolean          default(FALSE), not null
 #  last_name           :string
+#  last_seen_at        :datetime
 #  permissions         :string           default([]), not null, is an Array
 #  phone_number        :string
 #  postal_code         :string
@@ -41,6 +42,7 @@
 # Indexes
 #
 #  index_users_on_discarded_at   (discarded_at)
+#  index_users_on_last_seen_at   (last_seen_at)
 #  index_users_on_referral_code  (referral_code) UNIQUE
 #
 require "test_helper"
