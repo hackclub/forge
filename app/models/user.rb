@@ -313,16 +313,18 @@ class User < ApplicationRecord
   def apply_hca_identity(identity)
     return if identity.blank?
 
-    addr = identity["address"].is_a?(Hash) ? identity["address"] : identity
+    addr = Array(identity["addresses"]).first
+    addr = identity["address"] if addr.blank? && identity["address"].is_a?(Hash)
+    addr ||= {}
 
     attrs = {
-      address_line1: pick(addr, %w[address_line_1 address_line1 line_1 line1 street]).presence,
-      address_line2: pick(addr, %w[address_line_2 address_line2 line_2 line2]).presence,
+      address_line1: pick(addr, %w[line_1 address_line_1 address_line1 line1 street]).presence,
+      address_line2: pick(addr, %w[line_2 address_line_2 address_line2 line2]).presence,
       city: pick(addr, %w[city locality]).presence,
       state: pick(addr, %w[state state_province province region]).presence,
       country: pick(addr, %w[country country_code]).presence,
       postal_code: pick(addr, %w[postal_code zip zip_code postcode]).presence,
-      phone_number: pick(identity, %w[phone_number phone]).presence
+      phone_number: (pick(identity, %w[phone_number phone]).presence || pick(addr, %w[phone_number phone]).presence)
     }.compact
 
     update(attrs) if attrs.any?
