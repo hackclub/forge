@@ -3,7 +3,7 @@ class ResubmitPitchJob < ApplicationJob
 
   def perform(project_id)
     project = Project.find(project_id)
-    return unless project.returned? && project.slack_channel_id.present? && project.slack_message_ts.present?
+    return unless project.pending? && project.slack_channel_id.present? && project.slack_message_ts.present?
 
     result = slack_client.conversations_history(
       channel: project.slack_channel_id,

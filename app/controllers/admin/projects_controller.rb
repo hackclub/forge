@@ -208,9 +208,8 @@ class Admin::ProjectsController < Admin::ApplicationController
     msg += "\n\n*Reviewer feedback:*\n> #{feedback}" if feedback.present?
 
     if decision.include?("returned")
-      resubmit_url = "#{app_url}/projects/#{project.id}/resubmit_pitch"
-      msg += "\n\n:pencil2: *Edit your original pitch message above* with the requested changes, then click the link below to resubmit."
-      msg += "\n\n:point_right: <#{resubmit_url}|Resubmit Pitch>"
+      msg += "\n\n:pencil2: *Edit your original pitch message above* with the requested changes, then open your project and click *Resubmit Pitch*."
+      msg += "\n\n:point_right: <#{project_url}|Open Project>"
     else
       msg += "\n\n<#{project_url}|View Project>"
     end

@@ -229,7 +229,6 @@ Rails.application.routes.draw do
       post :sync_journal
       get :export_devlogs
       post :resubmit_pitch
-      get :resubmit_pitch
       post :upload_cover_image
       patch :set_devlog_mode
       patch :link_repo

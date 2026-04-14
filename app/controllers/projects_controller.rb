@@ -339,7 +339,15 @@ class ProjectsController < ApplicationController
   def resubmit_pitch
     authorize @project, :update?
 
-    unless @project.returned? && @project.advanced? && @project.slack_channel_id.present? && @project.slack_message_ts.present?
+    enqueued = false
+    @project.with_lock do
+      next unless @project.returned? && @project.advanced? && @project.slack_channel_id.present? && @project.slack_message_ts.present?
+
+      @project.update!(status: :pending)
+      enqueued = true
+    end
+
+    unless enqueued
       redirect_to @project, alert: "This project cannot be resubmitted."
       return
     end
