@@ -22,7 +22,6 @@ class ResubmitPitchJob < ApplicationJob
     parsed = parse_pitch_with_ai(text)
 
     project.update!(
-      name: parsed[:name],
       description: parsed[:admin_summary],
       pitch_text: parsed[:cleaned_pitch],
       tags: parsed[:tags],
