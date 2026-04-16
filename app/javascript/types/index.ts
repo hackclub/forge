@@ -78,6 +78,7 @@ export interface ProjectDetail {
   hca_address_portal_url: string
   user_id: number
   user_display_name: string
+  user_avatar: string
   user_has_address: boolean
   user_address: UserAddress | null
   created_at: string

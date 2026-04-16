@@ -407,6 +407,7 @@ class ProjectsController < ApplicationController
       airtable_sent: project.airtable_sent?,
       user_id: project.user_id,
       user_display_name: project.user.display_name,
+      user_avatar: project.user.avatar,
       user_has_address: project.user.address_line1.present?,
       user_address: project.user.address_line1.present? ? {
         address_line1: project.user.address_line1,
