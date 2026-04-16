@@ -33,7 +33,7 @@ const TIERS: TierOption[] = [
   {
     tier: 'tier_1',
     label: 'Tier 1',
-    rate: '7.25c / hour',
+    rate: '7c / hour',
     description: 'Advanced project ($200+).Requires a Slack pitch. Eg a DIY 3d printer, Battlebot with custom attachements. For projects $0-200+',
     pitch: true,
   },

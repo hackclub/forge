@@ -393,7 +393,6 @@ export default function ProjectsShow({
             </section>
           )}
 
-          {/* Repo link form (only shown when editing) */}
           {can.update && !isSafeUrl(project.repo_link) && showRepoForm && (
             <section className="mb-12">
               <form onSubmit={linkRepo} className="ghost-border bg-[#1c1b1b] p-6 space-y-4">
