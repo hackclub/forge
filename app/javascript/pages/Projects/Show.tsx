@@ -288,7 +288,7 @@ export default function ProjectsShow({
           </label>
         ) : null}
         <div className="p-8">
-          <div className="flex items-center gap-2 mb-3 flex-wrap">
+          <div className="flex items-center gap-2 mb-4 flex-wrap">
             <span className={`${status.bg} ${status.text} px-3 py-1 text-[10px] uppercase font-bold tracking-widest flex items-center gap-1.5`}>
               <span className="material-symbols-outlined text-sm">{status.icon}</span>
               {status.label}
@@ -301,6 +301,12 @@ export default function ProjectsShow({
             <span className="bg-[#353534] text-stone-400 px-3 py-1 text-[10px] uppercase font-bold tracking-widest">
               {isNormalTier ? 'Normal' : 'Advanced'}
             </span>
+            {project.built_at && (
+              <span className="bg-emerald-500/10 text-emerald-400 px-3 py-1 text-[10px] uppercase font-bold tracking-widest flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-sm">verified</span>
+                Built {project.built_at}
+              </span>
+            )}
           </div>
 
           <h1 className="text-5xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-3 leading-none">
@@ -341,39 +347,56 @@ export default function ProjectsShow({
             </button>
           ) : null}
 
-          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 pt-4 border-t border-white/5 text-xs text-stone-500">
+          {project.tags && project.tags.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-5">
+              {project.tags.map((tag) => (
+                <span key={tag} className="bg-[#0e0e0e] ghost-border text-stone-400 px-2.5 py-1 text-[10px] uppercase font-bold tracking-[0.15em]">
+                  #{tag}
+                </span>
+              ))}
+            </div>
+          )}
+
+          <div className="flex flex-wrap items-center gap-4 pt-5 border-t border-white/5">
             <Link
               href={`/users/${project.user_id}`}
-              className="flex items-center gap-2 text-stone-400 hover:text-[#ffb595] transition-colors"
+              className="flex items-center gap-3 text-stone-300 hover:text-[#ffb595] transition-colors group"
             >
-              <span className="material-symbols-outlined text-sm">person</span>
-              <span>{project.user_display_name}</span>
+              <img src={project.user_avatar} alt={project.user_display_name} className="w-10 h-10 border border-white/10" />
+              <div>
+                <p className="text-sm font-headline font-bold group-hover:text-[#ffb595] transition-colors">{project.user_display_name}</p>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-stone-600">Started {project.created_at}</p>
+              </div>
             </Link>
-            <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-sm">calendar_today</span>
-              <span>{project.created_at}</span>
-            </div>
-            {devlogs.length > 0 && (
-              <>
+
+            <div className="flex items-center gap-6 ml-auto text-xs flex-wrap">
+              {devlogs.length > 0 && totalHours > 0 && (
                 <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-sm">description</span>
-                  <span>{devlogs.length} {devlogs.length === 1 ? 'entry' : 'entries'}</span>
+                  <span className="material-symbols-outlined text-base text-[#ffb595]">schedule</span>
+                  <span className="text-[#ffb595] font-headline font-bold text-base">{totalHours}h</span>
                 </div>
-                {totalHours > 0 && (
-                  <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-sm text-[#ffb595]">schedule</span>
-                    <span className="text-[#ffb595] font-bold">{totalHours}h</span>
-                  </div>
-                )}
-              </>
-            )}
-            {isSafeUrl(project.repo_link) && (
-              <a href={project.repo_link!} target="_blank" rel="noopener" className="ml-auto flex items-center gap-2 text-stone-400 hover:text-[#ffb595] transition-colors">
-                <span className="material-symbols-outlined text-sm">code</span>
-                <span>View Repository</span>
-                <span className="material-symbols-outlined text-xs">open_in_new</span>
-              </a>
-            )}
+              )}
+              {devlogs.length > 0 && (
+                <div className="flex items-center gap-2 text-stone-400">
+                  <span className="material-symbols-outlined text-base">description</span>
+                  <span className="font-headline font-bold text-base">{devlogs.length}</span>
+                  <span className="text-stone-600">{devlogs.length === 1 ? 'entry' : 'entries'}</span>
+                </div>
+              )}
+              {kudos.length > 0 && (
+                <div className="flex items-center gap-2 text-stone-400">
+                  <span className="material-symbols-outlined text-base text-[#ee671c]">favorite</span>
+                  <span className="font-headline font-bold text-base">{kudos.length}</span>
+                </div>
+              )}
+              {isSafeUrl(project.repo_link) && (
+                <a href={project.repo_link!} target="_blank" rel="noopener" className="flex items-center gap-2 text-stone-400 hover:text-[#ffb595] transition-colors">
+                  <span className="material-symbols-outlined text-base">code</span>
+                  <span>Repository</span>
+                  <span className="material-symbols-outlined text-xs">open_in_new</span>
+                </a>
+              )}
+            </div>
           </div>
         </div>
       </header>
@@ -532,6 +555,21 @@ export default function ProjectsShow({
                   ))}
                 </div>
               )}
+            </section>
+          )}
+
+          {!can.update && !showGitDevlog && !showWebDevlog && (
+            <section className="mb-12">
+              <div className="ghost-border bg-[#1c1b1b] p-12 text-center relative overflow-hidden">
+                <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'repeating-linear-gradient(45deg, #ffb595 0, #ffb595 1px, transparent 1px, transparent 24px)' }} />
+                <div className="relative">
+                  <img src="/orph-building.png" alt="" className="h-32 mx-auto mb-4 opacity-70" />
+                  <p className="text-[#e5e2e1] font-headline font-bold text-lg mb-2">Forge in progress</p>
+                  <p className="text-stone-500 text-sm max-w-sm mx-auto">
+                    {project.user_display_name.split(' ')[0]} hasn't posted devlog entries yet. Check back soon to follow along with the build.
+                  </p>
+                </div>
+              </div>
             </section>
           )}
 
@@ -738,6 +776,51 @@ export default function ProjectsShow({
         </div>
 
         <aside className="col-span-12 lg:col-span-4 space-y-6">
+          {!can.update && (
+            <div className="bg-[#1c1b1b] ghost-border p-6">
+              <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">Builder</h4>
+              <Link href={`/users/${project.user_id}`} className="flex items-center gap-3 group">
+                <img src={project.user_avatar} alt={project.user_display_name} className="w-12 h-12 border border-white/10 shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <p className="font-headline font-bold text-[#e5e2e1] group-hover:text-[#ffb595] transition-colors truncate">
+                    {project.user_display_name}
+                  </p>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-stone-600 mt-0.5 flex items-center gap-1">
+                    View profile
+                    <span className="material-symbols-outlined text-xs">arrow_forward</span>
+                  </p>
+                </div>
+              </Link>
+              <div className="grid grid-cols-3 gap-3 mt-5 pt-5 border-t border-white/5">
+                <div>
+                  <p className="text-xl font-headline font-bold text-[#e5e2e1]">{totalHours}<span className="text-xs text-stone-500 ml-0.5">h</span></p>
+                  <p className="text-[9px] uppercase tracking-[0.15em] text-stone-600 mt-0.5">Logged</p>
+                </div>
+                <div>
+                  <p className="text-xl font-headline font-bold text-[#e5e2e1]">{devlogs.length}</p>
+                  <p className="text-[9px] uppercase tracking-[0.15em] text-stone-600 mt-0.5">{devlogs.length === 1 ? 'Entry' : 'Entries'}</p>
+                </div>
+                <div>
+                  <p className="text-xl font-headline font-bold text-[#e5e2e1]">{kudos.length}</p>
+                  <p className="text-[9px] uppercase tracking-[0.15em] text-stone-600 mt-0.5">Kudos</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {!can.update && project.build_proof_url && project.built_at && (
+            <div className="bg-emerald-500/5 ghost-border p-6">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="material-symbols-outlined text-emerald-400 text-lg">verified</span>
+                <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-400 font-headline">Built on {project.built_at}</h4>
+              </div>
+              <a href={project.build_proof_url} target="_blank" rel="noopener" className="text-[#ffb595] hover:text-[#ee671c] text-xs flex items-center gap-1 break-all">
+                View build proof
+                <span className="material-symbols-outlined text-xs">open_in_new</span>
+              </a>
+            </div>
+          )}
+
           {showWebDevlog && devlogs.length > 0 && (
             <div className="ghost-border bg-[#1c1b1b] p-6">
               <div className="flex items-center gap-2 mb-4">
@@ -761,7 +844,7 @@ export default function ProjectsShow({
               Link Repository
             </button>
           )}
-          {project.status === 'pending' && (
+          {can.update && project.status === 'pending' && (
             <div className="bg-amber-500/5 ghost-border p-8">
               <div className="flex items-center gap-2 mb-3">
                 <span className="material-symbols-outlined text-amber-400 text-lg">schedule</span>
@@ -777,7 +860,7 @@ export default function ProjectsShow({
             </div>
           )}
 
-          {isApproved && (
+          {can.update && isApproved && (
             <div className="bg-emerald-500/5 ghost-border p-8">
               <div className="flex items-center gap-2 mb-3">
                 <span className="material-symbols-outlined text-emerald-400 text-lg">check_circle</span>
@@ -821,7 +904,7 @@ export default function ProjectsShow({
             </div>
           )}
 
-          {project.status === 'build_pending' && (
+          {can.update && project.status === 'build_pending' && (
             <div className="bg-amber-500/5 ghost-border p-8">
               <div className="flex items-center gap-2 mb-3">
                 <span className="material-symbols-outlined text-amber-400 text-lg">engineering</span>
@@ -831,7 +914,7 @@ export default function ProjectsShow({
             </div>
           )}
 
-          {project.status === 'build_approved' && (
+          {can.update && project.status === 'build_approved' && (
             <div className="bg-emerald-500/5 ghost-border p-8">
               <div className="flex items-center gap-2 mb-3">
                 <span className="material-symbols-outlined text-emerald-400 text-lg">verified</span>
