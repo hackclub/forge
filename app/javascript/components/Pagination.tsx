@@ -24,7 +24,7 @@ export default function Pagination({ pagy }: { pagy: PagyProps }) {
       <button
         onClick={() => pagy.prev && goToPage(pagy.prev)}
         disabled={!pagy.prev}
-        className="w-10 h-10 rounded-lg bg-[#2a2a2a] border border-white/5 flex items-center justify-center text-stone-400 hover:text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+        className="w-10 h-10 rounded-lg bg-[#2a2a2a] border border-white/5 flex items-center justify-center text-stone-400 hover:text-white transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
       >
         <span className="material-symbols-outlined text-sm">chevron_left</span>
       </button>
@@ -36,7 +36,7 @@ export default function Pagination({ pagy }: { pagy: PagyProps }) {
             <button
               key={p}
               onClick={() => goToPage(p)}
-              className={`w-10 h-10 rounded-lg font-headline font-bold transition-colors ${
+              className={`w-10 h-10 rounded-lg font-headline font-bold transition-colors cursor-pointer ${
                 p === pagy.page
                   ? 'signature-smolder text-[#4c1a00]'
                   : 'bg-[#2a2a2a] border border-white/5 text-stone-400 hover:text-white'
@@ -50,7 +50,7 @@ export default function Pagination({ pagy }: { pagy: PagyProps }) {
       <button
         onClick={() => pagy.next && goToPage(pagy.next)}
         disabled={!pagy.next}
-        className="w-10 h-10 rounded-lg bg-[#2a2a2a] border border-white/5 flex items-center justify-center text-stone-400 hover:text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+        className="w-10 h-10 rounded-lg bg-[#2a2a2a] border border-white/5 flex items-center justify-center text-stone-400 hover:text-white transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
       >
         <span className="material-symbols-outlined text-sm">chevron_right</span>
       </button>
