@@ -1,4 +1,6 @@
 class UsersController < ApplicationController
+  allow_unauthenticated_access only: %i[show]
+
   def show
     user = User.kept.find(params[:id])
     projects = user.projects.kept.where(hidden: false).includes(:devlogs).order(created_at: :desc)

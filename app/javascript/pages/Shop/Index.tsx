@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Head, router } from '@inertiajs/react'
+import { Head, router, usePage } from '@inertiajs/react'
+import type { SharedProps } from '@/types'
 
 interface Balance {
   balance: number
@@ -70,6 +71,8 @@ const STATUS_STYLES: Record<Order['status'], string> = {
 }
 
 export default function ShopIndex({ balance, can_buy_shop_items, eligible_projects, shop_items, orders, transactions, direct_grant_ratio, regions, user_region }: Props) {
+  const shared = usePage<SharedProps>().props
+  const isSignedIn = !!shared.auth.user
   const [showDirectForm, setShowDirectForm] = useState(false)
   const [showOrders, setShowOrders] = useState(false)
   const [showTransactions, setShowTransactions] = useState(false)
@@ -111,6 +114,10 @@ export default function ShopIndex({ balance, can_buy_shop_items, eligible_projec
   }
 
   function buyItem(item: ShopItem) {
+    if (!isSignedIn) {
+      window.location.href = shared.sign_in_path
+      return
+    }
     if (!can_buy_shop_items) return
     const qty = getQuantity(item)
     const total = +(item.coin_cost * qty).toFixed(2)
@@ -128,49 +135,63 @@ export default function ShopIndex({ balance, can_buy_shop_items, eligible_projec
             <h1 className="text-5xl font-headline font-bold tracking-tight text-[#e5e2e1] mb-2">Shop</h1>
             <p className="text-stone-500">Spend your steel coins on hardware.</p>
           </div>
-          <div className="bg-[#1c1b1b] ghost-border px-6 py-4 flex items-center gap-4">
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500">Balance</p>
-              <p className="text-3xl font-headline font-bold text-[#ee671c]">{balance.balance}c</p>
+          {isSignedIn ? (
+            <div className="bg-[#1c1b1b] ghost-border px-6 py-4 flex items-center gap-4">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500">Balance</p>
+                <p className="text-3xl font-headline font-bold text-[#ee671c]">{balance.balance}c</p>
+              </div>
+              <div className="text-stone-600 text-xs">
+                <p>Earned {balance.earned}c</p>
+                <p>Spent {balance.spent}c</p>
+              </div>
             </div>
-            <div className="text-stone-600 text-xs">
-              <p>Earned {balance.earned}c</p>
-              <p>Spent {balance.spent}c</p>
+          ) : (
+            <a
+              href={shared.sign_in_path}
+              className="signature-smolder text-[#4c1a00] px-5 py-3 text-xs font-bold uppercase tracking-[0.15em] flex items-center gap-2"
+            >
+              <span className="material-symbols-outlined text-base">login</span>
+              Sign in to buy
+            </a>
+          )}
+        </section>
+
+        {isSignedIn && (
+          <section className="bg-[#1c1b1b] ghost-border p-5 flex items-center justify-between gap-4 flex-wrap">
+            <div className="min-w-0">
+              <p className="font-headline font-bold text-[#e5e2e1]">Your region</p>
+              <p className="text-stone-500 text-xs">Prices and availability vary by region.</p>
             </div>
-          </div>
-        </section>
+            <select
+              value={user_region}
+              onChange={(e) => router.patch('/shop/region', { region: e.target.value }, { preserveState: false })}
+              className="bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ee671c]/30 cursor-pointer"
+            >
+              {Object.entries(regions).map(([key, label]) => (
+                <option key={key} value={key}>{label}</option>
+              ))}
+            </select>
+          </section>
+        )}
 
-        <section className="bg-[#1c1b1b] ghost-border p-5 flex items-center justify-between gap-4 flex-wrap">
-          <div className="min-w-0">
-            <p className="font-headline font-bold text-[#e5e2e1]">Your region</p>
-            <p className="text-stone-500 text-xs">Prices and availability vary by region.</p>
-          </div>
-          <select
-            value={user_region}
-            onChange={(e) => router.patch('/shop/region', { region: e.target.value }, { preserveState: false })}
-            className="bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ee671c]/30 cursor-pointer"
-          >
-            {Object.entries(regions).map(([key, label]) => (
-              <option key={key} value={key}>{label}</option>
-            ))}
-          </select>
-        </section>
+        {isSignedIn && (
+          <section className="bg-[#1c1b1b] ghost-border p-5 flex items-center justify-between gap-4 flex-wrap">
+            <div className="min-w-0">
+              <p className="font-headline font-bold text-[#e5e2e1]">Direct project grant</p>
+              <p className="text-stone-500 text-xs">Trade {direct_grant_ratio}c per $1 to fund hardware for one of your approved projects.</p>
+            </div>
+            <button
+              onClick={() => setShowDirectForm((v) => !v)}
+              className="signature-smolder text-[#4c1a00] px-5 py-2 text-xs font-bold uppercase tracking-[0.15em] cursor-pointer flex items-center gap-2"
+            >
+              <span className="material-symbols-outlined text-base">redeem</span>
+              {showDirectForm ? 'Cancel' : 'Redeem'}
+            </button>
+          </section>
+        )}
 
-        <section className="bg-[#1c1b1b] ghost-border p-5 flex items-center justify-between gap-4 flex-wrap">
-          <div className="min-w-0">
-            <p className="font-headline font-bold text-[#e5e2e1]">Direct project grant</p>
-            <p className="text-stone-500 text-xs">Trade {direct_grant_ratio}c per $1 to fund hardware for one of your approved projects.</p>
-          </div>
-          <button
-            onClick={() => setShowDirectForm((v) => !v)}
-            className="signature-smolder text-[#4c1a00] px-5 py-2 text-xs font-bold uppercase tracking-[0.15em] cursor-pointer flex items-center gap-2"
-          >
-            <span className="material-symbols-outlined text-base">redeem</span>
-            {showDirectForm ? 'Cancel' : 'Redeem'}
-          </button>
-        </section>
-
-        {showDirectForm && (
+        {isSignedIn && showDirectForm && (
           <form onSubmit={placeDirect} className="bg-[#1c1b1b] ghost-border p-6 space-y-4">
             <div>
               <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">Project</label>
@@ -227,7 +248,7 @@ export default function ShopIndex({ balance, can_buy_shop_items, eligible_projec
           </form>
         )}
 
-        {!can_buy_shop_items && (
+        {isSignedIn && !can_buy_shop_items && (
           <div className="bg-amber-500/10 border border-amber-500/20 p-4 text-amber-200 text-sm flex items-start gap-3">
             <span className="material-symbols-outlined text-base shrink-0">lock</span>
             <p>Shop items unlock once you've marked at least one project as built.</p>
@@ -245,7 +266,7 @@ export default function ShopIndex({ balance, can_buy_shop_items, eligible_projec
                 const qty = getQuantity(item)
                 const totalCost = +(item.coin_cost * qty).toFixed(2)
                 const affordable = totalCost <= balance.balance
-                const enabled = can_buy_shop_items && affordable
+                const enabled = isSignedIn ? (can_buy_shop_items && affordable) : true
                 const max = item.max_quantity ?? 999
                 const showQuantity = max > 1
                 return (
@@ -300,7 +321,7 @@ export default function ShopIndex({ balance, can_buy_shop_items, eligible_projec
                           disabled={!enabled}
                           className={`w-full py-2 text-[10px] font-bold uppercase tracking-[0.15em] transition-colors ${enabled ? 'signature-smolder text-[#4c1a00] cursor-pointer' : 'bg-stone-700/40 text-stone-500 cursor-not-allowed'}`}
                         >
-                          {!can_buy_shop_items ? 'Locked' : affordable ? 'Buy' : "Can't afford"}
+                          {!isSignedIn ? 'Sign in to buy' : !can_buy_shop_items ? 'Locked' : affordable ? 'Buy' : "Can't afford"}
                         </button>
                       </div>
                     </div>
@@ -311,6 +332,7 @@ export default function ShopIndex({ balance, can_buy_shop_items, eligible_projec
           )}
         </section>
 
+        {isSignedIn && (
         <section>
           <div className="flex gap-6 flex-wrap">
             <button
@@ -387,6 +409,7 @@ export default function ShopIndex({ balance, can_buy_shop_items, eligible_projec
             </div>
           )}
         </section>
+        )}
       </div>
     </>
   )
