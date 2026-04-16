@@ -1,4 +1,5 @@
 class ProjectsController < ApplicationController
+  allow_unauthenticated_access only: %i[show]
   before_action :set_project, only: %i[show edit update destroy submit_for_review submit_build sync_journal set_devlog_mode link_repo resubmit_pitch upload_cover_image export_devlogs mark_built add_kudo destroy_kudo]
 
   def show
