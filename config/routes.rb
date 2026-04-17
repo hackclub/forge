@@ -106,6 +106,7 @@ Rails.application.routes.draw do
           post :restore
           post :toggle_hidden
           post :toggle_staff_pick
+          post :change_tier
         end
       end
       resources :users, only: [ :index, :show, :destroy ] do

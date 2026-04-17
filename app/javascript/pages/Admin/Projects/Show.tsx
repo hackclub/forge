@@ -503,6 +503,30 @@ export default function AdminProjectsShow({
           )}
 
           <div className="bg-[#1c1b1b] ghost-border p-8 rounded-xl">
+            <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">Tier</h4>
+            <select
+              value={project.tier}
+              onChange={(e) => {
+                if (e.target.value !== project.tier && confirm(`Change tier from ${project.tier.replace('_', ' ')} to ${e.target.value.replace('_', ' ')}?`)) {
+                  router.post(`/admin/projects/${project.id}/change_tier`, { tier: e.target.value })
+                }
+              }}
+              className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ee671c]/30 cursor-pointer"
+            >
+              <option value="tier_4">Tier 4 — 4c/hr</option>
+              <option value="tier_3">Tier 3 — 4.5c/hr</option>
+              <option value="tier_2">Tier 2 — 5.5c/hr</option>
+              <option value="tier_1">Tier 1 — 7c/hr</option>
+            </select>
+            {project.from_slack && project.tier !== 'tier_1' && (
+              <p className="text-amber-400/70 text-xs mt-2 flex items-center gap-1">
+                <span className="material-symbols-outlined text-xs">info</span>
+                Originally a Slack pitch — tier was changed by staff.
+              </p>
+            )}
+          </div>
+
+          <div className="bg-[#1c1b1b] ghost-border p-8 rounded-xl">
             <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">Visibility</h4>
             <div className="flex items-center justify-between mb-2">
               <span className="text-stone-400 text-sm">Hidden from explore</span>

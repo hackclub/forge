@@ -196,6 +196,25 @@ export default function ProjectsForm({
           />
         </div>
 
+        {method === 'patch' && form.data.tier !== 'tier_1' && (
+          <div>
+            <label htmlFor="tier" className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
+              Tier
+            </label>
+            <select
+              id="tier"
+              value={form.data.tier}
+              onChange={(e) => form.setData('tier', e.target.value)}
+              className="w-full bg-[#0e0e0e] border-none rounded-lg px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30"
+            >
+              <option value="tier_4">Tier 4 — 4c/hr (Basic, $0–50)</option>
+              <option value="tier_3">Tier 3 — 4.5c/hr (Standard, $0–100)</option>
+              <option value="tier_2">Tier 2 — 5.5c/hr (Bigger, $0–200)</option>
+            </select>
+            <p className="text-stone-600 text-xs mt-2">Higher tiers earn more coins per hour but are expected to be more ambitious.</p>
+          </div>
+        )}
+
         {method === 'patch' && (
           <div>
             <label htmlFor="devlog_mode" className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
