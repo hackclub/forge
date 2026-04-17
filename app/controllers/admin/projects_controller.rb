@@ -1,6 +1,6 @@
 class Admin::ProjectsController < Admin::ApplicationController
   before_action :require_projects_permission!
-  before_action :set_project, only: [ :show, :review, :destroy, :restore, :toggle_hidden, :toggle_staff_pick ]
+  before_action :set_project, only: [ :show, :review, :destroy, :restore, :toggle_hidden, :toggle_staff_pick, :change_tier ]
 
   def index
     scope = policy_scope(Project).includes(:user, :ships)
@@ -106,6 +106,44 @@ class Admin::ProjectsController < Admin::ApplicationController
       audit!("project.soft_deleted", target: @project)
       redirect_to admin_projects_path, notice: "Project '#{name}' has been soft-deleted."
     end
+  end
+
+  def change_tier
+    authorize @project, :review?
+
+    new_tier = params[:tier].to_s
+    unless Project::TIERS.include?(new_tier)
+      redirect_to admin_project_path(@project), alert: "Invalid tier."
+      return
+    end
+
+    old_tier = @project.tier
+    if old_tier == new_tier
+      redirect_to admin_project_path(@project)
+      return
+    end
+
+    @project.update!(tier: new_tier)
+    audit!("project.tier_changed", target: @project, metadata: { old_tier: old_tier, new_tier: new_tier })
+
+    if old_tier == "tier_1" && @project.slack_channel_id.present? && @project.slack_message_ts.present?
+      app_url = ENV.fetch("APP_URL", "https://forge.hackclub.com")
+      project_url = "#{app_url}/projects/#{@project.id}"
+      user_mention = @project.user.slack_id.present? ? "<@#{@project.user.slack_id}>" : @project.user.display_name
+      reviewer_mention = current_user.slack_id.present? ? "<@#{current_user.slack_id}>" : current_user.display_name
+      rate = Project::TIER_COIN_RATES[new_tier]
+
+      msg = ":arrows_counterclockwise: #{user_mention} Your project *#{@project.name}* has been moved to *#{new_tier.tr('_', ' ')}* (#{rate}c/hr) by #{reviewer_mention}."
+      msg += "\n\n<#{project_url}|View Project>"
+
+      SlackNotifyJob.perform_later(
+        channel_id: @project.slack_channel_id,
+        thread_ts: @project.slack_message_ts,
+        text: msg
+      )
+    end
+
+    redirect_to admin_project_path(@project), notice: "Tier changed from #{old_tier.tr('_', ' ')} to #{new_tier.tr('_', ' ')}."
   end
 
   def review
