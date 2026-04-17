@@ -72,6 +72,7 @@ class SlackPitchJob < ApplicationJob
 
     if response.is_a?(Net::HTTPSuccess)
       content = JSON.parse(response.body).dig("choices", 0, "message", "content") || ""
+      content = content.gsub(/<think>[\s\S]*?<\/think>/m, "").strip
       json_match = content.match(/\{[\s\S]*\}/)
       if json_match
         data = JSON.parse(json_match[0])
