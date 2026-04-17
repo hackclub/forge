@@ -46,7 +46,7 @@ class Admin::MetricsController < Admin::ApplicationController
     avg_payout_per_day = (payouts_total / days).round(2)
     avg_positive_per_day = (payouts_positive / days).round(2)
 
-    approved_projects = Project.kept.where(status: [ Project.statuses[:approved], Project.statuses[:build_pending], Project.statuses[:build_approved] ])
+    approved_projects = Project.kept.where(status: Project.statuses[:build_approved])
     tier_breakdown = Project::TIERS.map do |tier|
       scoped = approved_projects.where(tier: tier)
       projects_count = scoped.count
