@@ -45,7 +45,7 @@ class SlackPitchJob < ApplicationJob
   private
 
   def parse_pitch_with_ai(text)
-    sanitized_text = text.truncate(4000)
+    sanitized_text = text.truncate(32_000)
     prompt = <<~PROMPT
       You are processing a hardware project pitch for a grants platform called Forge.
 
