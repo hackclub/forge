@@ -66,6 +66,7 @@ class User < ApplicationRecord
   has_many :ships, through: :projects
   has_many :reviewed_ships, class_name: "Ship", foreign_key: :reviewer_id, dependent: :nullify, inverse_of: :reviewer
   has_many :user_notes, dependent: :destroy
+  has_many :authored_project_notes, class_name: "ProjectNote", foreign_key: :author_id, dependent: :destroy, inverse_of: :author
   has_many :kudos, dependent: :destroy
   has_many :authored_kudos, class_name: "Kudo", foreign_key: :author_id, dependent: :destroy, inverse_of: :author
   has_many :audit_events, class_name: "AuditEvent", foreign_key: :actor_id, dependent: :nullify, inverse_of: :actor

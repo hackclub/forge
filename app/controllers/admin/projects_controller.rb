@@ -1,6 +1,6 @@
 class Admin::ProjectsController < Admin::ApplicationController
   before_action :require_projects_permission!
-  before_action :set_project, only: [ :show, :review, :destroy, :restore, :toggle_hidden, :toggle_staff_pick, :change_tier ]
+  before_action :set_project, only: [ :show, :review, :destroy, :restore, :toggle_hidden, :toggle_staff_pick, :change_tier, :add_note, :destroy_note ]
 
   def index
     scope = policy_scope(Project).includes(:user, :ships)
@@ -58,10 +58,12 @@ class Admin::ProjectsController < Admin::ApplicationController
   def show
     authorize @project
     @ships = @project.ships.includes(:reviewer).order(created_at: :desc)
+    @notes = @project.project_notes.includes(:author).order(created_at: :desc)
 
     render inertia: "Admin/Projects/Show", props: {
       project: serialize_project_detail(@project),
       ships: @ships.map { |s| serialize_ship_row(s) },
+      notes: @notes.map { |n| serialize_note(n) },
       can: { review: policy(@project).review?, destroy: policy(@project).destroy?, restore: policy(@project).restore? }
     }
   end
@@ -144,6 +146,23 @@ class Admin::ProjectsController < Admin::ApplicationController
     end
 
     redirect_to admin_project_path(@project), notice: "Tier changed from #{old_tier.tr('_', ' ')} to #{new_tier.tr('_', ' ')}."
+  end
+
+  def add_note
+    authorize @project, :review?
+
+    note = @project.project_notes.create!(content: params[:content], author: current_user)
+    audit!("project.note_added", target: @project, metadata: { note_id: note.id, content: note.content })
+    redirect_to admin_project_path(@project), notice: "Note added."
+  end
+
+  def destroy_note
+    authorize @project, :review?
+
+    note = @project.project_notes.find(params[:note_id])
+    audit!("project.note_destroyed", target: @project, metadata: { note_id: note.id, content: note.content })
+    note.destroy
+    redirect_to admin_project_path(@project), notice: "Note deleted."
   end
 
   def review
@@ -384,6 +403,16 @@ class Admin::ProjectsController < Admin::ApplicationController
       reviewer_display_name: ship.reviewer&.display_name,
       approved_seconds: ship.approved_seconds,
       created_at: ship.created_at.strftime("%b %d, %Y")
+    }
+  end
+
+  def serialize_note(note)
+    {
+      id: note.id,
+      content: note.content,
+      author_name: note.author.display_name,
+      author_avatar: note.author.avatar,
+      created_at: note.created_at.strftime("%b %d, %Y %H:%M")
     }
   end
 end

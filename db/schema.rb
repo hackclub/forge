@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_14_043651) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_18_094014) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -201,6 +201,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_14_043651) do
     t.index ["shop_item_id"], name: "index_orders_on_shop_item_id"
     t.index ["status"], name: "index_orders_on_status"
     t.index ["user_id"], name: "index_orders_on_user_id"
+  end
+
+  create_table "project_notes", force: :cascade do |t|
+    t.bigint "author_id", null: false
+    t.text "content", null: false
+    t.datetime "created_at", null: false
+    t.bigint "project_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["author_id"], name: "index_project_notes_on_author_id"
+    t.index ["project_id"], name: "index_project_notes_on_project_id"
   end
 
   create_table "projects", force: :cascade do |t|
@@ -549,6 +559,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_14_043651) do
   add_foreign_key "orders", "users"
   add_foreign_key "orders", "users", column: "assigned_to_id"
   add_foreign_key "orders", "users", column: "reviewer_id"
+  add_foreign_key "project_notes", "projects"
+  add_foreign_key "project_notes", "users", column: "author_id"
   add_foreign_key "projects", "users"
   add_foreign_key "projects", "users", column: "reviewer_id"
   add_foreign_key "referrals", "coin_adjustments", column: "payout_adjustment_id"

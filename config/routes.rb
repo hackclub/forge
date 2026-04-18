@@ -107,6 +107,8 @@ Rails.application.routes.draw do
           post :toggle_hidden
           post :toggle_staff_pick
           post :change_tier
+          post :add_note
+          delete "notes/:note_id" => "projects#destroy_note", as: :destroy_note
         end
       end
       resources :users, only: [ :index, :show, :destroy ] do
