@@ -8,6 +8,8 @@ Forge will fund as much as you need to build any hardware project! Here's how:
 
 ## Step 1: Pitch Your Project
 
+**Note: Pitching is only required for Tier 1 projects only**, lower tier projects can skip straight to step 3.
+
 Post your pitch in the **#forgery** Slack channel. Your pitch will be automatically picked up and submitted for review.
 
 You'll get a confirmation reply in your Slack thread, and your project will appear on your Forge dashboard as "Pending Review."

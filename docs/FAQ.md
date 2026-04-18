@@ -22,7 +22,7 @@ Yes!
 
 ## Why do I have to pitch?
 
-We want the community to help each other out with advanced projects! By pitching in #forgery, other Hack Clubbers can give you feedback and suggestions, and it also allows our reviewers to check your project before you start putting in the work.
+For advanced projects, we want the community to help each other out with advanced projects! By pitching in #forgery, other Hack Clubbers can give you feedback and suggestions, and it also allows our reviewers to check your project before you start putting in the work.
 
 ## What happens if my pitch is rejected?
 

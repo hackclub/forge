@@ -524,7 +524,7 @@ export default function ProjectsShow({
                     <>
                       <p className="text-stone-400 text-sm mb-2">No journal entries yet.</p>
                       <p className="text-stone-500 text-xs">Add a <code className="text-[#ffb595]">JOURNAL.md</code> to your repo and click "Sync JOURNAL.md" above.</p>
-                      <a href="/docs/journal" className="text-[#ffb595] text-xs hover:underline mt-2 inline-block">See the format guide</a>
+                      <a href="/docs/Requirements-and-Shipping/journal-format" className="text-[#ffb595] text-xs hover:underline mt-2 inline-block">See the format guide</a>
                     </>
                   ) : (
                     <p className="text-stone-400 text-sm">{project.user_display_name} hasn't added a journal entry yet.</p>

@@ -7,6 +7,8 @@
 
 ## Why do I have to pitch??
 
+You are only required to pitch for Tier 1 projects, but you're welcome to pitch and ask for feedback for lower tiers too!
+
 So that you can give and recieve feedback to each other in the community! Feedback and sanity checking is extremely important when designing, especially for advanced hardware projects. Other Hack Clubbers can help catch places for improvement and suggest changes to your project!
 
 On top of that, our reviewers want to give a preliminary approval of your project before you start putting in the hours to make your idea come to life. What we want to see is research, a well thought out plan, a reasonable BOM and that it fits Forge's theme (hardware)!
@@ -38,7 +40,7 @@ I'm designing: all the 3D printed parts, including stepper mounts, toolhead,
 cooling ducts, etc. I'll also be making a custom PCB for the display!
 Inspo / reference: The positron 3D printer! https://www.positron3d.com/
 Past projects: a VORON Legacy I built from scratch, a custom macropad PCB
-Why this is worth more than 10 points: 3D printers are one of the most
+Why this is worth more than $200: 3D printers are one of the most
 mechanically advanced projects. It requires hundreds of parts plus a custom PCB.
 
 Rough BOM:
