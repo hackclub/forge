@@ -132,13 +132,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_18_094014) do
   end
 
   create_table "devlogs", force: :cascade do |t|
+    t.decimal "approved_hours"
     t.text "content"
     t.datetime "created_at", null: false
     t.bigint "project_id", null: false
+    t.text "review_feedback"
+    t.datetime "reviewed_at"
+    t.bigint "reviewer_id"
+    t.integer "status", default: 0, null: false
     t.string "time_spent"
     t.string "title"
     t.datetime "updated_at", null: false
     t.index ["project_id"], name: "index_devlogs_on_project_id"
+    t.index ["status"], name: "index_devlogs_on_status"
   end
 
   create_table "feature_flags", force: :cascade do |t|
@@ -550,6 +556,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_18_094014) do
   add_foreign_key "coin_adjustments", "users"
   add_foreign_key "coin_adjustments", "users", column: "actor_id"
   add_foreign_key "devlogs", "projects"
+  add_foreign_key "devlogs", "users", column: "reviewer_id"
   add_foreign_key "kudos", "projects"
   add_foreign_key "kudos", "users"
   add_foreign_key "kudos", "users", column: "author_id"

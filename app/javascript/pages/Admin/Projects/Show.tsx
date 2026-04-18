@@ -23,6 +23,7 @@ const statusConfig: Record<ProjectStatus, { label: string; bg: string; text: str
   rejected: { label: 'Rejected', bg: 'bg-red-500/10', text: 'text-red-400', icon: 'cancel' },
   build_pending: { label: 'Build Under Review', bg: 'bg-amber-500/10', text: 'text-amber-400', icon: 'engineering' },
   build_approved: { label: 'Build Approved', bg: 'bg-emerald-500/10', text: 'text-emerald-400', icon: 'verified' },
+  pitch_approved: { label: 'Pitch Approved', bg: 'bg-emerald-500/10', text: 'text-emerald-400', icon: 'check_circle' },
 }
 
 export default function AdminProjectsShow({
@@ -213,7 +214,7 @@ export default function AdminProjectsShow({
             </div>
           )}
 
-          {(isBuildReview || project.status === 'build_approved' || (project.tier !== 'tier_1' && project.devlogs.length > 0)) && (
+          {(project.devlogs.length > 0 || isBuildReview || project.status === 'build_approved' || project.status === 'pitch_approved') && (
             <>
               {project.cover_image_url && (
                 <div className="bg-[#1c1b1b] ghost-border rounded-xl p-8 mb-8">
@@ -270,25 +271,89 @@ export default function AdminProjectsShow({
                 </div>
                 {project.devlogs.length > 0 ? (
                   <div className="space-y-4">
-                    {project.devlogs.map((entry) => (
-                      <div key={entry.id} className="bg-[#0e0e0e] p-5 ghost-border overflow-hidden">
-                        <div className="flex items-start justify-between mb-2">
-                          <h5 className="font-headline font-bold text-[#e5e2e1] break-words min-w-0">{entry.title}</h5>
-                          <div className="flex items-center gap-3 text-xs">
-                            {entry.time_spent && (
-                              <span className="text-[#ffb595] flex items-center gap-1">
-                                <span className="material-symbols-outlined text-xs">schedule</span>
-                                {entry.time_spent}
-                              </span>
-                            )}
-                            <span className="text-stone-500">{entry.created_at}</span>
+                    {project.devlogs.map((entry) => {
+                      const ds: Record<string, { label: string; bg: string; text: string }> = {
+                        draft: { label: 'Draft', bg: 'bg-stone-500/10', text: 'text-stone-400' },
+                        pending: { label: 'Pending Review', bg: 'bg-amber-500/10', text: 'text-amber-400' },
+                        approved: { label: 'Approved', bg: 'bg-emerald-500/10', text: 'text-emerald-400' },
+                        returned: { label: 'Returned', bg: 'bg-orange-500/10', text: 'text-orange-400' },
+                      }
+                      const st = ds[entry.status] || ds.draft
+                      return (
+                      <div key={entry.id} className={`bg-[#0e0e0e] p-5 ghost-border overflow-hidden ${entry.status === 'pending' ? 'border-l-2 border-l-amber-500/50' : ''}`}>
+                        <div className="flex items-start justify-between mb-2 gap-2">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 flex-wrap mb-1">
+                              <h5 className="font-headline font-bold text-[#e5e2e1] break-words min-w-0">{entry.title}</h5>
+                              <span className={`${st.bg} ${st.text} px-2 py-0.5 text-[9px] uppercase font-bold tracking-widest`}>{st.label}</span>
+                            </div>
+                            <div className="flex items-center gap-3 text-xs flex-wrap">
+                              {entry.time_spent && (
+                                <span className="text-[#ffb595] flex items-center gap-1">
+                                  <span className="material-symbols-outlined text-xs">schedule</span>
+                                  {entry.approved_hours != null ? `${entry.approved_hours}h approved (claimed ${entry.time_spent})` : entry.time_spent}
+                                </span>
+                              )}
+                              <span className="text-stone-500">{entry.created_at}</span>
+                              {entry.reviewer_display_name && (
+                                <span className="text-stone-600">Reviewed by {entry.reviewer_display_name}</span>
+                              )}
+                            </div>
                           </div>
                         </div>
                         <div className="prose prose-invert prose-sm max-w-none text-stone-300 prose-a:text-[#ffb595] break-words [overflow-wrap:anywhere]">
                           <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>{entry.content}</Markdown>
                         </div>
+                        {entry.status === 'pending' && can.review && (
+                          <div className="mt-4 pt-4 border-t border-white/5">
+                            <div className="flex flex-wrap gap-3 items-end">
+                              <div>
+                                <label className="block text-[9px] uppercase tracking-wider text-stone-500 font-bold mb-1">Approve Hours</label>
+                                <input
+                                  type="number"
+                                  step="0.1"
+                                  min="0"
+                                  defaultValue={entry.time_spent?.match(/([\d.]+)/)?.[1] || ''}
+                                  id={`hours-${entry.id}`}
+                                  className="bg-[#1c1b1b] border-none px-3 py-2 text-[#e5e2e1] text-sm w-24 focus:ring-1 focus:ring-[#ee671c]/30"
+                                  placeholder="hrs"
+                                />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <label className="block text-[9px] uppercase tracking-wider text-stone-500 font-bold mb-1">Feedback (optional)</label>
+                                <input
+                                  type="text"
+                                  id={`feedback-${entry.id}`}
+                                  className="bg-[#1c1b1b] border-none px-3 py-2 text-[#e5e2e1] text-sm w-full focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-700"
+                                  placeholder="Optional note..."
+                                />
+                              </div>
+                              <button
+                                onClick={() => {
+                                  const hours = (document.getElementById(`hours-${entry.id}`) as HTMLInputElement)?.value
+                                  const fb = (document.getElementById(`feedback-${entry.id}`) as HTMLInputElement)?.value
+                                  router.post(`/admin/projects/${project.id}/review_devlog`, { devlog_id: entry.id, decision: 'approve', approved_hours: hours, feedback: fb }, { preserveScroll: true })
+                                }}
+                                className="signature-smolder text-[#4c1a00] px-4 py-2 text-[10px] font-bold uppercase tracking-[0.15em] cursor-pointer flex items-center gap-1"
+                              >
+                                <span className="material-symbols-outlined text-sm">check_circle</span>
+                                Approve
+                              </button>
+                              <button
+                                onClick={() => {
+                                  const fb = (document.getElementById(`feedback-${entry.id}`) as HTMLInputElement)?.value
+                                  router.post(`/admin/projects/${project.id}/review_devlog`, { devlog_id: entry.id, decision: 'return', feedback: fb }, { preserveScroll: true })
+                                }}
+                                className="bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.15em] cursor-pointer flex items-center gap-1 transition-colors"
+                              >
+                                <span className="material-symbols-outlined text-sm">undo</span>
+                                Return
+                              </button>
+                            </div>
+                          </div>
+                        )}
                       </div>
-                    ))}
+                    )})
                   </div>
                 ) : (
                   <p className="text-stone-600 text-sm">No devlog entries yet.</p>

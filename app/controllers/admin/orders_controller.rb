@@ -184,7 +184,7 @@ class Admin::OrdersController < Admin::ApplicationController
   end
 
   def ungranted_projects(user)
-    user.projects.kept.where(status: :build_approved).reject(&:has_fulfilled_direct_grant?)
+    user.projects.kept.where(status: %i[pitch_approved build_approved]).reject(&:has_fulfilled_direct_grant?)
   end
 
   def fulfillment_users_list
