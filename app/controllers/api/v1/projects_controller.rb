@@ -49,6 +49,7 @@ class Api::V1::ProjectsController < Api::V1::BaseController
       coins_earned: project.coins_earned,
       built_at: project.built_at&.iso8601,
       build_proof_url: project.build_proof_url,
+      shipped: project.build_approved?,
       devlog_count: project.devlogs.size,
       user: {
         id: project.user.id,
