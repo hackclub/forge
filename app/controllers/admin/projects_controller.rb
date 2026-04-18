@@ -1,6 +1,6 @@
 class Admin::ProjectsController < Admin::ApplicationController
   before_action :require_projects_permission!
-  before_action :set_project, only: [ :show, :review, :destroy, :restore, :toggle_hidden, :toggle_staff_pick, :change_tier, :add_note, :destroy_note ]
+  before_action :set_project, only: [ :show, :review, :destroy, :restore, :toggle_hidden, :toggle_staff_pick, :change_tier, :review_devlog, :add_note, :destroy_note ]
 
   def index
     scope = policy_scope(Project).includes(:user, :ships)
@@ -110,6 +110,28 @@ class Admin::ProjectsController < Admin::ApplicationController
     end
   end
 
+  def review_devlog
+    authorize @project, :review?
+
+    devlog = @project.devlogs.find(params[:devlog_id])
+    decision = params[:decision].to_s
+    approved_hours = params[:approved_hours]
+    feedback = params[:feedback]
+
+    case decision
+    when "approve"
+      attrs = { status: :approved, reviewer: current_user, reviewed_at: Time.current, review_feedback: feedback }
+      attrs[:approved_hours] = approved_hours.to_f if approved_hours.present?
+      devlog.update!(attrs)
+      audit!("devlog.approved", target: devlog, metadata: { project_id: @project.id, approved_hours: devlog.credited_hours, feedback: feedback })
+    when "return"
+      devlog.update!(status: :returned, reviewer: current_user, reviewed_at: Time.current, review_feedback: feedback)
+      audit!("devlog.returned", target: devlog, metadata: { project_id: @project.id, feedback: feedback })
+    end
+
+    redirect_to admin_project_path(@project), notice: "Devlog \"#{devlog.title}\" #{decision == 'approve' ? 'approved' : 'returned'}."
+  end
+
   def change_tier
     authorize @project, :review?
 
@@ -125,8 +147,12 @@ class Admin::ProjectsController < Admin::ApplicationController
       return
     end
 
-    @project.update!(tier: new_tier)
-    audit!("project.tier_changed", target: @project, metadata: { old_tier: old_tier, new_tier: new_tier })
+    attrs = { tier: new_tier }
+    if old_tier == "tier_1" && new_tier != "tier_1" && (@project.pending? || @project.draft?)
+      attrs[:status] = :pitch_approved
+    end
+    @project.update!(attrs)
+    audit!("project.tier_changed", target: @project, metadata: { old_tier: old_tier, new_tier: new_tier, auto_pitch_approved: attrs[:status] == :pitch_approved })
 
     if old_tier == "tier_1" && @project.slack_channel_id.present? && @project.slack_message_ts.present?
       app_url = ENV.fetch("APP_URL", "https://forge.hackclub.com")
@@ -173,13 +199,13 @@ class Admin::ProjectsController < Admin::ApplicationController
 
     case decision
     when "approve"
-      if guard_duplicate_transition!(@project, :approved, "Project already approved.")
+      if guard_duplicate_transition!(@project, :pitch_approved, "Project already approved.")
         return
       end
-      @project.update!(status: :approved, reviewer: current_user, reviewed_at: Time.current, review_feedback: feedback)
-      audit!("project.approved", target: @project, metadata: { feedback: feedback })
+      @project.update!(status: :pitch_approved, reviewer: current_user, reviewed_at: Time.current, review_feedback: feedback)
+      audit!("project.pitch_approved", target: @project, metadata: { feedback: feedback })
       notify_slack_decision(@project, "approved", feedback)
-      redirect_to admin_project_path(@project), notice: "Project approved."
+      redirect_to admin_project_path(@project), notice: "Pitch approved."
     when "return"
       if guard_duplicate_transition!(@project, :returned, "Project already returned.")
         return
@@ -392,6 +418,11 @@ class Admin::ProjectsController < Admin::ApplicationController
       title: devlog.title,
       content: devlog.content,
       time_spent: devlog.time_spent,
+      status: devlog.status,
+      approved_hours: devlog.approved_hours&.to_f,
+      review_feedback: devlog.review_feedback,
+      reviewer_display_name: devlog.reviewer&.display_name,
+      reviewed_at: devlog.reviewed_at&.strftime("%b %d, %Y"),
       created_at: devlog.created_at.strftime("%b %d, %Y")
     }
   end

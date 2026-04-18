@@ -1,6 +1,6 @@
 class ProjectsController < ApplicationController
   allow_unauthenticated_access only: %i[show]
-  before_action :set_project, only: %i[show edit update destroy submit_for_review submit_build sync_journal set_devlog_mode link_repo resubmit_pitch upload_cover_image export_devlogs mark_built add_kudo destroy_kudo]
+  before_action :set_project, only: %i[show edit update destroy submit_for_review finish_project sync_journal set_devlog_mode link_repo resubmit_pitch upload_cover_image export_devlogs mark_built add_kudo destroy_kudo]
 
   def show
     authorize @project
@@ -40,7 +40,7 @@ class ProjectsController < ApplicationController
 
   def create
     @project = current_user.projects.build(project_params)
-    @project.status = :draft
+    @project.status = @project.advanced? ? :draft : :pitch_approved
     authorize @project
 
     if @project.save
@@ -241,39 +241,39 @@ class ProjectsController < ApplicationController
     send_data md, filename: "#{@project.name.parameterize}-journal.md", type: "text/markdown"
   end
 
-  def submit_build
+  def finish_project
     authorize @project, :update?
 
-    unless @project.approved?
-      redirect_to @project, alert: "Project must be approved before submitting build."
+    unless @project.pitch_approved?
+      redirect_to @project, alert: "Project must be pitch-approved before finishing."
       return
     end
 
-    unless @project.devlogs.any?
-      redirect_to @project, alert: "Add at least one devlog entry before submitting."
+    unless @project.devlogs.approved.any?
+      redirect_to @project, alert: "You need at least one approved devlog entry."
       return
     end
 
     if @project.cover_image_url.blank?
-      redirect_to @project, alert: "Upload a cover image before submitting for review."
+      redirect_to @project, alert: "Upload a cover image before finishing."
       return
     end
 
     unless current_user.address_line1.present?
-      redirect_to @project, alert: "Fill in your shipping address before submitting for review."
+      redirect_to @project, alert: "Fill in your shipping address before finishing."
       return
     end
 
-    @project.submit_build_for_review!
-    audit!("project.build_submitted", target: @project)
+    @project.finish_project!
+    audit!("project.finished", target: @project)
     if @project.slack_channel_id.present? && @project.slack_message_ts.present?
       SlackNotifyJob.perform_later(
         channel_id: @project.slack_channel_id,
         thread_ts: @project.slack_message_ts,
-        text: ":hammer_and_wrench: *#{@project.name}* has been submitted for build review."
+        text: ":tada: *#{@project.name}* has been marked as finished!"
       )
     end
-    redirect_to @project, notice: "Build submitted for review!"
+    redirect_to @project, notice: "Project finished! It's now in the Airtable queue."
   end
 
   def set_devlog_mode
@@ -429,6 +429,9 @@ class ProjectsController < ApplicationController
       title: devlog.title,
       content: devlog.content,
       time_spent: devlog.time_spent,
+      status: devlog.status,
+      approved_hours: devlog.approved_hours&.to_f,
+      review_feedback: devlog.review_feedback,
       created_at: devlog.created_at.strftime("%B %d, %Y")
     }
   end
