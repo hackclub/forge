@@ -4,11 +4,22 @@ class Api::V1::ProjectsController < Api::V1::BaseController
     scope = scope.where(status: params[:status]) if params[:status].present?
     scope = scope.where(tier: params[:tier]) if params[:tier].present?
     scope = scope.search(params[:query]) if params[:query].present?
-    @pagy, @projects = pagy(scope)
+
+    page = [ params.fetch(:page, 1).to_i, 1 ].max
+    per_page = params.fetch(:per_page, 25).to_i.clamp(1, 100)
+    total = scope.count
+    projects = scope.offset((page - 1) * per_page).limit(per_page)
 
     render json: {
-      data: @projects.map { |p| serialize_project(p) },
-      pagination: pagy_metadata(@pagy)
+      data: projects.map { |p| serialize_project(p) },
+      pagination: {
+        count: total,
+        page: page,
+        per_page: per_page,
+        pages: (total.to_f / per_page).ceil,
+        next: page * per_page < total ? page + 1 : nil,
+        prev: page > 1 ? page - 1 : nil
+      }
     }
   end
 
@@ -64,16 +75,5 @@ class Api::V1::ProjectsController < Api::V1::BaseController
     end
 
     data
-  end
-
-  def pagy_metadata(pagy)
-    {
-      count: pagy.count,
-      page: pagy.page,
-      per_page: pagy.limit,
-      pages: pagy.pages,
-      next: pagy.next,
-      prev: pagy.prev
-    }
   end
 end
