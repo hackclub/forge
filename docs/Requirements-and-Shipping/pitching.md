@@ -24,7 +24,7 @@ Idea: [Short name for your project]
 I'm designing: [What you're actually building — PCBs, 3D printed parts, firmware, etc.]
 Inspo / reference: [Links to similar projects or inspiration]
 Past projects: [Links to things you've built before — helps us gauge your skill level]
-Why this is worth more than 10 points: [Why this project is ambitious/complex]
+Why this is worth more than $200: [Why this project is ambitious/complex]
 
 Rough BOM:
 * [Part] $[cost]
