@@ -241,7 +241,7 @@ export default function ProjectsShow({
   const status = statusConfig[project.status]
   const isPitchApproved = project.status === 'pitch_approved'
   const isBuildApproved = project.status === 'build_approved'
-  const isBuildingPhase = isPitchApproved || isBuildApproved || project.status === 'build_pending' || project.status === 'approved'
+  const isBuildingPhase = isPitchApproved || isBuildApproved || project.status === 'build_pending' || project.status === 'approved' || (project.status === 'draft' && isNormalTier)
   const isNormalTier = project.tier !== 'tier_1'
   const isGitMode = project.devlog_mode === 'git'
   const isWebMode = project.devlog_mode === 'website'
@@ -301,10 +301,12 @@ export default function ProjectsShow({
         ) : null}
         <div className="p-8">
           <div className="flex items-center gap-2 mb-4 flex-wrap">
-            <span className={`${status.bg} ${status.text} px-3 py-1 text-[10px] uppercase font-bold tracking-widest flex items-center gap-1.5`}>
-              <span className="material-symbols-outlined text-sm">{status.icon}</span>
-              {status.label}
-            </span>
+            {!(isPitchApproved && isNormalTier) && (
+              <span className={`${status.bg} ${status.text} px-3 py-1 text-[10px] uppercase font-bold tracking-widest flex items-center gap-1.5`}>
+                <span className="material-symbols-outlined text-sm">{status.icon}</span>
+                {status.label}
+              </span>
+            )}
             {project.devlog_mode && (
               <span className="bg-[#353534] text-stone-400 px-3 py-1 text-[10px] uppercase font-bold tracking-widest">
                 {project.devlog_mode === 'git' ? 'Git Journal' : 'Web Devlog'}
@@ -359,15 +361,6 @@ export default function ProjectsShow({
             </button>
           ) : null}
 
-          {project.tags && project.tags.length > 0 && (
-            <div className="flex flex-wrap gap-2 mb-5">
-              {project.tags.map((tag) => (
-                <span key={tag} className="bg-[#0e0e0e] ghost-border text-stone-400 px-2.5 py-1 text-[10px] uppercase font-bold tracking-[0.15em]">
-                  #{tag}
-                </span>
-              ))}
-            </div>
-          )}
 
           <div className="flex flex-wrap items-center gap-4 pt-5 border-t border-white/5">
             <Link
@@ -886,48 +879,48 @@ export default function ProjectsShow({
             </div>
           )}
 
-          {can.update && isPitchApproved && (
+          {can.update && isPitchApproved && project.tier === 'tier_1' && (
             <div className="bg-emerald-500/5 ghost-border p-8">
               <div className="flex items-center gap-2 mb-3">
                 <span className="material-symbols-outlined text-emerald-400 text-lg">check_circle</span>
-                <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-400 font-headline">
-                  {project.tier === 'tier_1' ? 'Pitch Approved — Start Building!' : 'Start Building!'}
-                </h4>
+                <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-400 font-headline">Pitch Approved — Start Building!</h4>
               </div>
-              <p className="text-stone-400 text-sm mb-4">
+              <p className="text-stone-400 text-sm">
                 {!project.devlog_mode
                   ? 'Choose your devlog method below to get started.'
                   : 'Add devlog entries and submit each one for review. Approved entries earn coins.'}
               </p>
-              {can.update && project.devlog_mode && devlogs.filter((d) => d.status === 'approved').length > 0 && (
-                (() => {
-                  const hasCover = !!project.cover_image_url
-                  const hasAddress = project.user_has_address
-                  const canFinish = hasCover && hasAddress
-                  return (
-                    <>
-                      {!canFinish && (
-                        <div className="mb-4 bg-amber-500/10 border border-amber-500/20 p-4 text-amber-200 text-xs">
-                          <p className="font-bold uppercase tracking-wider mb-2">Before finishing:</p>
-                          <ul className="space-y-1">
-                            {!hasCover && <li>• Upload a project cover image</li>}
-                            {!hasAddress && <li>• Add your shipping address in <a href="/settings" className="underline hover:text-amber-100">settings</a></li>}
-                          </ul>
-                        </div>
-                      )}
-                      <button
-                        disabled={!canFinish}
-                        onClick={() => { if (confirm('Mark this project as finished? This will queue it for processing.')) router.post(`/projects/${project.id}/finish_project`) }}
-                        className={`w-full font-headline font-bold py-3 uppercase tracking-wider transition-transform flex items-center justify-center gap-2 ${canFinish ? 'signature-smolder text-[#4c1a00] active:scale-95 cursor-pointer' : 'bg-stone-700/40 text-stone-500 cursor-not-allowed'}`}
-                      >
-                        <span className="material-symbols-outlined text-lg">verified</span>
-                        Finish Project
-                      </button>
-                    </>
-                  )
-                })()
-              )}
             </div>
+          )}
+
+          {can.update && isPitchApproved && project.devlog_mode && devlogs.filter((d) => d.status === 'approved').length > 0 && (
+            (() => {
+              const hasCover = !!project.cover_image_url
+              const hasAddress = project.user_has_address
+              const canFinish = hasCover && hasAddress
+              return (
+                <div className="bg-[#1c1b1b] ghost-border p-8">
+                  <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">Finish Project</h4>
+                  {!canFinish && (
+                    <div className="mb-4 bg-amber-500/10 border border-amber-500/20 p-4 text-amber-200 text-xs">
+                      <p className="font-bold uppercase tracking-wider mb-2">Before finishing:</p>
+                      <ul className="space-y-1">
+                        {!hasCover && <li>• Upload a project cover image</li>}
+                        {!hasAddress && <li>• Add your shipping address in <a href="/settings" className="underline hover:text-amber-100">settings</a></li>}
+                      </ul>
+                    </div>
+                  )}
+                  <button
+                    disabled={!canFinish}
+                    onClick={() => { if (confirm('Mark this project as finished? This will queue it for processing.')) router.post(`/projects/${project.id}/finish_project`) }}
+                    className={`w-full font-headline font-bold py-3 uppercase tracking-wider transition-transform flex items-center justify-center gap-2 ${canFinish ? 'signature-smolder text-[#4c1a00] active:scale-95 cursor-pointer' : 'bg-stone-700/40 text-stone-500 cursor-not-allowed'}`}
+                  >
+                    <span className="material-symbols-outlined text-lg">verified</span>
+                    Finish Project
+                  </button>
+                </div>
+              )
+            })()
           )}
 
           {can.update && isBuildApproved && (
