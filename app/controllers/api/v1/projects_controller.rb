@@ -4,7 +4,7 @@ class Api::V1::ProjectsController < Api::V1::BaseController
     scope = scope.where(status: params[:status]) if params[:status].present?
     scope = scope.where(tier: params[:tier]) if params[:tier].present?
     scope = scope.search(params[:query]) if params[:query].present?
-    @pagy, @projects = pagy(scope, limit: params.fetch(:per_page, 25).to_i.clamp(1, 100))
+    @pagy, @projects = pagy(scope)
 
     render json: {
       data: @projects.map { |p| serialize_project(p) },
