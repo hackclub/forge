@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useForm, usePage } from '@inertiajs/react'
-import type { ProjectForm, SharedProps } from '@/types'
+import type { ProjectForm, ProjectTier, SharedProps } from '@/types'
 
 export default function ProjectsForm({
   project,
@@ -204,7 +204,7 @@ export default function ProjectsForm({
             <select
               id="tier"
               value={form.data.tier}
-              onChange={(e) => form.setData('tier', e.target.value)}
+              onChange={(e) => form.setData('tier', e.target.value as ProjectTier)}
               className="w-full bg-[#0e0e0e] border-none rounded-lg px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30"
             >
               <option value="tier_4">Tier 4 — 4c/hr (Basic, $0–50)</option>

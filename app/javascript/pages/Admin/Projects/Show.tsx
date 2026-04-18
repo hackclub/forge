@@ -353,7 +353,7 @@ export default function AdminProjectsShow({
                           </div>
                         )}
                       </div>
-                    )})
+                    )})}
                   </div>
                 ) : (
                   <p className="text-stone-600 text-sm">No devlog entries yet.</p>
