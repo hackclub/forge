@@ -241,7 +241,7 @@ export default function ProjectsShow({
   const status = statusConfig[project.status]
   const isPitchApproved = project.status === 'pitch_approved'
   const isBuildApproved = project.status === 'build_approved'
-  const isBuildingPhase = isPitchApproved || isBuildApproved
+  const isBuildingPhase = isPitchApproved || isBuildApproved || project.status === 'build_pending' || project.status === 'approved'
   const isNormalTier = project.tier !== 'tier_1'
   const isGitMode = project.devlog_mode === 'git'
   const isWebMode = project.devlog_mode === 'website'
