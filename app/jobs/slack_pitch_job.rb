@@ -8,7 +8,7 @@ class SlackPitchJob < ApplicationJob
       return
     end
 
-    existing = Project.find_by(slack_message_ts: message_ts)
+    existing = Project.find_by(slack_channel_id: channel_id, slack_message_ts: message_ts)
     return if existing
 
     parsed = parse_pitch_with_ai(text)
@@ -33,6 +33,11 @@ class SlackPitchJob < ApplicationJob
     project_url = "#{app_url}/projects/#{project.id}"
     post_reply(channel_id, message_ts, "Your pitch for *#{project.name}* has been received and is now pending review! :eyes:\n\nYou'll hear back here once it's been reviewed.\n\n<#{project_url}|View Project>")
     react_to_message(channel_id, message_ts, "eyes")
+  rescue ActiveRecord::RecordNotUnique
+    existing = Project.find_by(slack_channel_id: channel_id, slack_message_ts: message_ts)
+    return if existing
+
+    raise
   rescue StandardError => e
     Rails.logger.error("SlackPitchJob failed: #{e.class}: #{e.message}\n#{e.backtrace&.first(10)&.join("\n")}")
     begin
