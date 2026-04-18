@@ -156,7 +156,20 @@ export default function AdminProjectsShow({
 
           {project.pitch_text && (
             <div className="bg-[#1c1b1b] ghost-border rounded-xl p-8 mb-8">
-              <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">Original Pitch</h4>
+              <div className="flex items-center justify-between gap-3 mb-4">
+                <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline">Original Pitch</h4>
+                {project.slack_url && (
+                  <a
+                    href={project.slack_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="ghost-border bg-[#0e0e0e] hover:bg-[#2a2a2a] text-stone-400 hover:text-[#ffb595] px-3 py-1.5 text-[10px] uppercase tracking-[0.15em] font-bold inline-flex items-center gap-1 transition-colors"
+                  >
+                    View in Slack
+                    <span className="material-symbols-outlined text-sm">open_in_new</span>
+                  </a>
+                )}
+              </div>
               <div className="prose prose-invert prose-sm max-w-none text-stone-300 prose-a:text-[#ffb595] break-words [overflow-wrap:anywhere]">
                 <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
                   {project.pitch_text.replace(/<(https?:\/\/[^|>]+)\|([^>]+)>/g, '[$2]($1)').replace(/<(https?:\/\/[^>]+)>/g, '$1')}
