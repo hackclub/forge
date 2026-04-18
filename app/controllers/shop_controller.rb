@@ -8,7 +8,7 @@ class ShopController < ApplicationController
                     .sort_by { |i| [ i.coin_cost_for_region(user_region), i.name ] }
 
     eligible_projects = current_user ? current_user.projects.kept
-      .where(status: %i[pitch_approved build_approved])
+      .where(status: %i[pending pitch_approved build_approved])
       .order(updated_at: :desc) : []
     orders = current_user ? current_user.orders.includes(:project, :shop_item).order(created_at: :desc) : []
 

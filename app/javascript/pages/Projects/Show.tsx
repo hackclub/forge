@@ -239,10 +239,11 @@ export default function ProjectsShow({
   }
 
   const status = statusConfig[project.status]
+  const isNormalTier = project.tier !== 'tier_1'
   const isPitchApproved = project.status === 'pitch_approved'
   const isBuildApproved = project.status === 'build_approved'
-  const isBuildingPhase = isPitchApproved || isBuildApproved || project.status === 'build_pending' || project.status === 'approved' || (project.status === 'draft' && isNormalTier)
-  const isNormalTier = project.tier !== 'tier_1'
+  const isPending = project.status === 'pending'
+  const isBuildingPhase = isPitchApproved || isBuildApproved || isPending || project.status === 'build_pending' || project.status === 'approved' || (project.status === 'draft' && isNormalTier)
   const isGitMode = project.devlog_mode === 'git'
   const isWebMode = project.devlog_mode === 'website'
   const canLog = isBuildingPhase
@@ -301,7 +302,7 @@ export default function ProjectsShow({
         ) : null}
         <div className="p-8">
           <div className="flex items-center gap-2 mb-4 flex-wrap">
-            {!(isPitchApproved && isNormalTier) && (
+            {!((isPitchApproved || isPending) && isNormalTier) && (
               <span className={`${status.bg} ${status.text} px-3 py-1 text-[10px] uppercase font-bold tracking-widest flex items-center gap-1.5`}>
                 <span className="material-symbols-outlined text-sm">{status.icon}</span>
                 {status.label}
@@ -543,7 +544,7 @@ export default function ProjectsShow({
                     <div key={entry.id} className="ghost-border bg-[#1c1b1b] p-6 overflow-hidden">
                       <div className="flex items-start justify-between mb-3">
                         <div>
-                          <h3 className="font-headline font-bold text-[#e5e2e1]">{entry.title}</h3>
+                          <Link href={`/projects/${project.id}/devlogs/${entry.id}`} className="font-headline font-bold text-[#e5e2e1] hover:text-[#ffb595] transition-colors">{entry.title}</Link>
                           <div className="flex items-center gap-3 mt-1">
                             <span className="text-stone-500 text-xs">{entry.created_at}</span>
                             {entry.time_spent && (
@@ -720,7 +721,7 @@ export default function ProjectsShow({
                           <div className="flex items-start justify-between mb-3">
                             <div>
                               <div className="flex items-center gap-2 mb-1 flex-wrap">
-                                <h3 className="font-headline font-bold text-[#e5e2e1]">{entry.title}</h3>
+                                <Link href={`/projects/${project.id}/devlogs/${entry.id}`} className="font-headline font-bold text-[#e5e2e1] hover:text-[#ffb595] transition-colors">{entry.title}</Link>
                                 {(() => {
                                   const ds = devlogStatusConfig[entry.status]
                                   return ds ? (
@@ -869,7 +870,7 @@ export default function ProjectsShow({
               Link Repository
             </button>
           )}
-          {can.update && project.status === 'pending' && (
+          {can.update && isPending && !isNormalTier && (
             <div className="bg-amber-500/5 ghost-border p-8">
               <div className="flex items-center gap-2 mb-3">
                 <span className="material-symbols-outlined text-amber-400 text-lg">schedule</span>
@@ -893,7 +894,7 @@ export default function ProjectsShow({
             </div>
           )}
 
-          {can.update && isPitchApproved && project.devlog_mode && devlogs.filter((d) => d.status === 'approved').length > 0 && (
+          {can.update && (isPitchApproved || isPending) && project.devlog_mode && devlogs.filter((d) => d.status === 'approved').length > 0 && (
             (() => {
               const hasCover = !!project.cover_image_url
               const hasAddress = project.user_has_address

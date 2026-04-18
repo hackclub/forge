@@ -149,10 +149,10 @@ class Admin::ProjectsController < Admin::ApplicationController
 
     attrs = { tier: new_tier }
     if old_tier == "tier_1" && new_tier != "tier_1" && (@project.pending? || @project.draft?)
-      attrs[:status] = :pitch_approved
+      attrs[:status] = :pending
     end
     @project.update!(attrs)
-    audit!("project.tier_changed", target: @project, metadata: { old_tier: old_tier, new_tier: new_tier, auto_pitch_approved: attrs[:status] == :pitch_approved })
+    audit!("project.tier_changed", target: @project, metadata: { old_tier: old_tier, new_tier: new_tier, auto_pending: attrs[:status] == :pending })
 
     if old_tier == "tier_1" && @project.slack_channel_id.present? && @project.slack_message_ts.present?
       app_url = ENV.fetch("APP_URL", "https://forge.hackclub.com")

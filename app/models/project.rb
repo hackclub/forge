@@ -145,7 +145,7 @@ class Project < ApplicationRecord
   end
 
   def coins_earned
-    return 0.0 unless pitch_approved? || build_approved?
+    return 0.0 unless pending? || pitch_approved? || build_approved?
 
     (total_hours * coin_rate * user.streak_multiplier).round(2)
   end
