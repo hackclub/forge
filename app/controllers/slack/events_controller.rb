@@ -36,7 +36,7 @@ class Slack::EventsController < ApplicationController
 
       inner_ts = inner["ts"]
       return unless channel == forge_channel_id && inner["thread_ts"].blank? && inner_ts.present?
-      return if Project.exists?(slack_channel_id: channel, slack_message_ts: inner_ts)
+      return if Project.exists?(slack_message_ts: inner_ts)
 
       SlackPitchJob.perform_later(
         slack_user_id: inner["user"],
