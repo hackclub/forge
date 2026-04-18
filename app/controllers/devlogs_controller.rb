@@ -1,5 +1,34 @@
 class DevlogsController < ApplicationController
+  allow_unauthenticated_access only: %i[show]
   before_action :set_project
+
+  def show
+    @devlog = @project.devlogs.find(params[:id])
+    can_edit = current_user.present? && policy(@project).update? && (@devlog.draft? || @devlog.returned?)
+
+    render inertia: "Devlogs/Show", props: {
+      project: {
+        id: @project.id,
+        name: @project.name,
+        user_display_name: @project.user.display_name,
+        user_avatar: @project.user.avatar,
+        user_id: @project.user_id
+      },
+      devlog: {
+        id: @devlog.id,
+        title: @devlog.title,
+        content: @devlog.content,
+        time_spent: @devlog.time_spent,
+        status: @devlog.status,
+        approved_hours: @devlog.approved_hours&.to_f,
+        review_feedback: @devlog.review_feedback,
+        reviewer_display_name: @devlog.reviewer&.display_name,
+        reviewed_at: @devlog.reviewed_at&.strftime("%B %d, %Y"),
+        created_at: @devlog.created_at.strftime("%B %d, %Y")
+      },
+      can_edit: can_edit
+    }
+  end
 
   def create
     authorize @project, :update?

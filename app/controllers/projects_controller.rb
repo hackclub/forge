@@ -40,7 +40,7 @@ class ProjectsController < ApplicationController
 
   def create
     @project = current_user.projects.build(project_params)
-    @project.status = @project.advanced? ? :draft : :pitch_approved
+    @project.status = @project.advanced? ? :draft : :pending
     authorize @project
 
     if @project.save
@@ -244,8 +244,8 @@ class ProjectsController < ApplicationController
   def finish_project
     authorize @project, :update?
 
-    unless @project.pitch_approved?
-      redirect_to @project, alert: "Project must be pitch-approved before finishing."
+    unless @project.pending? || @project.pitch_approved?
+      redirect_to @project, alert: "Project is not in an active state."
       return
     end
 

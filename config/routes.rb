@@ -240,7 +240,7 @@ Rails.application.routes.draw do
       post :add_kudo
       delete "kudos/:kudo_id" => "projects#destroy_kudo", as: :destroy_kudo
     end
-    resources :devlogs, only: [ :create, :update, :destroy ] do
+    resources :devlogs, only: [ :show, :create, :update, :destroy ] do
       member do
         post :submit_for_review
       end
