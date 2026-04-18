@@ -28,6 +28,7 @@ const statusConfig: Record<ProjectStatus, { label: string; bg: string; text: str
 export default function AdminProjectsShow({
   project,
   ships,
+  notes,
   can,
 }: {
   project: AdminProjectDetail
@@ -38,10 +39,18 @@ export default function AdminProjectsShow({
     approved_seconds: number | null
     created_at: string
   }[]
+  notes: {
+    id: number
+    content: string
+    author_name: string
+    author_avatar: string
+    created_at: string
+  }[]
   can: { review: boolean; destroy: boolean; restore: boolean }
 }) {
   const isSuperadmin = !!usePage<SharedProps>().props.auth.user?.is_superadmin
   const [feedback, setFeedback] = useState('')
+  const [noteContent, setNoteContent] = useState('')
   const [refreshingReadme, setRefreshingReadme] = useState(false)
   const [overrideHours, setOverrideHours] = useState<string>(project.override_hours != null ? String(project.override_hours) : '')
   const [overrideJustification, setOverrideJustification] = useState(project.override_hours_justification || '')
@@ -81,6 +90,19 @@ export default function AdminProjectsShow({
     router.post(`/admin/projects/${project.id}/review`, { decision, feedback, ...extra }, {
       onFinish: () => setReviewing(false),
     })
+  }
+
+  function addNote() {
+    if (!noteContent.trim()) return
+    router.post(`/admin/projects/${project.id}/add_note`, { content: noteContent }, {
+      preserveScroll: true,
+      onSuccess: () => setNoteContent(''),
+    })
+  }
+
+  function deleteNote(noteId: number) {
+    if (!confirm('Delete this note?')) return
+    router.delete(`/admin/projects/${project.id}/notes/${noteId}`, { preserveScroll: true })
   }
 
   return (
@@ -314,6 +336,57 @@ export default function AdminProjectsShow({
               <p className="text-stone-300 text-sm leading-relaxed">{project.review_feedback}</p>
             </div>
           )}
+
+          <div className="bg-[#1c1b1b] ghost-border rounded-xl p-8 mb-8">
+            <div className="flex items-center justify-between gap-3 mb-4">
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline">Internal Notes</h4>
+                <p className="text-stone-600 text-xs mt-1">Visible only to staff in the admin view.</p>
+              </div>
+            </div>
+
+            <div className="mb-5">
+              <textarea
+                value={noteContent}
+                onChange={(e) => setNoteContent(e.target.value)}
+                rows={3}
+                className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 resize-y"
+                placeholder="Add an internal note..."
+              />
+              <button
+                onClick={addNote}
+                disabled={!noteContent.trim()}
+                className="signature-smolder text-[#4c1a00] px-5 py-2 mt-3 text-xs font-bold uppercase tracking-[0.15em] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Add Note
+              </button>
+            </div>
+
+            {notes.length > 0 ? (
+              <div className="space-y-2">
+                {notes.map((note) => (
+                  <div key={note.id} className="bg-[#0e0e0e] ghost-border px-5 py-4 flex gap-3">
+                    <img src={note.author_avatar} alt={note.author_name} className="w-8 h-8 border border-white/10 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-headline font-bold text-[#e5e2e1] text-sm">{note.author_name}</span>
+                        <span className="text-stone-600 text-xs">{note.created_at}</span>
+                      </div>
+                      <p className="text-stone-300 text-sm whitespace-pre-wrap">{note.content}</p>
+                    </div>
+                    <button
+                      onClick={() => deleteNote(note.id)}
+                      className="text-stone-600 hover:text-red-400 transition-colors shrink-0 cursor-pointer"
+                    >
+                      <span className="material-symbols-outlined text-sm">close</span>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-stone-600 text-sm">No internal notes yet.</p>
+            )}
+          </div>
 
           {ships.length > 0 && (
             <div>

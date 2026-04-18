@@ -15,7 +15,9 @@ module HcaService
   end
 
   def scopes
-    "openid email name profile verification_status slack_id address phone"
+    base_scopes = %w[openid email name profile verification_status slack_id]
+    base_scopes += %w[address phone] unless community?
+    base_scopes.join(" ")
   end
 
   def authorize_url(redirect_uri, state, login_hint: nil)
@@ -93,5 +95,9 @@ module HcaService
 
   def connection
     @connection ||= Faraday.new(url: host)
+  end
+
+  def community?
+    ENV["HCA_COMMUNITY"] == "1"
   end
 end

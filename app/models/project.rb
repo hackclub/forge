@@ -61,6 +61,7 @@ class Project < ApplicationRecord
   has_many :devlogs, dependent: :destroy
   has_many :airtable_queue_items, dependent: :destroy
   has_many :kudos, dependent: :destroy
+  has_many :project_notes, dependent: :destroy
   has_one_attached :cover_image
 
   after_commit :sync_to_airtable, on: [ :create, :update ], if: -> { build_approved? }

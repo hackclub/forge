@@ -143,6 +143,14 @@ export interface UserNote {
   created_at: string
 }
 
+export interface ProjectNote {
+  id: number
+  content: string
+  author_name: string
+  author_avatar: string
+  created_at: string
+}
+
 export interface KudoEntry {
   id: number
   content: string
@@ -196,6 +204,7 @@ export interface AdminProjectDetail {
   total_hours: number
   devlog_hours: number
   devlogs: AdminDevlog[]
+  notes: ProjectNote[]
   hidden: boolean
   staff_pick: boolean
   is_discarded: boolean

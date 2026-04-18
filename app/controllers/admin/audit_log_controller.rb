@@ -100,6 +100,8 @@ class Admin::AuditLogController < Admin::ApplicationController
     "project.build_returned" => "Returned build for",
     "project.build_rejected" => "Rejected build for",
     "project.review_notes_saved" => "Saved review notes for",
+    "project.note_added" => "Added internal note on",
+    "project.note_destroyed" => "Deleted internal note from",
     "project.readme_refreshed" => "Refreshed README for",
     "project.visibility_toggled" => "Toggled visibility on",
     "project.staff_pick_toggled" => "Toggled staff pick on",
