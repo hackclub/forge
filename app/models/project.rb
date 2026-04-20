@@ -127,7 +127,7 @@ class Project < ApplicationRecord
   def devlog_hours
     devlogs.sum do |d|
       next 0 unless d.time_spent
-      match = d.time_spent.match(/([\d.]+)\s*(?:hrs?|hours?)/i)
+      match = d.time_spent.match(/([\d.]+)/)
       match ? match[1].to_f : 0
     end
   end
