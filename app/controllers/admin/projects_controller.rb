@@ -7,7 +7,7 @@ class Admin::ProjectsController < Admin::ApplicationController
     scope = params[:status] == "deleted" ? scope.discarded : scope.kept
     scope = scope.search(params[:query]) if params[:query].present?
     if params[:status] == "pending"
-      scope = scope.where(status: [ :pending, :build_pending ])
+      scope = scope.where(status: [ :pending, :pitch_pending, :build_pending ])
     elsif params[:status].present? && params[:status] != "deleted"
       scope = scope.where(status: params[:status])
     end
@@ -24,7 +24,7 @@ class Admin::ProjectsController < Admin::ApplicationController
   end
 
   def pitches
-    scope = policy_scope(Project).includes(:user, :ships).kept.where(status: :pending)
+    scope = policy_scope(Project).includes(:user, :ships).kept.where(status: :pitch_pending)
     scope = scope.search(params[:query]) if params[:query].present?
     @pagy, @projects = pagy(scope.order(created_at: :desc))
 
@@ -124,6 +124,11 @@ class Admin::ProjectsController < Admin::ApplicationController
       attrs[:approved_hours] = approved_hours.to_f if approved_hours.present?
       devlog.update!(attrs)
       audit!("devlog.approved", target: devlog, metadata: { project_id: @project.id, approved_hours: devlog.credited_hours, feedback: feedback })
+
+      if @project.pending? && @project.devlogs.where(status: :pending).none?
+        @project.update!(status: :approved)
+        audit!("project.auto_approved", target: @project, metadata: { reason: "all_devlogs_approved" })
+      end
     when "return"
       devlog.update!(status: :returned, reviewer: current_user, reviewed_at: Time.current, review_feedback: feedback)
       audit!("devlog.returned", target: devlog, metadata: { project_id: @project.id, feedback: feedback })
@@ -148,8 +153,8 @@ class Admin::ProjectsController < Admin::ApplicationController
     end
 
     attrs = { tier: new_tier }
-    if old_tier == "tier_1" && new_tier != "tier_1" && (@project.pending? || @project.draft?)
-      attrs[:status] = :pending
+    if old_tier == "tier_1" && new_tier != "tier_1" && (@project.pitch_pending? || @project.draft?)
+      attrs[:status] = :draft
     end
     @project.update!(attrs)
     audit!("project.tier_changed", target: @project, metadata: { old_tier: old_tier, new_tier: new_tier, auto_pending: attrs[:status] == :pending })
@@ -343,11 +348,12 @@ class Admin::ProjectsController < Admin::ApplicationController
   def status_counts
     kept_scope = policy_scope(Project).kept
     raw = kept_scope.group(:status).count
-    pending_count = (raw["pending"] || 0) + (raw["build_pending"] || 0)
+    pending_count = (raw["pending"] || 0) + (raw["pitch_pending"] || 0) + (raw["build_pending"] || 0)
     {
       all: raw.values.sum,
       pending: pending_count,
       approved: raw["approved"] || 0,
+      pitch_approved: raw["pitch_approved"] || 0,
       returned: raw["returned"] || 0,
       rejected: raw["rejected"] || 0,
       draft: raw["draft"] || 0,

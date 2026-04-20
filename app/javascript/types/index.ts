@@ -39,7 +39,7 @@ export interface PagyProps {
   prev: number | null
 }
 
-export type ProjectStatus = 'draft' | 'pending' | 'approved' | 'returned' | 'rejected' | 'build_pending' | 'build_approved' | 'pitch_approved'
+export type ProjectStatus = 'draft' | 'pending' | 'approved' | 'returned' | 'rejected' | 'build_pending' | 'build_approved' | 'pitch_approved' | 'pitch_pending'
 
 export type DevlogStatus = 'draft' | 'pending' | 'approved' | 'returned'
 

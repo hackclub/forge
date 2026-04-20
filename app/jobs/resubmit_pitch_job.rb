@@ -3,7 +3,7 @@ class ResubmitPitchJob < ApplicationJob
 
   def perform(project_id)
     project = Project.find(project_id)
-    return unless project.pending? && project.slack_channel_id.present? && project.slack_message_ts.present?
+    return unless project.pitch_pending? && project.slack_channel_id.present? && project.slack_message_ts.present?
 
     result = slack_client.conversations_history(
       channel: project.slack_channel_id,
@@ -27,7 +27,7 @@ class ResubmitPitchJob < ApplicationJob
       tags: parsed[:tags],
       red_flags: parsed[:red_flags],
       green_flags: parsed[:green_flags],
-      status: :pending
+      status: :pitch_pending
     )
 
     app_url = ENV.fetch("APP_URL", "https://forge.hackclub.com")

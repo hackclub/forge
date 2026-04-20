@@ -23,7 +23,7 @@ class SlackPitchJob < ApplicationJob
       tags: parsed[:tags],
       red_flags: parsed[:red_flags],
       green_flags: parsed[:green_flags],
-      status: :pending,
+      status: :pitch_pending,
       tier: "tier_1",
       slack_channel_id: channel_id,
       slack_message_ts: message_ts
