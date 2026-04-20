@@ -88,6 +88,15 @@ class Admin::UsersController < Admin::ApplicationController
     redirect_to admin_user_path(@user), notice: @user.shop_unlocked? ? "#{@user.display_name}'s shop access unlocked." : "#{@user.display_name}'s shop access locked."
   end
 
+  def toggle_maintenance_bypass
+    @user = User.find(params[:id])
+    authorize @user, :update?
+    @user.update!(maintenance_bypass: !@user.maintenance_bypass)
+    audit!("user.maintenance_bypass_toggled", target: @user, metadata: { maintenance_bypass: @user.maintenance_bypass })
+    status = @user.maintenance_bypass? ? "can now bypass maintenance" : "no longer bypasses maintenance"
+    redirect_to admin_user_path(@user), notice: "#{@user.display_name} #{status}."
+  end
+
   def generate_referral_code
     @user = User.find(params[:id])
     authorize @user, :update?
@@ -264,6 +273,7 @@ class Admin::UsersController < Admin::ApplicationController
       is_banned: user.is_banned,
       ban_reason: user.ban_reason,
       shop_unlocked: user.shop_unlocked,
+      maintenance_bypass: user.maintenance_bypass,
       referral_code: user.referral_code,
       fulfillment_regions: user.fulfillment_regions,
       is_discarded: user.discarded?,

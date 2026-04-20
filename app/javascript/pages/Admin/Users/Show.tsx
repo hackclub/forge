@@ -403,6 +403,19 @@ export default function AdminUsersShow({
         </div>
 
         <div className="bg-[#1c1b1b] ghost-border p-5 mb-4 flex items-center justify-between gap-4">
+          <div>
+            <p className="text-[#e5e2e1] text-sm font-headline font-bold">Maintenance bypass</p>
+            <p className="text-stone-500 text-xs">Allow this user to access Forge during maintenance mode.</p>
+          </div>
+          <button
+            onClick={() => router.post(`/admin/users/${user.id}/toggle_maintenance_bypass`)}
+            className={`relative inline-flex h-6 w-11 items-center transition-colors cursor-pointer shrink-0 ${user.maintenance_bypass ? 'bg-[#ee671c]' : 'bg-stone-700'}`}
+          >
+            <span className={`inline-block h-4 w-4 transform bg-white transition-transform ${user.maintenance_bypass ? 'translate-x-6' : 'translate-x-1'}`} />
+          </button>
+        </div>
+
+        <div className="bg-[#1c1b1b] ghost-border p-5 mb-4 flex items-center justify-between gap-4">
           <div className="min-w-0">
             <p className="text-[#e5e2e1] text-sm font-headline font-bold">Referral code</p>
             {user.referral_code ? (

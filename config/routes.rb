@@ -126,6 +126,7 @@ Rails.application.routes.draw do
           post :adjust_coins
           get :coin_history
           post :toggle_shop_unlocked
+          post :toggle_maintenance_bypass
           post :generate_referral_code
           patch :update_fulfillment_regions
         end
