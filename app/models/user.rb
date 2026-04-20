@@ -24,6 +24,7 @@
 #  is_beta_approved    :boolean          default(FALSE), not null
 #  last_name           :string
 #  last_seen_at        :datetime
+#  maintenance_bypass  :boolean          default(FALSE), not null
 #  permissions         :string           default([]), not null, is an Array
 #  phone_number        :string
 #  postal_code         :string

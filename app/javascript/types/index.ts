@@ -26,6 +26,7 @@ export interface SharedProps {
   flash: FlashData
   sign_in_path: string
   sign_out_path: string
+  maintenance_mode: boolean
   errors: Record<string, string[]>
   [key: string]: unknown
 }
@@ -120,6 +121,7 @@ export interface AdminUserDetail {
   is_banned: boolean
   ban_reason: string | null
   shop_unlocked: boolean
+  maintenance_bypass: boolean
   referral_code: string | null
   fulfillment_regions: string[]
   is_discarded: boolean

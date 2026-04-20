@@ -6,6 +6,7 @@ class ApplicationController < ActionController::Base
   include InertiaPagination
   include Auditable
 
+  before_action :check_maintenance_mode
   before_action :track_ahoy_visit
   before_action :track_user_activity
   before_action :set_paper_trail_whodunnit
@@ -34,10 +35,18 @@ class ApplicationController < ActionController::Base
     }
   }
   inertia_share flash: -> { flash.to_hash }
+  inertia_share maintenance_mode: -> { FeatureFlag.enabled?("maintenance_mode") }
   inertia_share sign_in_path: -> { signin_path }
   inertia_share sign_out_path: -> { signout_path }
 
   private
+
+  def check_maintenance_mode
+    return unless FeatureFlag.enabled?("maintenance_mode")
+    return if current_user&.staff? || current_user&.maintenance_bypass?
+
+    render inertia: "Maintenance", props: {}
+  end
 
   def track_user_activity
     return unless user_signed_in?
