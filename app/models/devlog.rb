@@ -40,7 +40,7 @@ class Devlog < ApplicationRecord
 
   def parsed_hours
     return 0 unless time_spent
-    match = time_spent.match(/([\d.]+)\s*(?:hrs?|hours?)/i)
+    match = time_spent.match(/([\d.]+)/)
     match ? match[1].to_f : 0
   end
 
