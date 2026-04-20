@@ -951,21 +951,6 @@ export default function ProjectsShow({
             </div>
           )}
 
-          {can.submit_for_review && !(project.status === 'returned' && project.tier === 'tier_1' && project.from_slack) && (
-            <div className="bg-[#1c1b1b] ghost-border p-8">
-              <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">Submit for Review</h4>
-              <p className="text-stone-400 text-sm mb-4">
-                Address the feedback and resubmit your project for another review.
-              </p>
-              <button
-                onClick={submitForReview}
-                className="w-full signature-smolder text-[#4c1a00] font-headline font-bold py-3 uppercase tracking-wider active:scale-95 transition-transform flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-lg">send</span>
-                Submit for Review
-              </button>
-            </div>
-          )}
 
           {can.update && project.status === 'build_approved' && (
             <div className="bg-[#1c1b1b] ghost-border p-6">
