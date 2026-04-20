@@ -545,18 +545,44 @@ export default function ProjectsShow({
                     <div key={entry.id} className="ghost-border bg-[#1c1b1b] p-6 overflow-hidden">
                       <div className="flex items-start justify-between mb-3">
                         <div>
-                          <Link href={`/projects/${project.id}/devlogs/${entry.id}`} className="font-headline font-bold text-[#e5e2e1] hover:text-[#ffb595] transition-colors">{entry.title}</Link>
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
+                            <Link href={`/projects/${project.id}/devlogs/${entry.id}`} className="font-headline font-bold text-[#e5e2e1] hover:text-[#ffb595] transition-colors">{entry.title}</Link>
+                            {(() => {
+                              const ds = devlogStatusConfig[entry.status]
+                              return ds ? (
+                                <span className={`${ds.bg} ${ds.text} px-2 py-0.5 text-[9px] uppercase font-bold tracking-widest flex items-center gap-1`}>
+                                  <span className="material-symbols-outlined text-[10px]">{ds.icon}</span>
+                                  {ds.label}
+                                </span>
+                              ) : null
+                            })()}
+                          </div>
                           <div className="flex items-center gap-3 mt-1">
                             <span className="text-stone-500 text-xs">{entry.created_at}</span>
                             {entry.time_spent && (
                               <span className="text-[#ffb595] text-xs flex items-center gap-1">
                                 <span className="material-symbols-outlined text-xs">schedule</span>
-                                {entry.time_spent}
+                                {entry.approved_hours != null ? `${entry.approved_hours}h (claimed ${entry.time_spent})` : entry.time_spent}
                               </span>
                             )}
                           </div>
                         </div>
+                        {can.update && (entry.status === 'draft' || entry.status === 'returned') && (
+                          <button
+                            onClick={() => router.post(`/projects/${project.id}/devlogs/${entry.id}/submit_for_review`)}
+                            className="text-stone-600 hover:text-emerald-400 transition-colors cursor-pointer shrink-0"
+                            aria-label="Submit for review"
+                            title="Submit for review"
+                          >
+                            <span className="material-symbols-outlined text-lg">send</span>
+                          </button>
+                        )}
                       </div>
+                      {entry.review_feedback && entry.status === 'returned' && (
+                        <div className="bg-orange-500/10 ghost-border p-3 mb-3 text-orange-300 text-xs">
+                          <span className="font-bold uppercase tracking-wider">Reviewer feedback:</span> {entry.review_feedback}
+                        </div>
+                      )}
                       <div className="prose prose-invert prose-sm max-w-none text-stone-300 prose-a:text-[#ffb595] prose-img:max-w-full prose-img:rounded-none break-words [overflow-wrap:anywhere]"><Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>{entry.content}</Markdown></div>
                     </div>
                   ))}
