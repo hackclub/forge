@@ -67,6 +67,7 @@ const STATUS_LABELS: Record<ProjectStatus, string> = {
   build_pending: 'Build Pending',
   build_approved: 'Shipped',
   pitch_approved: 'Building',
+  pitch_pending: 'Pitch Review',
 }
 
 const STATUS_COLORS: Record<ProjectStatus, string> = {
@@ -78,6 +79,7 @@ const STATUS_COLORS: Record<ProjectStatus, string> = {
   build_pending: 'bg-amber-500/15 text-amber-400',
   build_approved: 'bg-emerald-500/15 text-emerald-400',
   pitch_approved: 'bg-emerald-500/15 text-emerald-400',
+  pitch_pending: 'bg-amber-500/15 text-amber-400',
 }
 
 function StatTile({ label, value, icon }: { label: string; value: string | number; icon: string }) {

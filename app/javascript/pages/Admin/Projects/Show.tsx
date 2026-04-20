@@ -24,6 +24,7 @@ const statusConfig: Record<ProjectStatus, { label: string; bg: string; text: str
   build_pending: { label: 'Build Under Review', bg: 'bg-amber-500/10', text: 'text-amber-400', icon: 'engineering' },
   build_approved: { label: 'Build Approved', bg: 'bg-emerald-500/10', text: 'text-emerald-400', icon: 'verified' },
   pitch_approved: { label: 'Pitch Approved', bg: 'bg-emerald-500/10', text: 'text-emerald-400', icon: 'check_circle' },
+  pitch_pending: { label: 'Pitch Under Review', bg: 'bg-amber-500/10', text: 'text-amber-400', icon: 'schedule' },
 }
 
 export default function AdminProjectsShow({
@@ -492,7 +493,7 @@ export default function AdminProjectsShow({
             <div className="bg-[#1c1b1b] ghost-border p-8 rounded-xl">
               <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-amber-400 font-headline mb-6 flex items-center gap-2">
                 <span className="material-symbols-outlined text-sm">rate_review</span>
-                {project.status === 'pending' ? 'Review Pitch' : 'Change Status'}
+                {project.status === 'pitch_pending' ? 'Review Pitch' : 'Change Status'}
               </h4>
 
               <div className="mb-6">

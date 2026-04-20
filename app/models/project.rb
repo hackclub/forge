@@ -67,7 +67,7 @@ class Project < ApplicationRecord
   after_commit :sync_to_airtable, on: [ :create, :update ], if: -> { build_approved? }
   after_update_commit :process_cover_image_upload, if: -> { cover_image.attached? && cover_image_url.blank? }
 
-  enum :status, { draft: 0, pending: 1, approved: 2, returned: 3, rejected: 4, build_pending: 5, build_approved: 6, pitch_approved: 7 }
+  enum :status, { draft: 0, pending: 1, approved: 2, returned: 3, rejected: 4, build_pending: 5, build_approved: 6, pitch_approved: 7, pitch_pending: 8 }
 
   TIERS = %w[tier_1 tier_2 tier_3 tier_4].freeze
   TIER_COIN_RATES = {
@@ -145,7 +145,7 @@ class Project < ApplicationRecord
   end
 
   def coins_earned
-    return 0.0 unless pending? || pitch_approved? || build_approved?
+    return 0.0 unless pending? || approved? || pitch_approved? || build_approved?
 
     (total_hours * coin_rate * user.streak_multiplier).round(2)
   end

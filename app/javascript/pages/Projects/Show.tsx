@@ -46,6 +46,7 @@ const statusConfig: Record<ProjectStatus, { label: string; bg: string; text: str
   build_pending: { label: 'Build Under Review', bg: 'bg-amber-500/10', text: 'text-amber-400', icon: 'engineering' },
   build_approved: { label: 'Build Approved', bg: 'bg-emerald-500/10', text: 'text-emerald-400', icon: 'verified' },
   pitch_approved: { label: 'Pitch Approved', bg: 'bg-emerald-500/10', text: 'text-emerald-400', icon: 'check_circle' },
+  pitch_pending: { label: 'Pitch Under Review', bg: 'bg-amber-500/10', text: 'text-amber-400', icon: 'schedule' },
 }
 
 const devlogStatusConfig: Record<string, { label: string; bg: string; text: string; icon: string }> = {
@@ -870,7 +871,7 @@ export default function ProjectsShow({
               Link Repository
             </button>
           )}
-          {can.update && isPending && !isNormalTier && (
+          {can.update && project.status === 'pitch_pending' && (
             <div className="bg-amber-500/5 ghost-border p-8">
               <div className="flex items-center gap-2 mb-3">
                 <span className="material-symbols-outlined text-amber-400 text-lg">schedule</span>

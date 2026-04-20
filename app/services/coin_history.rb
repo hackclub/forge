@@ -73,7 +73,7 @@ class CoinHistory
       end
     end
 
-    @user.projects.kept.where(status: %i[pending pitch_approved build_approved]).each do |project|
+    @user.projects.kept.where(status: %i[pending approved pitch_approved build_approved]).each do |project|
       coins = project.coins_earned
       next if coins.zero?
 

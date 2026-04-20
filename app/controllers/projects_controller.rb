@@ -40,7 +40,7 @@ class ProjectsController < ApplicationController
 
   def create
     @project = current_user.projects.build(project_params)
-    @project.status = @project.advanced? ? :draft : :pending
+    @project.status = :draft
     authorize @project
 
     if @project.save
@@ -244,13 +244,13 @@ class ProjectsController < ApplicationController
   def finish_project
     authorize @project, :update?
 
-    unless @project.pending? || @project.pitch_approved?
-      redirect_to @project, alert: "Project is not in an active state."
+    unless @project.approved?
+      redirect_to @project, alert: "All your devlogs need to be approved before finishing."
       return
     end
 
-    unless @project.devlogs.approved.any?
-      redirect_to @project, alert: "You need at least one approved devlog entry."
+    if @project.devlogs.where(status: :pending).any?
+      redirect_to @project, alert: "You still have devlogs pending review."
       return
     end
 
@@ -344,7 +344,7 @@ class ProjectsController < ApplicationController
     @project.with_lock do
       next unless @project.returned? && @project.advanced? && @project.slack_channel_id.present? && @project.slack_message_ts.present?
 
-      @project.update!(status: :pending)
+      @project.update!(status: :pitch_pending)
       enqueued = true
     end
 

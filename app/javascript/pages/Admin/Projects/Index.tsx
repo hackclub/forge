@@ -12,6 +12,7 @@ const statusConfig: Record<ProjectStatus, { label: string; text: string }> = {
   build_pending: { label: 'Build Review', text: 'text-amber-500' },
   build_approved: { label: 'Build Approved', text: 'text-emerald-400' },
   pitch_approved: { label: 'Pitch Approved', text: 'text-emerald-400' },
+  pitch_pending: { label: 'Pitch Review', text: 'text-amber-400' },
 }
 
 const filters = [

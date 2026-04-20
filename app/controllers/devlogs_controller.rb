@@ -53,6 +53,9 @@ class DevlogsController < ApplicationController
     end
 
     @devlog.update!(status: :pending)
+    if @project.draft? || @project.pitch_approved?
+      @project.update!(status: :pending)
+    end
     audit!("devlog.submitted_for_review", target: @devlog, label: @devlog.title, metadata: { project_id: @project.id })
     redirect_to @project, notice: "Devlog submitted for review."
   end
