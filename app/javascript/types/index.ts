@@ -71,6 +71,7 @@ export interface ProjectDetail {
   devlog_mode: 'website' | 'git' | null
   review_feedback: string | null
   tier: ProjectTier
+  coin_rate: number
   from_slack: boolean
   cover_image_url: string | null
   built_at: string | null
