@@ -140,6 +140,21 @@ class Project < ApplicationRecord
     (total_hours * coin_rate * user.streak_multiplier).round(2)
   end
 
+  REVIEW_EVENT_ACTIONS = %w[
+    project.pitch_approved project.approved project.returned project.rejected project.reverted_to_draft
+    project.build_approved project.build_returned project.build_rejected
+    devlog.approved devlog.returned
+  ].freeze
+
+  def review_history
+    AuditEvent
+      .includes(:actor)
+      .where(action: REVIEW_EVENT_ACTIONS)
+      .where("(target_type = 'Project' AND target_id = :id) OR (metadata @> :meta::jsonb)",
+             id: id, meta: { project_id: id }.to_json)
+      .order(created_at: :desc)
+  end
+
   private
 
   def sync_to_airtable

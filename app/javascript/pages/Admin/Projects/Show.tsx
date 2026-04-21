@@ -4,6 +4,7 @@ import Markdown from 'react-markdown'
 import rehypeRaw from 'rehype-raw'
 import remarkGfm from 'remark-gfm'
 import type { AdminProjectDetail, ProjectStatus, SharedProps } from '@/types'
+import ReviewTimeline, { type ReviewEvent } from '@/components/ReviewTimeline'
 
 function isSafeUrl(url: string | null): boolean {
   if (!url) return false
@@ -29,6 +30,7 @@ export default function AdminProjectsShow({
   project,
   ships,
   notes,
+  review_history,
   can,
 }: {
   project: AdminProjectDetail
@@ -46,6 +48,7 @@ export default function AdminProjectsShow({
     author_avatar: string
     created_at: string
   }[]
+  review_history: ReviewEvent[]
   can: { review: boolean; destroy: boolean; restore: boolean }
 }) {
   const isSuperadmin = !!usePage<SharedProps>().props.auth.user?.is_superadmin
@@ -322,17 +325,7 @@ export default function AdminProjectsShow({
             </div>
           </div>
 
-          {project.review_feedback && (
-            <div className="bg-[#1c1b1b] ghost-border rounded-xl p-8 mb-8">
-              <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-3">
-                Previous Review Feedback
-                {project.reviewer_display_name && (
-                  <span className="text-stone-600 normal-case tracking-normal font-normal"> by {project.reviewer_display_name} on {project.reviewed_at}</span>
-                )}
-              </h4>
-              <p className="text-stone-300 text-sm leading-relaxed">{project.review_feedback}</p>
-            </div>
-          )}
+          <ReviewTimeline events={review_history} />
 
           <div className="bg-[#1c1b1b] ghost-border rounded-xl p-8 mb-8">
             <div className="flex items-center justify-between gap-3 mb-4">
