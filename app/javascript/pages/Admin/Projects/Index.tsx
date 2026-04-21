@@ -5,12 +5,10 @@ import type { AdminProjectRow, PagyProps, ProjectStatus } from '@/types'
 
 const statusConfig: Record<ProjectStatus, { label: string; text: string }> = {
   draft: { label: 'Draft', text: 'text-stone-400' },
-  pending: { label: 'Pitch Review', text: 'text-amber-400' },
+  pending: { label: 'Pending Review', text: 'text-amber-400' },
   approved: { label: 'Approved', text: 'text-emerald-400' },
   returned: { label: 'Returned', text: 'text-orange-400' },
   rejected: { label: 'Rejected', text: 'text-red-400' },
-  build_pending: { label: 'Build Review', text: 'text-amber-500' },
-  build_approved: { label: 'Build Approved', text: 'text-emerald-400' },
   pitch_approved: { label: 'Pitch Approved', text: 'text-emerald-400' },
   pitch_pending: { label: 'Pitch Review', text: 'text-amber-400' },
 }
@@ -19,7 +17,7 @@ const filters = [
   { key: '', label: 'All' },
   { key: 'pending', label: 'Pending' },
   { key: 'approved', label: 'Approved' },
-  { key: 'build_approved', label: 'Build Approved' },
+  { key: 'pitch_approved', label: 'Pitch Approved' },
   { key: 'returned', label: 'Returned' },
   { key: 'rejected', label: 'Rejected' },
   { key: 'draft', label: 'Draft' },

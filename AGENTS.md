@@ -30,7 +30,7 @@ Forge is a Hack Club program where teen builders (ages 13-18) get funded for har
 
 ### Key Models
 - **User** — has roles (user/admin/reviewer/support/fulfillment), permissions array, ban status, slack_id for Slack integration
-- **Project** — belongs to user, has status enum (draft/pending/approved/returned/rejected/build_pending/build_approved), slack_channel_id/slack_message_ts for Slack thread tracking, pitch_text (cleaned user pitch), description (AI-generated admin summary), hidden flag
+- **Project** — belongs to user, has status enum (draft/pending/approved/returned/rejected/pitch_pending/pitch_approved), slack_channel_id/slack_message_ts for Slack thread tracking, pitch_text (cleaned user pitch), description (AI-generated admin summary), hidden flag
 - **Ship** — belongs to project, represents a submission of work for review
 - **Devlog** — belongs to project, markdown entries documenting build progress (title, content, time_spent)
 - **SupportTicket** — tracks support questions from Slack with status (open/claimed/resolved), two-way thread sync between public and BTS channels

@@ -21,7 +21,7 @@ GET /api/v1/projects
 | Param | Type | Description |
 |-------|------|-------------|
 | `query` | string | Search by name or description |
-| `status` | string | Filter by status: `draft`, `pending`, `pitch_approved`, `returned`, `rejected`, `build_approved` |
+| `status` | string | Filter by status: `draft`, `pitch_pending`, `pitch_approved`, `pending`, `approved`, `returned`, `rejected` |
 | `tier` | string | Filter by tier: `tier_1`, `tier_2`, `tier_3`, `tier_4` |
 | `page` | integer | Page number (default: 1) |
 | `per_page` | integer | Results per page, 1–100 (default: 25) |
@@ -29,7 +29,7 @@ GET /api/v1/projects
 **Example:**
 
 ```
-GET /api/v1/projects?status=build_approved&tier=tier_1&per_page=10
+GET /api/v1/projects?status=approved&tier=tier_1&per_page=10
 ```
 
 **Response:**
@@ -42,7 +42,7 @@ GET /api/v1/projects?status=build_approved&tier=tier_1&per_page=10
       "name": "Hex Bot",
       "subtitle": "Mostly 3D printed 3D printer",
       "description": "AI-generated admin summary...",
-      "status": "build_approved",
+      "status": "approved",
       "tier": "tier_2",
       "tags": ["3D-printed", "DIY"],
       "repo_link": "https://github.com/user/repo",
@@ -93,8 +93,6 @@ Returns the same fields as the list endpoint, plus `devlogs` and `kudos_count`.
         "title": "Designed the PCB layout",
         "content": "Markdown content...",
         "time_spent": "3 hours",
-        "status": "approved",
-        "approved_hours": 2.5,
         "created_at": "2026-04-11T10:00:00Z"
       }
     ],
@@ -132,7 +130,7 @@ GET /api/v1/users/:id
         "id": 42,
         "name": "Hex Bot",
         "subtitle": "Mostly 3D printed 3D printer",
-        "status": "build_approved",
+        "status": "approved",
         "tier": "tier_2",
         "cover_image_url": "https://...",
         "total_hours": 12.5,
@@ -148,11 +146,12 @@ GET /api/v1/users/:id
 | Status | Description |
 |--------|-------------|
 | `draft` | Just created, not yet submitted |
-| `pending` | Slack pitch submitted, awaiting review |
-| `pitch_approved` | Pitch approved, builder is working on it |
+| `pitch_pending` | Slack pitch submitted, awaiting pitch review (tier 1 only) |
+| `pitch_approved` | Pitch approved, builder is working on it (tier 1 only) |
+| `pending` | Submitted for final review |
+| `approved` | Final approval; project complete |
 | `returned` | Sent back for changes |
 | `rejected` | Not accepted |
-| `build_approved` | Project finished and approved |
 
 ## Tiers
 

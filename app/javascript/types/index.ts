@@ -40,9 +40,7 @@ export interface PagyProps {
   prev: number | null
 }
 
-export type ProjectStatus = 'draft' | 'pending' | 'approved' | 'returned' | 'rejected' | 'build_pending' | 'build_approved' | 'pitch_approved' | 'pitch_pending'
-
-export type DevlogStatus = 'draft' | 'pending' | 'approved' | 'returned'
+export type ProjectStatus = 'draft' | 'pending' | 'approved' | 'returned' | 'rejected' | 'pitch_approved' | 'pitch_pending'
 
 export interface ProjectCard {
   id: number
@@ -179,11 +177,6 @@ export interface AdminDevlog {
   title: string
   content: string
   time_spent: string | null
-  status: DevlogStatus
-  approved_hours: number | null
-  review_feedback: string | null
-  reviewer_display_name: string | null
-  reviewed_at: string | null
   created_at: string
 }
 

@@ -20,9 +20,6 @@ interface DevlogEntry {
   title: string
   content: string
   time_spent: string | null
-  status: 'draft' | 'pending' | 'approved' | 'returned'
-  approved_hours: number | null
-  review_feedback: string | null
   created_at: string
 }
 
@@ -43,17 +40,8 @@ const statusConfig: Record<ProjectStatus, { label: string; bg: string; text: str
   approved: { label: 'Approved', bg: 'bg-emerald-500/10', text: 'text-emerald-400', icon: 'check_circle' },
   returned: { label: 'Returned', bg: 'bg-orange-500/10', text: 'text-orange-400', icon: 'undo' },
   rejected: { label: 'Rejected', bg: 'bg-red-500/10', text: 'text-red-400', icon: 'cancel' },
-  build_pending: { label: 'Build Under Review', bg: 'bg-amber-500/10', text: 'text-amber-400', icon: 'engineering' },
-  build_approved: { label: 'Build Approved', bg: 'bg-emerald-500/10', text: 'text-emerald-400', icon: 'verified' },
   pitch_approved: { label: 'Pitch Approved', bg: 'bg-emerald-500/10', text: 'text-emerald-400', icon: 'check_circle' },
   pitch_pending: { label: 'Pitch Under Review', bg: 'bg-amber-500/10', text: 'text-amber-400', icon: 'schedule' },
-}
-
-const devlogStatusConfig: Record<string, { label: string; bg: string; text: string; icon: string }> = {
-  draft: { label: 'Draft', bg: 'bg-stone-500/10', text: 'text-stone-400', icon: 'edit_note' },
-  pending: { label: 'Under Review', bg: 'bg-amber-500/10', text: 'text-amber-400', icon: 'schedule' },
-  approved: { label: 'Approved', bg: 'bg-emerald-500/10', text: 'text-emerald-400', icon: 'check_circle' },
-  returned: { label: 'Needs Work', bg: 'bg-orange-500/10', text: 'text-orange-400', icon: 'undo' },
 }
 
 export default function ProjectsShow({
@@ -242,9 +230,10 @@ export default function ProjectsShow({
   const status = statusConfig[project.status]
   const isNormalTier = project.tier !== 'tier_1'
   const isPitchApproved = project.status === 'pitch_approved'
-  const isBuildApproved = project.status === 'build_approved'
+  const isApproved = project.status === 'approved'
   const isPending = project.status === 'pending'
-  const isBuildingPhase = isPitchApproved || isBuildApproved || isPending || project.status === 'build_pending' || project.status === 'approved' || (project.status === 'draft' && isNormalTier)
+  const isReturned = project.status === 'returned'
+  const isBuildingPhase = isPitchApproved || isApproved || isPending || isReturned || (project.status === 'draft' && isNormalTier)
   const isGitMode = project.devlog_mode === 'git'
   const isWebMode = project.devlog_mode === 'website'
   const canLog = isBuildingPhase
@@ -252,6 +241,7 @@ export default function ProjectsShow({
   const showGitDevlog = canLog && isGitMode
   const showWebDevlog = canLog && isWebMode
   const showCoverUpload = can.update && canLog
+  const isPitchReturn = isReturned && !isNormalTier && project.from_slack && devlogs.length === 0
 
   const totalHours = devlogs.reduce((sum, entry) => {
     if (!entry.time_spent) return sum
@@ -547,42 +537,18 @@ export default function ProjectsShow({
                         <div>
                           <div className="flex items-center gap-2 mb-1 flex-wrap">
                             <Link href={`/projects/${project.id}/devlogs/${entry.id}`} className="font-headline font-bold text-[#e5e2e1] hover:text-[#ffb595] transition-colors">{entry.title}</Link>
-                            {(() => {
-                              const ds = devlogStatusConfig[entry.status]
-                              return ds ? (
-                                <span className={`${ds.bg} ${ds.text} px-2 py-0.5 text-[9px] uppercase font-bold tracking-widest flex items-center gap-1`}>
-                                  <span className="material-symbols-outlined text-[10px]">{ds.icon}</span>
-                                  {ds.label}
-                                </span>
-                              ) : null
-                            })()}
                           </div>
                           <div className="flex items-center gap-3 mt-1">
                             <span className="text-stone-500 text-xs">{entry.created_at}</span>
                             {entry.time_spent && (
                               <span className="text-[#ffb595] text-xs flex items-center gap-1">
                                 <span className="material-symbols-outlined text-xs">schedule</span>
-                                {entry.approved_hours != null ? `${entry.approved_hours}h (claimed ${entry.time_spent})` : entry.time_spent}
+                                {entry.time_spent}
                               </span>
                             )}
                           </div>
                         </div>
-                        {can.update && (entry.status === 'draft' || entry.status === 'returned') && (
-                          <button
-                            onClick={() => router.post(`/projects/${project.id}/devlogs/${entry.id}/submit_for_review`)}
-                            className="text-stone-600 hover:text-emerald-400 transition-colors cursor-pointer shrink-0"
-                            aria-label="Submit for review"
-                            title="Submit for review"
-                          >
-                            <span className="material-symbols-outlined text-lg">send</span>
-                          </button>
-                        )}
                       </div>
-                      {entry.review_feedback && entry.status === 'returned' && (
-                        <div className="bg-orange-500/10 ghost-border p-3 mb-3 text-orange-300 text-xs">
-                          <span className="font-bold uppercase tracking-wider">Reviewer feedback:</span> {entry.review_feedback}
-                        </div>
-                      )}
                       <div className="prose prose-invert prose-sm max-w-none text-stone-300 prose-a:text-[#ffb595] prose-img:max-w-full prose-img:rounded-none break-words [overflow-wrap:anywhere]"><Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>{entry.content}</Markdown></div>
                     </div>
                   ))}
@@ -749,48 +715,27 @@ export default function ProjectsShow({
                             <div>
                               <div className="flex items-center gap-2 mb-1 flex-wrap">
                                 <Link href={`/projects/${project.id}/devlogs/${entry.id}`} className="font-headline font-bold text-[#e5e2e1] hover:text-[#ffb595] transition-colors">{entry.title}</Link>
-                                {(() => {
-                                  const ds = devlogStatusConfig[entry.status]
-                                  return ds ? (
-                                    <span className={`${ds.bg} ${ds.text} px-2 py-0.5 text-[9px] uppercase font-bold tracking-widest flex items-center gap-1`}>
-                                      <span className="material-symbols-outlined text-[10px]">{ds.icon}</span>
-                                      {ds.label}
-                                    </span>
-                                  ) : null
-                                })()}
                               </div>
                               <div className="flex items-center gap-3 mt-1">
                                 <span className="text-stone-500 text-xs">{entry.created_at}</span>
                                 {entry.time_spent && (
                                   <span className="text-[#ffb595] text-xs flex items-center gap-1">
                                     <span className="material-symbols-outlined text-xs">schedule</span>
-                                    {entry.approved_hours != null ? `${entry.approved_hours}h (claimed ${entry.time_spent})` : entry.time_spent}
+                                    {entry.time_spent}
                                   </span>
                                 )}
                               </div>
                             </div>
                             {can.update && (
                               <div className="flex items-center gap-2 shrink-0">
-                                {(entry.status === 'draft' || entry.status === 'returned') && (
-                                  <>
-                                    <button
-                                      onClick={() => startEditDevlog(entry)}
-                                      className="text-stone-600 hover:text-[#ffb595] transition-colors cursor-pointer"
-                                      aria-label="Edit devlog"
-                                    >
-                                      <span className="material-symbols-outlined text-lg">edit</span>
-                                    </button>
-                                    <button
-                                      onClick={() => router.post(`/projects/${project.id}/devlogs/${entry.id}/submit_for_review`)}
-                                      className="text-stone-600 hover:text-emerald-400 transition-colors cursor-pointer"
-                                      aria-label="Submit for review"
-                                      title="Submit for review"
-                                    >
-                                      <span className="material-symbols-outlined text-lg">send</span>
-                                    </button>
-                                  </>
-                                )}
-                                {entry.status === 'draft' && !project.airtable_sent && (
+                                <button
+                                  onClick={() => startEditDevlog(entry)}
+                                  className="text-stone-600 hover:text-[#ffb595] transition-colors cursor-pointer"
+                                  aria-label="Edit devlog"
+                                >
+                                  <span className="material-symbols-outlined text-lg">edit</span>
+                                </button>
+                                {!project.airtable_sent && (
                                   <button
                                     onClick={() => deleteDevlog(entry.id)}
                                     className="text-stone-600 hover:text-red-400 transition-colors cursor-pointer"
@@ -802,11 +747,6 @@ export default function ProjectsShow({
                               </div>
                             )}
                           </div>
-                          {entry.review_feedback && entry.status === 'returned' && (
-                            <div className="bg-orange-500/10 ghost-border p-3 mb-3 text-orange-300 text-xs">
-                              <span className="font-bold uppercase tracking-wider">Reviewer feedback:</span> {entry.review_feedback}
-                            </div>
-                          )}
                           <div className="prose prose-invert prose-sm max-w-none text-stone-300 prose-a:text-[#ffb595] prose-img:max-w-full prose-img:rounded-none break-words [overflow-wrap:anywhere]"><Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>{entry.content}</Markdown></div>
                         </>
                       )}
@@ -916,52 +856,58 @@ export default function ProjectsShow({
               <p className="text-stone-400 text-sm">
                 {!project.devlog_mode
                   ? 'Choose your devlog method below to get started.'
-                  : 'Add devlog entries and submit each one for review. Approved entries earn coins.'}
+                  : 'Add devlog entries as you build. When you\'re done, submit the project for review.'}
               </p>
             </div>
           )}
 
-          {can.update && (isPitchApproved || isPending) && project.devlog_mode && devlogs.filter((d) => d.status === 'approved').length > 0 && (
+          {can.update && can.submit_for_review && !isPitchReturn && (
             (() => {
+              const hasRepo = !!project.repo_link
+              const hasSubtitle = !!project.subtitle
               const hasCover = !!project.cover_image_url
               const hasAddress = project.user_has_address
-              const canFinish = hasCover && hasAddress
+              const hasDevlogs = devlogs.length > 0
+              const canSubmit = hasRepo && hasSubtitle && hasCover && hasAddress && hasDevlogs
               return (
                 <div className="bg-[#1c1b1b] ghost-border p-8">
-                  <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">Finish Project</h4>
-                  {!canFinish && (
+                  <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">Submit for Review</h4>
+                  {!canSubmit && (
                     <div className="mb-4 bg-amber-500/10 border border-amber-500/20 p-4 text-amber-200 text-xs">
-                      <p className="font-bold uppercase tracking-wider mb-2">Before finishing:</p>
+                      <p className="font-bold uppercase tracking-wider mb-2">Before submitting:</p>
                       <ul className="space-y-1">
-                        {!hasCover && <li>• Upload a project cover image</li>}
+                        {!hasRepo && <li>• Link a repository</li>}
+                        {!hasSubtitle && <li>• Add a short description</li>}
+                        {!hasCover && <li>• Upload a cover image</li>}
+                        {!hasDevlogs && <li>• Add at least one devlog entry</li>}
                         {!hasAddress && <li>• Add your shipping address in <a href="/settings" className="underline hover:text-amber-100">settings</a></li>}
                       </ul>
                     </div>
                   )}
                   <button
-                    disabled={!canFinish}
-                    onClick={() => { if (confirm('Mark this project as finished? This will queue it for processing.')) router.post(`/projects/${project.id}/finish_project`) }}
-                    className={`w-full font-headline font-bold py-3 uppercase tracking-wider transition-transform flex items-center justify-center gap-2 ${canFinish ? 'signature-smolder text-[#4c1a00] active:scale-95 cursor-pointer' : 'bg-stone-700/40 text-stone-500 cursor-not-allowed'}`}
+                    disabled={!canSubmit}
+                    onClick={submitForReview}
+                    className={`w-full font-headline font-bold py-3 uppercase tracking-wider transition-transform flex items-center justify-center gap-2 ${canSubmit ? 'signature-smolder text-[#4c1a00] active:scale-95 cursor-pointer' : 'bg-stone-700/40 text-stone-500 cursor-not-allowed'}`}
                   >
-                    <span className="material-symbols-outlined text-lg">verified</span>
-                    Finish Project
+                    <span className="material-symbols-outlined text-lg">send</span>
+                    Submit for Review
                   </button>
                 </div>
               )
             })()
           )}
 
-          {can.update && isBuildApproved && (
+          {can.update && isApproved && (
             <div className="bg-emerald-500/5 ghost-border p-8">
               <div className="flex items-center gap-2 mb-3">
                 <span className="material-symbols-outlined text-emerald-400 text-lg">verified</span>
-                <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-400 font-headline">Project Finished!</h4>
+                <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-400 font-headline">Project Approved!</h4>
               </div>
-              <p className="text-stone-400 text-sm">Your project has been submitted and is being processed.</p>
+              <p className="text-stone-400 text-sm">Your project has been approved and is being processed.</p>
             </div>
           )}
 
-          {can.update && project.status === 'returned' && project.tier === 'tier_1' && project.from_slack && (
+          {can.update && isPitchReturn && (
             <div className="bg-[#1c1b1b] ghost-border p-8">
               <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">Resubmit Pitch</h4>
               <p className="text-stone-400 text-sm mb-4">
@@ -978,7 +924,7 @@ export default function ProjectsShow({
           )}
 
 
-          {can.update && project.status === 'build_approved' && (
+          {can.update && isApproved && (
             <div className="bg-[#1c1b1b] ghost-border p-6">
               <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">Mark as Built</h4>
               {project.built_at ? (

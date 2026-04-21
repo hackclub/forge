@@ -43,8 +43,4 @@ class Devlog < ApplicationRecord
     match = time_spent.match(/([\d.]+)/)
     match ? match[1].to_f : 0
   end
-
-  def credited_hours
-    approved_hours.present? ? approved_hours.to_f : parsed_hours
-  end
 end
