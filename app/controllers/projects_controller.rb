@@ -360,6 +360,7 @@ class ProjectsController < ApplicationController
       devlog_mode: project.devlog_mode,
       review_feedback: project.review_feedback,
       tier: project.tier,
+      coin_rate: project.coin_rate,
       from_slack: project.slack_message_ts.present?,
       cover_image_url: project.cover_image_url,
       built_at: project.built_at&.strftime("%b %d, %Y"),

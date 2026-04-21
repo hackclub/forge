@@ -830,6 +830,22 @@ export default function ProjectsShow({
               Link Repository
             </button>
           )}
+          {can.update && !is_admin_view && totalHours > 0 && project.status !== 'rejected' && (
+            <div className="bg-[#1c1b1b] ghost-border p-6">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="material-symbols-outlined text-[#ffb595] text-base">paid</span>
+                <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline">Expected Payout</h4>
+              </div>
+              <p className="text-4xl font-headline font-bold text-[#ffb595] tracking-tight">
+                {(totalHours * project.coin_rate).toFixed(2)}<span className="text-xl text-stone-500 ml-1">c</span>
+              </p>
+
+              <p className="text-stone-600 text-[10px] uppercase tracking-[0.15em] mt-3 leading-relaxed">
+                Please be warned, this is an estimate only! Your actual payout may change due to deflation/other factors
+              </p>
+            </div>
+          )}
+
           {can.update && project.status === 'pitch_pending' && (
             <div className="bg-amber-500/5 ghost-border p-8">
               <div className="flex items-center gap-2 mb-3">
