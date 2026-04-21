@@ -4,7 +4,7 @@ class DevlogsController < ApplicationController
 
   def show
     @devlog = @project.devlogs.find(params[:id])
-    can_edit = current_user.present? && policy(@project).update? && (@devlog.draft? || @devlog.returned?)
+    can_edit = current_user.present? && policy(@project).update?
 
     render inertia: "Devlogs/Show", props: {
       project: {
@@ -19,11 +19,6 @@ class DevlogsController < ApplicationController
         title: @devlog.title,
         content: @devlog.content,
         time_spent: @devlog.time_spent,
-        status: @devlog.status,
-        approved_hours: @devlog.approved_hours&.to_f,
-        review_feedback: @devlog.review_feedback,
-        reviewer_display_name: @devlog.reviewer&.display_name,
-        reviewed_at: @devlog.reviewed_at&.strftime("%B %d, %Y"),
         created_at: @devlog.created_at.strftime("%B %d, %Y")
       },
       can_edit: can_edit
@@ -43,31 +38,9 @@ class DevlogsController < ApplicationController
     end
   end
 
-  def submit_for_review
-    authorize @project, :update?
-    @devlog = @project.devlogs.find(params[:id])
-
-    unless @devlog.draft? || @devlog.returned?
-      redirect_to @project, alert: "This devlog can't be submitted."
-      return
-    end
-
-    @devlog.update!(status: :pending)
-    if @project.draft? || @project.pitch_approved?
-      @project.update!(status: :pending)
-    end
-    audit!("devlog.submitted_for_review", target: @devlog, label: @devlog.title, metadata: { project_id: @project.id })
-    redirect_to @project, notice: "Devlog submitted for review."
-  end
-
   def update
     authorize @project, :update?
     @devlog = @project.devlogs.find(params[:id])
-
-    unless @devlog.draft? || @devlog.returned?
-      redirect_to @project, alert: "This devlog can only be edited when in draft or returned state."
-      return
-    end
 
     if @devlog.update(devlog_params)
       audit!("devlog.updated", target: @devlog, label: @devlog.title, metadata: {

@@ -107,7 +107,6 @@ Rails.application.routes.draw do
           post :toggle_hidden
           post :toggle_staff_pick
           post :change_tier
-          post :review_devlog
           post :add_note
           delete "notes/:note_id" => "projects#destroy_note", as: :destroy_note
         end
@@ -230,7 +229,6 @@ Rails.application.routes.draw do
     end
     member do
       post :submit_for_review
-      post :finish_project
       post :sync_journal
       get :export_devlogs
       post :resubmit_pitch
@@ -241,11 +239,7 @@ Rails.application.routes.draw do
       post :add_kudo
       delete "kudos/:kudo_id" => "projects#destroy_kudo", as: :destroy_kudo
     end
-    resources :devlogs, only: [ :show, :create, :update, :destroy ] do
-      member do
-        post :submit_for_review
-      end
-    end
+    resources :devlogs, only: [ :show, :create, :update, :destroy ]
     post "devlog_image" => "devlogs#upload_image", as: :devlog_image
   end
 

@@ -2,7 +2,7 @@ class Admin::StaticPagesController < Admin::ApplicationController
   def index
     counts = Rails.cache.fetch("admin/dashboard_counts", expires_in: 1.minute) do
       {
-        pending_reviews: Project.kept.pending.count,
+        pending_reviews: Project.kept.where(status: [ :pending, :pitch_pending ]).count,
         projects: Project.kept.count,
         users: User.kept.count,
         ships: Ship.count,

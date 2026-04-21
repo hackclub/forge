@@ -1,6 +1,6 @@
 class ProjectsController < ApplicationController
   allow_unauthenticated_access only: %i[show]
-  before_action :set_project, only: %i[show edit update destroy submit_for_review finish_project sync_journal set_devlog_mode link_repo resubmit_pitch upload_cover_image export_devlogs mark_built add_kudo destroy_kudo]
+  before_action :set_project, only: %i[show edit update destroy submit_for_review sync_journal set_devlog_mode link_repo resubmit_pitch upload_cover_image export_devlogs mark_built add_kudo destroy_kudo]
 
   def show
     authorize @project
@@ -241,41 +241,6 @@ class ProjectsController < ApplicationController
     send_data md, filename: "#{@project.name.parameterize}-journal.md", type: "text/markdown"
   end
 
-  def finish_project
-    authorize @project, :update?
-
-    unless @project.approved?
-      redirect_to @project, alert: "All your devlogs need to be approved before finishing."
-      return
-    end
-
-    if @project.devlogs.where(status: :pending).any?
-      redirect_to @project, alert: "You still have devlogs pending review."
-      return
-    end
-
-    if @project.cover_image_url.blank?
-      redirect_to @project, alert: "Upload a cover image before finishing."
-      return
-    end
-
-    unless current_user.address_line1.present?
-      redirect_to @project, alert: "Fill in your shipping address before finishing."
-      return
-    end
-
-    @project.finish_project!
-    audit!("project.finished", target: @project)
-    if @project.slack_channel_id.present? && @project.slack_message_ts.present?
-      SlackNotifyJob.perform_later(
-        channel_id: @project.slack_channel_id,
-        thread_ts: @project.slack_message_ts,
-        text: ":tada: *#{@project.name}* has been marked as finished!"
-      )
-    end
-    redirect_to @project, notice: "Project finished! It's now in the Airtable queue."
-  end
-
   def set_devlog_mode
     authorize @project, :update?
     mode = params[:devlog_mode]
@@ -302,39 +267,33 @@ class ProjectsController < ApplicationController
     authorize @project
 
     unless @project.repo_link.present?
-      redirect_back fallback_location: project_path(@project), alert: "You must link a repository before submitting for review."
+      redirect_back fallback_location: project_path(@project), alert: "Link a repository before submitting for review."
       return
     end
 
-    if @project.normal?
-      if @project.subtitle.blank?
-        redirect_to @project, alert: "Add a short description before submitting for review."
-        return
-      end
-
-      unless @project.devlogs.any?
-        redirect_to @project, alert: "Add at least one devlog entry before submitting for review."
-        return
-      end
-
-      if @project.cover_image_url.blank?
-        redirect_to @project, alert: "Upload a cover image before submitting for review."
-        return
-      end
-
-      unless current_user.address_line1.present?
-        redirect_to @project, alert: "Fill in your shipping address before submitting for review."
-        return
-      end
-
-      @project.submit_build_for_review!
-      audit!("project.build_submitted", target: @project)
-      redirect_to @project, notice: "Build submitted for review."
-    else
-      @project.submit_for_review!
-      audit!("project.submitted_for_review", target: @project)
-      redirect_to @project, notice: "Project submitted for review."
+    if @project.subtitle.blank?
+      redirect_to @project, alert: "Add a short description before submitting for review."
+      return
     end
+
+    unless @project.devlogs.any?
+      redirect_to @project, alert: "Add at least one devlog entry before submitting for review."
+      return
+    end
+
+    if @project.cover_image_url.blank?
+      redirect_to @project, alert: "Upload a cover image before submitting for review."
+      return
+    end
+
+    unless current_user.address_line1.present?
+      redirect_to @project, alert: "Fill in your shipping address before submitting for review."
+      return
+    end
+
+    @project.submit_for_review!
+    audit!("project.submitted_for_review", target: @project)
+    redirect_to @project, notice: "Project submitted for review."
   end
 
   def resubmit_pitch
@@ -429,9 +388,6 @@ class ProjectsController < ApplicationController
       title: devlog.title,
       content: devlog.content,
       time_spent: devlog.time_spent,
-      status: devlog.status,
-      approved_hours: devlog.approved_hours&.to_f,
-      review_feedback: devlog.review_feedback,
       created_at: devlog.created_at.strftime("%B %d, %Y")
     }
   end

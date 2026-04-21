@@ -1,13 +1,13 @@
 class Admin::ProjectsController < Admin::ApplicationController
   before_action :require_projects_permission!
-  before_action :set_project, only: [ :show, :review, :destroy, :restore, :toggle_hidden, :toggle_staff_pick, :change_tier, :review_devlog, :add_note, :destroy_note ]
+  before_action :set_project, only: [ :show, :review, :destroy, :restore, :toggle_hidden, :toggle_staff_pick, :change_tier, :add_note, :destroy_note ]
 
   def index
     scope = policy_scope(Project).includes(:user, :ships)
     scope = params[:status] == "deleted" ? scope.discarded : scope.kept
     scope = scope.search(params[:query]) if params[:query].present?
     if params[:status] == "pending"
-      scope = scope.where(status: [ :pending, :pitch_pending, :build_pending ])
+      scope = scope.where(status: [ :pending, :pitch_pending ])
     elsif params[:status].present? && params[:status] != "deleted"
       scope = scope.where(status: params[:status])
     end
@@ -40,7 +40,7 @@ class Admin::ProjectsController < Admin::ApplicationController
   end
 
   def reviews
-    scope = policy_scope(Project).includes(:user, :ships).kept.where(status: :build_pending)
+    scope = policy_scope(Project).includes(:user, :ships).kept.where(status: :pending)
     scope = scope.search(params[:query]) if params[:query].present?
     @pagy, @projects = pagy(scope.order(created_at: :desc))
 
@@ -48,7 +48,7 @@ class Admin::ProjectsController < Admin::ApplicationController
       projects: @projects.map { |p| serialize_project_row(p) },
       pagy: pagy_props(@pagy),
       query: params[:query].to_s,
-      status_filter: "build_pending",
+      status_filter: "pending",
       counts: status_counts,
       page_title: "Project Reviews",
       hide_filters: true
@@ -108,33 +108,6 @@ class Admin::ProjectsController < Admin::ApplicationController
       audit!("project.soft_deleted", target: @project)
       redirect_to admin_projects_path, notice: "Project '#{name}' has been soft-deleted."
     end
-  end
-
-  def review_devlog
-    authorize @project, :review?
-
-    devlog = @project.devlogs.find(params[:devlog_id])
-    decision = params[:decision].to_s
-    approved_hours = params[:approved_hours]
-    feedback = params[:feedback]
-
-    case decision
-    when "approve"
-      attrs = { status: :approved, reviewer: current_user, reviewed_at: Time.current, review_feedback: feedback }
-      attrs[:approved_hours] = approved_hours.to_f if approved_hours.present?
-      devlog.update!(attrs)
-      audit!("devlog.approved", target: devlog, metadata: { project_id: @project.id, approved_hours: devlog.credited_hours, feedback: feedback })
-
-      if @project.pending? && @project.devlogs.where(status: :pending).none?
-        @project.update!(status: :approved)
-        audit!("project.auto_approved", target: @project, metadata: { reason: "all_devlogs_approved" })
-      end
-    when "return"
-      devlog.update!(status: :returned, reviewer: current_user, reviewed_at: Time.current, review_feedback: feedback)
-      audit!("devlog.returned", target: devlog, metadata: { project_id: @project.id, feedback: feedback })
-    end
-
-    redirect_to admin_project_path(@project), notice: "Devlog \"#{devlog.title}\" #{decision == 'approve' ? 'approved' : 'returned'}."
   end
 
   def change_tier
@@ -201,31 +174,52 @@ class Admin::ProjectsController < Admin::ApplicationController
 
     decision = params[:decision]
     feedback = params[:feedback]
+    is_pitch_stage = @project.pitch_pending?
+    stage = is_pitch_stage ? :pitch : :project
 
     case decision
     when "approve"
-      if guard_duplicate_transition!(@project, :pitch_approved, "Project already approved.")
-        return
+      if is_pitch_stage
+        if guard_duplicate_transition!(@project, :pitch_approved, "Pitch already approved.")
+          return
+        end
+        @project.update!(status: :pitch_approved, reviewer: current_user, reviewed_at: Time.current, review_feedback: feedback)
+        audit!("project.pitch_approved", target: @project, metadata: { feedback: feedback })
+        notify_slack_decision(@project, "approved", feedback, stage: stage)
+        redirect_to admin_project_path(@project), notice: "Pitch approved."
+      else
+        if guard_duplicate_transition!(@project, :approved, "Project already approved.")
+          return
+        end
+        capped = capped_override_hours(@project, params[:override_hours])
+        @project.update!(
+          status: :approved,
+          reviewer: current_user,
+          reviewed_at: Time.current,
+          review_feedback: feedback,
+          override_hours: capped,
+          override_hours_justification: params[:override_hours_justification].presence
+        )
+        audit!("project.approved", target: @project, metadata: { feedback: feedback, override_hours: capped })
+        ReferralEligibility.mark(@project)
+        notify_slack_decision(@project, "approved! :tada:", feedback, stage: stage)
+        redirect_to admin_project_path(@project), notice: "Project approved."
       end
-      @project.update!(status: :pitch_approved, reviewer: current_user, reviewed_at: Time.current, review_feedback: feedback)
-      audit!("project.pitch_approved", target: @project, metadata: { feedback: feedback })
-      notify_slack_decision(@project, "approved", feedback)
-      redirect_to admin_project_path(@project), notice: "Pitch approved."
     when "return"
       if guard_duplicate_transition!(@project, :returned, "Project already returned.")
         return
       end
       @project.update!(status: :returned, reviewer: current_user, reviewed_at: Time.current, review_feedback: feedback)
-      audit!("project.returned", target: @project, metadata: { feedback: feedback })
-      notify_slack_decision(@project, "returned for changes", feedback)
+      audit!("project.returned", target: @project, metadata: { feedback: feedback, stage: stage })
+      notify_slack_decision(@project, "returned for changes", feedback, stage: stage)
       redirect_to admin_project_path(@project), notice: "Project returned to builder."
     when "reject"
       if guard_duplicate_transition!(@project, :rejected, "Project already rejected.")
         return
       end
       @project.update!(status: :rejected, reviewer: current_user, reviewed_at: Time.current, review_feedback: feedback)
-      audit!("project.rejected", target: @project, metadata: { feedback: feedback })
-      notify_slack_decision(@project, "rejected", feedback)
+      audit!("project.rejected", target: @project, metadata: { feedback: feedback, stage: stage })
+      notify_slack_decision(@project, "rejected", feedback, stage: stage)
       redirect_to admin_project_path(@project), notice: "Project rejected."
     when "draft"
       if guard_duplicate_transition!(@project, :draft, "Project already in draft.")
@@ -234,40 +228,6 @@ class Admin::ProjectsController < Admin::ApplicationController
       @project.update!(status: :draft, reviewer: current_user, reviewed_at: Time.current, review_feedback: feedback)
       audit!("project.reverted_to_draft", target: @project, metadata: { feedback: feedback })
       redirect_to admin_project_path(@project), notice: "Project reverted to draft."
-    when "approve_build"
-      if guard_duplicate_transition!(@project, :build_approved, "Build already approved.")
-        return
-      end
-      capped = capped_override_hours(@project, params[:override_hours])
-      @project.update!(
-        status: :build_approved,
-        reviewer: current_user,
-        reviewed_at: Time.current,
-        review_feedback: feedback,
-        override_hours: capped,
-        override_hours_justification: params[:override_hours_justification].presence
-      )
-      audit!("project.build_approved", target: @project, metadata: { feedback: feedback, override_hours: capped })
-      ReferralEligibility.mark(@project)
-      notify_slack_decision(@project, "build approved! :tada:", feedback)
-      redirect_to admin_project_path(@project), notice: "Build approved."
-    when "return_build"
-      if @project.approved? && !@project.build_pending?
-        redirect_to admin_project_path(@project), alert: "Build already returned."
-        return
-      end
-      @project.update!(status: :approved, reviewer: current_user, reviewed_at: Time.current, review_feedback: feedback)
-      audit!("project.build_returned", target: @project, metadata: { feedback: feedback })
-      notify_slack_decision(@project, "build returned for more work", feedback)
-      redirect_to admin_project_path(@project), notice: "Build returned to builder."
-    when "reject_build"
-      if guard_duplicate_transition!(@project, :rejected, "Build already rejected.")
-        return
-      end
-      @project.update!(status: :rejected, reviewer: current_user, reviewed_at: Time.current, review_feedback: feedback)
-      audit!("project.build_rejected", target: @project, metadata: { feedback: feedback })
-      notify_slack_decision(@project, "build rejected", feedback)
-      redirect_to admin_project_path(@project), notice: "Build rejected."
     when "save_review_notes"
       capped = capped_override_hours(@project, params[:override_hours])
       @project.update!(
@@ -307,11 +267,11 @@ class Admin::ProjectsController < Admin::ApplicationController
     value
   end
 
-  def notify_slack_decision(project, decision, feedback)
+  def notify_slack_decision(project, decision, feedback, stage: :project)
     return unless project.slack_channel_id.present? && project.slack_message_ts.present?
 
     emoji = case decision
-    when "approved" then ":white_check_mark:"
+    when /approved/ then ":white_check_mark:"
     when "rejected" then ":x:"
     else ":arrows_counterclockwise:"
     end
@@ -321,10 +281,11 @@ class Admin::ProjectsController < Admin::ApplicationController
 
     reviewer_mention = current_user.slack_id.present? ? "<@#{current_user.slack_id}>" : current_user.display_name
     user_mention = project.user.slack_id.present? ? "<@#{project.user.slack_id}>" : project.user.display_name
-    msg = "#{emoji} #{user_mention} Your pitch for *#{project.name}* has been *#{decision}* by #{reviewer_mention}."
+    subject = stage == :pitch ? "pitch for *#{project.name}*" : "project *#{project.name}*"
+    msg = "#{emoji} #{user_mention} Your #{subject} has been *#{decision}* by #{reviewer_mention}."
     msg += "\n\n*Reviewer feedback:*\n> #{feedback}" if feedback.present?
 
-    if decision.include?("returned")
+    if decision.include?("returned") && stage == :pitch
       msg += "\n\n:pencil2: *Edit your original pitch message above* with the requested changes, then open your project and click *Resubmit Pitch*."
       msg += "\n\n:point_right: <#{project_url}|Open Project>"
     else
@@ -332,7 +293,7 @@ class Admin::ProjectsController < Admin::ApplicationController
     end
 
     reaction = case decision
-    when "approved", /build approved/ then "yay"
+    when /approved/ then "yay"
     when "rejected" then "x"
     else "clock1"
     end
@@ -348,7 +309,7 @@ class Admin::ProjectsController < Admin::ApplicationController
   def status_counts
     kept_scope = policy_scope(Project).kept
     raw = kept_scope.group(:status).count
-    pending_count = (raw["pending"] || 0) + (raw["pitch_pending"] || 0) + (raw["build_pending"] || 0)
+    pending_count = (raw["pending"] || 0) + (raw["pitch_pending"] || 0)
     {
       all: raw.values.sum,
       pending: pending_count,
@@ -357,7 +318,6 @@ class Admin::ProjectsController < Admin::ApplicationController
       returned: raw["returned"] || 0,
       rejected: raw["rejected"] || 0,
       draft: raw["draft"] || 0,
-      build_approved: raw["build_approved"] || 0,
       deleted: policy_scope(Project).discarded.count
     }
   end
@@ -424,11 +384,6 @@ class Admin::ProjectsController < Admin::ApplicationController
       title: devlog.title,
       content: devlog.content,
       time_spent: devlog.time_spent,
-      status: devlog.status,
-      approved_hours: devlog.approved_hours&.to_f,
-      review_feedback: devlog.review_feedback,
-      reviewer_display_name: devlog.reviewer&.display_name,
-      reviewed_at: devlog.reviewed_at&.strftime("%b %d, %Y"),
       created_at: devlog.created_at.strftime("%b %d, %Y")
     }
   end

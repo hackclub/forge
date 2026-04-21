@@ -45,9 +45,7 @@ const ACTION_ICONS: Record<string, { icon: string; color: string }> = {
   staff_pick_toggled: { icon: 'star', color: 'text-amber-400' },
   publish_toggled: { icon: 'campaign', color: 'text-amber-400' },
   reverted_to_draft: { icon: 'undo', color: 'text-amber-400' },
-  build_approved: { icon: 'verified', color: 'text-emerald-400' },
-  build_returned: { icon: 'undo', color: 'text-amber-400' },
-  build_rejected: { icon: 'cancel', color: 'text-red-400' },
+  pitch_approved: { icon: 'check_circle', color: 'text-emerald-400' },
   review_notes_saved: { icon: 'edit_note', color: 'text-amber-400' },
   readme_refreshed: { icon: 'refresh', color: 'text-stone-400' },
 }

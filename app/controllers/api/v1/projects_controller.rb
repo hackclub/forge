@@ -49,7 +49,7 @@ class Api::V1::ProjectsController < Api::V1::BaseController
       coins_earned: project.coins_earned,
       built_at: project.built_at&.iso8601,
       build_proof_url: project.build_proof_url,
-      shipped: project.build_approved?,
+      shipped: project.approved?,
       devlog_count: project.devlogs.size,
       user: {
         id: project.user.id,
@@ -67,8 +67,6 @@ class Api::V1::ProjectsController < Api::V1::BaseController
           title: d.title,
           content: d.content,
           time_spent: d.time_spent,
-          status: d.status,
-          approved_hours: d.approved_hours&.to_f,
           created_at: d.created_at.iso8601
         }
       end

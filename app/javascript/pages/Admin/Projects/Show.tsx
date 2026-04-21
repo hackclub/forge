@@ -21,8 +21,6 @@ const statusConfig: Record<ProjectStatus, { label: string; bg: string; text: str
   approved: { label: 'Approved', bg: 'bg-emerald-500/10', text: 'text-emerald-400', icon: 'check_circle' },
   returned: { label: 'Returned', bg: 'bg-orange-500/10', text: 'text-orange-400', icon: 'undo' },
   rejected: { label: 'Rejected', bg: 'bg-red-500/10', text: 'text-red-400', icon: 'cancel' },
-  build_pending: { label: 'Build Under Review', bg: 'bg-amber-500/10', text: 'text-amber-400', icon: 'engineering' },
-  build_approved: { label: 'Build Approved', bg: 'bg-emerald-500/10', text: 'text-emerald-400', icon: 'verified' },
   pitch_approved: { label: 'Pitch Approved', bg: 'bg-emerald-500/10', text: 'text-emerald-400', icon: 'check_circle' },
   pitch_pending: { label: 'Pitch Under Review', bg: 'bg-amber-500/10', text: 'text-amber-400', icon: 'schedule' },
 }
@@ -57,7 +55,8 @@ export default function AdminProjectsShow({
   const [overrideHours, setOverrideHours] = useState<string>(project.override_hours != null ? String(project.override_hours) : '')
   const [overrideJustification, setOverrideJustification] = useState(project.override_hours_justification || '')
   const status = statusConfig[project.status] || statusConfig.draft
-  const isBuildReview = project.status === 'build_pending'
+  const isPitchReview = project.status === 'pitch_pending'
+  const isProjectReview = project.status === 'pending'
 
   function handleRestore() {
     if (!confirm(`Restore "${project.name}"?`)) return
@@ -74,20 +73,12 @@ export default function AdminProjectsShow({
 
   const [reviewing, setReviewing] = useState(false)
 
-  function submitReview(decision: string) {
+  function submitReview(decision: string, extra: Record<string, unknown> = {}) {
     if (reviewing) return
-    if (decision !== 'approve' && !feedback.trim()) {
+    if (decision !== 'approve' && decision !== 'draft' && !feedback.trim()) {
       alert('Please provide feedback when returning or rejecting a project.')
       return
     }
-    setReviewing(true)
-    router.post(`/admin/projects/${project.id}/review`, { decision, feedback }, {
-      onFinish: () => setReviewing(false),
-    })
-  }
-
-  function submitBuildReview(decision: string, extra: Record<string, unknown> = {}) {
-    if (reviewing) return
     setReviewing(true)
     router.post(`/admin/projects/${project.id}/review`, { decision, feedback, ...extra }, {
       onFinish: () => setReviewing(false),
@@ -215,7 +206,7 @@ export default function AdminProjectsShow({
             </div>
           )}
 
-          {(project.devlogs.length > 0 || isBuildReview || project.status === 'build_approved' || project.status === 'pitch_approved') && (
+          {(project.devlogs.length > 0 || isProjectReview || project.status === 'approved' || project.status === 'pitch_approved') && (
             <>
               {project.cover_image_url && (
                 <div className="bg-[#1c1b1b] ghost-border rounded-xl p-8 mb-8">
@@ -272,89 +263,29 @@ export default function AdminProjectsShow({
                 </div>
                 {project.devlogs.length > 0 ? (
                   <div className="space-y-4">
-                    {project.devlogs.map((entry) => {
-                      const ds: Record<string, { label: string; bg: string; text: string }> = {
-                        draft: { label: 'Draft', bg: 'bg-stone-500/10', text: 'text-stone-400' },
-                        pending: { label: 'Pending Review', bg: 'bg-amber-500/10', text: 'text-amber-400' },
-                        approved: { label: 'Approved', bg: 'bg-emerald-500/10', text: 'text-emerald-400' },
-                        returned: { label: 'Returned', bg: 'bg-orange-500/10', text: 'text-orange-400' },
-                      }
-                      const st = ds[entry.status] || ds.draft
-                      return (
-                      <div key={entry.id} className={`bg-[#0e0e0e] p-5 ghost-border overflow-hidden ${entry.status === 'pending' ? 'border-l-2 border-l-amber-500/50' : ''}`}>
+                    {project.devlogs.map((entry) => (
+                      <div key={entry.id} className="bg-[#0e0e0e] p-5 ghost-border overflow-hidden">
                         <div className="flex items-start justify-between mb-2 gap-2">
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2 flex-wrap mb-1">
                               <h5 className="font-headline font-bold text-[#e5e2e1] break-words min-w-0">{entry.title}</h5>
-                              <span className={`${st.bg} ${st.text} px-2 py-0.5 text-[9px] uppercase font-bold tracking-widest`}>{st.label}</span>
                             </div>
                             <div className="flex items-center gap-3 text-xs flex-wrap">
                               {entry.time_spent && (
                                 <span className="text-[#ffb595] flex items-center gap-1">
                                   <span className="material-symbols-outlined text-xs">schedule</span>
-                                  {entry.approved_hours != null ? `${entry.approved_hours}h approved (claimed ${entry.time_spent})` : entry.time_spent}
+                                  {entry.time_spent}
                                 </span>
                               )}
                               <span className="text-stone-500">{entry.created_at}</span>
-                              {entry.reviewer_display_name && (
-                                <span className="text-stone-600">Reviewed by {entry.reviewer_display_name}</span>
-                              )}
                             </div>
                           </div>
                         </div>
                         <div className="prose prose-invert prose-sm max-w-none text-stone-300 prose-a:text-[#ffb595] break-words [overflow-wrap:anywhere]">
                           <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>{entry.content}</Markdown>
                         </div>
-                        {entry.status === 'pending' && can.review && (
-                          <div className="mt-4 pt-4 border-t border-white/5">
-                            <div className="flex flex-wrap gap-3 items-end">
-                              <div>
-                                <label className="block text-[9px] uppercase tracking-wider text-stone-500 font-bold mb-1">Approve Hours</label>
-                                <input
-                                  type="number"
-                                  step="0.1"
-                                  min="0"
-                                  defaultValue={entry.time_spent?.match(/([\d.]+)/)?.[1] || ''}
-                                  id={`hours-${entry.id}`}
-                                  className="bg-[#1c1b1b] border-none px-3 py-2 text-[#e5e2e1] text-sm w-24 focus:ring-1 focus:ring-[#ee671c]/30"
-                                  placeholder="hrs"
-                                />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <label className="block text-[9px] uppercase tracking-wider text-stone-500 font-bold mb-1">Feedback (optional)</label>
-                                <input
-                                  type="text"
-                                  id={`feedback-${entry.id}`}
-                                  className="bg-[#1c1b1b] border-none px-3 py-2 text-[#e5e2e1] text-sm w-full focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-700"
-                                  placeholder="Optional note..."
-                                />
-                              </div>
-                              <button
-                                onClick={() => {
-                                  const hours = (document.getElementById(`hours-${entry.id}`) as HTMLInputElement)?.value
-                                  const fb = (document.getElementById(`feedback-${entry.id}`) as HTMLInputElement)?.value
-                                  router.post(`/admin/projects/${project.id}/review_devlog`, { devlog_id: entry.id, decision: 'approve', approved_hours: hours, feedback: fb }, { preserveScroll: true })
-                                }}
-                                className="signature-smolder text-[#4c1a00] px-4 py-2 text-[10px] font-bold uppercase tracking-[0.15em] cursor-pointer flex items-center gap-1"
-                              >
-                                <span className="material-symbols-outlined text-sm">check_circle</span>
-                                Approve
-                              </button>
-                              <button
-                                onClick={() => {
-                                  const fb = (document.getElementById(`feedback-${entry.id}`) as HTMLInputElement)?.value
-                                  router.post(`/admin/projects/${project.id}/review_devlog`, { devlog_id: entry.id, decision: 'return', feedback: fb }, { preserveScroll: true })
-                                }}
-                                className="bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.15em] cursor-pointer flex items-center gap-1 transition-colors"
-                              >
-                                <span className="material-symbols-outlined text-sm">undo</span>
-                                Return
-                              </button>
-                            </div>
-                          </div>
-                        )}
                       </div>
-                    )})}
+                    ))}
                   </div>
                 ) : (
                   <p className="text-stone-600 text-sm">No devlog entries yet.</p>
@@ -489,12 +420,63 @@ export default function AdminProjectsShow({
             )}
           </div>
 
-          {can.review && !isBuildReview && (
+          {can.review && (
             <div className="bg-[#1c1b1b] ghost-border p-8 rounded-xl">
               <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-amber-400 font-headline mb-6 flex items-center gap-2">
                 <span className="material-symbols-outlined text-sm">rate_review</span>
-                {project.status === 'pitch_pending' ? 'Review Pitch' : 'Change Status'}
+                {isPitchReview ? 'Review Pitch' : isProjectReview ? 'Review Project' : 'Change Status'}
               </h4>
+
+              {isProjectReview && (
+                <>
+                  <div className="mb-4">
+                    <label className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
+                      Override Hours
+                    </label>
+                    <input
+                      type="number"
+                      step="0.5"
+                      min="0"
+                      max={project.devlog_hours}
+                      value={overrideHours}
+                      onChange={(e) => {
+                        const v = parseFloat(e.target.value)
+                        if (!isNaN(v) && v > project.devlog_hours) {
+                          setOverrideHours(String(project.devlog_hours))
+                        } else {
+                          setOverrideHours(e.target.value)
+                        }
+                      }}
+                      className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600"
+                      placeholder={`Claimed: ${project.devlog_hours}h`}
+                    />
+                    <p className="text-stone-600 text-[10px] uppercase tracking-[0.15em] mt-1">
+                      Max {project.devlog_hours}h (devlog total). Can only decrease, never increase.
+                    </p>
+                  </div>
+
+                  <div className="mb-4">
+                    <label className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
+                      Override Justification
+                    </label>
+                    <textarea
+                      value={overrideJustification}
+                      onChange={(e) => setOverrideJustification(e.target.value)}
+                      rows={3}
+                      className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 resize-y"
+                      placeholder="Why was the hour count adjusted?"
+                    />
+                  </div>
+
+                  <button
+                    onClick={() => router.post(`/admin/projects/${project.id}/review`, { decision: 'save_review_notes', override_hours: overrideHours, override_hours_justification: overrideJustification })}
+                    className="w-full mb-4 py-2 ghost-border bg-[#0e0e0e] hover:bg-[#2a2a2a] text-stone-400 hover:text-[#ffb595] text-xs uppercase tracking-wider font-bold flex items-center justify-center gap-2 cursor-pointer transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-sm">save</span>
+                    Save Notes
+                  </button>
+                </>
+              )}
 
               <div className="mb-6">
                 <label className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
@@ -510,133 +492,43 @@ export default function AdminProjectsShow({
               </div>
 
               <div className="flex flex-col gap-3">
-                <button
-                  onClick={() => submitReview('approve')}
-                  disabled={reviewing}
-                  className="w-full py-3 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 font-headline font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <span className="material-symbols-outlined text-lg">check_circle</span>
-                  Approve
-                </button>
-                <button
-                  onClick={() => submitReview('return')}
-                  disabled={reviewing}
-                  className="w-full py-3 bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 font-headline font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <span className="material-symbols-outlined text-lg">undo</span>
-                  Return for Changes
-                </button>
-                <button
-                  onClick={() => submitReview('reject')}
-                  disabled={reviewing}
-                  className="w-full py-3 bg-red-500/20 hover:bg-red-500/30 text-red-400 font-headline font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <span className="material-symbols-outlined text-lg">cancel</span>
-                  Reject
-                </button>
-                <button
-                  onClick={() => submitReview('draft')}
-                  className="w-full py-3 bg-stone-500/20 hover:bg-stone-500/30 text-stone-400 font-headline font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  <span className="material-symbols-outlined text-lg">edit_note</span>
-                  Revert to Draft
-                </button>
-              </div>
-            </div>
-          )}
-
-          {can.review && project.status === 'build_pending' && (
-            <div className="bg-[#1c1b1b] ghost-border p-8 rounded-xl">
-              <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-amber-400 font-headline mb-6 flex items-center gap-2">
-                <span className="material-symbols-outlined text-sm">engineering</span>
-                Review Project
-              </h4>
-
-              <div className="mb-4">
-                <label className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
-                  Override Hours
-                </label>
-                <input
-                  type="number"
-                  step="0.5"
-                  min="0"
-                  max={project.devlog_hours}
-                  value={overrideHours}
-                  onChange={(e) => {
-                    const v = parseFloat(e.target.value)
-                    if (!isNaN(v) && v > project.devlog_hours) {
-                      setOverrideHours(String(project.devlog_hours))
-                    } else {
-                      setOverrideHours(e.target.value)
-                    }
-                  }}
-                  className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600"
-                  placeholder={`Claimed: ${project.devlog_hours}h`}
-                />
-                <p className="text-stone-600 text-[10px] uppercase tracking-[0.15em] mt-1">
-                  Max {project.devlog_hours}h (devlog total). Can only decrease, never increase.
-                </p>
-              </div>
-
-              <div className="mb-4">
-                <label className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
-                  Override Justification
-                </label>
-                <textarea
-                  value={overrideJustification}
-                  onChange={(e) => setOverrideJustification(e.target.value)}
-                  rows={3}
-                  className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 resize-y"
-                  placeholder="Why was the hour count adjusted?"
-                />
-              </div>
-
-              <button
-                onClick={() => router.post(`/admin/projects/${project.id}/review`, { decision: 'save_review_notes', override_hours: overrideHours, override_hours_justification: overrideJustification })}
-                className="w-full mb-4 py-2 ghost-border bg-[#0e0e0e] hover:bg-[#2a2a2a] text-stone-400 hover:text-[#ffb595] text-xs uppercase tracking-wider font-bold flex items-center justify-center gap-2 cursor-pointer transition-colors"
-              >
-                <span className="material-symbols-outlined text-sm">save</span>
-                Save Notes
-              </button>
-
-              <div className="mb-6">
-                <label className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
-                  Feedback
-                </label>
-                <textarea
-                  value={feedback}
-                  onChange={(e) => setFeedback(e.target.value)}
-                  rows={4}
-                  className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 resize-y"
-                  placeholder="Feedback for the builder..."
-                />
-              </div>
-
-              <div className="flex flex-col gap-3">
-                <button
-                  onClick={() => submitBuildReview('approve_build', { override_hours: overrideHours, override_hours_justification: overrideJustification })}
-                  disabled={reviewing}
-                  className="w-full py-3 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 font-headline font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <span className="material-symbols-outlined text-lg">verified</span>
-                  Approve Build
-                </button>
-                <button
-                  onClick={() => submitBuildReview('return_build')}
-                  disabled={reviewing}
-                  className="w-full py-3 bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 font-headline font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <span className="material-symbols-outlined text-lg">undo</span>
-                  Return for More Work
-                </button>
-                <button
-                  onClick={() => submitBuildReview('reject_build')}
-                  disabled={reviewing}
-                  className="w-full py-3 bg-red-500/20 hover:bg-red-500/30 text-red-400 font-headline font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <span className="material-symbols-outlined text-lg">cancel</span>
-                  Reject Build
-                </button>
+                {(isPitchReview || isProjectReview) && (
+                  <>
+                    <button
+                      onClick={() => submitReview('approve', isProjectReview ? { override_hours: overrideHours, override_hours_justification: overrideJustification } : {})}
+                      disabled={reviewing}
+                      className="w-full py-3 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 font-headline font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <span className="material-symbols-outlined text-lg">{isProjectReview ? 'verified' : 'check_circle'}</span>
+                      {isProjectReview ? 'Approve Project' : 'Approve Pitch'}
+                    </button>
+                    <button
+                      onClick={() => submitReview('return')}
+                      disabled={reviewing}
+                      className="w-full py-3 bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 font-headline font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <span className="material-symbols-outlined text-lg">undo</span>
+                      Return for Changes
+                    </button>
+                    <button
+                      onClick={() => submitReview('reject')}
+                      disabled={reviewing}
+                      className="w-full py-3 bg-red-500/20 hover:bg-red-500/30 text-red-400 font-headline font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <span className="material-symbols-outlined text-lg">cancel</span>
+                      Reject
+                    </button>
+                  </>
+                )}
+                {!isPitchReview && !isProjectReview && (
+                  <button
+                    onClick={() => submitReview('draft')}
+                    className="w-full py-3 bg-stone-500/20 hover:bg-stone-500/30 text-stone-400 font-headline font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-lg">edit_note</span>
+                    Revert to Draft
+                  </button>
+                )}
               </div>
             </div>
           )}
