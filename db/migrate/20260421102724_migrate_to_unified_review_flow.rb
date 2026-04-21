@@ -3,22 +3,38 @@ class MigrateToUnifiedReviewFlow < ActiveRecord::Migration[8.1]
   # pending/approved flow. Retires build_pending (5) and build_approved (6).
   #
   # Project status remap:
-  #   build_pending  (5) -> pending (1)    submitted, needs re-review
-  #   build_approved (6) -> pending (1)    clawback — re-review required
   #   approved       (2) -> pending (1)    legacy devlog-auto state, needs project-level review
+  #   build_pending  (5) -> pending (1)    submitted, needs re-review
+  #   build_approved (6) with a sent Airtable record -> approved (2)  legitimate final-approved; leave alone
+  #   build_approved (6) without one       -> pending (1)    clawback
   #   pitch_approved (7) unchanged — T1 builders keep building
   #   everything else unchanged
   #
   # Devlogs lose their per-entry review state; all statuses collapse to draft.
   # Any pending Airtable queue items are cancelled since the trigger state is gone.
-  # Sent Airtable items are left as-is for audit — cleanup on the Airtable side is manual.
+  # Sent Airtable items are left as-is for audit.
 
   disable_ddl_transaction!
 
   def up
     ActiveRecord::Base.transaction do
+      # Order matters: clear legacy `approved` first, then repopulate from build_approved.
       execute <<~SQL
-        UPDATE projects SET status = 1 WHERE status IN (2, 5, 6)
+        UPDATE projects SET status = 1 WHERE status IN (2, 5)
+      SQL
+
+      execute <<~SQL
+        UPDATE projects
+        SET status = 2
+        WHERE status = 6
+          AND id IN (
+            SELECT DISTINCT project_id FROM airtable_queue_items
+            WHERE status = 1 AND project_id IS NOT NULL
+          )
+      SQL
+
+      execute <<~SQL
+        UPDATE projects SET status = 1 WHERE status = 6
       SQL
 
       execute <<~SQL
