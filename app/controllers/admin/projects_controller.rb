@@ -64,6 +64,7 @@ class Admin::ProjectsController < Admin::ApplicationController
       project: serialize_project_detail(@project),
       ships: @ships.map { |s| serialize_ship_row(s) },
       notes: @notes.map { |n| serialize_note(n) },
+      review_history: @project.review_history.map { |e| serialize_review_event(e) },
       can: { review: policy(@project).review?, destroy: policy(@project).destroy?, restore: policy(@project).restore? }
     }
   end
@@ -385,6 +386,21 @@ class Admin::ProjectsController < Admin::ApplicationController
       content: devlog.content,
       time_spent: devlog.time_spent,
       created_at: devlog.created_at.strftime("%b %d, %Y")
+    }
+  end
+
+  def serialize_review_event(event)
+    meta = event.metadata || {}
+    {
+      id: event.id,
+      action: event.action,
+      stage: meta["stage"],
+      feedback: meta["feedback"].presence,
+      reviewer_display_name: event.actor&.display_name,
+      reviewer_avatar: event.actor&.avatar,
+      target_type: event.target_type,
+      target_label: event.target_label,
+      created_at: event.created_at.strftime("%b %d, %Y %H:%M")
     }
   end
 
