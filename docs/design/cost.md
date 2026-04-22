@@ -20,7 +20,7 @@ That said, please always do what you can to select the cheaper option while maki
 - Always choosing the cheapest option, such as GSDR, even when it comes at the cost of your time (start a new project in the meantime)
 - Selecting the cheapest part for whatever you are making. (You don’t need a raspberry pi 5 to blink an LED)
 
-If you are ever stuck on cost optimizing, ask around in #forge, or check out our page on [sourcing parts](/docs/Design-Resources/sourcing-parts)!
+If you are ever stuck on cost optimizing, ask around in #forge, or check out our page on [sourcing parts](/docs/design/sourcing-parts)!
 
 # How can I use my funds?
 

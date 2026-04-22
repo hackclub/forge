@@ -41,7 +41,6 @@ GET /api/v1/projects?status=approved&tier=tier_1&per_page=10
       "id": 42,
       "name": "Hex Bot",
       "subtitle": "Mostly 3D printed 3D printer",
-      "description": "AI-generated admin summary...",
       "status": "approved",
       "tier": "tier_2",
       "tags": ["3D-printed", "DIY"],

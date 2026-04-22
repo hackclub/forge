@@ -21,10 +21,11 @@ Post your pitch in **#forgery** on the Hack Club Slack. Keep it structured, hone
 
 ```
 Idea: [Short name for your project]
+Proposed tier: [Optional, what tier you think this project should be. Reviewers can change this if they disagree!]
 I'm designing: [What you're actually building — PCBs, 3D printed parts, firmware, etc.]
 Inspo / reference: [Links to similar projects or inspiration]
 Past projects: [Links to things you've built before — helps us gauge your skill level]
-Why this is worth more than $200: [Why this project is ambitious/complex]
+Why this is worth more than $200: [Why this project is ambitious/complex, required for T1 projects.]
 
 Rough BOM:
 * [Part] $[cost]
@@ -57,7 +58,7 @@ Rough BOM:
 ### Tips
 
 - **Show your background.** One project could be next to impossible for one person but easy for another. Past projects help us understand your skill level.
-- **Keep costs reasonable.** We [don't have unlimited money](/docs/Design-Resources/cost), and we want to make it last to create as many cool projects as possible! A $100 project with a $900 monitor is not a $1000 project.
+- **Keep costs reasonable.** We [don't have unlimited money](/docs/design/cost), and we want to make it last to create as many cool projects as possible! A $100 project with a $900 monitor is not a $1000 project.
 - **Be specific about what you're designing.** "I'm building a robot" is vague. "I'm designing a custom PCB for motor control, 3D printing the chassis, and writing firmware in Rust" tells us exactly what you're doing.
 - **Extra detail goes in the thread.** Keep the main pitch concise. If you want to elaborate, reply to your own message in the thread.
 
