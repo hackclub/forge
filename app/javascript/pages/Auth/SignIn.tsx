@@ -12,7 +12,7 @@ export default function AuthSignIn() {
 
   return (
     <>
-      <Head title="Forge — Sign In" />
+      <Head title="Forge - Sign In" />
 
       <div className="min-h-screen bg-[#0e0e0e] text-[#e5e2e1] relative overflow-hidden flex flex-col items-center justify-center px-6 py-12">
         <div

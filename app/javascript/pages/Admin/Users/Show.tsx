@@ -192,15 +192,15 @@ export default function AdminUsersShow({
             </div>
             <div>
               <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">Coding Time</span>
-              <p className="text-[#e5e2e1] mt-1">{hackatime.total_coding_time ? `${Math.round(hackatime.total_coding_time / 3600)}h` : '—'}</p>
+              <p className="text-[#e5e2e1] mt-1">{hackatime.total_coding_time ? `${Math.round(hackatime.total_coding_time / 3600)}h` : '-'}</p>
             </div>
             <div>
               <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">Days Active</span>
-              <p className="text-[#e5e2e1] mt-1">{hackatime.days_active ?? '—'}</p>
+              <p className="text-[#e5e2e1] mt-1">{hackatime.days_active ?? '-'}</p>
             </div>
             <div>
               <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">Last Active</span>
-              <p className="text-[#e5e2e1] mt-1">{hackatime.last_heartbeat_at || '—'}</p>
+              <p className="text-[#e5e2e1] mt-1">{hackatime.last_heartbeat_at || '-'}</p>
             </div>
           </div>
           {(hackatime.suspected || hackatime.banned) && (

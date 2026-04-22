@@ -15,7 +15,7 @@ export default function DefaultLayout({ children }: { children: ReactNode }) {
         {showBanner && (
           <div className="bg-amber-500/15 border-b border-amber-500/30 px-5 py-2 flex items-center justify-center gap-2 text-amber-300 text-xs font-bold uppercase tracking-wider">
             <span className="material-symbols-outlined text-sm">construction</span>
-            Maintenance mode is active — only staff can access the site right now
+            Maintenance mode is active - only staff can access the site right now
           </div>
         )}
         <FlashMessages />

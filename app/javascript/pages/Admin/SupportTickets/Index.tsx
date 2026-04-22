@@ -101,7 +101,7 @@ export default function AdminSupportTicketsIndex({
                   {statusConfig[ticket.status].label}
                 </span>
                 <span className="text-stone-500 text-xs whitespace-nowrap">
-                  {ticket.claimed_by_name || ticket.resolved_by_name || '—'}
+                  {ticket.claimed_by_name || ticket.resolved_by_name || '-'}
                 </span>
                 <span className="text-stone-500 text-xs whitespace-nowrap">{ticket.created_at}</span>
               </Link>

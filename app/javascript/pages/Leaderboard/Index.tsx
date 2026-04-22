@@ -123,7 +123,7 @@ export default function LeaderboardIndex({
 
   return (
     <>
-      <Head title="Leaderboard — Forge" />
+      <Head title="Leaderboard - Forge" />
       <div className="p-5 md:p-12 max-w-[1400px] mx-auto">
         <div className="mb-10">
           <h1 className="text-4xl font-headline font-bold text-[#ee671c] tracking-tight">Leaderboard</h1>

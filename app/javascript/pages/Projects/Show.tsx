@@ -868,7 +868,7 @@ export default function ProjectsShow({
             <div className="bg-emerald-500/5 ghost-border p-8">
               <div className="flex items-center gap-2 mb-3">
                 <span className="material-symbols-outlined text-emerald-400 text-lg">check_circle</span>
-                <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-400 font-headline">Pitch Approved — Start Building!</h4>
+                <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-400 font-headline">Pitch Approved - Start Building!</h4>
               </div>
               <p className="text-stone-400 text-sm">
                 {!project.devlog_mode

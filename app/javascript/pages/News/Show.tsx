@@ -11,7 +11,7 @@ interface NewsPost {
 export default function NewsShow({ post }: { post: NewsPost }) {
   return (
     <>
-      <Head title={`${post.title} — News`} />
+      <Head title={`${post.title} - News`} />
       <div className="p-5 md:p-12 max-w-3xl mx-auto space-y-8">
         <Link
           href="/news"

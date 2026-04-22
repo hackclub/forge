@@ -23,7 +23,7 @@ class SlackShopUpdateJob < ApplicationJob
 
   def fallback_text(item, event)
     prefix = event == "price_changed" ? "Price updated: " : ""
-    "#{prefix}#{item.name} — #{format_cost(item.coin_cost)} Coins"
+    "#{prefix}#{item.name} - #{format_cost(item.coin_cost)} Coins"
   end
 
   def build_blocks(item, event)

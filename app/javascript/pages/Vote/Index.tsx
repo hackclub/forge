@@ -92,7 +92,7 @@ export default function VoteIndex({ matchup }: { matchup: Matchup | null }) {
 
   return (
     <>
-      <Head title="Vote — Forge" />
+      <Head title="Vote - Forge" />
       <div className="p-5 md:p-12 max-w-[1400px] mx-auto">
         <div className="text-center mb-12">
           <h1 className="text-5xl font-headline font-medium tracking-tight mb-4">

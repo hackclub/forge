@@ -94,7 +94,7 @@ export default function AdminFeatureFlagsIndex({ flags }: { flags: Flag[] }) {
               {flags.map((flag) => (
                 <tr key={flag.id} className="border-b border-white/5 hover:bg-[#1c1b1b] transition-colors">
                   <td className="px-5 py-4 font-headline font-bold text-[#e5e2e1] text-sm">{flag.name}</td>
-                  <td className="px-5 py-4 text-stone-500 text-sm">{flag.description || '—'}</td>
+                  <td className="px-5 py-4 text-stone-500 text-sm">{flag.description || '-'}</td>
                   <td className="px-5 py-4">
                     <button
                       onClick={() => toggle(flag.id)}

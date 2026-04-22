@@ -144,7 +144,7 @@ export default function UsersShow({ user, stats, projects, kudos, can_give_kudos
 
   return (
     <>
-      <Head title={`${user.display_name} — Forge`} />
+      <Head title={`${user.display_name} - Forge`} />
       <div className="p-5 md:p-12 max-w-6xl mx-auto space-y-10">
         <section className="bg-[#1c1b1b] ghost-border p-5 md:p-8 flex flex-col sm:flex-row items-center gap-6 text-center sm:text-left">
           <img
@@ -228,7 +228,7 @@ export default function UsersShow({ user, stats, projects, kudos, can_give_kudos
                   />
                 </div>
                 <p className="text-stone-600 text-[10px] mt-2">
-                  {stats.next_streak_milestone - stats.current_streak} {stats.next_streak_milestone - stats.current_streak === 1 ? 'day' : 'days'} to go — keep the streak alive to boost project payouts.
+                  {stats.next_streak_milestone - stats.current_streak} {stats.next_streak_milestone - stats.current_streak === 1 ? 'day' : 'days'} to go - keep the streak alive to boost project payouts.
                 </p>
               </div>
             )}
@@ -419,7 +419,7 @@ export default function UsersShow({ user, stats, projects, kudos, can_give_kudos
           )}
 
           {kudos.length === 0 ? (
-            <p className="text-stone-500 text-sm">No kudos yet — keep building.</p>
+            <p className="text-stone-500 text-sm">No kudos yet - keep building.</p>
           ) : (
             <div className="space-y-4">
               {kudos.map((kudo) => (

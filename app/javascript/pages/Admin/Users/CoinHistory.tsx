@@ -62,7 +62,7 @@ export default function AdminUsersCoinHistory({
 }) {
   return (
     <>
-      <Head title={`Coin history — ${user.display_name}`} />
+      <Head title={`Coin history - ${user.display_name}`} />
       <div className="p-5 md:p-12 max-w-4xl mx-auto space-y-8">
         <Link href={`/admin/users/${user.id}`} className="text-stone-500 text-sm hover:text-[#ffb595] transition-colors flex items-center gap-1">
           <span className="material-symbols-outlined text-sm">arrow_back</span>

@@ -34,7 +34,7 @@ export default function SettingsShow({
 
   return (
     <>
-      <Head title="Settings — Forge" />
+      <Head title="Settings - Forge" />
       <div className="p-5 md:p-12 max-w-3xl mx-auto">
         <Link
           href="/home"
@@ -99,7 +99,7 @@ export default function SettingsShow({
             </p>
           ) : (
             <p className="text-stone-500 text-sm mb-2">
-              Required before submitting a project for review. Add it on your Hack Club account — we'll pull it
+              Required before submitting a project for review. Add it on your Hack Club account - we'll pull it
               in automatically.
             </p>
           )}

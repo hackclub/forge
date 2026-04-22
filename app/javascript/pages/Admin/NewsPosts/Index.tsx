@@ -55,7 +55,7 @@ export default function AdminNewsPostsIndex({ posts }: { posts: NewsPost[] }) {
 
   return (
     <>
-      <Head title="News — Admin" />
+      <Head title="News - Admin" />
       <div className="p-5 md:p-12 max-w-[1400px] mx-auto">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-4xl font-headline font-bold text-[#e5e2e1] tracking-tight">News</h1>

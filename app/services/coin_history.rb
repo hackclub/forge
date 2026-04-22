@@ -26,7 +26,7 @@ class CoinHistory
         at: order.created_at,
         type: "order_placed",
         amount: -order.coin_cost.to_f,
-        label: "Placed order — #{order.kind_label}",
+        label: "Placed order - #{order.kind_label}",
         details: {
           order_id: order.id,
           kind: order.kind,
@@ -47,7 +47,7 @@ class CoinHistory
           at: order.reviewed_at,
           type: "order_refunded",
           amount: order.coin_cost.to_f,
-          label: "Refund — #{order.kind_label} rejected",
+          label: "Refund - #{order.kind_label} rejected",
           details: {
             order_id: order.id,
             reviewer_id: order.reviewer_id,
@@ -62,7 +62,7 @@ class CoinHistory
           at: order.fulfilled_at,
           type: "order_fulfilled",
           amount: 0,
-          label: "Order fulfilled — #{order.kind_label}",
+          label: "Order fulfilled - #{order.kind_label}",
           details: {
             order_id: order.id,
             reviewer_id: order.reviewer_id,

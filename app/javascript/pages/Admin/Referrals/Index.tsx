@@ -47,6 +47,11 @@ export default function AdminReferralsIndex({
     router.post('/admin/referrals/reset_pool')
   }
 
+  function forceApproveAll() {
+    if (!confirm('Pay out every non-approved referral, including pending ones where the referred builder has NOT shipped? This cannot be undone.')) return
+    router.post('/admin/referrals/force_approve_all')
+  }
+
   return (
     <div className="p-5 md:p-12 max-w-[1400px] mx-auto">
       <h1 className="text-4xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-8">Referrals</h1>
@@ -61,7 +66,7 @@ export default function AdminReferralsIndex({
         <StatCard label="Total Spend" value={`${stats.total_referral_spend.toFixed(2)}c`} />
       </div>
 
-      <div className="flex gap-3 mb-8">
+      <div className="flex gap-3 mb-8 flex-wrap">
         <button
           onClick={drawWinner}
           className="signature-smolder text-[#4c1a00] px-6 py-3 font-bold uppercase tracking-wider text-xs cursor-pointer flex items-center gap-2"
@@ -75,6 +80,13 @@ export default function AdminReferralsIndex({
         >
           <span className="material-symbols-outlined text-lg">restart_alt</span>
           Reset Pool
+        </button>
+        <button
+          onClick={forceApproveAll}
+          className="border border-red-500/40 bg-red-500/10 text-red-300 hover:bg-red-500/20 px-6 py-3 font-bold uppercase tracking-wider text-xs cursor-pointer flex items-center gap-2"
+        >
+          <span className="material-symbols-outlined text-lg">bolt</span>
+          Pay Out All
         </button>
       </div>
 

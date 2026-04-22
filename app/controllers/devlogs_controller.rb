@@ -59,7 +59,7 @@ class DevlogsController < ApplicationController
     authorize @project, :update?
 
     if @project.airtable_sent? && !current_user&.superadmin?
-      redirect_to @project, alert: "This devlog can't be deleted — the project has already been sent to Airtable. You can still edit it."
+      redirect_to @project, alert: "This devlog can't be deleted - the project has already been sent to Airtable. You can still edit it."
       return
     end
 
