@@ -16,6 +16,16 @@ function isSafeUrl(url: string | null): boolean {
   }
 }
 
+function parseTimeSpentToHours(value: string | null): number {
+  if (!value) return 0
+  const match = value.match(/([\d.]+)\s*([a-z]*)/i)
+  if (!match) return 0
+  const n = parseFloat(match[1])
+  const unit = (match[2] || '').toLowerCase()
+  const isMinutes = unit.startsWith('m') && unit !== 'mo'
+  return isMinutes ? n / 60 : n
+}
+
 interface DevlogEntry {
   id: number
   title: string
@@ -246,11 +256,9 @@ export default function ProjectsShow({
   const showCoverUpload = can.update && canLog
   const isPitchReturn = isReturned && !isNormalTier && project.from_slack && devlogs.length === 0
 
-  const totalHours = devlogs.reduce((sum, entry) => {
-    if (!entry.time_spent) return sum
-    const match = entry.time_spent.match(/([\d.]+)/)
-    return match ? sum + parseFloat(match[1]) : sum
-  }, 0)
+  const totalHours = Math.round(
+    devlogs.reduce((sum, entry) => sum + parseTimeSpentToHours(entry.time_spent), 0) * 10
+  ) / 10
 
   const isStaff = !!usePage<SharedProps>().props.auth.user?.is_staff
 
