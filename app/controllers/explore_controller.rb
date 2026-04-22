@@ -2,7 +2,8 @@ class ExploreController < ApplicationController
   allow_unauthenticated_access
 
   def index
-    scope = Project.kept.where(hidden: false).includes(:user, :ships).order(created_at: :desc)
+    scope = Project.kept.where(hidden: false).includes(:user, :ships)
+      .order(Arel.sql("cover_image_url IS NULL"), created_at: :desc)
     scope = scope.search(params[:query]) if params[:query].present?
     @pagy, @projects = pagy(scope)
 
