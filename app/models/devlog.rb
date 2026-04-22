@@ -40,7 +40,12 @@ class Devlog < ApplicationRecord
 
   def parsed_hours
     return 0 unless time_spent
-    match = time_spent.match(/([\d.]+)/)
-    match ? match[1].to_f : 0
+    match = time_spent.match(/([\d.]+)\s*([a-z]*)/i)
+    return 0 unless match
+
+    value = match[1].to_f
+    unit = match[2].to_s.downcase
+    minutes = unit.start_with?("m") && unit != "mo"
+    minutes ? value / 60.0 : value
   end
 end
