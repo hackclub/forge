@@ -16,8 +16,8 @@ interface AuditEntryDetail {
 }
 
 function renderValue(value: unknown): string {
-  if (value === null || value === undefined) return '—'
-  if (Array.isArray(value)) return value.length > 0 ? value.join(', ') : '—'
+  if (value === null || value === undefined) return '-'
+  if (Array.isArray(value)) return value.length > 0 ? value.join(', ') : '-'
   if (typeof value === 'boolean') return value ? 'true' : 'false'
   if (typeof value === 'object') return JSON.stringify(value)
   return String(value)
@@ -34,7 +34,7 @@ function isChangeObject(value: unknown): value is Record<string, { from: unknown
 
 function ChangesTable({ changes }: { changes: Record<string, { from: unknown; to: unknown }> }) {
   const keys = Object.keys(changes)
-  if (keys.length === 0) return <span className="text-stone-600">—</span>
+  if (keys.length === 0) return <span className="text-stone-600">-</span>
   return (
     <table className="w-full text-xs">
       <thead>

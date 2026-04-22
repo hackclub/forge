@@ -51,7 +51,7 @@ export default function ReferralsIndex({
 
   return (
     <>
-      <Head title="Referrals — Forge" />
+      <Head title="Referrals - Forge" />
       <div className="p-5 md:p-12 max-w-[1100px] mx-auto">
         <div className="mb-8">
           <h1 className="text-4xl font-headline font-bold text-[#ee671c] tracking-tight">Referrals</h1>
@@ -113,7 +113,7 @@ export default function ReferralsIndex({
                     </td>
                     <td className="px-5 py-3 text-stone-500 text-xs">{r.created_at}</td>
                     <td className="px-5 py-3 text-right font-mono text-sm">
-                      {r.payout != null ? <span className="text-[#ffb595]">+{r.payout.toFixed(2)}c</span> : <span className="text-stone-600">—</span>}
+                      {r.payout != null ? <span className="text-[#ffb595]">+{r.payout.toFixed(2)}c</span> : <span className="text-stone-600">-</span>}
                     </td>
                   </tr>
                 ))}

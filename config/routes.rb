@@ -160,6 +160,7 @@ Rails.application.routes.draw do
         end
         collection do
           post "approve/:referral_id" => "referrals#approve_one", as: :approve_one
+          post :force_approve_all
           post :draw_winner
           post :reset_pool
         end

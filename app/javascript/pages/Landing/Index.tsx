@@ -7,7 +7,7 @@ export default function LandingIndex() {
 
   return (
     <>
-      <Head title="Forge — Build Hardware, Get Funded" />
+      <Head title="Forge - Build Hardware, Get Funded" />
 
       <div className="min-h-screen bg-[#0E0E0E] text-[#e5e2e1]">
         <nav className="fixed top-0 right-0 w-full h-16 z-40 bg-[#0E0E0E]/80 backdrop-blur-xl border-b border-white/5 flex justify-between items-center px-8">
@@ -93,7 +93,7 @@ export default function LandingIndex() {
                 <div>
                   <h3 className="text-3xl font-headline font-medium mb-4 text-[#ffb595]">Real Hardware Only.</h3>
                   <p className="text-stone-400 max-w-md leading-relaxed">
-                    Forge is for builders who solder, 3D print, laser cut, and wire things together. Circuits, robots, custom PCBs, mechanical builds — if you can hold it in your hands, it belongs here.
+                    Forge is for builders who solder, 3D print, laser cut, and wire things together. Circuits, robots, custom PCBs, mechanical builds - if you can hold it in your hands, it belongs here.
                   </p>
                 </div>
                 <div className="flex gap-4 items-center">

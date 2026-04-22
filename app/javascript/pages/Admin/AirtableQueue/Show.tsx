@@ -26,7 +26,7 @@ const statusStyles: Record<Status, { bg: string; text: string; icon: string; lab
 }
 
 function renderValue(value: unknown): string {
-  if (value === null || value === undefined) return '—'
+  if (value === null || value === undefined) return '-'
   if (Array.isArray(value)) return JSON.stringify(value, null, 2)
   if (typeof value === 'boolean') return value ? 'true' : 'false'
   if (typeof value === 'object') return JSON.stringify(value, null, 2)
@@ -140,7 +140,7 @@ export default function AdminAirtableQueueShow({
                   <tr key={k} className="border-b border-white/5 align-top">
                     <td className="px-5 py-3 font-headline font-bold text-[#e5e2e1] text-sm">{k}</td>
                     <td className={`px-5 py-3 text-sm break-words [overflow-wrap:anywhere] font-mono whitespace-pre-wrap ${empty ? 'text-stone-600 italic' : 'text-stone-300'}`}>
-                      {empty ? '—' : renderValue(v)}
+                      {empty ? '-' : renderValue(v)}
                     </td>
                   </tr>
                 )

@@ -54,9 +54,9 @@ class Referral < ApplicationRecord
     update!(status: :eligible, qualifying_project: project, eligible_at: Time.current)
   end
 
-  def approve!(actor:)
+  def approve!(actor:, force: false)
     return if approved?
-    return unless eligible?
+    return unless force || eligible?
 
     transaction do
       adjustment = referrer.coin_adjustments.create!(

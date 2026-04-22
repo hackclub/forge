@@ -537,15 +537,15 @@ export default function AdminProjectsShow({
               }}
               className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ee671c]/30 cursor-pointer"
             >
-              <option value="tier_4">Tier 4 — 4c/hr</option>
-              <option value="tier_3">Tier 3 — 4.5c/hr</option>
-              <option value="tier_2">Tier 2 — 5.5c/hr</option>
-              <option value="tier_1">Tier 1 — 7c/hr</option>
+              <option value="tier_4">Tier 4 - 4c/hr</option>
+              <option value="tier_3">Tier 3 - 4.5c/hr</option>
+              <option value="tier_2">Tier 2 - 5.5c/hr</option>
+              <option value="tier_1">Tier 1 - 7c/hr</option>
             </select>
             {project.from_slack && project.tier !== 'tier_1' && (
               <p className="text-amber-400/70 text-xs mt-2 flex items-center gap-1">
                 <span className="material-symbols-outlined text-xs">info</span>
-                Originally a Slack pitch — tier was changed by staff.
+                Originally a Slack pitch - tier was changed by staff.
               </p>
             )}
           </div>

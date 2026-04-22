@@ -24,7 +24,7 @@ interface Props {
 export default function DevlogsShow({ project, devlog }: Props) {
   return (
     <>
-      <Head title={`${devlog.title} — ${project.name} — Forge`} />
+      <Head title={`${devlog.title} - ${project.name} - Forge`} />
       <div className="p-5 md:p-12 max-w-4xl mx-auto">
         <Link
           href={`/projects/${project.id}`}

@@ -3,7 +3,7 @@ import { Head } from '@inertiajs/react'
 export default function Maintenance() {
   return (
     <>
-      <Head title="Maintenance — Forge" />
+      <Head title="Maintenance - Forge" />
       <div className="min-h-screen bg-[#0e0e0e] flex items-center justify-center px-6">
         <div className="max-w-md text-center">
           <span

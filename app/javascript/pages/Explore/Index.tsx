@@ -33,7 +33,7 @@ export default function ExploreIndex({
 
   return (
     <>
-      <Head title="Explore — Forge" />
+      <Head title="Explore - Forge" />
       <div className="p-5 md:p-12 max-w-[1400px] mx-auto">
         <section className="mb-12">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">

@@ -71,7 +71,7 @@ export default function AdminOrdersShow({ order, warnings, regions, fulfillment_
 
   return (
     <>
-      <Head title={`Order #${order.id} — Admin`} />
+      <Head title={`Order #${order.id} - Admin`} />
       <div className="p-5 md:p-12 max-w-4xl mx-auto space-y-8">
         <Link href="/admin/orders" className="text-stone-500 text-sm hover:text-[#ffb595] transition-colors flex items-center gap-1">
           <span className="material-symbols-outlined text-sm">arrow_back</span>
@@ -125,7 +125,7 @@ export default function AdminOrdersShow({ order, warnings, regions, fulfillment_
             <div className="bg-[#0e0e0e] p-4">
               <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-1">Amount</p>
               <p className="text-2xl font-headline font-bold text-[#e5e2e1]">
-                {order.amount_usd != null ? `$${order.amount_usd}` : '—'}
+                {order.amount_usd != null ? `$${order.amount_usd}` : '-'}
               </p>
             </div>
             <div className="bg-[#0e0e0e] p-4">
@@ -191,7 +191,7 @@ export default function AdminOrdersShow({ order, warnings, regions, fulfillment_
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-3">Staff review notes</p>
             <p className="text-stone-300 text-sm whitespace-pre-wrap break-words">{order.review_notes}</p>
             {order.reviewer_name && (
-              <p className="text-stone-600 text-xs mt-2">— {order.reviewer_name} on {order.reviewed_at}</p>
+              <p className="text-stone-600 text-xs mt-2">- {order.reviewer_name} on {order.reviewed_at}</p>
             )}
           </div>
         )}

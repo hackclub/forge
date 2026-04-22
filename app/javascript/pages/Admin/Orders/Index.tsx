@@ -47,7 +47,7 @@ export default function AdminOrdersIndex({ orders, pagy, filters, counts, region
 
   return (
     <>
-      <Head title="Orders — Admin" />
+      <Head title="Orders - Admin" />
       <div className="p-5 md:p-12 max-w-[1400px] mx-auto">
         <h1 className="text-4xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-2">Orders</h1>
         <p className="text-stone-500 text-sm mb-8">Steel coin orders awaiting review and fulfillment.</p>
@@ -134,8 +134,8 @@ export default function AdminOrdersIndex({ orders, pagy, filters, counts, region
                         </div>
                       </td>
                       <td className="px-5 py-4 text-stone-400 text-sm">{order.user_display_name}</td>
-                      <td className="px-5 py-4 text-stone-500 text-xs">{order.region ? regions[order.region] || order.region : '—'}</td>
-                      <td className="px-5 py-4 text-stone-400 text-xs">{order.assigned_to_name || '—'}</td>
+                      <td className="px-5 py-4 text-stone-500 text-xs">{order.region ? regions[order.region] || order.region : '-'}</td>
+                      <td className="px-5 py-4 text-stone-400 text-xs">{order.assigned_to_name || '-'}</td>
                       <td className="px-5 py-4 text-sm">
                         <span className="text-[#ee671c] font-bold">{order.coin_cost}c</span>
                         {order.amount_usd != null && <span className="text-stone-600 ml-2">${order.amount_usd}</span>}

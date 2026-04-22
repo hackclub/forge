@@ -66,6 +66,14 @@ class Admin::MetricsController < Admin::ApplicationController
     total_coins_all = tier_breakdown.sum { |t| t[:total_coins] }
     avg_coins_per_hour = total_hours_all.positive? ? (total_coins_all / total_hours_all).round(2) : 0
 
+    approved_referrals_count = Referral.approved.count
+    referral_per_unit = Referral::PAYOUT_AMOUNT + Referral::PRIZE_POOL_CONTRIBUTION
+    referral_economy = {
+      count: approved_referrals_count,
+      per_unit: referral_per_unit,
+      total_coins: (approved_referrals_count * referral_per_unit).round(2)
+    }
+
     render inertia: "Admin/Metrics/Index", props: {
       range_days: days,
       summary: {
@@ -95,7 +103,8 @@ class Admin::MetricsController < Admin::ApplicationController
         total_hours: total_hours_all.round(1),
         total_coins: total_coins_all.round(2),
         avg_coins_per_hour: avg_coins_per_hour
-      }
+      },
+      referral_economy: referral_economy
     }
   end
 end

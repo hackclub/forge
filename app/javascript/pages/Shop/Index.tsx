@@ -128,7 +128,7 @@ export default function ShopIndex({ balance, can_buy_shop_items, eligible_projec
 
   return (
     <>
-      <Head title="Shop — Forge" />
+      <Head title="Shop - Forge" />
       <div className="p-5 md:p-12 max-w-6xl mx-auto space-y-8">
         <section className="flex items-end justify-between gap-6 flex-wrap">
           <div>

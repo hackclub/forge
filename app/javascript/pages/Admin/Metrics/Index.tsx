@@ -44,6 +44,12 @@ interface CoinEconomy {
   avg_coins_per_hour: number
 }
 
+interface ReferralEconomy {
+  count: number
+  per_unit: number
+  total_coins: number
+}
+
 export default function AdminMetricsIndex({
   range_days,
   summary,
@@ -53,6 +59,7 @@ export default function AdminMetricsIndex({
   payouts,
   tier_breakdown,
   coin_economy,
+  referral_economy,
 }: {
   range_days: number
   summary: Summary
@@ -62,6 +69,7 @@ export default function AdminMetricsIndex({
   payouts: Payouts
   tier_breakdown: TierRow[]
   coin_economy: CoinEconomy
+  referral_economy: ReferralEconomy
 }) {
   const max = Math.max(1, ...daily.map((d) => d.count))
   const ranges = [7, 30, 60, 90, 180]
@@ -95,7 +103,7 @@ export default function AdminMetricsIndex({
 
       <div className="bg-[#1c1b1b] ghost-border p-6 mb-10">
         <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">
-          Daily Active Users — last {range_days} days
+          Daily Active Users - last {range_days} days
         </h2>
         <div className="flex items-end gap-1 h-48">
           {daily.map((d) => {
@@ -124,7 +132,7 @@ export default function AdminMetricsIndex({
       </div>
 
       <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">
-        Referrals — last {range_days} days
+        Referrals - last {range_days} days
       </h2>
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-10">
         <Stat label="Total" value={referrals.total} />
@@ -135,7 +143,7 @@ export default function AdminMetricsIndex({
       </div>
 
       <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">
-        Coin payouts — last {range_days} days
+        Coin payouts - last {range_days} days
       </h2>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-10">
         <Stat label="Net payouts" value={payouts.total} hint="positive − negative" />
@@ -170,9 +178,17 @@ export default function AdminMetricsIndex({
                 <td className="px-4 py-3 text-stone-300 font-mono">{t.effective_rate}</td>
               </tr>
             ))}
+            <tr className="border-t border-white/5">
+              <td className="px-4 py-3 text-[#e5e2e1] font-headline font-bold">referrals</td>
+              <td className="px-4 py-3 text-stone-400 font-mono">{referral_economy.per_unit}</td>
+              <td className="px-4 py-3 text-stone-300">{referral_economy.count}</td>
+              <td className="px-4 py-3 text-stone-600">-</td>
+              <td className="px-4 py-3 text-[#ffb595] font-bold">{referral_economy.total_coins}</td>
+              <td className="px-4 py-3 text-stone-600">-</td>
+            </tr>
             <tr className="border-t border-white/10 bg-[#0e0e0e]/50">
               <td className="px-4 py-3 text-[#e5e2e1] font-headline font-bold uppercase text-xs tracking-[0.15em]">All tiers</td>
-              <td className="px-4 py-3 text-stone-600">—</td>
+              <td className="px-4 py-3 text-stone-600">-</td>
               <td className="px-4 py-3 text-stone-500">{tier_breakdown.reduce((n, t) => n + t.projects, 0)}</td>
               <td className="px-4 py-3 text-stone-500">{coin_economy.total_hours}</td>
               <td className="px-4 py-3 text-[#ffb595] font-bold">{coin_economy.total_coins}</td>

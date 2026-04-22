@@ -62,7 +62,7 @@ const STATUS_COLORS: Record<ProjectStatus, string> = {
 export default function HomeIndex({ user, projects, news_posts, staff_picks }: Props) {
   return (
     <>
-      <Head title="Dashboard — Forge" />
+      <Head title="Dashboard - Forge" />
       <div className="p-5 md:p-12 max-w-6xl mx-auto space-y-10">
         <section>
           <h1 className="text-5xl font-headline font-bold tracking-tight text-[#e5e2e1] mb-2">

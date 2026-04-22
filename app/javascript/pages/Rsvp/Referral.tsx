@@ -55,7 +55,7 @@ export default function RsvpReferral({
 
   return (
     <>
-      <Head title="Forge — Your Referral" />
+      <Head title="Forge - Your Referral" />
 
       <div className="min-h-screen bg-[#0e0e0e] text-[#e5e2e1] flex flex-col">
         <nav className="flex justify-between items-center px-8 md:px-16 py-8">

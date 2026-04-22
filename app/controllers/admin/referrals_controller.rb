@@ -53,6 +53,17 @@ class Admin::ReferralsController < Admin::ApplicationController
     redirect_to admin_referral_path(user), notice: "Approved #{count} referral#{'s' unless count == 1}."
   end
 
+  def force_approve_all
+    scope = Referral.where.not(status: Referral.statuses[:approved])
+    count = 0
+    scope.find_each do |r|
+      r.approve!(actor: current_user, force: true)
+      count += 1
+    end
+    audit!("referral.force_approved_all", metadata: { count: count })
+    redirect_to admin_referrals_path, notice: "Force-approved #{count} referral#{'s' unless count == 1}."
+  end
+
   def draw_winner
     approved = Referral.approved.includes(:referrer)
     tickets = approved.map(&:referrer).reject(&:nil?)
