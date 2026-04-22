@@ -24,7 +24,7 @@ We’ll be reviewing this way too\! After submitting your design, awesome people
 
 1. Your decisions make sense - we want your project to work!
 2. Your work is original
-3. Your design is good to [ship](/docs/Requirements-and-Shipping/shipping)
+3. Your design is good to [ship](/docs/requirements/shipping)
 
 ## How do you Journal?
 
