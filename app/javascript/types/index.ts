@@ -6,16 +6,27 @@ export interface User {
   roles: string[]
   is_admin: boolean
   is_staff: boolean
+  is_superadmin: boolean
   is_banned: boolean
+  current_streak: number
 }
 
 export type FlashData = Record<string, string>
+
+export interface NewsPostSummary {
+  id: number
+  title: string
+  body_html: string
+  published_at: string
+  author_name: string
+}
 
 export interface SharedProps {
   auth: { user: User | null }
   flash: FlashData
   sign_in_path: string
   sign_out_path: string
+  maintenance_mode: boolean
   errors: Record<string, string[]>
   [key: string]: unknown
 }
@@ -29,7 +40,7 @@ export interface PagyProps {
   prev: number | null
 }
 
-export type ProjectStatus = 'draft' | 'pending' | 'approved' | 'returned' | 'rejected' | 'build_pending' | 'build_approved'
+export type ProjectStatus = 'draft' | 'pending' | 'approved' | 'returned' | 'rejected' | 'pitch_approved' | 'pitch_pending'
 
 export interface ProjectCard {
   id: number
@@ -47,6 +58,7 @@ export interface UserAddress {
   state: string | null
   country: string | null
   postal_code: string | null
+  phone_number: string | null
 }
 
 export interface ProjectDetail {
@@ -57,18 +69,24 @@ export interface ProjectDetail {
   repo_link: string | null
   status: ProjectStatus
   devlog_mode: 'website' | 'git' | null
-  hcb_grant_link: string | null
   review_feedback: string | null
-  tier: 'normal' | 'advanced'
+  tier: ProjectTier
+  coin_rate: number
   from_slack: boolean
   cover_image_url: string | null
+  built_at: string | null
+  build_proof_url: string | null
+  airtable_sent: boolean
+  hca_address_portal_url: string
+  user_id: number
   user_display_name: string
+  user_avatar: string
   user_has_address: boolean
   user_address: UserAddress | null
   created_at: string
 }
 
-export type ProjectTier = 'normal' | 'advanced'
+export type ProjectTier = 'tier_1' | 'tier_2' | 'tier_3' | 'tier_4'
 
 export interface ProjectForm {
   id?: number
@@ -77,6 +95,7 @@ export interface ProjectForm {
   repo_link: string
   tags: string[]
   tier: ProjectTier
+  devlog_mode?: string | null
 }
 
 export interface AdminUserRow {
@@ -100,9 +119,46 @@ export interface AdminUserDetail {
   timezone: string
   is_banned: boolean
   ban_reason: string | null
-  is_beta_approved: boolean
+  shop_unlocked: boolean
+  maintenance_bypass: boolean
+  referral_code: string | null
+  fulfillment_regions: string[]
   is_discarded: boolean
   discarded_at: string | null
+  created_at: string
+}
+
+export interface HackatimeInfo {
+  username: string
+  trust_level: string
+  suspected: boolean
+  banned: boolean
+  total_coding_time: number | null
+  days_active: number | null
+  last_heartbeat_at: string | null
+}
+
+export interface UserNote {
+  id: number
+  content: string
+  author_name: string
+  author_avatar: string
+  created_at: string
+}
+
+export interface ProjectNote {
+  id: number
+  content: string
+  author_name: string
+  author_avatar: string
+  created_at: string
+}
+
+export interface KudoEntry {
+  id: number
+  content: string
+  author_name: string
+  author_avatar: string
   created_at: string
 }
 
@@ -130,6 +186,8 @@ export interface AdminProjectDetail {
   name: string
   subtitle: string | null
   description: string | null
+  red_flags: string[]
+  green_flags: string[]
   repo_link: string | null
   tags: string[]
   status: ProjectStatus
@@ -137,10 +195,9 @@ export interface AdminProjectDetail {
   reviewed_at: string | null
   reviewer_display_name: string | null
   pitch_text: string | null
-  hcb_grant_link: string | null
   from_slack: boolean
   slack_url: string | null
-  tier: 'normal' | 'advanced'
+  tier: ProjectTier
   budget: string | null
   cover_image_url: string | null
   override_hours: number | null
@@ -148,7 +205,11 @@ export interface AdminProjectDetail {
   readme_cache: string | null
   readme_fetched_at: string | null
   total_hours: number
+  devlog_hours: number
   devlogs: AdminDevlog[]
+  notes: ProjectNote[]
+  hidden: boolean
+  staff_pick: boolean
   is_discarded: boolean
   discarded_at: string | null
   user_id: number
@@ -189,4 +250,35 @@ export interface ShipForm {
   approved_seconds: number | null
   project_name: string
   user_display_name: string
+}
+
+export type SupportTicketStatus = 'open' | 'claimed' | 'resolved'
+
+export interface AdminSupportTicketRow {
+  id: number
+  slack_display_name: string
+  slack_avatar_url: string | null
+  original_text: string
+  status: SupportTicketStatus
+  claimed_by_name: string | null
+  resolved_by_name: string | null
+  slack_thread_url: string
+  bts_thread_url: string | null
+  created_at: string
+  resolved_at: string | null
+}
+
+export interface SupportLeaderboardEntry {
+  name: string
+  count: number
+}
+
+export interface SupportThreadMessage {
+  text: string
+  user: string
+  display_name: string
+  avatar_url: string | null
+  ts: string
+  is_bot: boolean
+  created_at: string
 }

@@ -15,10 +15,12 @@ module HcaService
   end
 
   def scopes
-    "openid email name profile verification_status slack_id"
+    base_scopes = %w[openid email name profile verification_status slack_id]
+    base_scopes += %w[address phone] unless community?
+    base_scopes.join(" ")
   end
 
-  def authorize_url(redirect_uri, state)
+  def authorize_url(redirect_uri, state, login_hint: nil)
     params = {
       client_id: ENV.fetch("HCA_CLIENT_ID", nil),
       redirect_uri: redirect_uri,
@@ -26,6 +28,7 @@ module HcaService
       scope: scopes,
       state: state
     }
+    params[:login_hint] = login_hint if login_hint.present?
     "#{host}/oauth/authorize?#{params.to_query}"
   end
 
@@ -92,5 +95,9 @@ module HcaService
 
   def connection
     @connection ||= Faraday.new(url: host)
+  end
+
+  def community?
+    ENV["HCA_COMMUNITY"] == "1"
   end
 end

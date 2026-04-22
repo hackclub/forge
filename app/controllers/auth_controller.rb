@@ -1,13 +1,20 @@
 class AuthController < ApplicationController
-  allow_unauthenticated_access only: %i[ new create ]
+  allow_unauthenticated_access only: %i[ show new create ]
   skip_before_action :redirect_banned_user!, only: %i[destroy]
   rate_limit to: 10, within: 3.minutes, only: :create, with: -> { redirect_to signin_path, alert: "Try again later." }
+
+  def show
+    return redirect_to home_path if user_signed_in?
+
+    render inertia: "Auth/SignIn"
+  end
 
   def new
     state = SecureRandom.hex(24)
     session[:state] = state
+    session[:referral_code] = params[:ref].to_s.strip.upcase if params[:ref].present?
 
-    redirect_to HcaService.authorize_url(hca_callback_url, state), allow_other_host: true
+    redirect_to HcaService.authorize_url(hca_callback_url, state, login_hint: params[:email].presence), allow_other_host: true
   end
 
   def create
@@ -27,6 +34,7 @@ class AuthController < ApplicationController
     begin
       user = User.exchange_hca_token(params[:code], hca_callback_url)
       session[:user_id] = user.id
+      attribute_referral(user)
 
       Rails.logger.tagged("Authentication") do
         Rails.logger.info({
@@ -35,6 +43,15 @@ class AuthController < ApplicationController
           email: user.email
         }.to_json)
       end
+
+      AuditEvent.create!(
+        actor: user,
+        action: "auth.signed_in",
+        target: user,
+        target_label: user.display_name,
+        ip_address: request.remote_ip,
+        metadata: { is_staff: user.staff? }
+      )
 
       redirect_to root_path, notice: "Welcome back, #{user.display_name}!"
     rescue StandardError => e
@@ -49,7 +66,22 @@ class AuthController < ApplicationController
   end
 
   def destroy
+    audit!("auth.signed_out", target: current_user) if current_user
     terminate_session
     redirect_to root_path, notice: "Signed out successfully. Cya!"
+  end
+
+  private
+
+  def attribute_referral(user)
+    code = session.delete(:referral_code)
+    return if code.blank?
+    return if user.referral_received.present?
+    return if user.created_at < 2.minutes.ago
+
+    referrer = User.find_by(referral_code: code)
+    return if referrer.nil? || referrer.id == user.id
+
+    Referral.create(referrer: referrer, referred: user, status: :pending)
   end
 end

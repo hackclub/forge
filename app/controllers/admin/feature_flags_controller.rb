@@ -1,5 +1,5 @@
 class Admin::FeatureFlagsController < Admin::ApplicationController
-  before_action :require_admin!
+  before_action :require_feature_flags_permission!
 
   def index
     @flags = FeatureFlag.order(:name)
@@ -13,6 +13,7 @@ class Admin::FeatureFlagsController < Admin::ApplicationController
     flag = FeatureFlag.new(flag_params)
 
     if flag.save
+      audit!("feature_flag.created", target: flag, metadata: { name: flag.name, enabled: flag.enabled })
       redirect_to admin_feature_flags_path, notice: "Flag '#{flag.name}' created."
     else
       redirect_to admin_feature_flags_path, alert: flag.errors.full_messages.join(", ")
@@ -22,16 +23,22 @@ class Admin::FeatureFlagsController < Admin::ApplicationController
   def toggle
     flag = FeatureFlag.find(params[:id])
     flag.update!(enabled: !flag.enabled)
+    audit!("feature_flag.toggled", target: flag, metadata: { name: flag.name, enabled: flag.enabled })
     redirect_to admin_feature_flags_path, notice: "Flag '#{flag.name}' #{flag.enabled? ? 'enabled' : 'disabled'}."
   end
 
   def destroy
     flag = FeatureFlag.find(params[:id])
+    audit!("feature_flag.destroyed", target: flag, label: flag.name, metadata: { name: flag.name })
     flag.destroy
     redirect_to admin_feature_flags_path, notice: "Flag '#{flag.name}' deleted."
   end
 
   private
+
+  def require_feature_flags_permission!
+    require_permission!("feature_flags")
+  end
 
   def flag_params
     params.expect(feature_flag: [ :name, :description, :enabled ])

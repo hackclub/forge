@@ -18,12 +18,15 @@ class MarkdownController < ApplicationController
     not_found unless File.expand_path(path).start_with?(File.expand_path(base))
 
     content_html = helpers.render_markdown_file(path)
+    file_meta = helpers.guide_metadata_for(path)
     meta = helpers.docs_meta_for_url("/docs#{slug == 'index' ? '' : "/#{slug}"}")
-    page_title = meta&.dig(:title).presence || slug.tr("-_/", " ").split.map(&:capitalize).join(" ")
+    page_title = file_meta[:title].presence || meta&.dig(:title).presence || slug.tr("-_/", " ").split.map(&:capitalize).join(" ")
 
     render inertia: "Markdown/Show", props: {
       content_html: content_html,
-      page_title: page_title
+      page_title: page_title,
+      sidebar_tree: helpers.docs_sidebar_tree,
+      current_path: "/docs#{slug == 'index' ? '' : "/#{slug}"}"
     }
   end
 
@@ -31,9 +34,10 @@ class MarkdownController < ApplicationController
 
   def valid_slug?(slug)
     return true if slug == "index"
-    return false if slug.include?("..") || slug.start_with?("/")
+    return false if slug.blank?
+    return false if slug.include?("..") || slug.start_with?("/") || slug.include?("\\")
 
-    slug.match?(%r{\A[a-z0-9_\-/]+\z})
+    slug.each_char.all? { |char| char.ord >= 32 && char.ord != 127 }
   end
 
   def not_found

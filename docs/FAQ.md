@@ -10,7 +10,7 @@ Forge is open to builders aged 13 to 18. You must be a member of the Hack Club S
 
 ## How much funding can I get?
 
-Infinite! (within reason) The amount depends on the scope of your project and the quality of your documentation. Still try to save cost where you can!
+Theoretically unlimited! The amount depends on the scope of your project and the quality of your documentation. Still try to save cost where you can!
 
 ## Do I need to know how to code?
 
@@ -19,6 +19,10 @@ Not necessarily - Forge is about hardware. If your project involves firmware, gr
 ## Can I use a non-GitHub repo?
 
 Yes!
+
+## Why do I have to pitch?
+
+For advanced projects, we want the community to help each other out with advanced projects! By pitching in #forgery, other Hack Clubbers can give you feedback and suggestions, and it also allows our reviewers to check your project before you start putting in the work.
 
 ## What happens if my pitch is rejected?
 
@@ -30,7 +34,7 @@ You can edit and resubmit your pitch! Read the feedback and try again, just by e
 
 ## How do I get my money?
 
-Once your project is approved, you'll receive funding through a virtual card on [HCB](https://hcb.hackclub.com). Please keep and upload all of your reciepts, since it is a requirement from the IRS! 
+Once your project is approved, you'll receive funding through a virtual card on [HCB](https://hcb.hackclub.com). Please keep and upload all of your receipts, since it is a requirement from the IRS! 
 
 > **We monitor your transactions.** Misuse of your funds will lead to a ban from Forge and potentially Hack Club as a whole. If you're not sure if something is an appropriate use of your funds, ask us before buying it!
 

@@ -6,25 +6,30 @@
 #
 #  id                           :bigint           not null, primary key
 #  budget                       :text
+#  build_proof_url              :string
+#  built_at                     :datetime
 #  cover_image_url              :string
 #  description                  :text
 #  devlog_mode                  :string
 #  discarded_at                 :datetime
-#  hcb_grant_link               :string
+#  green_flags                  :string           default([]), is an Array
+#  hidden                       :boolean          default(FALSE), not null
 #  name                         :string           not null
 #  override_hours               :decimal(, )
 #  override_hours_justification :text
 #  pitch_text                   :text
 #  readme_cache                 :text
 #  readme_fetched_at            :datetime
+#  red_flags                    :string           default([]), is an Array
 #  repo_link                    :string
 #  review_feedback              :text
 #  reviewed_at                  :datetime
 #  slack_message_ts             :string
+#  staff_pick_at                :datetime
 #  status                       :integer          default("draft"), not null
 #  subtitle                     :string
 #  tags                         :string           default([]), not null, is an Array
-#  tier                         :string           default("normal"), not null
+#  tier                         :string           default("tier_4"), not null
 #  created_at                   :datetime         not null
 #  updated_at                   :datetime         not null
 #  reviewer_id                  :bigint
@@ -33,10 +38,11 @@
 #
 # Indexes
 #
-#  index_projects_on_discarded_at  (discarded_at)
-#  index_projects_on_status        (status)
-#  index_projects_on_tags          (tags) USING gin
-#  index_projects_on_user_id       (user_id)
+#  index_projects_on_discarded_at   (discarded_at)
+#  index_projects_on_staff_pick_at  (staff_pick_at)
+#  index_projects_on_status         (status)
+#  index_projects_on_tags           (tags) USING gin
+#  index_projects_on_user_id        (user_id)
 #
 # Foreign Keys
 #

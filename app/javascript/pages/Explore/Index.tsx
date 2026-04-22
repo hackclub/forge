@@ -8,6 +8,7 @@ interface ExploreProject {
   name: string
   subtitle: string | null
   cover_image_url: string | null
+  user_id: number
   user_display_name: string
   user_avatar: string
   ships_count: number
@@ -33,12 +34,12 @@ export default function ExploreIndex({
   return (
     <>
       <Head title="Explore — Forge" />
-      <div className="p-12 max-w-[1400px] mx-auto">
+      <div className="p-5 md:p-12 max-w-[1400px] mx-auto">
         <section className="mb-12">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
             <div className="max-w-2xl">
               <h1 className="text-5xl font-headline font-medium tracking-tight mb-4">
-                Forge <span className="text-[#ffb595]">Dashboard</span>
+                <span className="text-[#ee671c]">Explore</span>
               </h1>
               <p className="text-stone-400 text-lg leading-relaxed">
                 Discover other Hack Clubbers working on hardware projects!
@@ -66,48 +67,57 @@ export default function ExploreIndex({
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {projects.map((project) => (
-                <Link
+                <div
                   key={project.id}
-                  href={`/projects/${project.id}`}
                   className="group bg-[#1c1b1b] p-1 rounded-xl transition-all duration-300 hover:bg-[#2a2a2a] ghost-border"
                 >
-                  <div className="aspect-[16/10] overflow-hidden rounded-lg mb-4 bg-[#0e0e0e] flex items-center justify-center">
-                    {project.cover_image_url ? (
-                      <img src={project.cover_image_url} alt={project.name} className="w-full h-full object-cover" />
-                    ) : (
-                      <span className="material-symbols-outlined text-6xl text-stone-800 group-hover:text-stone-700 transition-colors">precision_manufacturing</span>
-                    )}
-                  </div>
-
-                  <div className="px-5 pb-5">
-                    <div className="flex justify-between items-start mb-3">
-                      <span className="text-xs uppercase tracking-widest text-stone-500 bg-[#353534] px-3 py-1 rounded-full">
-                        Project
-                      </span>
-                      <span className="text-stone-500 text-xs">{project.ships_count} ships</span>
+                  <Link href={`/projects/${project.id}`} className="block">
+                    <div className="aspect-[16/10] overflow-hidden rounded-lg mb-4 bg-[#0e0e0e] flex items-center justify-center">
+                      {project.cover_image_url ? (
+                        <img src={project.cover_image_url} alt={project.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <img src="/orph-building.png" alt={project.name} className="max-h-[90%] max-w-[90%] object-contain" />
+                      )}
                     </div>
 
-                    <h3 className="text-xl font-headline font-medium mb-2 group-hover:text-[#ffb595] transition-colors">
-                      {project.name}
-                    </h3>
-
-                    {project.subtitle && (
-                      <p className="text-stone-500 text-sm mb-4 line-clamp-2">{project.subtitle}</p>
-                    )}
-
-                    <div className="flex justify-between items-center pt-2">
-                      <div className="flex items-center gap-2">
-                        <img
-                          src={project.user_avatar}
-                          alt={project.user_display_name}
-                          className="w-6 h-6 rounded-full border border-white/10"
-                        />
-                        <span className="text-xs text-stone-400">{project.user_display_name}</span>
+                    <div className="px-5">
+                      <div className="flex justify-between items-start mb-3">
+                        <span className="text-xs uppercase tracking-widest text-stone-500 bg-[#353534] px-3 py-1 rounded-full">
+                          Project
+                        </span>
                       </div>
-                      <span className="material-symbols-outlined text-lg text-stone-400 group-hover:text-[#ffb595] transition-colors">arrow_forward</span>
+
+                      <h3 className="text-xl font-headline font-medium mb-2 group-hover:text-[#ffb595] transition-colors break-words">
+                        {project.name}
+                      </h3>
+
+                      {project.subtitle && (
+                        <p className="text-stone-500 text-sm mb-4 line-clamp-2 break-words">{project.subtitle}</p>
+                      )}
                     </div>
+                  </Link>
+
+                  <div className="px-5 pb-5 flex justify-between items-center pt-2">
+                    <Link
+                      href={`/users/${project.user_id}`}
+                      className="flex items-center gap-2 text-stone-400 hover:text-[#ffb595] transition-colors"
+                    >
+                      <img
+                        src={project.user_avatar}
+                        alt={project.user_display_name}
+                        className="w-6 h-6 rounded-full border border-white/10"
+                      />
+                      <span className="text-xs">{project.user_display_name}</span>
+                    </Link>
+                    <Link
+                      href={`/projects/${project.id}`}
+                      className="text-stone-400 group-hover:text-[#ffb595] transition-colors"
+                      aria-label={`Open ${project.name}`}
+                    >
+                      <span className="material-symbols-outlined text-lg">arrow_forward</span>
+                    </Link>
                   </div>
-                </Link>
+                </div>
               ))}
             </div>
 

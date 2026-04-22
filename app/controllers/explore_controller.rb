@@ -2,7 +2,7 @@ class ExploreController < ApplicationController
   allow_unauthenticated_access
 
   def index
-    scope = Project.kept.includes(:user, :ships).order(created_at: :desc)
+    scope = Project.kept.where(hidden: false).includes(:user, :ships).order(created_at: :desc)
     scope = scope.search(params[:query]) if params[:query].present?
     @pagy, @projects = pagy(scope)
 
@@ -13,6 +13,7 @@ class ExploreController < ApplicationController
           name: p.name,
           subtitle: p.subtitle,
           cover_image_url: p.cover_image_url,
+          user_id: p.user_id,
           user_display_name: p.user.display_name,
           user_avatar: p.user.avatar,
           ships_count: p.ships.size,

@@ -99,17 +99,16 @@ Rails.application.routes.draw do
       get "/" => "static_pages#index", as: :root
       get "pitches" => "projects#pitches", as: :pitches
       get "reviews" => "projects#reviews", as: :reviews
-    end
-  end
 
-  constraints AdminConstraint.new do
-    mount MissionControl::Jobs::Engine, at: "/admin/jobs"
-
-    namespace :admin do
       resources :projects, only: [ :index, :show, :destroy ] do
         member do
           post :review
           post :restore
+          post :toggle_hidden
+          post :toggle_staff_pick
+          post :change_tier
+          post :add_note
+          delete "notes/:note_id" => "projects#destroy_note", as: :destroy_note
         end
       end
       resources :users, only: [ :index, :show, :destroy ] do
@@ -119,7 +118,16 @@ Rails.application.routes.draw do
           post :restore
           post :ban
           post :unban
-          post :toggle_beta_approval
+          post :add_note
+          delete "notes/:note_id" => "users#destroy_note", as: :destroy_note
+          post :add_kudo
+          delete "kudos/:kudo_id" => "users#destroy_kudo", as: :destroy_kudo
+          post :adjust_coins
+          get :coin_history
+          post :toggle_shop_unlocked
+          post :toggle_maintenance_bypass
+          post :generate_referral_code
+          patch :update_fulfillment_regions
         end
       end
       resources :feature_flags, only: [ :index, :create, :destroy ] do
@@ -127,37 +135,93 @@ Rails.application.routes.draw do
           post :toggle
         end
       end
+      resources :news_posts, only: [ :index, :create, :update, :destroy ] do
+        member do
+          post :toggle
+        end
+      end
+      resources :orders, only: [ :index, :show ] do
+        member do
+          post :approve
+          post :reject
+          post :fulfill
+          post :reassign
+        end
+      end
+      resources :shop_items, only: [ :index, :create, :update, :destroy ]
       resources :rsvps, only: [ :index, :destroy ] do
         collection do
           get :export
         end
       end
+      resources :referrals, only: [ :index, :show ] do
+        member do
+          post :approve_all
+        end
+        collection do
+          post "approve/:referral_id" => "referrals#approve_one", as: :approve_one
+          post :draw_winner
+          post :reset_pool
+        end
+      end
+      resources :airtable_queue, only: [ :index, :show ] do
+        member do
+          post :send_to_airtable
+          post :cancel
+        end
+      end
+      get "metrics" => "metrics#index", as: :metrics
       get "audit_log" => "audit_log#index", as: :audit_log
       get "audit_log/:id" => "audit_log#show", as: :audit_log_entry
       get "database" => "database#index", as: :database
       post "database/query" => "database#query"
-      post "database/execute" => "database#execute"
+      resources :support_tickets, only: [ :index, :show, :destroy ], path: "support" do
+        member do
+          post :reply
+          post :claim
+          post :resolve
+        end
+      end
     end
   end
 
+  constraints AdminConstraint.new do
+    mount MissionControl::Jobs::Engine, at: "/admin/jobs"
+  end
+
   post "slack/events" => "slack/events#create"
+  post "slack/interactivity" => "slack/interactivity#create"
 
   get "up" => "rails/health#show", as: :rails_health_check
 
   root "landing#index"
 
-  get "auth/hca/start" => "auth#new", as: :signin
+  get "signin" => "auth#show", as: :signin
+  get "auth/hca/start" => "auth#new", as: :hca_start
   get "auth/hca/callback" => "auth#create", as: :hca_callback
   delete "auth/signout" => "auth#destroy", as: :signout
 
   get "sorry" => "bans#show", as: :sorry
 
   get "home" => "home#index", as: :home
-  patch "profile/address" => "profile#update_address", as: :update_address
+  get "settings" => "settings#show", as: :settings
+  post "profile/sync_address" => "profile#sync_address", as: :sync_address
   get "rsvp" => "rsvps#index", as: :rsvp
   post "rsvp" => "rsvps#create"
+  get "rsvp/referral" => "rsvps#referral", as: :rsvp_referral
 
   get "explore" => "explore#index", as: :explore
+  get "leaderboard" => "leaderboard#index", as: :leaderboard
+  get "referrals" => "referrals#index", as: :referrals
+  get "shop" => "shop#index", as: :shop
+  post "shop/orders" => "shop#create", as: :shop_orders
+  patch "shop/region" => "shop#update_region", as: :shop_region
+  get "users/:id" => "users#show", as: :user
+  post "users/:id/kudos" => "users#add_kudo", as: :user_kudos
+  delete "users/:id/kudos/:kudo_id" => "users#destroy_kudo", as: :user_kudo
+  patch "users/:id/github" => "users#update_github", as: :user_github
+  get "news" => "news#index", as: :news
+  get "news/:id" => "news#show", as: :news_post
 
   resources :projects, except: :index do
     collection do
@@ -165,15 +229,18 @@ Rails.application.routes.draw do
     end
     member do
       post :submit_for_review
-      post :submit_build
       post :sync_journal
+      get :export_devlogs
       post :resubmit_pitch
-      get :resubmit_pitch
       post :upload_cover_image
       patch :set_devlog_mode
       patch :link_repo
+      post :mark_built
+      post :add_kudo
+      delete "kudos/:kudo_id" => "projects#destroy_kudo", as: :destroy_kudo
     end
-    resources :devlogs, only: [ :create, :destroy ]
+    resources :devlogs, only: [ :show, :create, :update, :destroy ]
+    post "devlog_image" => "devlogs#upload_image", as: :devlog_image
   end
 
   get "docs" => "markdown#show", as: :docs
@@ -182,6 +249,7 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
       resources :projects, only: [ :index, :show ]
+      resources :users, only: [ :show ]
     end
   end
 

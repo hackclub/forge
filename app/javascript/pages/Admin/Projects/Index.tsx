@@ -5,22 +5,23 @@ import type { AdminProjectRow, PagyProps, ProjectStatus } from '@/types'
 
 const statusConfig: Record<ProjectStatus, { label: string; text: string }> = {
   draft: { label: 'Draft', text: 'text-stone-400' },
-  pending: { label: 'Pitch Review', text: 'text-amber-400' },
+  pending: { label: 'Pending Review', text: 'text-amber-400' },
   approved: { label: 'Approved', text: 'text-emerald-400' },
   returned: { label: 'Returned', text: 'text-orange-400' },
   rejected: { label: 'Rejected', text: 'text-red-400' },
-  build_pending: { label: 'Build Review', text: 'text-amber-500' },
-  build_approved: { label: 'Build Approved', text: 'text-emerald-400' },
+  pitch_approved: { label: 'Pitch Approved', text: 'text-emerald-400' },
+  pitch_pending: { label: 'Pitch Review', text: 'text-amber-400' },
 }
 
 const filters = [
   { key: '', label: 'All' },
   { key: 'pending', label: 'Pending' },
   { key: 'approved', label: 'Approved' },
-  { key: 'build_approved', label: 'Build Approved' },
+  { key: 'pitch_approved', label: 'Pitch Approved' },
   { key: 'returned', label: 'Returned' },
   { key: 'rejected', label: 'Rejected' },
   { key: 'draft', label: 'Draft' },
+  { key: 'deleted', label: 'Deleted' },
 ]
 
 export default function AdminProjectsIndex({
@@ -53,8 +54,8 @@ export default function AdminProjectsIndex({
   }
 
   return (
-    <div className="p-12 max-w-[1400px] mx-auto">
-      <div className="flex items-center justify-between mb-8">
+    <div className="p-5 md:p-12 max-w-[1400px] mx-auto">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
         <h1 className="text-4xl font-headline font-bold text-[#e5e2e1] tracking-tight">{page_title || 'All Projects'}</h1>
         <form onSubmit={search} className="flex gap-2">
           <input
@@ -93,8 +94,8 @@ export default function AdminProjectsIndex({
 
       {projects.length > 0 ? (
         <>
-          <div className="ghost-border overflow-hidden">
-            <table className="w-full">
+          <div className="ghost-border overflow-x-auto">
+            <table className="w-full min-w-[720px]">
               <thead>
                 <tr className="border-b border-white/5">
                   <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">ID</th>

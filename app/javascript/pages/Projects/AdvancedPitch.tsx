@@ -2,14 +2,19 @@ import { Link } from '@inertiajs/react'
 
 export default function ProjectsAdvancedPitch() {
   return (
-    <div className="p-12 max-w-2xl mx-auto">
+    <div className="p-5 md:p-12 max-w-2xl mx-auto">
       <Link href="/projects/new" className="text-stone-500 hover:text-stone-300 transition-colors text-xs font-bold uppercase tracking-[0.2em] flex items-center gap-1 mb-8">
         <span className="material-symbols-outlined text-sm">arrow_back</span>
         Back
       </Link>
 
       <div className="flex items-center gap-3 mb-4">
-        <span className="material-symbols-outlined text-3xl text-[#ee671c]">rocket_launch</span>
+        <span
+          className="material-symbols-outlined text-4xl text-[#ee671c]"
+          style={{ fontVariationSettings: "'FILL' 1" }}
+        >
+          precision_manufacturing
+        </span>
         <h1 className="text-4xl font-headline font-bold text-[#e5e2e1] tracking-tight">Advanced Project</h1>
       </div>
 

@@ -4,9 +4,11 @@ class ApplicationController < ActionController::Base
   include SentryContext
   include Pagy::Method
   include InertiaPagination
+  include Auditable
 
-  before_action :gate_beta_access
+  before_action :check_maintenance_mode
   before_action :track_ahoy_visit
+  before_action :track_user_activity
   before_action :set_paper_trail_whodunnit
 
   rescue_from Pundit::NotAuthorizedError, with: :user_not_authorized
@@ -25,23 +27,42 @@ class ApplicationController < ActionController::Base
           roles: u.roles,
           is_admin: u.admin?,
           is_staff: u.staff?,
-          is_banned: u.is_banned
+          is_superadmin: u.superadmin?,
+          is_banned: u.is_banned,
+          current_streak: u.current_streak
         }
       }
     }
   }
   inertia_share flash: -> { flash.to_hash }
+  inertia_share maintenance_mode: -> { FeatureFlag.enabled?("maintenance_mode") }
   inertia_share sign_in_path: -> { signin_path }
   inertia_share sign_out_path: -> { signout_path }
 
   private
 
-  def gate_beta_access
-    return if current_user&.admin?
-    return if current_user&.is_beta_approved
-    return if request.path == "/rsvp" || request.path.start_with?("/auth") || request.path.start_with?("/slack") || request.path.start_with?("/up") || request.path.start_with?("/rails/active_storage")
+  def check_maintenance_mode
+    return unless FeatureFlag.enabled?("maintenance_mode")
+    return if current_user&.staff? || current_user&.maintenance_bypass?
 
-    redirect_to "/rsvp"
+    render inertia: "Maintenance", props: {}
+  end
+
+  def track_user_activity
+    return unless user_signed_in?
+
+    now = Time.current
+    today = now.to_date
+    if session[:activity_tracked_on] != today.iso8601
+      current_user.record_activity!(today)
+      session[:activity_tracked_on] = today.iso8601
+    end
+
+    if current_user.last_seen_at.nil? || current_user.last_seen_at < 1.minute.ago
+      current_user.update_columns(last_seen_at: now)
+    end
+  rescue StandardError => e
+    Rails.logger.warn("track_user_activity failed: #{e.class}: #{e.message}")
   end
 
   def track_ahoy_visit

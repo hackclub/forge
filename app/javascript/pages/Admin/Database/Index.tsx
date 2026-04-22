@@ -1,14 +1,9 @@
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 
 interface QueryResult {
   columns: string[]
   rows: (string | number | boolean | null)[][]
   row_count: number
-}
-
-interface ExecuteResult {
-  message: string
-  affected_rows: number
 }
 
 interface ErrorResult {
@@ -18,11 +13,9 @@ interface ErrorResult {
 export default function AdminDatabaseIndex({ tables }: { tables: string[] }) {
   const [sql, setSql] = useState('')
   const [result, setResult] = useState<QueryResult | null>(null)
-  const [executeMsg, setExecuteMsg] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [selectedTable, setSelectedTable] = useState<string | null>(null)
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   const csrfToken = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content || ''
 
@@ -32,7 +25,6 @@ export default function AdminDatabaseIndex({ tables }: { tables: string[] }) {
 
     setLoading(true)
     setError(null)
-    setExecuteMsg(null)
     setResult(null)
 
     try {
@@ -54,46 +46,11 @@ export default function AdminDatabaseIndex({ tables }: { tables: string[] }) {
     }
   }
 
-  async function runExecute() {
-    if (!sql.trim()) return
-    if (!confirm('This will execute a write operation. Continue?')) return
-
-    setLoading(true)
-    setError(null)
-    setExecuteMsg(null)
-    setResult(null)
-
-    try {
-      const res = await fetch('/admin/database/execute', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
-        body: JSON.stringify({ sql }),
-      })
-      const data: ExecuteResult | ErrorResult = await res.json()
-      if ('error' in data) {
-        setError(data.error)
-      } else {
-        setExecuteMsg(`${data.message} (${data.affected_rows} rows affected)`)
-      }
-    } catch (e) {
-      setError('Request failed')
-    } finally {
-      setLoading(false)
-    }
-  }
-
   function selectTable(table: string) {
     setSelectedTable(table)
     const query = `SELECT * FROM ${table} LIMIT 50`
     setSql(query)
     runQuery(query)
-  }
-
-  function deleteRow(table: string, primaryKey: string, id: string | number | boolean | null) {
-    if (!confirm(`Delete row with ${primaryKey} = ${id} from ${table}?`)) return
-    const query = `DELETE FROM ${table} WHERE ${primaryKey} = ${typeof id === 'string' ? `'${id.replace(/'/g, "''")}'` : id}`
-    setSql(query)
-    runExecute()
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {
@@ -103,10 +60,8 @@ export default function AdminDatabaseIndex({ tables }: { tables: string[] }) {
     }
   }
 
-  const idColumnIndex = result?.columns.findIndex(c => c === 'id') ?? -1
-
   return (
-    <div className="p-12 max-w-[1600px] mx-auto">
+    <div className="p-5 md:p-12 max-w-[1600px] mx-auto">
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-4xl font-headline font-bold text-[#e5e2e1] tracking-tight">Database Console</h1>
       </div>
@@ -134,7 +89,6 @@ export default function AdminDatabaseIndex({ tables }: { tables: string[] }) {
         <div className="flex-1 min-w-0 space-y-4">
           <div className="ghost-border bg-[#1c1b1b] p-4">
             <textarea
-              ref={textareaRef}
               value={sql}
               onChange={(e) => setSql(e.target.value)}
               onKeyDown={handleKeyDown}
@@ -150,13 +104,6 @@ export default function AdminDatabaseIndex({ tables }: { tables: string[] }) {
               >
                 {loading ? 'Running...' : 'Run Query'}
               </button>
-              <button
-                onClick={runExecute}
-                disabled={loading}
-                className="ghost-border bg-[#1c1b1b] text-stone-400 hover:bg-[#2a2a2a] px-6 py-3 font-bold uppercase tracking-wider text-xs cursor-pointer disabled:opacity-50"
-              >
-                Execute (Write)
-              </button>
               <span className="text-stone-600 text-xs self-center ml-2">⌘+Enter to run</span>
             </div>
           </div>
@@ -164,12 +111,6 @@ export default function AdminDatabaseIndex({ tables }: { tables: string[] }) {
           {error && (
             <div className="border border-red-500/20 bg-red-500/5 px-5 py-4 text-red-400 text-sm font-mono">
               {error}
-            </div>
-          )}
-
-          {executeMsg && (
-            <div className="border border-emerald-500/20 bg-emerald-500/5 px-5 py-4 text-emerald-400 text-sm">
-              {executeMsg}
             </div>
           )}
 
@@ -187,9 +128,6 @@ export default function AdminDatabaseIndex({ tables }: { tables: string[] }) {
                           {col}
                         </th>
                       ))}
-                      {selectedTable && idColumnIndex >= 0 && (
-                        <th className="text-right px-4 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">Actions</th>
-                      )}
                     </tr>
                   </thead>
                   <tbody>
@@ -200,16 +138,6 @@ export default function AdminDatabaseIndex({ tables }: { tables: string[] }) {
                             {cell === null ? <span className="text-stone-600 italic">NULL</span> : String(cell)}
                           </td>
                         ))}
-                        {selectedTable && idColumnIndex >= 0 && (
-                          <td className="px-4 py-3 text-right">
-                            <button
-                              onClick={() => deleteRow(selectedTable, 'id', row[idColumnIndex])}
-                              className="text-red-400/50 hover:text-red-400 transition-colors cursor-pointer"
-                            >
-                              <span className="material-symbols-outlined text-lg">delete</span>
-                            </button>
-                          </td>
-                        )}
                       </tr>
                     ))}
                   </tbody>

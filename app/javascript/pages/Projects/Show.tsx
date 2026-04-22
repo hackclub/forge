@@ -1,9 +1,10 @@
-import { useState } from 'react'
-import { router, Link, useForm } from '@inertiajs/react'
+import { useState, useRef } from 'react'
+import { router, Link, useForm, usePage } from '@inertiajs/react'
 import Markdown from 'react-markdown'
 import rehypeRaw from 'rehype-raw'
 import remarkGfm from 'remark-gfm'
-import type { ProjectDetail, ProjectStatus } from '@/types'
+import type { ProjectDetail, ProjectStatus, SharedProps } from '@/types'
+import ReviewTimeline, { type ReviewEvent } from '@/components/ReviewTimeline'
 
 function isSafeUrl(url: string | null): boolean {
   if (!url) return false
@@ -23,25 +24,58 @@ interface DevlogEntry {
   created_at: string
 }
 
+interface ProjectKudo {
+  id: number
+  content: string
+  author_id: number
+  author_name: string
+  author_avatar: string
+  author_is_staff: boolean
+  can_destroy: boolean
+  created_at: string
+}
+
 const statusConfig: Record<ProjectStatus, { label: string; bg: string; text: string; icon: string }> = {
   draft: { label: 'Draft', bg: 'bg-stone-500/10', text: 'text-stone-400', icon: 'edit_note' },
   pending: { label: 'Pending Review', bg: 'bg-amber-500/10', text: 'text-amber-400', icon: 'schedule' },
   approved: { label: 'Approved', bg: 'bg-emerald-500/10', text: 'text-emerald-400', icon: 'check_circle' },
   returned: { label: 'Returned', bg: 'bg-orange-500/10', text: 'text-orange-400', icon: 'undo' },
   rejected: { label: 'Rejected', bg: 'bg-red-500/10', text: 'text-red-400', icon: 'cancel' },
-  build_pending: { label: 'Build Under Review', bg: 'bg-amber-500/10', text: 'text-amber-400', icon: 'engineering' },
-  build_approved: { label: 'Build Approved', bg: 'bg-emerald-500/10', text: 'text-emerald-400', icon: 'verified' },
+  pitch_approved: { label: 'Pitch Approved', bg: 'bg-emerald-500/10', text: 'text-emerald-400', icon: 'check_circle' },
+  pitch_pending: { label: 'Pitch Under Review', bg: 'bg-amber-500/10', text: 'text-amber-400', icon: 'schedule' },
 }
 
 export default function ProjectsShow({
   project,
   devlogs,
+  kudos,
+  review_history,
   can,
+  is_admin_view,
 }: {
   project: ProjectDetail
   devlogs: DevlogEntry[]
-  can: { update: boolean; destroy: boolean; submit_for_review: boolean }
+  kudos: ProjectKudo[]
+  review_history: ReviewEvent[]
+  can: { update: boolean; destroy: boolean; submit_for_review: boolean; give_kudos: boolean }
+  is_admin_view: boolean
 }) {
+  const [kudoContent, setKudoContent] = useState('')
+
+  function submitKudo(e: React.FormEvent) {
+    e.preventDefault()
+    if (!kudoContent.trim()) return
+    router.post(`/projects/${project.id}/add_kudo`, { content: kudoContent }, {
+      preserveScroll: true,
+      onSuccess: () => setKudoContent(''),
+    })
+  }
+
+  function deleteKudo(kudoId: number) {
+    if (!confirm('Delete this kudos?')) return
+    router.delete(`/projects/${project.id}/kudos/${kudoId}`, { preserveScroll: true })
+  }
+
   const [showDevlogForm, setShowDevlogForm] = useState(false)
   const [showRepoForm, setShowRepoForm] = useState(false)
   const [repoUrl, setRepoUrl] = useState('')
@@ -55,19 +89,38 @@ export default function ProjectsShow({
     time_spent: '',
   })
 
-  const addressForm = useForm({
-    address_line1: project.user_address?.address_line1 || '',
-    address_line2: project.user_address?.address_line2 || '',
-    city: project.user_address?.city || '',
-    state: project.user_address?.state || '',
-    country: project.user_address?.country || '',
-    postal_code: project.user_address?.postal_code || '',
+  const [editingDevlogId, setEditingDevlogId] = useState<number | null>(null)
+  const editDevlogForm = useForm({
+    title: '',
+    content: '',
+    time_spent: '',
   })
 
-  function saveAddress(e: React.FormEvent) {
-    e.preventDefault()
-    addressForm.patch('/profile/address', { preserveScroll: true })
+  function startEditDevlog(entry: DevlogEntry) {
+    setEditingDevlogId(entry.id)
+    editDevlogForm.setData({
+      title: entry.title,
+      content: entry.content,
+      time_spent: entry.time_spent || '',
+    })
   }
+
+  function cancelEditDevlog() {
+    setEditingDevlogId(null)
+    editDevlogForm.reset()
+  }
+
+  function submitEditDevlog(e: React.FormEvent, id: number) {
+    e.preventDefault()
+    editDevlogForm.patch(`/projects/${project.id}/devlogs/${id}`, {
+      preserveScroll: true,
+      onSuccess: () => {
+        setEditingDevlogId(null)
+        editDevlogForm.reset()
+      },
+    })
+  }
+
 
   function uploadCoverImage(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -112,6 +165,54 @@ export default function ProjectsShow({
     }
   }
 
+  const contentRef = useRef('')
+
+  function handleImagePaste(
+    e: React.ClipboardEvent<HTMLTextAreaElement>,
+    setContent: (val: string) => void,
+    currentContent: string,
+  ) {
+    const items = e.clipboardData?.items
+    if (!items) return
+
+    for (const item of Array.from(items)) {
+      if (!item.type.startsWith('image/')) continue
+      e.preventDefault()
+      const file = item.getAsFile()
+      if (!file) return
+
+      const textarea = e.currentTarget
+      const start = textarea.selectionStart
+      const placeholder = `![Uploading ${file.name}...]()`
+      const before = currentContent.slice(0, start)
+      const after = currentContent.slice(textarea.selectionEnd)
+      const withPlaceholder = before + placeholder + after
+      setContent(withPlaceholder)
+      contentRef.current = withPlaceholder
+
+      const formData = new FormData()
+      formData.append('file', file)
+      const csrfToken = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content
+      fetch(`/projects/${project.id}/devlog_image`, {
+        method: 'POST',
+        headers: csrfToken ? { 'X-CSRF-Token': csrfToken } : {},
+        body: formData,
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          const updated = contentRef.current.replace(placeholder, data.markdown)
+          contentRef.current = updated
+          setContent(updated)
+        })
+        .catch(() => {
+          const updated = contentRef.current.replace(placeholder, `![upload failed]()`)
+          contentRef.current = updated
+          setContent(updated)
+        })
+      return
+    }
+  }
+
   function linkRepo(e: React.FormEvent) {
     e.preventDefault()
     router.patch(`/projects/${project.id}/link_repo`, { repo_link: repoUrl }, {
@@ -130,96 +231,181 @@ export default function ProjectsShow({
   }
 
   const status = statusConfig[project.status]
+  const isNormalTier = project.tier !== 'tier_1'
+  const isPitchApproved = project.status === 'pitch_approved'
   const isApproved = project.status === 'approved'
-  const isBuildingPhase = isApproved || project.status === 'build_pending' || project.status === 'build_approved'
-  const isNormalTier = project.tier === 'normal'
-  const needsDevlogChoice = isApproved && !isNormalTier && !project.devlog_mode && can.update
+  const isPending = project.status === 'pending'
+  const isReturned = project.status === 'returned'
+  const isBuildingPhase = isPitchApproved || isApproved || isPending || isReturned || (project.status === 'draft' && isNormalTier)
   const isGitMode = project.devlog_mode === 'git'
-  const isWebMode = project.devlog_mode === 'website' || isNormalTier
-  const showWebDevlog = (isBuildingPhase && isWebMode) || (isNormalTier && can.update)
-  const showCoverUpload = can.update && (isApproved || isNormalTier)
+  const isWebMode = project.devlog_mode === 'website'
+  const canLog = isBuildingPhase
+  const needsDevlogChoice = canLog && !project.devlog_mode && can.update
+  const showGitDevlog = canLog && isGitMode
+  const showWebDevlog = canLog && isWebMode
+  const showCoverUpload = can.update && canLog
+  const isPitchReturn = isReturned && !isNormalTier && project.from_slack && devlogs.length === 0
 
   const totalHours = devlogs.reduce((sum, entry) => {
     if (!entry.time_spent) return sum
-    const match = entry.time_spent.match(/([\d.]+)\s*(?:hrs?|hours?)/i)
+    const match = entry.time_spent.match(/([\d.]+)/)
     return match ? sum + parseFloat(match[1]) : sum
   }, 0)
 
+  const isStaff = !!usePage<SharedProps>().props.auth.user?.is_staff
+
   return (
-    <div className="p-12 max-w-[1400px] mx-auto">
-      {project.cover_image_url && (
-        <div className="mb-10 ghost-border overflow-hidden">
-          <img src={project.cover_image_url} alt={project.name} className="w-full max-h-[400px] object-cover" />
+    <div className="p-5 md:p-12 max-w-[1400px] mx-auto">
+      {is_admin_view && (
+        <div className="mb-6 border border-amber-500/40 bg-amber-500/10 px-5 py-3 flex items-center gap-3 flex-wrap">
+          <span className="material-symbols-outlined text-amber-400">shield_person</span>
+          <p className="text-amber-300 text-sm flex-1 min-w-0">
+            <span className="font-bold">Admin view.</span> You're editing <span className="font-bold">{project.user_display_name}'s</span> project. Changes affect them, not you.
+          </p>
         </div>
       )}
-      <div className="grid grid-cols-12 gap-12">
-        <div className="col-span-12 lg:col-span-8">
-          <section className="mb-12">
-            <div className="flex items-center gap-3 mb-4">
+      {isStaff && (
+        <div className="mb-6 flex justify-end">
+          <Link
+            href={`/admin/projects/${project.id}`}
+            className="ghost-border bg-[#1c1b1b] hover:bg-[#2a2a2a] text-stone-400 hover:text-[#ffb595] px-4 py-2 text-[10px] font-bold uppercase tracking-[0.15em] inline-flex items-center gap-2 transition-colors"
+          >
+            <span className="material-symbols-outlined text-sm">shield_person</span>
+            View on Admin Page
+          </Link>
+        </div>
+      )}
+      <header className="mb-10 ghost-border bg-[#1c1b1b] overflow-hidden">
+        {project.cover_image_url ? (
+          <div className="relative group">
+            <img src={project.cover_image_url} alt={project.name} className="w-full max-h-[320px] object-cover" />
+            {showCoverUpload && (
+              <label className="absolute top-3 right-3 bg-black/70 hover:bg-black/90 text-white px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.15em] flex items-center gap-2 cursor-pointer transition-all opacity-0 group-hover:opacity-100">
+                <span className="material-symbols-outlined text-sm">upload</span>
+                {uploadingCover ? 'Uploading...' : 'Replace'}
+                <input type="file" accept="image/*" onChange={uploadCoverImage} className="hidden" disabled={uploadingCover} />
+              </label>
+            )}
+          </div>
+        ) : showCoverUpload ? (
+          <label className="block bg-[#0e0e0e] hover:bg-[#2a2a2a] text-stone-500 hover:text-[#e5e2e1] px-4 py-12 text-xs font-bold uppercase tracking-[0.15em] flex flex-col items-center justify-center gap-2 cursor-pointer transition-colors border-b border-white/5">
+            <span className="material-symbols-outlined text-3xl">add_photo_alternate</span>
+            {uploadingCover ? 'Uploading...' : 'Upload Cover Image'}
+            <input type="file" accept="image/*" onChange={uploadCoverImage} className="hidden" disabled={uploadingCover} />
+          </label>
+        ) : null}
+        <div className="p-8">
+          <div className="flex items-center gap-2 mb-4 flex-wrap">
+            {!((isPitchApproved || isPending) && isNormalTier) && (
               <span className={`${status.bg} ${status.text} px-3 py-1 text-[10px] uppercase font-bold tracking-widest flex items-center gap-1.5`}>
                 <span className="material-symbols-outlined text-sm">{status.icon}</span>
                 {status.label}
               </span>
-              {project.devlog_mode && (
-                <span className="bg-[#353534] text-stone-300 px-3 py-1 text-[10px] uppercase font-bold tracking-widest">
-                  {project.devlog_mode === 'git' ? 'Git Journal' : 'Web Devlog'}
-                </span>
+            )}
+            {project.devlog_mode && (
+              <span className="bg-[#353534] text-stone-400 px-3 py-1 text-[10px] uppercase font-bold tracking-widest">
+                {project.devlog_mode === 'git' ? 'Git Journal' : 'Web Devlog'}
+              </span>
+            )}
+            <span className="bg-[#353534] text-stone-400 px-3 py-1 text-[10px] uppercase font-bold tracking-widest">
+              {isNormalTier ? 'Normal' : 'Advanced'}
+            </span>
+            {project.built_at && (
+              <span className="bg-emerald-500/10 text-emerald-400 px-3 py-1 text-[10px] uppercase font-bold tracking-widest flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-sm">verified</span>
+                Built {project.built_at}
+              </span>
+            )}
+          </div>
+
+          <h1 className="text-5xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-3 leading-none">
+            {project.name}
+          </h1>
+
+          {editingSubtitle && can.update ? (
+            <form onSubmit={saveSubtitle} className="space-y-3 mb-4 max-w-2xl">
+              <textarea
+                value={subtitleDraft}
+                onChange={(e) => setSubtitleDraft(e.target.value)}
+                rows={2}
+                className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 text-sm"
+                placeholder="A short description of your project"
+                autoFocus
+              />
+              <div className="flex gap-2">
+                <button type="submit" className="signature-smolder text-[#4c1a00] px-5 py-2 text-xs font-bold uppercase tracking-[0.15em] cursor-pointer">Save</button>
+                <button type="button" onClick={() => { setEditingSubtitle(false); setSubtitleDraft(project.subtitle || '') }} className="ghost-border text-stone-400 px-4 py-2 text-xs cursor-pointer">Cancel</button>
+              </div>
+            </form>
+          ) : project.subtitle ? (
+            <p className="text-lg text-stone-400 leading-relaxed max-w-2xl group inline-flex items-start gap-2 mb-4">
+              <span>{project.subtitle}</span>
+              {can.update && (
+                <button onClick={() => setEditingSubtitle(true)} className="text-stone-600 hover:text-[#ffb595] opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer mt-1" title="Edit description">
+                  <span className="material-symbols-outlined text-sm">edit</span>
+                </button>
+              )}
+            </p>
+          ) : can.update ? (
+            <button
+              onClick={() => setEditingSubtitle(true)}
+              className="ghost-border bg-[#0e0e0e] hover:bg-[#2a2a2a] text-stone-400 hover:text-[#e5e2e1] px-4 py-2 text-xs font-bold uppercase tracking-[0.15em] inline-flex items-center gap-2 cursor-pointer transition-colors mb-4"
+            >
+              <span className="material-symbols-outlined text-sm">add</span>
+              Add Description
+            </button>
+          ) : null}
+
+
+          <div className="flex flex-wrap items-center gap-4 pt-5 border-t border-white/5">
+            <Link
+              href={`/users/${project.user_id}`}
+              className="flex items-center gap-3 text-stone-300 hover:text-[#ffb595] transition-colors group"
+            >
+              <img src={project.user_avatar} alt={project.user_display_name} className="w-10 h-10 border border-white/10" />
+              <div>
+                <p className="text-sm font-headline font-bold group-hover:text-[#ffb595] transition-colors">{project.user_display_name}</p>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-stone-600">Started {project.created_at}</p>
+              </div>
+            </Link>
+
+            <div className="flex items-center gap-6 ml-auto text-xs flex-wrap">
+              {devlogs.length > 0 && totalHours > 0 && (
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-base text-[#ffb595]">schedule</span>
+                  <span className="text-[#ffb595] font-headline font-bold text-base">{totalHours}h</span>
+                </div>
+              )}
+              {devlogs.length > 0 && (
+                <div className="flex items-center gap-2 text-stone-400">
+                  <span className="material-symbols-outlined text-base">description</span>
+                  <span className="font-headline font-bold text-base">{devlogs.length}</span>
+                  <span className="text-stone-600">{devlogs.length === 1 ? 'entry' : 'entries'}</span>
+                </div>
+              )}
+              {kudos.length > 0 && (
+                <div className="flex items-center gap-2 text-stone-400">
+                  <span className="material-symbols-outlined text-base text-[#ee671c]">favorite</span>
+                  <span className="font-headline font-bold text-base">{kudos.length}</span>
+                </div>
+              )}
+              {isSafeUrl(project.repo_link) && (
+                <a href={project.repo_link!} target="_blank" rel="noopener" className="flex items-center gap-2 text-stone-400 hover:text-[#ffb595] transition-colors">
+                  <span className="material-symbols-outlined text-base">code</span>
+                  <span>Repository</span>
+                  <span className="material-symbols-outlined text-xs">open_in_new</span>
+                </a>
               )}
             </div>
+          </div>
+        </div>
+      </header>
 
-            <h1 className="text-6xl font-headline font-bold text-[#e5e2e1] tracking-tighter mb-6 leading-none">
-              {project.name}
-            </h1>
+      <div className="grid grid-cols-12 gap-8">
+        <div className="col-span-12 lg:col-span-8">
 
-            {editingSubtitle && can.update ? (
-              <form onSubmit={saveSubtitle} className="max-w-xl space-y-3">
-                <label className="block text-[10px] uppercase tracking-[0.2em] font-bold text-stone-500">Description</label>
-                <textarea
-                  value={subtitleDraft}
-                  onChange={(e) => setSubtitleDraft(e.target.value)}
-                  rows={3}
-                  className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 text-sm"
-                  placeholder="A short description of your project"
-                  autoFocus
-                />
-                <div className="flex gap-2">
-                  <button type="submit" className="signature-smolder text-[#4c1a00] px-5 py-2 text-xs font-bold uppercase tracking-[0.15em] cursor-pointer">Save</button>
-                  <button type="button" onClick={() => { setEditingSubtitle(false); setSubtitleDraft(project.subtitle || '') }} className="ghost-border text-stone-400 px-4 py-2 text-xs cursor-pointer">Cancel</button>
-                </div>
-              </form>
-            ) : project.subtitle ? (
-              <p className="text-lg text-stone-400 leading-relaxed max-w-xl group inline-flex items-start gap-2">
-                <span>{project.subtitle}</span>
-                {can.update && (
-                  <button onClick={() => setEditingSubtitle(true)} className="text-stone-600 hover:text-[#ffb595] opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer mt-1" title="Edit description">
-                    <span className="material-symbols-outlined text-sm">edit</span>
-                  </button>
-                )}
-              </p>
-            ) : can.update ? (
-              <button
-                onClick={() => setEditingSubtitle(true)}
-                className="ghost-border bg-[#1c1b1b] hover:bg-[#2a2a2a] text-stone-400 hover:text-[#e5e2e1] px-4 py-2 text-xs font-bold uppercase tracking-[0.15em] flex items-center gap-2 cursor-pointer transition-colors"
-              >
-                <span className="material-symbols-outlined text-sm">add</span>
-                Add Description
-              </button>
-            ) : null}
-          </section>
+          <ReviewTimeline events={review_history} />
 
-          {project.review_feedback && (project.status === 'returned' || project.status === 'rejected') && (
-            <section className="mb-12">
-              <div className={`${status.bg} ghost-border p-8`}>
-                <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-3 flex items-center gap-2">
-                  <span className={`material-symbols-outlined text-sm ${status.text}`}>{status.icon}</span>
-                  Review Feedback
-                </h4>
-                <p className="text-stone-300 text-sm leading-relaxed">{project.review_feedback}</p>
-              </div>
-            </section>
-          )}
-
-          {/* Repo link form (only shown when editing) */}
           {can.update && !isSafeUrl(project.repo_link) && showRepoForm && (
             <section className="mb-12">
               <form onSubmit={linkRepo} className="ghost-border bg-[#1c1b1b] p-6 space-y-4">
@@ -246,45 +432,43 @@ export default function ProjectsShow({
           )}
 
           {needsDevlogChoice && (
-            <section className="mb-12">
-              <div className="ghost-border bg-[#1c1b1b] p-8">
-                <h2 className="text-2xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-2">Choose Your Devlog Method</h2>
-                <p className="text-stone-400 text-sm mb-8">How do you want to document your build progress?</p>
+            <section className="mb-8">
+              <div className="ghost-border bg-[#1c1b1b] p-6">
+                <h2 className="text-lg font-headline font-bold text-[#e5e2e1] tracking-tight mb-1">Choose Your Devlog Method</h2>
+                <p className="text-stone-500 text-xs mb-5">How do you want to document your build progress?</p>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <button
                     onClick={() => router.patch(`/projects/${project.id}/set_devlog_mode`, { devlog_mode: 'git' })}
-                    className="ghost-border bg-[#0e0e0e] hover:bg-[#2a2a2a] p-6 text-left transition-colors cursor-pointer group corner-accents"
+                    className="ghost-border bg-[#0e0e0e] hover:bg-[#2a2a2a] p-4 text-left transition-colors cursor-pointer group"
                   >
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className="material-symbols-outlined text-[#ffb595] text-2xl">terminal</span>
-                      <span className="font-headline font-bold text-[#e5e2e1] text-lg">Git Journal</span>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="material-symbols-outlined text-[#ffb595] text-lg">terminal</span>
+                      <span className="font-headline font-bold text-[#e5e2e1] text-sm">Git Journal</span>
                     </div>
-                    <p className="text-stone-400 text-sm mb-3">
-                      Add a <code className="text-[#ffb595] bg-[#1c1b1b] px-1">JOURNAL.md</code> file to your repo. Sync it to Forge anytime.
+                    <p className="text-stone-500 text-xs">
+                      Add a <code className="text-[#ffb595]">JOURNAL.md</code> to your repo and sync it.
                     </p>
-                    <p className="text-emerald-400 text-xs font-bold uppercase tracking-wider">Recommended — up to $1,000</p>
                   </button>
 
                   <button
                     onClick={() => router.patch(`/projects/${project.id}/set_devlog_mode`, { devlog_mode: 'website' })}
-                    className="ghost-border bg-[#0e0e0e] hover:bg-[#2a2a2a] p-6 text-left transition-colors cursor-pointer group corner-accents"
+                    className="ghost-border bg-[#0e0e0e] hover:bg-[#2a2a2a] p-4 text-left transition-colors cursor-pointer group"
                   >
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className="material-symbols-outlined text-stone-400 text-2xl">edit_note</span>
-                      <span className="font-headline font-bold text-[#e5e2e1] text-lg">Web Devlog</span>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="material-symbols-outlined text-stone-400 text-lg">edit_note</span>
+                      <span className="font-headline font-bold text-[#e5e2e1] text-sm">Web Devlog</span>
                     </div>
-                    <p className="text-stone-400 text-sm mb-3">
-                      Write devlog entries directly on Forge. Great for beginners.
+                    <p className="text-stone-500 text-xs">
+                      Write devlog entries directly on Forge.
                     </p>
-                    <p className="text-amber-400 text-xs font-bold uppercase tracking-wider">Beginner friendly — up to $200</p>
                   </button>
                 </div>
               </div>
             </section>
           )}
 
-          {isBuildingPhase && isGitMode && (
+          {showGitDevlog && (
             <section className="mb-12">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-headline font-bold text-[#e5e2e1] tracking-tight">Journal</h2>
@@ -326,9 +510,15 @@ export default function ProjectsShow({
               {project.repo_link && devlogs.length === 0 && (
                 <div className="ghost-border bg-[#1c1b1b] p-8 text-center">
                   <span className="material-symbols-outlined text-3xl text-stone-700 mb-3">description</span>
-                  <p className="text-stone-400 text-sm mb-2">No journal entries yet.</p>
-                  <p className="text-stone-500 text-xs">Add a <code className="text-[#ffb595]">JOURNAL.md</code> to your repo and click "Sync JOURNAL.md" above.</p>
-                  <a href="/docs/journal" className="text-[#ffb595] text-xs hover:underline mt-2 inline-block">See the format guide</a>
+                  {can.update ? (
+                    <>
+                      <p className="text-stone-400 text-sm mb-2">No journal entries yet.</p>
+                      <p className="text-stone-500 text-xs">Add a <code className="text-[#ffb595]">JOURNAL.md</code> to your repo and click "Sync JOURNAL.md" above.</p>
+                      <a href="/docs/Requirements-and-Shipping/journal-format" className="text-[#ffb595] text-xs hover:underline mt-2 inline-block">See the format guide</a>
+                    </>
+                  ) : (
+                    <p className="text-stone-400 text-sm">{project.user_display_name} hasn't added a journal entry yet.</p>
+                  )}
                 </div>
               )}
 
@@ -338,7 +528,9 @@ export default function ProjectsShow({
                     <div key={entry.id} className="ghost-border bg-[#1c1b1b] p-6 overflow-hidden">
                       <div className="flex items-start justify-between mb-3">
                         <div>
-                          <h3 className="font-headline font-bold text-[#e5e2e1]">{entry.title}</h3>
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
+                            <Link href={`/projects/${project.id}/devlogs/${entry.id}`} className="font-headline font-bold text-[#e5e2e1] hover:text-[#ffb595] transition-colors">{entry.title}</Link>
+                          </div>
                           <div className="flex items-center gap-3 mt-1">
                             <span className="text-stone-500 text-xs">{entry.created_at}</span>
                             {entry.time_spent && (
@@ -358,21 +550,47 @@ export default function ProjectsShow({
             </section>
           )}
 
+          {!can.update && !showGitDevlog && !showWebDevlog && (
+            <section className="mb-12">
+              <div className="ghost-border bg-[#1c1b1b] p-12 text-center relative overflow-hidden">
+                <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'repeating-linear-gradient(45deg, #ffb595 0, #ffb595 1px, transparent 1px, transparent 24px)' }} />
+                <div className="relative">
+                  <img src="/orph-building.png" alt="" className="h-32 mx-auto mb-4 opacity-70" />
+                  <p className="text-[#e5e2e1] font-headline font-bold text-lg mb-2">Forge in progress</p>
+                  <p className="text-stone-500 text-sm max-w-sm mx-auto">
+                    {project.user_display_name.split(' ')[0]} hasn't posted devlog entries yet. Check back soon to follow along with the build.
+                  </p>
+                </div>
+              </div>
+            </section>
+          )}
+
           {showWebDevlog && (
             <section className="mb-12">
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <h2 className="text-2xl font-headline font-bold text-[#e5e2e1] tracking-tight">Devlog</h2>
                 </div>
-                {can.update && (
-                  <button
-                    onClick={() => setShowDevlogForm(!showDevlogForm)}
-                    className="signature-smolder text-[#4c1a00] px-5 py-2 text-xs font-bold uppercase tracking-[0.15em] flex items-center gap-2 cursor-pointer"
-                  >
-                    <span className="material-symbols-outlined text-lg">{showDevlogForm ? 'close' : 'add'}</span>
-                    {showDevlogForm ? 'Cancel' : 'New Entry'}
-                  </button>
-                )}
+                <div className="flex gap-2">
+                  {can.update && devlogs.length > 0 && (
+                    <a
+                      href={`/projects/${project.id}/export_devlogs`}
+                      className="ghost-border bg-[#1c1b1b] hover:bg-[#2a2a2a] text-stone-400 hover:text-[#e5e2e1] px-4 py-2 text-xs font-bold uppercase tracking-[0.15em] flex items-center gap-2 transition-colors"
+                    >
+                      <span className="material-symbols-outlined text-lg">download</span>
+                      Export
+                    </a>
+                  )}
+                  {can.update && (
+                    <button
+                      onClick={() => setShowDevlogForm(!showDevlogForm)}
+                      className="signature-smolder text-[#4c1a00] px-5 py-2 text-xs font-bold uppercase tracking-[0.15em] flex items-center gap-2 cursor-pointer"
+                    >
+                      <span className="material-symbols-outlined text-lg">{showDevlogForm ? 'close' : 'add'}</span>
+                      {showDevlogForm ? 'Cancel' : 'New Entry'}
+                    </button>
+                  )}
+                </div>
               </div>
 
               {showDevlogForm && (
@@ -395,9 +613,10 @@ export default function ProjectsShow({
                     <textarea
                       value={devlogForm.data.content}
                       onChange={(e) => devlogForm.setData('content', e.target.value)}
+                      onPaste={(e) => handleImagePaste(e, (v) => devlogForm.setData('content', v), devlogForm.data.content)}
                       rows={8}
                       className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 text-sm resize-y font-mono"
-                      placeholder="What did you work on? Include images, progress, challenges..."
+                      placeholder="What did you work on? Paste images directly..."
                       required
                     />
                   </div>
@@ -430,36 +649,111 @@ export default function ProjectsShow({
                 <div className="space-y-4">
                   {devlogs.map((entry) => (
                     <div key={entry.id} className="ghost-border bg-[#1c1b1b] p-6 overflow-hidden">
-                      <div className="flex items-start justify-between mb-3">
-                        <div>
-                          <h3 className="font-headline font-bold text-[#e5e2e1]">{entry.title}</h3>
-                          <div className="flex items-center gap-3 mt-1">
-                            <span className="text-stone-500 text-xs">{entry.created_at}</span>
-                            {entry.time_spent && (
-                              <span className="text-[#ffb595] text-xs flex items-center gap-1">
-                                <span className="material-symbols-outlined text-xs">schedule</span>
-                                {entry.time_spent}
-                              </span>
+                      {editingDevlogId === entry.id ? (
+                        <form onSubmit={(e) => submitEditDevlog(e, entry.id)} className="space-y-4">
+                          <div>
+                            <label className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">Title</label>
+                            <input
+                              type="text"
+                              value={editDevlogForm.data.title}
+                              onChange={(e) => editDevlogForm.setData('title', e.target.value)}
+                              className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 text-sm"
+                              required
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
+                              Content <span className="text-stone-600 normal-case tracking-normal">(markdown supported)</span>
+                            </label>
+                            <textarea
+                              value={editDevlogForm.data.content}
+                              onChange={(e) => editDevlogForm.setData('content', e.target.value)}
+                              onPaste={(e) => handleImagePaste(e, (v) => editDevlogForm.setData('content', v), editDevlogForm.data.content)}
+                              rows={8}
+                              className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 text-sm resize-y font-mono"
+                              required
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">Time Spent</label>
+                            <input
+                              type="text"
+                              value={editDevlogForm.data.time_spent}
+                              onChange={(e) => editDevlogForm.setData('time_spent', e.target.value)}
+                              className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 text-sm"
+                              placeholder="e.g. 3 or 3 hours"
+                            />
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              type="submit"
+                              disabled={editDevlogForm.processing}
+                              className="signature-smolder text-[#4c1a00] px-6 py-3 font-bold uppercase tracking-wider text-xs flex items-center gap-2 cursor-pointer"
+                            >
+                              <span className="material-symbols-outlined text-lg">save</span>
+                              Save
+                            </button>
+                            <button
+                              type="button"
+                              onClick={cancelEditDevlog}
+                              className="ghost-border text-stone-400 px-6 py-3 text-xs font-bold uppercase tracking-wider hover:text-[#e5e2e1] transition-colors cursor-pointer"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </form>
+                      ) : (
+                        <>
+                          <div className="flex items-start justify-between mb-3">
+                            <div>
+                              <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                <Link href={`/projects/${project.id}/devlogs/${entry.id}`} className="font-headline font-bold text-[#e5e2e1] hover:text-[#ffb595] transition-colors">{entry.title}</Link>
+                              </div>
+                              <div className="flex items-center gap-3 mt-1">
+                                <span className="text-stone-500 text-xs">{entry.created_at}</span>
+                                {entry.time_spent && (
+                                  <span className="text-[#ffb595] text-xs flex items-center gap-1">
+                                    <span className="material-symbols-outlined text-xs">schedule</span>
+                                    {entry.time_spent}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            {can.update && (
+                              <div className="flex items-center gap-2 shrink-0">
+                                <button
+                                  onClick={() => startEditDevlog(entry)}
+                                  className="text-stone-600 hover:text-[#ffb595] transition-colors cursor-pointer"
+                                  aria-label="Edit devlog"
+                                >
+                                  <span className="material-symbols-outlined text-lg">edit</span>
+                                </button>
+                                {!project.airtable_sent && (
+                                  <button
+                                    onClick={() => deleteDevlog(entry.id)}
+                                    className="text-stone-600 hover:text-red-400 transition-colors cursor-pointer"
+                                    aria-label="Delete devlog"
+                                  >
+                                    <span className="material-symbols-outlined text-lg">delete</span>
+                                  </button>
+                                )}
+                              </div>
                             )}
                           </div>
-                        </div>
-                        {can.update && (
-                          <button
-                            onClick={() => deleteDevlog(entry.id)}
-                            className="text-stone-600 hover:text-red-400 transition-colors cursor-pointer"
-                          >
-                            <span className="material-symbols-outlined text-lg">delete</span>
-                          </button>
-                        )}
-                      </div>
-                      <div className="prose prose-invert prose-sm max-w-none text-stone-300 prose-a:text-[#ffb595] prose-img:max-w-full prose-img:rounded-none break-words [overflow-wrap:anywhere]"><Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>{entry.content}</Markdown></div>
+                          <div className="prose prose-invert prose-sm max-w-none text-stone-300 prose-a:text-[#ffb595] prose-img:max-w-full prose-img:rounded-none break-words [overflow-wrap:anywhere]"><Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>{entry.content}</Markdown></div>
+                        </>
+                      )}
                     </div>
                   ))}
                 </div>
               ) : (
                 <div className="ghost-border bg-[#1c1b1b] p-12 text-center">
                   <span className="material-symbols-outlined text-4xl text-stone-700 mb-3">description</span>
-                  <p className="text-stone-500 text-sm">No devlog entries yet. Start documenting your build!</p>
+                  <p className="text-stone-500 text-sm">
+                    {can.update
+                      ? 'No devlog entries yet. Start documenting your build!'
+                      : `${project.user_display_name} hasn't added a devlog entry yet.`}
+                  </p>
                 </div>
               )}
             </section>
@@ -468,17 +762,64 @@ export default function ProjectsShow({
         </div>
 
         <aside className="col-span-12 lg:col-span-4 space-y-6">
-          {isSafeUrl(project.repo_link) && (
-            <a
-              href={project.repo_link!}
-              target="_blank"
-              rel="noopener"
-              className="w-full flex items-center justify-center gap-2 bg-[#1c1b1b] ghost-border px-6 py-3 text-sm font-headline font-medium text-[#e5e2e1] hover:bg-[#2a2a2a] transition-colors group corner-accents"
-            >
-              <span className="material-symbols-outlined text-stone-500 group-hover:text-[#ffb595] transition-colors">code</span>
-              View Repository
-              <span className="material-symbols-outlined text-sm text-stone-500">open_in_new</span>
-            </a>
+          {!can.update && (
+            <div className="bg-[#1c1b1b] ghost-border p-6">
+              <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">Builder</h4>
+              <Link href={`/users/${project.user_id}`} className="flex items-center gap-3 group">
+                <img src={project.user_avatar} alt={project.user_display_name} className="w-12 h-12 border border-white/10 shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <p className="font-headline font-bold text-[#e5e2e1] group-hover:text-[#ffb595] transition-colors truncate">
+                    {project.user_display_name}
+                  </p>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-stone-600 mt-0.5 flex items-center gap-1">
+                    View profile
+                    <span className="material-symbols-outlined text-xs">arrow_forward</span>
+                  </p>
+                </div>
+              </Link>
+              <div className="grid grid-cols-3 gap-3 mt-5 pt-5 border-t border-white/5">
+                <div>
+                  <p className="text-xl font-headline font-bold text-[#e5e2e1]">{totalHours}<span className="text-xs text-stone-500 ml-0.5">h</span></p>
+                  <p className="text-[9px] uppercase tracking-[0.15em] text-stone-600 mt-0.5">Logged</p>
+                </div>
+                <div>
+                  <p className="text-xl font-headline font-bold text-[#e5e2e1]">{devlogs.length}</p>
+                  <p className="text-[9px] uppercase tracking-[0.15em] text-stone-600 mt-0.5">{devlogs.length === 1 ? 'Entry' : 'Entries'}</p>
+                </div>
+                <div>
+                  <p className="text-xl font-headline font-bold text-[#e5e2e1]">{kudos.length}</p>
+                  <p className="text-[9px] uppercase tracking-[0.15em] text-stone-600 mt-0.5">Kudos</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {!can.update && project.build_proof_url && project.built_at && (
+            <div className="bg-emerald-500/5 ghost-border p-6">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="material-symbols-outlined text-emerald-400 text-lg">verified</span>
+                <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-400 font-headline">Built on {project.built_at}</h4>
+              </div>
+              <a href={project.build_proof_url} target="_blank" rel="noopener" className="text-[#ffb595] hover:text-[#ee671c] text-xs flex items-center gap-1 break-all">
+                View build proof
+                <span className="material-symbols-outlined text-xs">open_in_new</span>
+              </a>
+            </div>
+          )}
+
+          {showWebDevlog && devlogs.length > 0 && (
+            <div className="ghost-border bg-[#1c1b1b] p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="material-symbols-outlined text-[#ffb595] text-lg">schedule</span>
+                <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline">Time Logged</h4>
+              </div>
+              <p className="text-4xl font-headline font-bold text-[#e5e2e1] tracking-tight">
+                {totalHours}<span className="text-xl text-stone-500 ml-1">h</span>
+              </p>
+              <p className="text-stone-500 text-xs mt-2">
+                Across {devlogs.length} {devlogs.length === 1 ? 'entry' : 'entries'}
+              </p>
+            </div>
           )}
           {can.update && !isSafeUrl(project.repo_link) && !showRepoForm && (
             <button
@@ -489,153 +830,93 @@ export default function ProjectsShow({
               Link Repository
             </button>
           )}
+          {can.update && !is_admin_view && totalHours > 0 && project.status !== 'rejected' && (
+            <div className="bg-[#1c1b1b] ghost-border p-6">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="material-symbols-outlined text-[#ffb595] text-base">paid</span>
+                <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline">Expected Payout</h4>
+              </div>
+              <p className="text-4xl font-headline font-bold text-[#ffb595] tracking-tight">
+                {(totalHours * project.coin_rate).toFixed(2)}<span className="text-xl text-stone-500 ml-1">c</span>
+              </p>
 
-          <div className="bg-[#1c1b1b] ghost-border p-8">
-            <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">Created by</h4>
-            <p className="text-[#e5e2e1] font-headline font-medium">{project.user_display_name}</p>
-            <p className="text-stone-500 text-sm mt-1">{project.created_at}</p>
-          </div>
-          {project.status === 'pending' && (
+              <p className="text-stone-600 text-[10px] uppercase tracking-[0.15em] mt-3 leading-relaxed">
+                Please be warned, this is an estimate only! Your actual payout may change due to deflation/other factors
+              </p>
+            </div>
+          )}
+
+          {can.update && project.status === 'pitch_pending' && (
             <div className="bg-amber-500/5 ghost-border p-8">
               <div className="flex items-center gap-2 mb-3">
                 <span className="material-symbols-outlined text-amber-400 text-lg">schedule</span>
-                <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-amber-400 font-headline">
-                  {isNormalTier ? 'Project Under Review' : 'Pitch Under Review'}
-                </h4>
+                <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-amber-400 font-headline">Pitch Under Review</h4>
               </div>
-              <p className="text-stone-400 text-sm">
-                {isNormalTier
-                  ? 'Your project is being reviewed. You\'ll hear back once a decision is made.'
-                  : 'Your pitch is being reviewed. You\'ll hear back in Slack once a decision is made.'}
-              </p>
+              <p className="text-stone-400 text-sm">Your pitch is being reviewed. You'll hear back in Slack once a decision is made.</p>
             </div>
           )}
 
-          {isApproved && (
+          {can.update && isPitchApproved && project.tier === 'tier_1' && (
             <div className="bg-emerald-500/5 ghost-border p-8">
               <div className="flex items-center gap-2 mb-3">
                 <span className="material-symbols-outlined text-emerald-400 text-lg">check_circle</span>
-                <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-400 font-headline">Approved — Start Building!</h4>
+                <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-400 font-headline">Pitch Approved — Start Building!</h4>
               </div>
-              <p className="text-stone-400 text-sm mb-4">
+              <p className="text-stone-400 text-sm">
                 {!project.devlog_mode
                   ? 'Choose your devlog method below to get started.'
-                  : project.devlog_mode === 'git'
-                    ? 'Document your progress in JOURNAL.md and sync it here.'
-                    : 'Add devlog entries to document your progress.'}
+                  : 'Add devlog entries as you build. When you\'re done, submit the project for review.'}
               </p>
-              {can.update && project.devlog_mode && devlogs.length > 0 && (
-                (() => {
-                  const hasCover = !!project.cover_image_url
-                  const hasAddress = project.user_has_address
-                  const canSubmit = hasCover && hasAddress
-                  return (
-                    <>
-                      {!canSubmit && (
-                        <div className="mb-4 bg-amber-500/10 border border-amber-500/20 p-4 text-amber-200 text-xs">
-                          <p className="font-bold uppercase tracking-wider mb-2">Before submitting:</p>
-                          <ul className="space-y-1">
-                            {!hasCover && <li>• Upload a project cover image below</li>}
-                            {!hasAddress && <li>• Fill in your shipping address below</li>}
-                          </ul>
-                        </div>
-                      )}
-                      <button
-                        disabled={!canSubmit}
-                        onClick={() => { if (confirm('Submit your build for review? Make sure your devlog is complete.')) router.post(`/projects/${project.id}/submit_build`) }}
-                        className={`w-full font-headline font-bold py-3 uppercase tracking-wider transition-transform flex items-center justify-center gap-2 ${canSubmit ? 'signature-smolder text-[#4c1a00] active:scale-95 cursor-pointer' : 'bg-stone-700/40 text-stone-500 cursor-not-allowed'}`}
-                      >
-                        <span className="material-symbols-outlined text-lg">send</span>
-                        Submit Build for Review
-                      </button>
-                    </>
-                  )
-                })()
-              )}
             </div>
           )}
 
-          {showCoverUpload && (
-            <div className="bg-[#1c1b1b] ghost-border p-8">
-              <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">Cover Image</h4>
-              {project.cover_image_url ? (
-                <>
-                  <img src={project.cover_image_url} alt="Project cover" className="w-full mb-4" />
-                  <label className="ghost-border bg-[#0e0e0e] hover:bg-[#2a2a2a] text-stone-400 hover:text-[#e5e2e1] px-4 py-2 text-xs font-bold uppercase tracking-[0.15em] flex items-center justify-center gap-2 cursor-pointer transition-colors">
-                    <span className="material-symbols-outlined text-sm">upload</span>
-                    Replace
-                    <input type="file" accept="image/*" onChange={uploadCoverImage} className="hidden" disabled={uploadingCover} />
-                  </label>
-                </>
-              ) : (
-                <label className="ghost-border bg-[#0e0e0e] hover:bg-[#2a2a2a] text-stone-400 hover:text-[#e5e2e1] px-4 py-8 text-xs font-bold uppercase tracking-[0.15em] flex flex-col items-center justify-center gap-2 cursor-pointer transition-colors">
-                  <span className="material-symbols-outlined text-3xl">add_photo_alternate</span>
-                  {uploadingCover ? 'Uploading...' : 'Upload Cover Image'}
-                  <input type="file" accept="image/*" onChange={uploadCoverImage} className="hidden" disabled={uploadingCover} />
-                </label>
-              )}
-            </div>
+          {can.update && can.submit_for_review && !isPitchReturn && (
+            (() => {
+              const hasRepo = !!project.repo_link
+              const hasSubtitle = !!project.subtitle
+              const hasCover = !!project.cover_image_url
+              const hasAddress = project.user_has_address
+              const hasDevlogs = devlogs.length > 0
+              const canSubmit = hasRepo && hasSubtitle && hasCover && hasAddress && hasDevlogs
+              return (
+                <div className="bg-[#1c1b1b] ghost-border p-8">
+                  <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">Submit for Review</h4>
+                  {!canSubmit && (
+                    <div className="mb-4 bg-amber-500/10 border border-amber-500/20 p-4 text-amber-200 text-xs">
+                      <p className="font-bold uppercase tracking-wider mb-2">Before submitting:</p>
+                      <ul className="space-y-1">
+                        {!hasRepo && <li>• Link a repository</li>}
+                        {!hasSubtitle && <li>• Add a short description</li>}
+                        {!hasCover && <li>• Upload a cover image</li>}
+                        {!hasDevlogs && <li>• Add at least one devlog entry</li>}
+                        {!hasAddress && <li>• Add your shipping address in <a href="/settings" className="underline hover:text-amber-100">settings</a></li>}
+                      </ul>
+                    </div>
+                  )}
+                  <button
+                    disabled={!canSubmit}
+                    onClick={submitForReview}
+                    className={`w-full font-headline font-bold py-3 uppercase tracking-wider transition-transform flex items-center justify-center gap-2 ${canSubmit ? 'signature-smolder text-[#4c1a00] active:scale-95 cursor-pointer' : 'bg-stone-700/40 text-stone-500 cursor-not-allowed'}`}
+                  >
+                    <span className="material-symbols-outlined text-lg">send</span>
+                    Submit for Review
+                  </button>
+                </div>
+              )
+            })()
           )}
 
           {can.update && isApproved && (
-            <div className="bg-[#1c1b1b] ghost-border p-8">
-              <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-2">
-                Shipping Address
-                {project.user_has_address && <span className="ml-2 text-emerald-400 normal-case tracking-normal text-[10px]">✓ Saved</span>}
-              </h4>
-              <p className="text-stone-500 text-xs mb-4">Required before submitting for review.</p>
-              <form onSubmit={saveAddress} className="space-y-3">
-                <input type="text" value={addressForm.data.address_line1} onChange={(e) => addressForm.setData('address_line1', e.target.value)} placeholder="Address Line 1" className="w-full bg-[#0e0e0e] border-none px-3 py-2 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600" required />
-                <input type="text" value={addressForm.data.address_line2} onChange={(e) => addressForm.setData('address_line2', e.target.value)} placeholder="Address Line 2 (optional)" className="w-full bg-[#0e0e0e] border-none px-3 py-2 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600" />
-                <div className="grid grid-cols-2 gap-3">
-                  <input type="text" value={addressForm.data.city} onChange={(e) => addressForm.setData('city', e.target.value)} placeholder="City" className="bg-[#0e0e0e] border-none px-3 py-2 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600" required />
-                  <input type="text" value={addressForm.data.state} onChange={(e) => addressForm.setData('state', e.target.value)} placeholder="State / Province" className="bg-[#0e0e0e] border-none px-3 py-2 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600" />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <input type="text" value={addressForm.data.country} onChange={(e) => addressForm.setData('country', e.target.value)} placeholder="Country" className="bg-[#0e0e0e] border-none px-3 py-2 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600" required />
-                  <input type="text" value={addressForm.data.postal_code} onChange={(e) => addressForm.setData('postal_code', e.target.value)} placeholder="ZIP / Postal Code" className="bg-[#0e0e0e] border-none px-3 py-2 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600" required />
-                </div>
-                <button type="submit" disabled={addressForm.processing} className="w-full signature-smolder text-[#4c1a00] font-bold py-2 uppercase tracking-wider text-xs flex items-center justify-center gap-2 cursor-pointer">
-                  <span className="material-symbols-outlined text-sm">save</span>
-                  Save Address
-                </button>
-              </form>
-            </div>
-          )}
-
-          {project.status === 'build_pending' && (
-            <div className="bg-amber-500/5 ghost-border p-8">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="material-symbols-outlined text-amber-400 text-lg">engineering</span>
-                <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-amber-400 font-headline">Build Under Review</h4>
-              </div>
-              <p className="text-stone-400 text-sm">Your build is being reviewed. You'll hear back in Slack once a decision is made.</p>
-            </div>
-          )}
-
-          {project.status === 'build_approved' && (
             <div className="bg-emerald-500/5 ghost-border p-8">
               <div className="flex items-center gap-2 mb-3">
                 <span className="material-symbols-outlined text-emerald-400 text-lg">verified</span>
-                <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-400 font-headline">Build Approved!</h4>
+                <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-400 font-headline">Project Approved!</h4>
               </div>
-              <p className="text-stone-400 text-sm mb-4">Your build has been approved and your grant is ready.</p>
-              {project.hcb_grant_link && (
-                <a
-                  href={project.hcb_grant_link}
-                  target="_blank"
-                  rel="noopener"
-                  className="w-full signature-smolder text-[#4c1a00] font-headline font-bold py-3 uppercase tracking-wider flex items-center justify-center gap-2"
-                >
-                  <span className="material-symbols-outlined text-lg">account_balance</span>
-                  Access Your Grant
-                  <span className="material-symbols-outlined text-sm">open_in_new</span>
-                </a>
-              )}
+              <p className="text-stone-400 text-sm">Your project has been approved and is being processed.</p>
             </div>
           )}
 
-          {can.update && project.status === 'returned' && project.tier === 'advanced' && project.from_slack && (
+          {can.update && isPitchReturn && (
             <div className="bg-[#1c1b1b] ghost-border p-8">
               <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">Resubmit Pitch</h4>
               <p className="text-stone-400 text-sm mb-4">
@@ -651,117 +932,138 @@ export default function ProjectsShow({
             </div>
           )}
 
-          {can.submit_for_review && !(project.status === 'returned' && project.tier === 'advanced' && project.from_slack) && (
-            <div className="bg-[#1c1b1b] ghost-border p-8">
-              <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">Submit for Review</h4>
-              {(() => {
-                const hasRepo = !!project.repo_link
-                const hasSubtitle = !!project.subtitle
-                const hasCover = !!project.cover_image_url
-                const hasDevlog = devlogs.length > 0
-                const normalChecks = isNormalTier ? [
-                  { ok: hasRepo, label: 'Link a repository' },
-                  { ok: hasSubtitle, label: 'Add a description' },
-                  { ok: hasCover, label: 'Upload a cover image' },
-                  { ok: hasDevlog, label: 'Add at least one devlog entry' },
-                ] : [
-                  { ok: hasRepo, label: 'Link a repository' },
-                ]
-                const canSubmit = normalChecks.every((c) => c.ok)
-                return (
-                  <>
-                    <p className="text-stone-400 text-sm mb-4">
-                      {project.status === 'returned'
-                        ? 'Address the feedback and resubmit your project for another review.'
-                        : 'Your project is ready to be reviewed. Submit it when you\'re happy with it.'}
-                    </p>
-                    {!canSubmit && (
-                      <div className="mb-4 bg-amber-500/10 border border-amber-500/20 p-4 text-amber-200 text-xs">
-                        <p className="font-bold uppercase tracking-wider mb-2">Before submitting:</p>
-                        <ul className="space-y-1">
-                          {normalChecks.filter((c) => !c.ok).map((c) => (
-                            <li key={c.label}>• {c.label}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                    <button
-                      onClick={submitForReview}
-                      disabled={!canSubmit}
-                      className={`w-full font-headline font-bold py-3 uppercase tracking-wider transition-transform flex items-center justify-center gap-2 ${canSubmit ? 'signature-smolder text-[#4c1a00] active:scale-95 cursor-pointer' : 'bg-stone-700/40 text-stone-500 cursor-not-allowed'}`}
-                    >
-                      <span className="material-symbols-outlined text-lg">send</span>
-                      Submit for Review
-                    </button>
-                  </>
-                )
-              })()}
+
+          {can.update && isApproved && (
+            <div className="bg-[#1c1b1b] ghost-border p-6">
+              <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">Mark as Built</h4>
+              {project.built_at ? (
+                <div className="bg-emerald-500/10 border border-emerald-500/20 p-4 text-sm">
+                  <p className="text-emerald-300 font-headline font-bold mb-2 flex items-center gap-2">
+                    <span className="material-symbols-outlined text-base">check_circle</span>
+                    Built on {project.built_at}
+                  </p>
+                  {project.build_proof_url && (
+                    <a href={project.build_proof_url} target="_blank" rel="noopener" className="text-[#ffb595] hover:text-[#ee671c] text-xs flex items-center gap-1 break-all">
+                      View proof
+                      <span className="material-symbols-outlined text-xs">open_in_new</span>
+                    </a>
+                  )}
+                </div>
+              ) : (
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault()
+                    const form = e.currentTarget as HTMLFormElement
+                    const url = (form.elements.namedItem('build_proof_url') as HTMLInputElement).value
+                    router.post(`/projects/${project.id}/mark_built`, { build_proof_url: url })
+                  }}
+                  className="space-y-3"
+                >
+                  <p className="text-stone-400 text-xs">Drop a link to a photo, video, or anything that shows you built this. Required to redeem direct grants and order shop items.</p>
+                  <input
+                    type="url"
+                    name="build_proof_url"
+                    placeholder="https://..."
+                    required
+                    className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600"
+                  />
+                  <button
+                    type="submit"
+                    className="w-full signature-smolder text-[#4c1a00] font-headline font-bold py-3 uppercase tracking-wider text-xs flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-base">check_circle</span>
+                    Mark as Built
+                  </button>
+                </form>
+              )}
             </div>
           )}
 
+          <div className="bg-[#1c1b1b] ghost-border p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <span className="material-symbols-outlined text-[#ee671c] text-base">favorite</span>
+              <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline">Kudos ({kudos.length})</h4>
+            </div>
+
+            {can.give_kudos && (
+              <form onSubmit={submitKudo} className="mb-4">
+                <textarea
+                  value={kudoContent}
+                  onChange={(e) => setKudoContent(e.target.value)}
+                  rows={2}
+                  placeholder={`Drop ${project.user_display_name.split(' ')[0]} some kudos...`}
+                  className="w-full bg-[#0e0e0e] border-none px-3 py-2 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 resize-y mb-2"
+                />
+                <button
+                  type="submit"
+                  disabled={!kudoContent.trim()}
+                  className="w-full signature-smolder text-[#4c1a00] py-2 text-[10px] font-bold uppercase tracking-[0.15em] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1"
+                >
+                  <span className="material-symbols-outlined text-sm">favorite</span>
+                  Send Kudos
+                </button>
+              </form>
+            )}
+
+            {kudos.length === 0 ? (
+              <p className="text-stone-600 text-xs">No kudos yet.</p>
+            ) : (
+              <div className="space-y-2">
+                {kudos.map((kudo) => (
+                  <div key={kudo.id} className="bg-[#0e0e0e] ghost-border p-3 min-w-0 overflow-hidden">
+                    <div className="flex items-start gap-2 mb-1">
+                      <img src={kudo.author_avatar} alt={kudo.author_name} className="w-6 h-6 border border-white/10 shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <Link href={`/users/${kudo.author_id}`} className="text-[#e5e2e1] text-xs font-bold hover:text-[#ffb595] transition-colors truncate">
+                            {kudo.author_name}
+                          </Link>
+                          {kudo.author_is_staff && (
+                            <span className="text-[8px] font-bold uppercase tracking-wider px-1 py-0.5 bg-[#ee671c]/15 text-[#ee671c]">staff</span>
+                          )}
+                        </div>
+                        <p className="text-[9px] uppercase tracking-[0.15em] text-stone-600">{kudo.created_at}</p>
+                      </div>
+                      {kudo.can_destroy && (
+                        <button onClick={() => deleteKudo(kudo.id)} className="text-stone-600 hover:text-red-400 transition-colors shrink-0 cursor-pointer">
+                          <span className="material-symbols-outlined text-xs">close</span>
+                        </button>
+                      )}
+                    </div>
+                    <p className="text-stone-300 text-xs leading-relaxed whitespace-pre-wrap break-words [overflow-wrap:anywhere] pl-8">
+                      {kudo.content}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           {(can.update || can.destroy) && (
-            <div className="bg-[#1c1b1b] ghost-border p-8">
-              <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-6">Actions</h4>
-              <div className="flex flex-col gap-3">
+            <div className="bg-[#1c1b1b] ghost-border p-6">
+              <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">Manage</h4>
+              <div className="flex flex-col gap-2">
                 {can.update && (
                   <Link
                     href={`/projects/${project.id}/edit`}
-                    className="w-full py-3 px-4 bg-[#2a2a2a] hover:bg-[#3a3939] flex items-center justify-between group transition-all corner-accents"
+                    className="w-full py-2.5 px-4 bg-[#2a2a2a] hover:bg-[#3a3939] flex items-center justify-between group transition-all"
                   >
                     <span className="text-sm font-headline font-medium text-[#e5e2e1]">Edit Project</span>
-                    <span className="material-symbols-outlined text-stone-500 group-hover:text-[#ffb595] transition-colors">edit</span>
+                    <span className="material-symbols-outlined text-stone-500 group-hover:text-[#ffb595] transition-colors text-lg">edit</span>
                   </Link>
                 )}
                 {can.destroy && (
                   <button
                     onClick={deleteProject}
-                    className="w-full py-3 px-4 bg-red-950/20 hover:bg-red-950/40 flex items-center justify-between group transition-all ghost-border cursor-pointer"
+                    className="w-full py-2.5 px-4 bg-red-950/20 hover:bg-red-950/40 flex items-center justify-between group transition-all border border-red-500/20 cursor-pointer"
                   >
                     <span className="text-sm font-headline font-medium text-red-400">Delete Project</span>
-                    <span className="material-symbols-outlined text-red-500/50 group-hover:text-red-400 transition-colors">delete</span>
+                    <span className="material-symbols-outlined text-red-500/50 group-hover:text-red-400 transition-colors text-lg">delete</span>
                   </button>
                 )}
               </div>
             </div>
           )}
-
-          <div className="bg-[#1c1b1b] ghost-border p-8">
-            <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-6">Details</h4>
-            <div className="space-y-4">
-              <div className="flex justify-between text-sm">
-                <span className="text-stone-500">Status</span>
-                <span className={`font-medium ${status.text}`}>{status.label}</span>
-              </div>
-              {project.devlog_mode && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-stone-500">Devlog</span>
-                  <span className="text-[#e5e2e1]">{project.devlog_mode === 'git' ? 'Git Journal' : 'Web (up to $200)'}</span>
-                </div>
-              )}
-              <div className="flex justify-between text-sm">
-                <span className="text-stone-500">Builder</span>
-                <span className="text-[#e5e2e1] font-medium">{project.user_display_name}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-stone-500">Created</span>
-                <span className="text-[#e5e2e1]">{project.created_at}</span>
-              </div>
-              {devlogs.length > 0 && (
-                <>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-stone-500">Entries</span>
-                    <span className="text-[#e5e2e1]">{devlogs.length}</span>
-                  </div>
-                  {totalHours > 0 && (
-                    <div className="flex justify-between text-sm">
-                      <span className="text-stone-500">Total Hours</span>
-                      <span className="text-[#ffb595] font-bold">{totalHours}h</span>
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-          </div>
         </aside>
       </div>
     </div>

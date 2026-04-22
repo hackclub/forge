@@ -4,6 +4,8 @@ applyTo: "**"
 
 Keep your changes as low impact as possible. You do not need to give me a summary of changes. You do not need to test the changes. Try to reference other parts of the codebase to ensure your changes are consistent with the existing code style and practices. Keep your responses concise and focused.
 
+Never add "Co-Authored-By" lines to commits. PR descriptions should be a simple description of the changes — nothing more. No test plans, no checklists, no headings, no marketing copy. One short paragraph (or a couple of plain sentences) is enough. Do not push code or create PRs unless explicitly asked. Do not add co-authorship attribution of any kind.
+
 Read all context and instructions carefully before making changes. Code may be manually modified between messages. Do not suggest code that has been deleted or is no longer relevant.
 
 This project uses ruby 3.4.4, rails 8.1.2 with React 19 and tailwind 4.1.18 through inertia-rails. Make sure to only suggest changes that are applicable to those versions. When possible, prefer to use the cli to generate boilerplate rather than editing files manually. You can always modify boilerplate generated from the cli.
@@ -27,10 +29,11 @@ Do not add comments unless they are absolutely necessary for clarity. Your code 
 Forge is a Hack Club program where teen builders (ages 13-18) get funded for hardware projects. Users pitch projects in Slack, admins review them, and approved builders document their progress via devlogs.
 
 ### Key Models
-- **User** — has roles (user/admin/reviewer), permissions array, ban status, slack_id for Slack integration
-- **Project** — belongs to user, has status enum (draft/pending/approved/returned/rejected), slack_channel_id/slack_message_ts for Slack thread tracking, pitch_text (cleaned user pitch), description (AI-generated admin summary)
+- **User** — has roles (user/admin/reviewer/support/fulfillment), permissions array, ban status, slack_id for Slack integration
+- **Project** — belongs to user, has status enum (draft/pending/approved/returned/rejected/pitch_pending/pitch_approved), slack_channel_id/slack_message_ts for Slack thread tracking, pitch_text (cleaned user pitch), description (AI-generated admin summary), hidden flag
 - **Ship** — belongs to project, represents a submission of work for review
 - **Devlog** — belongs to project, markdown entries documenting build progress (title, content, time_spent)
+- **SupportTicket** — tracks support questions from Slack with status (open/claimed/resolved), two-way thread sync between public and BTS channels
 - **FeatureFlag** — simple name/enabled toggle for app-wide feature flags
 - All models use `has_paper_trail` for audit logging
 
@@ -43,28 +46,38 @@ Forge is a Hack Club program where teen builders (ages 13-18) get funded for har
 6. Once approved, user can add devlogs on the project page or sync from JOURNAL.md in their GitHub repo
 
 ### Slack Integration
-- **Webhook endpoint:** `POST /slack/events` — receives Slack events, filters for messages in the forge channel
+- **Webhook endpoint:** `POST /slack/events` — receives Slack events, routes to pitch or support handlers
+- **Interactivity endpoint:** `POST /slack/interactivity` — handles Block Kit button clicks (support ticket claim/resolve)
 - **SlackPitchJob** — processes pitches, creates projects, replies in thread, adds :eyes: reaction
 - **SlackNotifyJob** — posts review decisions back to Slack threads
-- Bot ignores its own messages (`bot_id`), thread replies (`thread_ts`), and messages with subtypes
-- Required env vars: `SLACK_SIGNING_SECRET`, `SLACK_FORGE_CHANNEL_ID`, `SLACK_BOT_TOKEN`
-- Required Slack app scopes: `channels:history`, `groups:history`, `chat:write`, `reactions:write`
+- **SupportTicketJob** — processes support questions, auto-responds, posts to BTS channel with buttons
+- **SupportRelayJob** — relays BTS thread replies to public thread with staff name/avatar
+- **SupportForwardJob** — forwards public thread replies to BTS thread with user name/avatar
+- Bot ignores its own messages (`bot_id`) and messages with subtypes
+- Events controller routes by channel: forge channel → pitches, support channel → tickets, BTS channel threads → relay
+- Required env vars: `SLACK_SIGNING_SECRET`, `SLACK_FORGE_CHANNEL_ID`, `SLACK_BOT_TOKEN`, `SLACK_SUPPORT_CHANNEL_ID`, `SLACK_BTS_CHANNEL_ID`
+- Required Slack app scopes: `channels:history`, `groups:history`, `chat:write`, `chat:write.customize`, `reactions:write`
 - Event subscription: `message.channels` and `message.groups`
 
 ### Admin Panel
-- Dashboard at `/admin` with links to all sections
+- Dashboard at `/admin` with links filtered by user permissions
 - **Projects** (`/admin/projects`) — table view, status filters, review panel with approve/return/reject/draft actions
-- **Users** (`/admin/users`) — role management, permission toggles, ban/unban with reasons, soft/hard delete, restore
+- **Users** (`/admin/users`) — role management, permission toggles, ban/unban with reasons, soft/hard delete, restore, role filter
+- **Support** (`/admin/support`) — support ticket list with stats, leaderboard, status filters. Detail page with Slack thread view, reply from web, claim/resolve/delete
 - **Ships** (`/admin/reviews`) — review and manage ship submissions
 - **Feature Flags** (`/admin/feature_flags`) — create/toggle/delete feature flags, use `FeatureFlag.enabled?("name")` to check
 - **Audit Log** (`/admin/audit_log`) — PaperTrail versions with human-readable descriptions, filterable by type/event, clickable detail view
 - **Jobs** (`/admin/jobs`) — MissionControl::Jobs engine with dark theme override
-- Route constraints: `StaffConstraint` (admin or reviewer) for dashboard/ships, `AdminConstraint` (admin only) for everything else
+- **Database** (`/admin/database`) — raw SQL query/execute, admin-only
+- Route constraints: `StaffConstraint` for all admin routes, individual controllers enforce permissions
 
 ### Permissions System
-- **Roles** (array on User): `user`, `admin`, `reviewer`. Admin has all permissions by default.
-- **Permissions** (array on User): `pending_reviews`, `projects`, `users`, `ships`, `feature_flags`, `audit_log`, `jobs`, `third_party` — for fine-grained access control on non-admin staff
-- Check with `user.has_permission?("permission_name")` — returns true for admins automatically
+- **Roles** (array on User): `user`, `admin`, `reviewer`, `support`, `fulfillment`
+- **Permissions** (array on User): `pending_reviews`, `projects`, `users`, `ships`, `feature_flags`, `audit_log`, `jobs`, `third_party`, `support`
+- Permissions are explicit for all roles including admin — `has_permission?` checks the permissions array only
+- Assigning a role auto-grants default permissions (see `ROLE_DEFAULT_PERMISSIONS`), but individual permissions can be revoked afterwards
+- Default permissions: admin gets all, reviewer gets pending_reviews/projects/ships, support gets projects/users/support, fulfillment gets projects/ships
+- `staff?` returns true for admin, reviewer, support, or fulfillment roles
 
 ### AI Integration
 - Uses Hack Club AI (`https://ai.hackclub.com/proxy/v1/chat/completions`) with `qwen/qwen3-32b` model
@@ -87,6 +100,8 @@ Forge is a Hack Club program where teen builders (ages 13-18) get funded for har
 - `SLACK_SIGNING_SECRET` — Slack request verification
 - `SLACK_FORGE_CHANNEL_ID` — Channel ID for `#into-the-forge`
 - `HCA_CLIENT_ID` / `HCA_CLIENT_SECRET` — HCA OAuth credentials
+- `SLACK_SUPPORT_CHANNEL_ID` — Channel ID for support questions
+- `SLACK_BTS_CHANNEL_ID` — Channel ID for behind-the-scenes support staff
 - `APP_URL` — Base URL for links in Slack messages (defaults to `https://forge.hackclub.com`)
 
 ### Deployment

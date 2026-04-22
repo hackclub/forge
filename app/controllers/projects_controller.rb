@@ -1,5 +1,6 @@
 class ProjectsController < ApplicationController
-  before_action :set_project, only: %i[show edit update destroy submit_for_review submit_build sync_journal set_devlog_mode link_repo resubmit_pitch upload_cover_image]
+  allow_unauthenticated_access only: %i[show]
+  before_action :set_project, only: %i[show edit update destroy submit_for_review sync_journal set_devlog_mode link_repo resubmit_pitch upload_cover_image export_devlogs mark_built add_kudo destroy_kudo]
 
   def show
     authorize @project
@@ -7,11 +8,15 @@ class ProjectsController < ApplicationController
     render inertia: "Projects/Show", props: {
       project: serialize_project_detail(@project),
       devlogs: @project.devlogs.map { |d| serialize_devlog(d) },
+      review_history: @project.review_history.map { |e| serialize_review_event(e) },
+      is_admin_view: policy(@project).update? && @project.user_id != current_user&.id,
       can: {
         update: policy(@project).update?,
         destroy: policy(@project).destroy?,
-        submit_for_review: policy(@project).submit_for_review?
-      }
+        submit_for_review: policy(@project).submit_for_review?,
+        give_kudos: current_user.present? && current_user.id != @project.user_id
+      },
+      kudos: @project.kudos.includes(:author).order(created_at: :desc).map { |k| serialize_project_kudo(k) }
     }
   end
 
@@ -20,15 +25,15 @@ class ProjectsController < ApplicationController
     authorize @project
 
     case params[:tier]
-    when "normal"
+    when "tier_1"
+      render inertia: "Projects/AdvancedPitch", props: {}
+    when "tier_2", "tier_3", "tier_4"
       render inertia: "Projects/Form", props: {
-        project: { name: "", subtitle: "", repo_link: "", tags: [], tier: "normal" },
+        project: { name: "", subtitle: "", repo_link: "", tags: [], tier: params[:tier] },
         title: "New Project",
         submit_url: projects_path,
         method: "post"
       }
-    when "advanced"
-      render inertia: "Projects/AdvancedPitch", props: {}
     else
       render inertia: "Projects/New", props: {}
     end
@@ -40,6 +45,7 @@ class ProjectsController < ApplicationController
     authorize @project
 
     if @project.save
+      audit!("project.created", target: @project, metadata: { tier: @project.tier })
       redirect_to @project, notice: "Project created as draft."
     else
       redirect_back fallback_location: new_project_path(tier: @project.tier), inertia: { errors: @project.errors.messages }
@@ -56,7 +62,8 @@ class ProjectsController < ApplicationController
         subtitle: @project.subtitle.to_s,
         repo_link: @project.repo_link.to_s,
         tags: @project.tags,
-        tier: @project.tier
+        tier: @project.tier,
+        devlog_mode: @project.devlog_mode
       },
       title: "Edit Project",
       submit_url: project_path(@project),
@@ -68,6 +75,7 @@ class ProjectsController < ApplicationController
     authorize @project
 
     if @project.update(project_params)
+      audit!("project.updated", target: @project, metadata: { changed: project_params.keys, changes: audit_changes_for(@project) })
       redirect_to @project, notice: "Project updated."
     else
       redirect_back fallback_location: edit_project_path(@project), inertia: { errors: @project.errors.messages }
@@ -77,7 +85,8 @@ class ProjectsController < ApplicationController
   def destroy
     authorize @project
     @project.discard
-    redirect_to projects_path, notice: "Project deleted."
+    audit!("project.soft_deleted", target: @project, metadata: { via: "owner" })
+    redirect_to explore_path, notice: "Project deleted."
   end
 
   def import_from_github
@@ -154,6 +163,52 @@ class ProjectsController < ApplicationController
     render json: { error: "Could not parse AI response" }, status: :unprocessable_entity
   end
 
+  def mark_built
+    authorize @project, :update?
+
+    proof_url = params[:build_proof_url].to_s.strip
+    if proof_url.blank? || !proof_url.match?(/\Ahttps?:\/\/\S+\z/i)
+      redirect_to @project, alert: "Paste a valid URL with proof (image, video, or repo link)."
+      return
+    end
+
+    @project.update!(build_proof_url: proof_url, built_at: Time.current)
+    audit!("project.marked_built", target: @project, metadata: { build_proof_url: proof_url })
+    redirect_to @project, notice: "Marked as built. Nice work!"
+  end
+
+  def add_kudo
+    authorize @project, :show?
+
+    if current_user.id == @project.user_id
+      redirect_to @project, alert: "You can't give yourself kudos."
+      return
+    end
+
+    content = params[:content].to_s.strip
+    if content.blank?
+      redirect_to @project, alert: "Kudos can't be empty."
+      return
+    end
+
+    kudo = @project.kudos.create!(content: content, author: current_user, user: @project.user)
+    audit!("project.kudo_added", target: @project, metadata: { kudo_id: kudo.id, content: content })
+    redirect_to @project, notice: "Kudos sent."
+  end
+
+  def destroy_kudo
+    authorize @project, :show?
+    kudo = @project.kudos.find(params[:kudo_id])
+
+    unless current_user.id == kudo.author_id || current_user.has_permission?("users")
+      raise ActionController::RoutingError, "Not Found"
+    end
+
+    audit!("project.kudo_destroyed", target: @project, metadata: { kudo_id: kudo.id })
+    kudo.destroy
+    redirect_to @project, notice: "Kudos deleted."
+  end
+
   def sync_journal
     authorize @project, :update?
 
@@ -167,41 +222,24 @@ class ProjectsController < ApplicationController
     end
 
     SyncJournalJob.perform_now(@project.id)
+    audit!("project.journal_synced", target: @project)
     redirect_to @project, notice: "Journal synced."
   end
 
-  def submit_build
+  def export_devlogs
     authorize @project, :update?
 
-    unless @project.approved?
-      redirect_to @project, alert: "Project must be approved before submitting build."
-      return
+    entries = @project.devlogs.order(created_at: :asc)
+    md = +"# #{@project.name}\n\n"
+    md << "#{@project.subtitle}\n\n" if @project.subtitle.present?
+
+    entries.each do |entry|
+      md << "# #{entry.created_at.strftime('%Y-%m-%d')}: #{entry.title}\n\n"
+      md << "**Total time spent: #{entry.time_spent}**\n\n" if entry.time_spent.present?
+      md << "#{entry.content}\n\n"
     end
 
-    unless @project.devlogs.any?
-      redirect_to @project, alert: "Add at least one devlog entry before submitting."
-      return
-    end
-
-    if @project.cover_image_url.blank?
-      redirect_to @project, alert: "Upload a cover image before submitting for review."
-      return
-    end
-
-    unless current_user.address_line1.present?
-      redirect_to @project, alert: "Fill in your shipping address before submitting for review."
-      return
-    end
-
-    @project.submit_build_for_review!
-    if @project.slack_channel_id.present? && @project.slack_message_ts.present?
-      SlackNotifyJob.perform_later(
-        channel_id: @project.slack_channel_id,
-        thread_ts: @project.slack_message_ts,
-        text: ":hammer_and_wrench: *#{@project.name}* has been submitted for build review."
-      )
-    end
-    redirect_to @project, notice: "Build submitted for review!"
+    send_data md, filename: "#{@project.name.parameterize}-journal.md", type: "text/markdown"
   end
 
   def set_devlog_mode
@@ -230,35 +268,47 @@ class ProjectsController < ApplicationController
     authorize @project
 
     unless @project.repo_link.present?
-      redirect_back fallback_location: project_path(@project), alert: "You must link a repository before submitting for review."
+      redirect_back fallback_location: project_path(@project), alert: "Link a repository before submitting for review."
       return
     end
 
-    if @project.normal?
-      if @project.subtitle.blank?
-        redirect_to @project, alert: "Add a short description before submitting for review."
-        return
-      end
+    if @project.subtitle.blank?
+      redirect_to @project, alert: "Add a short description before submitting for review."
+      return
+    end
 
-      unless @project.devlogs.any?
-        redirect_to @project, alert: "Add at least one devlog entry before submitting for review."
-        return
-      end
+    unless @project.devlogs.any?
+      redirect_to @project, alert: "Add at least one devlog entry before submitting for review."
+      return
+    end
 
-      if @project.cover_image_url.blank?
-        redirect_to @project, alert: "Upload a cover image before submitting for review."
-        return
-      end
+    if @project.cover_image_url.blank?
+      redirect_to @project, alert: "Upload a cover image before submitting for review."
+      return
+    end
+
+    unless current_user.address_line1.present?
+      redirect_to @project, alert: "Fill in your shipping address before submitting for review."
+      return
     end
 
     @project.submit_for_review!
+    audit!("project.submitted_for_review", target: @project)
     redirect_to @project, notice: "Project submitted for review."
   end
 
   def resubmit_pitch
     authorize @project, :update?
 
-    unless @project.returned? && @project.advanced? && @project.slack_channel_id.present? && @project.slack_message_ts.present?
+    enqueued = false
+    @project.with_lock do
+      next unless @project.returned? && @project.advanced? && @project.slack_channel_id.present? && @project.slack_message_ts.present?
+
+      @project.update!(status: :pitch_pending)
+      enqueued = true
+    end
+
+    unless enqueued
       redirect_to @project, alert: "This project cannot be resubmitted."
       return
     end
@@ -296,7 +346,7 @@ class ProjectsController < ApplicationController
   end
 
   def project_params
-    params.expect(project: [ :name, :subtitle, :repo_link, :tier, tags: [] ])
+    params.expect(project: [ :name, :subtitle, :repo_link, :tier, :devlog_mode, tags: [] ])
   end
 
   def serialize_project_detail(project)
@@ -308,12 +358,17 @@ class ProjectsController < ApplicationController
       repo_link: project.repo_link,
       status: project.status,
       devlog_mode: project.devlog_mode,
-      hcb_grant_link: project.hcb_grant_link,
       review_feedback: project.review_feedback,
       tier: project.tier,
+      coin_rate: project.coin_rate,
       from_slack: project.slack_message_ts.present?,
       cover_image_url: project.cover_image_url,
+      built_at: project.built_at&.strftime("%b %d, %Y"),
+      build_proof_url: project.build_proof_url,
+      airtable_sent: project.airtable_sent?,
+      user_id: project.user_id,
       user_display_name: project.user.display_name,
+      user_avatar: project.user.avatar,
       user_has_address: project.user.address_line1.present?,
       user_address: project.user.address_line1.present? ? {
         address_line1: project.user.address_line1,
@@ -321,8 +376,10 @@ class ProjectsController < ApplicationController
         city: project.user.city,
         state: project.user.state,
         country: project.user.country,
-        postal_code: project.user.postal_code
+        postal_code: project.user.postal_code,
+        phone_number: project.user.phone_number
       } : nil,
+      hca_address_portal_url: HcaService.address_portal_url(return_to: project_url(project)),
       created_at: project.created_at.strftime("%B %d, %Y")
     }
   end
@@ -334,6 +391,34 @@ class ProjectsController < ApplicationController
       content: devlog.content,
       time_spent: devlog.time_spent,
       created_at: devlog.created_at.strftime("%B %d, %Y")
+    }
+  end
+
+  def serialize_review_event(event)
+    meta = event.metadata || {}
+    {
+      id: event.id,
+      action: event.action,
+      stage: meta["stage"],
+      feedback: meta["feedback"].presence,
+      reviewer_display_name: event.actor&.display_name,
+      reviewer_avatar: event.actor&.avatar,
+      target_type: event.target_type,
+      target_label: event.target_label,
+      created_at: event.created_at.strftime("%b %d, %Y %H:%M")
+    }
+  end
+
+  def serialize_project_kudo(kudo)
+    {
+      id: kudo.id,
+      content: kudo.content,
+      author_id: kudo.author_id,
+      author_name: kudo.author.display_name,
+      author_avatar: kudo.author.avatar,
+      author_is_staff: kudo.author.staff?,
+      can_destroy: current_user.present? && (current_user.id == kudo.author_id || current_user.has_permission?("users")),
+      created_at: kudo.created_at.strftime("%b %d, %Y")
     }
   end
 end

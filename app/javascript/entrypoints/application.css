@@ -166,6 +166,9 @@ h1, h2, h3, .font-headline {
   padding: 0 1rem;
   line-height: 1.75;
   color: rgba(229, 226, 225, 0.7);
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .markdown-content h1 {
@@ -269,6 +272,7 @@ h1, h2, h3, .font-headline {
   overflow-x: auto;
   margin-bottom: 1rem;
   border-radius: 0.5rem;
+  max-width: 100%;
 }
 
 .markdown-content pre code {

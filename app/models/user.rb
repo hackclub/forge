@@ -14,14 +14,24 @@
 #  display_name        :string           not null
 #  email               :string           not null
 #  first_name          :string
+#  fulfillment_regions :string           default([]), not null, is an Array
+#  git_instance_url    :string
+#  git_provider        :string           default("github")
+#  github_username     :string
 #  hca_token           :text
 #  is_adult            :boolean          default(FALSE), not null
 #  is_banned           :boolean          default(FALSE), not null
 #  is_beta_approved    :boolean          default(FALSE), not null
 #  last_name           :string
+#  last_seen_at        :datetime
+#  maintenance_bypass  :boolean          default(FALSE), not null
 #  permissions         :string           default([]), not null, is an Array
+#  phone_number        :string
 #  postal_code         :string
+#  referral_code       :string
+#  region              :string           default("rest_of_world")
 #  roles               :string           default([]), not null, is an Array
+#  shop_unlocked       :boolean          default(FALSE), not null
 #  state               :string
 #  timezone            :string           not null
 #  verification_status :string
@@ -32,10 +42,13 @@
 #
 # Indexes
 #
-#  index_users_on_discarded_at  (discarded_at)
+#  index_users_on_discarded_at   (discarded_at)
+#  index_users_on_last_seen_at   (last_seen_at)
+#  index_users_on_referral_code  (referral_code) UNIQUE
 #
 class User < ApplicationRecord
   include Discardable
+  include HasRegion
   include PgSearch::Model
 
   has_paper_trail
@@ -53,6 +66,82 @@ class User < ApplicationRecord
   has_many :projects, dependent: :destroy
   has_many :ships, through: :projects
   has_many :reviewed_ships, class_name: "Ship", foreign_key: :reviewer_id, dependent: :nullify, inverse_of: :reviewer
+  has_many :user_notes, dependent: :destroy
+  has_many :authored_project_notes, class_name: "ProjectNote", foreign_key: :author_id, dependent: :destroy, inverse_of: :author
+  has_many :kudos, dependent: :destroy
+  has_many :authored_kudos, class_name: "Kudo", foreign_key: :author_id, dependent: :destroy, inverse_of: :author
+  has_many :audit_events, class_name: "AuditEvent", foreign_key: :actor_id, dependent: :nullify, inverse_of: :actor
+  has_many :orders, dependent: :destroy
+  has_many :assigned_orders, class_name: "Order", foreign_key: :assigned_to_id, dependent: :nullify, inverse_of: :assigned_to
+  has_many :coin_adjustments, dependent: :destroy
+  has_many :referrals_made, class_name: "Referral", foreign_key: :referrer_id, dependent: :destroy, inverse_of: :referrer
+  has_one :referral_received, class_name: "Referral", foreign_key: :referred_id, dependent: :destroy, inverse_of: :referred
+  has_many :activity_days, class_name: "UserActivityDay", dependent: :destroy
+
+  STREAK_MULTIPLIER_TIERS = [
+    [ 3,   1.02 ],
+    [ 7,   1.05 ],
+    [ 14,  1.10 ],
+    [ 30,  1.15 ],
+    [ 60,  1.20 ],
+    [ 100, 1.25 ]
+  ].freeze
+
+  def record_activity!(date = Date.current)
+    activity_days.find_or_create_by!(active_on: date)
+  rescue ActiveRecord::RecordNotUnique
+    nil
+  end
+
+  def streak_multiplier(streak = current_streak)
+    STREAK_MULTIPLIER_TIERS.reverse_each do |threshold, mult|
+      return mult if streak >= threshold
+    end
+    1.0
+  end
+
+  def next_streak_milestone(streak = current_streak)
+    STREAK_MULTIPLIER_TIERS.map(&:first).find { |d| d > streak }
+  end
+
+  def next_streak_multiplier(streak = current_streak)
+    pair = STREAK_MULTIPLIER_TIERS.find { |d, _| d > streak }
+    pair&.last
+  end
+
+  def current_streak(today: Date.current)
+    dates = activity_days.where(active_on: (today - 365)..today).order(active_on: :desc).pluck(:active_on).to_set
+    return 0 if dates.empty?
+
+    cursor = dates.include?(today) ? today : today - 1
+    return 0 unless dates.include?(cursor)
+
+    streak = 0
+    while dates.include?(cursor)
+      streak += 1
+      cursor -= 1
+    end
+    streak
+  end
+
+  def longest_streak
+    dates = activity_days.order(:active_on).pluck(:active_on)
+    return 0 if dates.empty?
+
+    longest = 1
+    run = 1
+    dates.each_cons(2) do |a, b|
+      run = (b == a + 1) ? run + 1 : 1
+      longest = run if run > longest
+    end
+    longest
+  end
+
+  def last_active_on
+    activity_days.maximum(:active_on)
+  end
+
+  before_validation :ensure_referral_code, on: :create
 
   encrypts :hca_token
 
@@ -61,6 +150,7 @@ class User < ApplicationRecord
   validates :hca_id, presence: true
   validates :roles, presence: true
   validates :is_banned, inclusion: { in: [ true, false ] }
+  validates :region, inclusion: { in: REGION_KEYS }, allow_nil: true
 
   def has_role?(role)
     roles.include?(role.to_s)
@@ -88,8 +178,16 @@ class User < ApplicationRecord
     has_role?(:reviewer)
   end
 
+  def support?
+    has_role?(:support)
+  end
+
+  def fulfillment?
+    has_role?(:fulfillment)
+  end
+
   def staff?
-    admin? || reviewer?
+    admin? || reviewer? || support? || fulfillment?
   end
 
   AVAILABLE_PERMISSIONS = %w[
@@ -101,10 +199,51 @@ class User < ApplicationRecord
     audit_log
     jobs
     third_party
+    support
+    hackatime
+    news
+    orders
+    referrals
+    superadmin
   ].freeze
 
+  ROLE_DEFAULT_PERMISSIONS = {
+    "admin" => AVAILABLE_PERMISSIONS - %w[superadmin],
+    "reviewer" => %w[pending_reviews projects ships hackatime],
+    "support" => %w[projects users support],
+    "fulfillment" => %w[projects ships orders]
+  }.freeze
+
   def has_permission?(perm)
-    admin? || permissions.include?(perm.to_s)
+    permissions.include?(perm.to_s)
+  end
+
+  def superadmin?
+    has_permission?("superadmin")
+  end
+
+  def coins_earned
+    projects.kept.sum(&:coins_earned)
+  end
+
+  def coins_spent
+    orders.where(status: %i[pending approved fulfilled]).sum(:coin_cost).to_f
+  end
+
+  def coins_adjusted
+    coin_adjustments.sum(:amount).to_f
+  end
+
+  def coin_balance
+    (coins_earned + coins_adjusted - coins_spent).round(2)
+  end
+
+  def has_built_project?
+    projects.kept.where.not(built_at: nil).exists?
+  end
+
+  def can_buy_shop_items?
+    (has_attribute?(:shop_unlocked) && shop_unlocked?) || has_built_project?
   end
 
   def grant_permission(perm)
@@ -113,6 +252,13 @@ class User < ApplicationRecord
 
   def revoke_permission(perm)
     permissions.delete(perm.to_s)
+  end
+
+  def apply_default_permissions_for_role(role)
+    defaults = ROLE_DEFAULT_PERMISSIONS[role.to_s]
+    return unless defaults
+
+    self.permissions |= defaults
   end
 
   def self.exchange_hca_token(code, redirect_uri)
@@ -155,13 +301,35 @@ class User < ApplicationRecord
       end
 
       user.update(hca_token: access_token, email: email)
+      user.apply_hca_identity(identity)
       user.refresh_profile_from_slack
       return user
     end
 
     user = create_from_hca(identity, access_token)
+    user.apply_hca_identity(identity)
     user.refresh_profile_from_slack
     user
+  end
+
+  def apply_hca_identity(identity)
+    return if identity.blank?
+
+    addr = Array(identity["addresses"]).first
+    addr = identity["address"] if addr.blank? && identity["address"].is_a?(Hash)
+    addr ||= {}
+
+    attrs = {
+      address_line1: pick(addr, %w[line_1 address_line_1 address_line1 line1 street]).presence,
+      address_line2: pick(addr, %w[line_2 address_line_2 address_line2 line2]).presence,
+      city: pick(addr, %w[city locality]).presence,
+      state: pick(addr, %w[state state_province province region]).presence,
+      country: pick(addr, %w[country country_code]).presence,
+      postal_code: pick(addr, %w[postal_code zip zip_code postcode]).presence,
+      phone_number: (pick(identity, %w[phone_number phone]).presence || pick(addr, %w[phone_number phone]).presence)
+    }.compact
+
+    update(attrs) if attrs.any?
   end
 
   def self.create_from_hca(identity, access_token)
@@ -282,6 +450,28 @@ class User < ApplicationRecord
   end
 
   private
+
+  def pick(hash, keys)
+    return "" unless hash.is_a?(Hash)
+
+    keys.each do |k|
+      value = hash[k] || hash[k.to_sym]
+      return value.to_s if value.present?
+    end
+    ""
+  end
+
+  def ensure_referral_code
+    return if referral_code.present?
+
+    loop do
+      candidate = SecureRandom.alphanumeric(8).upcase
+      unless User.exists?(referral_code: candidate)
+        self.referral_code = candidate
+        break
+      end
+    end
+  end
 
   def self.determine_is_adult(identity)
     birthday_str = identity["birthday"]
