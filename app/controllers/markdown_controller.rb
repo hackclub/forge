@@ -20,7 +20,7 @@ class MarkdownController < ApplicationController
     content_html = helpers.render_markdown_file(path)
     file_meta = helpers.guide_metadata_for(path)
     meta = helpers.docs_meta_for_url("/docs#{slug == 'index' ? '' : "/#{slug}"}")
-    page_title = file_meta[:title].presence || meta&.dig(:title).presence || slug.tr("-_/", " ").split.map(&:capitalize).join(" ")
+    page_title = meta&.dig(:title).presence || file_meta[:title].presence || slug.tr("-_/", " ").split.map(&:capitalize).join(" ")
 
     render inertia: "Markdown/Show", props: {
       content_html: content_html,

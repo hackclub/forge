@@ -1,6 +1,7 @@
 require "redcarpet"
 require "uri"
 require "digest"
+require "yaml"
 
 module MarkdownHelper
   def self.canonical_base_url
@@ -116,7 +117,8 @@ module MarkdownHelper
 
   def docs_metadata(base:, url_prefix:, default_index_title: "")
     paths = Dir.glob(base.join("**/*.md").to_s)
-    stats = paths.map { |p| [ p, File.mtime(p).to_i ] }.sort_by(&:first)
+    config_paths = Dir.glob(base.join("**/config.yaml").to_s)
+    stats = (paths + config_paths).uniq.map { |p| [ p, File.mtime(p).to_i ] }.sort_by(&:first)
     return build_docs_metadata(base, url_prefix, default_index_title, paths) if Rails.env.development?
 
     stats_digest = Digest::SHA256.hexdigest(stats.flatten.join("|"))
@@ -147,6 +149,7 @@ module MarkdownHelper
       end
 
       meta = parse_guide_metadata(p)
+      meta = merge_docs_metadata(meta, docs_config_metadata_for_path(p)) if File.basename(p) == "index.md"
       fallback_title = if slug.blank?
         default_index_title
       else
@@ -154,7 +157,7 @@ module MarkdownHelper
       end
       title = meta[:title].presence || fallback_title
       desc  = meta[:description].presence
-      prio  = meta[:priority]
+      prio  = meta[:priority].nil? ? 0 : meta[:priority].to_i
       unlisted = meta[:unlisted] || false
       items << { title: title, path: url, description: desc, slug: slug, file: p, priority: prio, unlisted: unlisted }
     end
@@ -167,9 +170,8 @@ module MarkdownHelper
   end
 
   def docs_menu_items
-    docs_section_metadata
+    sorted_docs_items(docs_section_metadata)
       .reject { |i| i[:slug].blank? || i[:unlisted] }
-      .sort_by { |h| [ h[:priority].nil? ? Float::INFINITY : h[:priority].to_i, h[:title].downcase ] }
       .map { |i| { title: i[:title], path: i[:path], description: i[:description] } }
   end
 
@@ -191,9 +193,8 @@ module MarkdownHelper
     base = Rails.root.join("docs", section)
     return [] unless File.directory?(base)
 
-    docs_metadata(base: base, url_prefix: url_path, default_index_title: section.titleize)
+    sorted_docs_items(docs_metadata(base: base, url_prefix: url_path, default_index_title: section.titleize))
       .reject { |i| i[:slug].blank? || i[:unlisted] }
-      .sort_by { |h| [ h[:priority].nil? ? Float::INFINITY : h[:priority].to_i, h[:title].downcase ] }
       .map { |i| { title: i[:title], path: i[:path], description: i[:description] } }
   end
 
@@ -212,41 +213,109 @@ module MarkdownHelper
     dir = rel_dir.blank? ? base : base.join(rel_dir)
     entries = Dir.children(dir).sort_by(&:downcase)
 
-    folders = entries.select { |name| File.directory?(dir.join(name)) }
-    files = entries.select { |name| name.end_with?(".md") }
+    nodes = entries.filter_map do |name|
+      entry_path = dir.join(name)
 
-    folder_nodes = folders.map do |folder_name|
-      child_rel_dir = rel_dir.blank? ? folder_name : File.join(rel_dir, folder_name)
-      child_nodes = build_docs_sidebar_nodes(base, child_rel_dir)
-      folder_index_path = dir.join(folder_name, "index.md")
-      folder_meta_title = File.exist?(folder_index_path) ? parse_guide_metadata(folder_index_path)[:title].presence : nil
+      if File.directory?(entry_path)
+        child_rel_dir = rel_dir.blank? ? name : File.join(rel_dir, name)
+        folder_meta = docs_directory_metadata(entry_path)
 
-      {
-        type: "folder",
-        title: folder_meta_title || humanize_sidebar_name(folder_name),
-        path: docs_path_for_sidebar(child_rel_dir),
-        children: child_nodes
-      }
+        {
+          type: "folder",
+          title: folder_meta[:title].presence || humanize_sidebar_name(name),
+          path: docs_path_for_sidebar(child_rel_dir),
+          priority: folder_meta[:priority].nil? ? 0 : folder_meta[:priority].to_i,
+          children: build_docs_sidebar_nodes(base, child_rel_dir)
+        }
+      elsif name.end_with?(".md") && !(rel_dir.present? && File.basename(name, ".md") == "index")
+        file_rel_path = rel_dir.blank? ? name : File.join(rel_dir, name)
+        file_meta = docs_page_metadata(entry_path)
+
+        {
+          type: "page",
+          title: file_meta[:title].presence || humanize_sidebar_name(File.basename(name, ".md")),
+          path: docs_path_for_sidebar(file_rel_path),
+          priority: file_meta[:priority].nil? ? 0 : file_meta[:priority].to_i
+        }
+      end
     end
 
-    visible_files = files.reject { |file_name| rel_dir.present? && File.basename(file_name, ".md") == "index" }
+    if rel_dir.blank?
+      sorted_docs_items(nodes.select { |item| item[:type] == "page" }) +
+        sorted_docs_items(nodes.select { |item| item[:type] == "folder" })
+    else
+      sorted_docs_items(nodes)
+    end
+  end
 
-    sorted_files = visible_files.sort_by do |file_name|
-      [ File.basename(file_name, ".md") == "index" ? 0 : 1, file_name.downcase ]
+  def sorted_docs_items(items)
+    items.sort_by { |item| [ -(item[:priority] || 0).to_i, item[:title].to_s.downcase, item[:path].to_s ] }
+  end
+
+  def docs_page_metadata(path)
+    meta = parse_guide_metadata(path)
+    return meta unless File.basename(path) == "index.md"
+
+    merge_docs_metadata(meta, docs_config_metadata_for_path(path))
+  end
+
+  def docs_directory_metadata(dir)
+    index_path = dir.join("index.md")
+    index_meta = File.exist?(index_path) ? parse_guide_metadata(index_path) : {}
+
+    merge_docs_metadata(index_meta, docs_config_metadata(dir))
+  end
+
+  def docs_config_metadata_for_path(path)
+    docs_config_metadata(Pathname.new(path).dirname)
+  end
+
+  def docs_config_metadata(dir)
+    config_path = dir.join("config.yaml")
+    return default_docs_metadata unless File.exist?(config_path)
+
+    if Rails.env.development?
+      build_docs_config_metadata(config_path)
+    else
+      key = [ "docs_yaml_meta", config_path.to_s, File.mtime(config_path).to_i ]
+      Rails.cache.fetch(key) { build_docs_config_metadata(config_path) }
+    end
+  end
+
+  def build_docs_config_metadata(config_path)
+    raw = YAML.safe_load(File.read(config_path))
+    data = raw.is_a?(Hash) ? raw : {}
+
+    {
+      title: data["title"].presence,
+      description: data["description"].presence,
+      priority: parse_priority_value(data["priority"])
+    }
+  rescue Errno::ENOENT, Psych::SyntaxError
+    default_docs_metadata
+  end
+
+  def merge_docs_metadata(*sources)
+    merged = default_docs_metadata
+
+    sources.compact.each do |source|
+      merged[:title] = source[:title] if source[:title].present?
+      merged[:description] = source[:description] if source[:description].present?
+      merged[:priority] = source[:priority] unless source[:priority].nil?
+      merged[:unlisted] = true if source[:unlisted]
     end
 
-    page_nodes = sorted_files.map do |file_name|
-      file_rel_path = rel_dir.blank? ? file_name : File.join(rel_dir, file_name)
-      file_path = dir.join(file_name)
-      meta_title = parse_guide_metadata(file_path)[:title].presence
-      {
-        type: "page",
-        title: meta_title || humanize_sidebar_name(File.basename(file_name, ".md")),
-        path: docs_path_for_sidebar(file_rel_path)
-      }
-    end
+    merged
+  end
 
-    rel_dir.blank? ? (page_nodes + folder_nodes) : (folder_nodes + page_nodes)
+  def parse_priority_value(value)
+    Integer(value)
+  rescue ArgumentError, TypeError
+    nil
+  end
+
+  def default_docs_metadata
+    { title: nil, description: nil, priority: nil, unlisted: false }
   end
 
   def docs_path_for_sidebar(rel_path)
