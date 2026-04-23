@@ -350,6 +350,8 @@ class ProjectsController < ApplicationController
   end
 
   def serialize_project_detail(project)
+    can_view_user_address = current_user.present? && (current_user.id == project.user_id || current_user.staff?)
+
     {
       id: project.id,
       name: project.name,
@@ -369,8 +371,8 @@ class ProjectsController < ApplicationController
       user_id: project.user_id,
       user_display_name: project.user.display_name,
       user_avatar: project.user.avatar,
-      user_has_address: project.user.address_line1.present?,
-      user_address: project.user.address_line1.present? ? {
+      user_has_address: can_view_user_address && project.user.address_line1.present?,
+      user_address: can_view_user_address && project.user.address_line1.present? ? {
         address_line1: project.user.address_line1,
         address_line2: project.user.address_line2,
         city: project.user.city,
