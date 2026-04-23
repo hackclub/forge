@@ -3,6 +3,8 @@ class DevlogsController < ApplicationController
   before_action :set_project
 
   def show
+    authorize @project, :show?
+
     @devlog = @project.devlogs.find(params[:id])
     can_edit = current_user.present? && policy(@project).update?
 

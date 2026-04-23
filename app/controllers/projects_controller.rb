@@ -8,7 +8,7 @@ class ProjectsController < ApplicationController
     render inertia: "Projects/Show", props: {
       project: serialize_project_detail(@project),
       devlogs: @project.devlogs.map { |d| serialize_devlog(d) },
-      review_history: @project.review_history.map { |e| serialize_review_event(e) },
+      review_history: can_view_project_review?(@project) ? @project.review_history.map { |e| serialize_review_event(e) } : [],
       is_admin_view: policy(@project).update? && @project.user_id != current_user&.id,
       can: {
         update: policy(@project).update?,
@@ -350,7 +350,8 @@ class ProjectsController < ApplicationController
   end
 
   def serialize_project_detail(project)
-    can_view_user_address = current_user.present? && (current_user.id == project.user_id || current_user.staff?)
+    can_view_private_project_data = can_view_project_review?(project)
+    can_view_user_address = can_view_private_project_data
 
     {
       id: project.id,
@@ -360,14 +361,14 @@ class ProjectsController < ApplicationController
       repo_link: project.repo_link,
       status: project.status,
       devlog_mode: project.devlog_mode,
-      review_feedback: project.review_feedback,
+      review_feedback: can_view_private_project_data ? project.review_feedback : nil,
       tier: project.tier,
       coin_rate: project.coin_rate,
       from_slack: project.slack_message_ts.present?,
       cover_image_url: project.cover_image_url,
       built_at: project.built_at&.strftime("%b %d, %Y"),
       build_proof_url: project.build_proof_url,
-      airtable_sent: project.airtable_sent?,
+      airtable_sent: can_view_private_project_data && project.airtable_sent?,
       user_id: project.user_id,
       user_display_name: project.user.display_name,
       user_avatar: project.user.avatar,
@@ -384,6 +385,10 @@ class ProjectsController < ApplicationController
       hca_address_portal_url: HcaService.address_portal_url(return_to: project_url(project)),
       created_at: project.created_at.strftime("%B %d, %Y")
     }
+  end
+
+  def can_view_project_review?(project)
+    current_user.present? && (current_user.id == project.user_id || current_user.staff?)
   end
 
   def serialize_devlog(devlog)

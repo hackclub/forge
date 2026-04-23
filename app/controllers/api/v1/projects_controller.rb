@@ -38,7 +38,7 @@ class Api::V1::ProjectsController < Api::V1::BaseController
       id: project.id,
       name: project.name,
       subtitle: project.subtitle,
-      description: project.description,
+      description: project.subtitle,
       status: project.status,
       tier: project.tier,
       tags: project.tags,

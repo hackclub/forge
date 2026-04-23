@@ -1,6 +1,6 @@
 class VoteController < ApplicationController
   def index
-    candidates = Project.kept.where.not(user_id: current_user.id).includes(:user).order("RANDOM()").limit(2)
+    candidates = Project.kept.where(hidden: false).where.not(user_id: current_user.id).includes(:user).order("RANDOM()").limit(2)
 
     if candidates.size < 2
       render inertia: "Vote/Index", props: { matchup: nil }
@@ -26,7 +26,7 @@ class VoteController < ApplicationController
     {
       id: project.id,
       name: project.name,
-      description: project.description&.truncate(300),
+      description: project.subtitle&.truncate(300),
       user_display_name: project.user.display_name,
       user_avatar: project.user.avatar,
       repo_link: project.repo_link

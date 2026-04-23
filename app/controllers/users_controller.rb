@@ -4,7 +4,11 @@ class UsersController < ApplicationController
   def show
     user = User.kept.find(params[:id])
     projects = user.projects.kept.where(hidden: false).includes(:devlogs).order(created_at: :desc)
-    kudos = user.kudos.includes(:author, :project).order(created_at: :desc)
+    kudos = user.kudos
+      .left_outer_joins(:project)
+      .where("kudos.project_id IS NULL OR (projects.discarded_at IS NULL AND projects.hidden = FALSE)")
+      .includes(:author, :project)
+      .order(created_at: :desc)
 
     total_hours = projects.sum(&:total_hours)
     approved_count = projects.count(&:approved?)

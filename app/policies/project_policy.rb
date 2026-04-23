@@ -3,6 +3,9 @@
 class ProjectPolicy < ApplicationPolicy
   def show?
     return false if record.discarded? && !admin?
+    return true if owner? || user&.staff?
+    return false if record.hidden?
+
     true
   end
 
