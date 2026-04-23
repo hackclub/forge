@@ -1,0 +1,10 @@
+{
+  "ignored_warnings": [
+    {
+      "fingerprint": "e5fc865245ba18cffa4163643762e3e847698ccdc83e582047b9e2f602d9414f",
+      "note": "Intentional: admin-only raw SQL console behind StaffConstraint and admin permissions"
+    }
+  ],
+  "updated": "2026-04-23",
+  "brakeman_version": "7.0.2"
+}
