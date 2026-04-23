@@ -70,7 +70,17 @@ const STATUS_STYLES: Record<Order['status'], string> = {
   rejected: 'bg-red-500/15 text-red-400',
 }
 
-export default function ShopIndex({ balance, can_buy_shop_items, eligible_projects, shop_items, orders, transactions, direct_grant_ratio, regions, user_region }: Props) {
+export default function ShopIndex({
+  balance,
+  can_buy_shop_items,
+  eligible_projects,
+  shop_items,
+  orders,
+  transactions,
+  direct_grant_ratio,
+  regions,
+  user_region,
+}: Props) {
   const shared = usePage<SharedProps>().props
   const isSignedIn = !!shared.auth.user
   const [showDirectForm, setShowDirectForm] = useState(false)
@@ -87,18 +97,22 @@ export default function ShopIndex({ balance, can_buy_shop_items, eligible_projec
   function placeDirect(e: React.FormEvent) {
     e.preventDefault()
     if (!canAffordDirect) return
-    router.post('/shop/orders', {
-      kind: 'direct_grant',
-      project_id: projectId,
-      amount_usd: numericAmount,
-      description: description.trim(),
-    }, {
-      onSuccess: () => {
-        setAmount('')
-        setDescription('')
-        setShowDirectForm(false)
+    router.post(
+      '/shop/orders',
+      {
+        kind: 'direct_grant',
+        project_id: projectId,
+        amount_usd: numericAmount,
+        description: description.trim(),
       },
-    })
+      {
+        onSuccess: () => {
+          setAmount('')
+          setDescription('')
+          setShowDirectForm(false)
+        },
+      },
+    )
   }
 
   const [quantities, setQuantities] = useState<Record<number, number>>({})
@@ -169,7 +183,9 @@ export default function ShopIndex({ balance, can_buy_shop_items, eligible_projec
               className="bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ee671c]/30 cursor-pointer"
             >
               {Object.entries(regions).map(([key, label]) => (
-                <option key={key} value={key}>{label}</option>
+                <option key={key} value={key}>
+                  {label}
+                </option>
               ))}
             </select>
           </section>
@@ -179,7 +195,9 @@ export default function ShopIndex({ balance, can_buy_shop_items, eligible_projec
           <section className="bg-[#1c1b1b] ghost-border p-5 flex items-center justify-between gap-4 flex-wrap">
             <div className="min-w-0">
               <p className="font-headline font-bold text-[#e5e2e1]">Direct project grant</p>
-              <p className="text-stone-500 text-xs">Trade {direct_grant_ratio}c per $1 to fund hardware for one of your approved projects.</p>
+              <p className="text-stone-500 text-xs">
+                Trade {direct_grant_ratio}c per $1 to fund hardware for one of your approved projects.
+              </p>
             </div>
             <button
               onClick={() => setShowDirectForm((v) => !v)}
@@ -194,7 +212,9 @@ export default function ShopIndex({ balance, can_buy_shop_items, eligible_projec
         {isSignedIn && showDirectForm && (
           <form onSubmit={placeDirect} className="bg-[#1c1b1b] ghost-border p-6 space-y-4">
             <div>
-              <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">Project</label>
+              <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
+                Project
+              </label>
               {eligible_projects.length === 0 ? (
                 <p className="text-stone-500 text-xs">You need an approved project to redeem a direct grant.</p>
               ) : (
@@ -204,14 +224,18 @@ export default function ShopIndex({ balance, can_buy_shop_items, eligible_projec
                   className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ee671c]/30"
                 >
                   {eligible_projects.map((p) => (
-                    <option key={p.id} value={p.id}>{p.name}</option>
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
                   ))}
                 </select>
               )}
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">Amount (USD)</label>
+                <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
+                  Amount (USD)
+                </label>
                 <input
                   type="number"
                   min="0.01"
@@ -224,12 +248,16 @@ export default function ShopIndex({ balance, can_buy_shop_items, eligible_projec
                 />
               </div>
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">Cost</label>
+                <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
+                  Cost
+                </label>
                 <p className="text-2xl font-headline font-bold text-[#e5e2e1] py-3">{directCost}c</p>
               </div>
             </div>
             <div>
-              <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">Notes for staff (optional)</label>
+              <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
+                Notes for staff (optional)
+              </label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
@@ -266,7 +294,7 @@ export default function ShopIndex({ balance, can_buy_shop_items, eligible_projec
                 const qty = getQuantity(item)
                 const totalCost = +(item.coin_cost * qty).toFixed(2)
                 const affordable = totalCost <= balance.balance
-                const enabled = isSignedIn ? (can_buy_shop_items && affordable) : true
+                const enabled = isSignedIn ? can_buy_shop_items && affordable : true
                 const max = item.max_quantity ?? 999
                 const showQuantity = max > 1
                 return (
@@ -279,7 +307,9 @@ export default function ShopIndex({ balance, can_buy_shop_items, eligible_projec
                       )}
                     </div>
                     <div className="p-4 flex-1 flex flex-col">
-                      <h3 className="font-headline font-bold text-[#e5e2e1] tracking-tight mb-1 break-words text-sm">{item.name}</h3>
+                      <h3 className="font-headline font-bold text-[#e5e2e1] tracking-tight mb-1 break-words text-sm">
+                        {item.name}
+                      </h3>
                       <ItemDescription description={item.description} />
                       <div className="mt-auto space-y-2">
                         <p className="text-[#ee671c] font-headline font-bold text-sm">
@@ -314,14 +344,22 @@ export default function ShopIndex({ balance, can_buy_shop_items, eligible_projec
                           </div>
                         )}
                         {item.max_quantity != null && (
-                          <p className="text-stone-600 text-[9px] uppercase tracking-wider text-center">Max {item.max_quantity} per order</p>
+                          <p className="text-stone-600 text-[9px] uppercase tracking-wider text-center">
+                            Max {item.max_quantity} per order
+                          </p>
                         )}
                         <button
                           onClick={() => buyItem(item)}
                           disabled={!enabled}
                           className={`w-full py-2 text-[10px] font-bold uppercase tracking-[0.15em] transition-colors ${enabled ? 'signature-smolder text-[#4c1a00] cursor-pointer' : 'bg-stone-700/40 text-stone-500 cursor-not-allowed'}`}
                         >
-                          {!isSignedIn ? 'Sign in to buy' : !can_buy_shop_items ? 'Locked' : affordable ? 'Buy' : "Can't afford"}
+                          {!isSignedIn
+                            ? 'Sign in to buy'
+                            : !can_buy_shop_items
+                              ? 'Locked'
+                              : affordable
+                                ? 'Buy'
+                                : "Can't afford"}
                         </button>
                       </div>
                     </div>
@@ -333,82 +371,96 @@ export default function ShopIndex({ balance, can_buy_shop_items, eligible_projec
         </section>
 
         {isSignedIn && (
-        <section>
-          <div className="flex gap-6 flex-wrap">
-            <button
-              onClick={() => setShowOrders((v) => !v)}
-              className="text-stone-500 hover:text-[#e5e2e1] text-xs font-bold uppercase tracking-[0.2em] flex items-center gap-1 transition-colors cursor-pointer"
-            >
-              {showOrders ? 'Hide' : 'Show'} order history ({orders.length})
-              <span className="material-symbols-outlined text-sm">{showOrders ? 'expand_less' : 'expand_more'}</span>
-            </button>
-            <button
-              onClick={() => setShowTransactions((v) => !v)}
-              className="text-stone-500 hover:text-[#e5e2e1] text-xs font-bold uppercase tracking-[0.2em] flex items-center gap-1 transition-colors cursor-pointer"
-            >
-              {showTransactions ? 'Hide' : 'Show'} coin history ({transactions.length})
-              <span className="material-symbols-outlined text-sm">{showTransactions ? 'expand_less' : 'expand_more'}</span>
-            </button>
-          </div>
-
-          {showTransactions && (
-            <div className="mt-4 space-y-1.5">
-              {transactions.length === 0 ? (
-                <p className="text-stone-500 text-sm">No coin activity yet.</p>
-              ) : (
-                transactions.map((tx, idx) => (
-                  <div key={idx} className="bg-[#1c1b1b] ghost-border px-4 py-3 flex items-center justify-between gap-4 min-w-0">
-                    <div className="min-w-0 flex-1">
-                      <p className="text-[#e5e2e1] text-sm break-words">{tx.label}</p>
-                      <p className="text-[10px] uppercase tracking-[0.2em] text-stone-600 mt-0.5">{tx.date}</p>
-                    </div>
-                    {tx.amount !== 0 && (
-                      <span className={`text-base font-headline font-bold shrink-0 ${tx.amount >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                        {tx.amount >= 0 ? '+' : ''}{tx.amount}c
-                      </span>
-                    )}
-                  </div>
-                ))
-              )}
+          <section>
+            <div className="flex gap-6 flex-wrap">
+              <button
+                onClick={() => setShowOrders((v) => !v)}
+                className="text-stone-500 hover:text-[#e5e2e1] text-xs font-bold uppercase tracking-[0.2em] flex items-center gap-1 transition-colors cursor-pointer"
+              >
+                {showOrders ? 'Hide' : 'Show'} order history ({orders.length})
+                <span className="material-symbols-outlined text-sm">{showOrders ? 'expand_less' : 'expand_more'}</span>
+              </button>
+              <button
+                onClick={() => setShowTransactions((v) => !v)}
+                className="text-stone-500 hover:text-[#e5e2e1] text-xs font-bold uppercase tracking-[0.2em] flex items-center gap-1 transition-colors cursor-pointer"
+              >
+                {showTransactions ? 'Hide' : 'Show'} coin history ({transactions.length})
+                <span className="material-symbols-outlined text-sm">
+                  {showTransactions ? 'expand_less' : 'expand_more'}
+                </span>
+              </button>
             </div>
-          )}
 
-          {showOrders && (
-            <div className="mt-4 space-y-2">
-              {orders.length === 0 ? (
-                <p className="text-stone-500 text-sm">No orders yet.</p>
-              ) : (
-                orders.map((order) => (
-                  <div key={order.id} className="bg-[#1c1b1b] ghost-border p-4 min-w-0 overflow-hidden flex gap-3 items-center">
-                    {order.shop_item_image && (
-                      <img src={order.shop_item_image} alt="" className="w-12 h-12 object-cover shrink-0" />
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-3 flex-wrap">
-                        <p className="text-[#e5e2e1] text-sm font-headline font-bold break-words">
-                          {order.quantity > 1 ? `${order.quantity}× ` : ''}{order.kind_label}
-                        </p>
-                        <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 ${STATUS_STYLES[order.status]}`}>
-                          {order.status}
+            {showTransactions && (
+              <div className="mt-4 space-y-1.5">
+                {transactions.length === 0 ? (
+                  <p className="text-stone-500 text-sm">No coin activity yet.</p>
+                ) : (
+                  transactions.map((tx, idx) => (
+                    <div
+                      key={idx}
+                      className="bg-[#1c1b1b] ghost-border px-4 py-3 flex items-center justify-between gap-4 min-w-0"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[#e5e2e1] text-sm break-words">{tx.label}</p>
+                        <p className="text-[10px] uppercase tracking-[0.2em] text-stone-600 mt-0.5">{tx.date}</p>
+                      </div>
+                      {tx.amount !== 0 && (
+                        <span
+                          className={`text-base font-headline font-bold shrink-0 ${tx.amount >= 0 ? 'text-emerald-400' : 'text-red-400'}`}
+                        >
+                          {tx.amount >= 0 ? '+' : ''}
+                          {tx.amount}c
                         </span>
-                      </div>
-                      {order.project_name && (
-                        <p className="text-stone-500 text-xs">For {order.project_name}</p>
                       )}
-                      <div className="flex items-center justify-between gap-4 mt-1 text-xs flex-wrap">
-                        <div className="text-stone-500">
-                          <span className="text-[#ee671c] font-bold">{order.coin_cost}c</span>
-                          {order.amount_usd != null && <span className="text-stone-600 ml-2">${order.amount_usd}</span>}
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+
+            {showOrders && (
+              <div className="mt-4 space-y-2">
+                {orders.length === 0 ? (
+                  <p className="text-stone-500 text-sm">No orders yet.</p>
+                ) : (
+                  orders.map((order) => (
+                    <div
+                      key={order.id}
+                      className="bg-[#1c1b1b] ghost-border p-4 min-w-0 overflow-hidden flex gap-3 items-center"
+                    >
+                      {order.shop_item_image && (
+                        <img src={order.shop_item_image} alt="" className="w-12 h-12 object-cover shrink-0" />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-3 flex-wrap">
+                          <p className="text-[#e5e2e1] text-sm font-headline font-bold break-words">
+                            {order.quantity > 1 ? `${order.quantity}× ` : ''}
+                            {order.kind_label}
+                          </p>
+                          <span
+                            className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 ${STATUS_STYLES[order.status]}`}
+                          >
+                            {order.status}
+                          </span>
                         </div>
-                        <span className="text-stone-600">{order.created_at}</span>
+                        {order.project_name && <p className="text-stone-500 text-xs">For {order.project_name}</p>}
+                        <div className="flex items-center justify-between gap-4 mt-1 text-xs flex-wrap">
+                          <div className="text-stone-500">
+                            <span className="text-[#ee671c] font-bold">{order.coin_cost}c</span>
+                            {order.amount_usd != null && (
+                              <span className="text-stone-600 ml-2">${order.amount_usd}</span>
+                            )}
+                          </div>
+                          <span className="text-stone-600">{order.created_at}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))
-              )}
-            </div>
-          )}
-        </section>
+                  ))
+                )}
+              </div>
+            )}
+          </section>
         )}
       </div>
     </>
@@ -421,7 +473,9 @@ function ItemDescription({ description }: { description: string | null }) {
 
   return (
     <div className="mb-3">
-      <p className={`text-stone-400 text-sm leading-relaxed break-words whitespace-pre-line ${expanded ? '' : 'line-clamp-3'}`}>
+      <p
+        className={`text-stone-400 text-sm leading-relaxed break-words whitespace-pre-line ${expanded ? '' : 'line-clamp-3'}`}
+      >
         {description}
       </p>
       <button

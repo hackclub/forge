@@ -105,37 +105,49 @@ export default function AdminUsersShow({
   }
 
   function toggleRole(role: string) {
-    const newRoles = user.roles.includes(role)
-      ? user.roles.filter((r) => r !== role)
-      : [...user.roles, role]
+    const newRoles = user.roles.includes(role) ? user.roles.filter((r) => r !== role) : [...user.roles, role]
     if (newRoles.length === 0) {
       alert('User must have at least one role.')
       return
     }
-    router.patch(`/admin/users/${user.id}/update_roles`, { roles: newRoles }, { preserveState: true, preserveScroll: true })
+    router.patch(
+      `/admin/users/${user.id}/update_roles`,
+      { roles: newRoles },
+      { preserveState: true, preserveScroll: true },
+    )
   }
 
   function togglePermission(perm: string) {
     const newPerms = user.permissions.includes(perm)
       ? user.permissions.filter((p) => p !== perm)
       : [...user.permissions, perm]
-    router.patch(`/admin/users/${user.id}/update_permissions`, { permissions: newPerms }, { preserveState: true, preserveScroll: true })
+    router.patch(
+      `/admin/users/${user.id}/update_permissions`,
+      { permissions: newPerms },
+      { preserveState: true, preserveScroll: true },
+    )
   }
 
   function revokeAllPermissions() {
     if (!confirm('Revoke all permissions?')) return
-    router.patch(`/admin/users/${user.id}/update_permissions`, { permissions: [] }, { preserveState: true, preserveScroll: true })
+    router.patch(
+      `/admin/users/${user.id}/update_permissions`,
+      { permissions: [] },
+      { preserveState: true, preserveScroll: true },
+    )
   }
 
   return (
     <div className="p-5 md:p-12 max-w-6xl mx-auto">
       <div className="flex flex-col sm:flex-row sm:items-center gap-5 mb-4 text-center sm:text-left">
-        <img src={user.avatar} alt={user.display_name} className="w-24 h-24 border border-white/10 shrink-0 mx-auto sm:mx-0" />
+        <img
+          src={user.avatar}
+          alt={user.display_name}
+          className="w-24 h-24 border border-white/10 shrink-0 mx-auto sm:mx-0"
+        />
         <div>
           <div className="flex items-center gap-3">
-            <h1 className="text-4xl font-headline font-bold text-[#e5e2e1] tracking-tight">
-              {user.display_name}
-            </h1>
+            <h1 className="text-4xl font-headline font-bold text-[#e5e2e1] tracking-tight">{user.display_name}</h1>
             {user.is_banned && (
               <span className="bg-red-500/20 text-red-400 px-3 py-1 text-[10px] uppercase font-bold tracking-widest flex items-center gap-1.5">
                 <span className="material-symbols-outlined text-sm">gavel</span>
@@ -181,18 +193,27 @@ export default function AdminUsersShow({
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div>
               <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">Trust Level</span>
-              <p className={`mt-1 font-bold ${
-                hackatime.trust_level === 'green' ? 'text-emerald-400' :
-                hackatime.trust_level === 'blue' ? 'text-blue-400' :
-                hackatime.trust_level === 'yellow' ? 'text-amber-400' :
-                hackatime.trust_level === 'red' ? 'text-red-400' : 'text-stone-400'
-              }`}>
+              <p
+                className={`mt-1 font-bold ${
+                  hackatime.trust_level === 'green'
+                    ? 'text-emerald-400'
+                    : hackatime.trust_level === 'blue'
+                      ? 'text-blue-400'
+                      : hackatime.trust_level === 'yellow'
+                        ? 'text-amber-400'
+                        : hackatime.trust_level === 'red'
+                          ? 'text-red-400'
+                          : 'text-stone-400'
+                }`}
+              >
                 {hackatime.trust_level || 'Unknown'}
               </p>
             </div>
             <div>
               <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">Coding Time</span>
-              <p className="text-[#e5e2e1] mt-1">{hackatime.total_coding_time ? `${Math.round(hackatime.total_coding_time / 3600)}h` : '-'}</p>
+              <p className="text-[#e5e2e1] mt-1">
+                {hackatime.total_coding_time ? `${Math.round(hackatime.total_coding_time / 3600)}h` : '-'}
+              </p>
             </div>
             <div>
               <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">Days Active</span>
@@ -206,10 +227,14 @@ export default function AdminUsersShow({
           {(hackatime.suspected || hackatime.banned) && (
             <div className="mt-4 flex gap-2">
               {hackatime.suspected && (
-                <span className="bg-amber-500/10 text-amber-400 px-3 py-1 text-[10px] uppercase font-bold tracking-widest">Suspected</span>
+                <span className="bg-amber-500/10 text-amber-400 px-3 py-1 text-[10px] uppercase font-bold tracking-widest">
+                  Suspected
+                </span>
               )}
               {hackatime.banned && (
-                <span className="bg-red-500/10 text-red-400 px-3 py-1 text-[10px] uppercase font-bold tracking-widest">Banned on Hackatime</span>
+                <span className="bg-red-500/10 text-red-400 px-3 py-1 text-[10px] uppercase font-bold tracking-widest">
+                  Banned on Hackatime
+                </span>
               )}
             </div>
           )}
@@ -220,7 +245,10 @@ export default function AdminUsersShow({
         <h2 className="text-xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-4">Roles</h2>
         {isSuperadmin ? (
           <>
-            <p className="text-stone-500 text-sm mb-4">Assigning a staff role auto-grants its default permissions. You can still manually adjust permissions below.</p>
+            <p className="text-stone-500 text-sm mb-4">
+              Assigning a staff role auto-grants its default permissions. You can still manually adjust permissions
+              below.
+            </p>
             <div className="grid grid-cols-2 gap-2">
               {available_roles.map((role) => {
                 const active = user.roles.includes(role)
@@ -240,7 +268,9 @@ export default function AdminUsersShow({
                     <div>
                       <span className="text-xs font-bold uppercase tracking-[0.15em]">{role}</span>
                       {roleDescriptions[role] && (
-                        <p className={`text-[10px] mt-0.5 ${active ? 'text-[#4c1a00]/70' : 'text-stone-600'}`}>{roleDescriptions[role]}</p>
+                        <p className={`text-[10px] mt-0.5 ${active ? 'text-[#4c1a00]/70' : 'text-stone-600'}`}>
+                          {roleDescriptions[role]}
+                        </p>
                       )}
                     </div>
                   </button>
@@ -256,7 +286,10 @@ export default function AdminUsersShow({
                 <span className="text-stone-600 text-xs">No roles</span>
               ) : (
                 user.roles.map((role) => (
-                  <span key={role} className="px-3 py-1.5 ghost-border bg-[#1c1b1b] text-stone-300 text-[10px] font-bold uppercase tracking-[0.15em]">
+                  <span
+                    key={role}
+                    className="px-3 py-1.5 ghost-border bg-[#1c1b1b] text-stone-300 text-[10px] font-bold uppercase tracking-[0.15em]"
+                  >
                     {role}
                   </span>
                 ))
@@ -280,7 +313,9 @@ export default function AdminUsersShow({
         </div>
         {isSuperadmin ? (
           <>
-            <p className="text-stone-500 text-sm mb-4">Toggle individual permissions. Assigning a role auto-grants its defaults, but you can override them.</p>
+            <p className="text-stone-500 text-sm mb-4">
+              Toggle individual permissions. Assigning a role auto-grants its defaults, but you can override them.
+            </p>
             <div className="grid grid-cols-2 gap-2">
               {visiblePermissions.map((perm) => {
                 const active = user.permissions.includes(perm)
@@ -297,9 +332,7 @@ export default function AdminUsersShow({
                         : 'bg-[#1c1b1b] text-stone-500 ghost-border hover:bg-[#2a2a2a] hover:text-stone-300'
                     }`}
                   >
-                    <span className="material-symbols-outlined text-lg">
-                      {active ? 'toggle_on' : 'toggle_off'}
-                    </span>
+                    <span className="material-symbols-outlined text-lg">{active ? 'toggle_on' : 'toggle_off'}</span>
                     {permissionLabels[perm] || perm}
                   </button>
                 )
@@ -314,7 +347,10 @@ export default function AdminUsersShow({
                 <span className="text-stone-600 text-xs">No permissions</span>
               ) : (
                 user.permissions.map((perm) => (
-                  <span key={perm} className="px-3 py-1.5 ghost-border bg-[#1c1b1b] text-stone-300 text-[10px] font-bold uppercase tracking-[0.15em]">
+                  <span
+                    key={perm}
+                    className="px-3 py-1.5 ghost-border bg-[#1c1b1b] text-stone-300 text-[10px] font-bold uppercase tracking-[0.15em]"
+                  >
                     {permissionLabels[perm] || perm}
                   </span>
                 ))
@@ -335,7 +371,9 @@ export default function AdminUsersShow({
             View History
           </Link>
         </div>
-        <p className="text-stone-500 text-sm mb-4">Manually adjust this user's coin balance. Use a positive number to grant, negative to remove.</p>
+        <p className="text-stone-500 text-sm mb-4">
+          Manually adjust this user's coin balance. Use a positive number to grant, negative to remove.
+        </p>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
           <div className="bg-[#1c1b1b] ghost-border p-4">
@@ -378,9 +416,16 @@ export default function AdminUsersShow({
             onClick={() => {
               const amt = parseFloat(coinAmount)
               if (!amt || !coinReason.trim()) return
-              router.post(`/admin/users/${user.id}/adjust_coins`, { amount: amt, reason: coinReason }, {
-                onSuccess: () => { setCoinAmount(''); setCoinReason('') },
-              })
+              router.post(
+                `/admin/users/${user.id}/adjust_coins`,
+                { amount: amt, reason: coinReason },
+                {
+                  onSuccess: () => {
+                    setCoinAmount('')
+                    setCoinReason('')
+                  },
+                },
+              )
             }}
             disabled={!coinAmount || !coinReason.trim()}
             className="signature-smolder text-[#4c1a00] px-5 py-2 mt-3 text-xs font-bold uppercase tracking-[0.15em] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
@@ -392,13 +437,17 @@ export default function AdminUsersShow({
         <div className="bg-[#1c1b1b] ghost-border p-5 mb-4 flex items-center justify-between gap-4">
           <div>
             <p className="text-[#e5e2e1] text-sm font-headline font-bold">Shop access</p>
-            <p className="text-stone-500 text-xs">Override the "must have a built project" gate. Enable to let this user buy shop items right away.</p>
+            <p className="text-stone-500 text-xs">
+              Override the "must have a built project" gate. Enable to let this user buy shop items right away.
+            </p>
           </div>
           <button
             onClick={() => router.post(`/admin/users/${user.id}/toggle_shop_unlocked`)}
             className={`relative inline-flex h-6 w-11 items-center transition-colors cursor-pointer shrink-0 ${user.shop_unlocked ? 'bg-[#ee671c]' : 'bg-stone-700'}`}
           >
-            <span className={`inline-block h-4 w-4 transform bg-white transition-transform ${user.shop_unlocked ? 'translate-x-6' : 'translate-x-1'}`} />
+            <span
+              className={`inline-block h-4 w-4 transform bg-white transition-transform ${user.shop_unlocked ? 'translate-x-6' : 'translate-x-1'}`}
+            />
           </button>
         </div>
 
@@ -411,7 +460,9 @@ export default function AdminUsersShow({
             onClick={() => router.post(`/admin/users/${user.id}/toggle_maintenance_bypass`)}
             className={`relative inline-flex h-6 w-11 items-center transition-colors cursor-pointer shrink-0 ${user.maintenance_bypass ? 'bg-[#ee671c]' : 'bg-stone-700'}`}
           >
-            <span className={`inline-block h-4 w-4 transform bg-white transition-transform ${user.maintenance_bypass ? 'translate-x-6' : 'translate-x-1'}`} />
+            <span
+              className={`inline-block h-4 w-4 transform bg-white transition-transform ${user.maintenance_bypass ? 'translate-x-6' : 'translate-x-1'}`}
+            />
           </button>
         </div>
 
@@ -419,7 +470,9 @@ export default function AdminUsersShow({
           <div className="min-w-0">
             <p className="text-[#e5e2e1] text-sm font-headline font-bold">Referral code</p>
             {user.referral_code ? (
-              <p className="text-stone-500 text-xs mt-1">Current code: <span className="font-mono text-[#ffb595]">{user.referral_code}</span></p>
+              <p className="text-stone-500 text-xs mt-1">
+                Current code: <span className="font-mono text-[#ffb595]">{user.referral_code}</span>
+              </p>
             ) : (
               <p className="text-stone-500 text-xs mt-1">No code set yet.</p>
             )}
@@ -441,7 +494,9 @@ export default function AdminUsersShow({
         {user.roles.includes('fulfillment') && (
           <div className="bg-[#1c1b1b] ghost-border p-5 mb-4">
             <p className="text-[#e5e2e1] text-sm font-headline font-bold mb-2">Fulfillment Regions</p>
-            <p className="text-stone-500 text-xs mb-3">Regions this fulfillment team member handles. Orders from matching regions auto-assign to them.</p>
+            <p className="text-stone-500 text-xs mb-3">
+              Regions this fulfillment team member handles. Orders from matching regions auto-assign to them.
+            </p>
             <div className="grid grid-cols-2 gap-2">
               {Object.entries(available_regions).map(([key, label]) => {
                 const active = user.fulfillment_regions.includes(key)
@@ -452,7 +507,9 @@ export default function AdminUsersShow({
                       const newRegions = active
                         ? user.fulfillment_regions.filter((r) => r !== key)
                         : [...user.fulfillment_regions, key]
-                      router.patch(`/admin/users/${user.id}/update_fulfillment_regions`, { fulfillment_regions: newRegions })
+                      router.patch(`/admin/users/${user.id}/update_fulfillment_regions`, {
+                        fulfillment_regions: newRegions,
+                      })
                     }}
                     className={`px-3 py-2 text-xs font-bold uppercase tracking-[0.15em] transition-colors cursor-pointer ${
                       active
@@ -471,13 +528,21 @@ export default function AdminUsersShow({
         {coin_adjustments.length > 0 && (
           <div className="space-y-2">
             {coin_adjustments.map((adj) => (
-              <div key={adj.id} className="bg-[#1c1b1b] ghost-border px-5 py-3 flex items-center justify-between gap-4 flex-wrap">
+              <div
+                key={adj.id}
+                className="bg-[#1c1b1b] ghost-border px-5 py-3 flex items-center justify-between gap-4 flex-wrap"
+              >
                 <div className="min-w-0">
                   <p className="text-stone-300 text-sm break-words">{adj.reason}</p>
-                  <p className="text-stone-600 text-xs mt-0.5">by {adj.actor_name} · {adj.created_at}</p>
+                  <p className="text-stone-600 text-xs mt-0.5">
+                    by {adj.actor_name} · {adj.created_at}
+                  </p>
                 </div>
-                <span className={`text-lg font-headline font-bold shrink-0 ${adj.amount >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                  {adj.amount >= 0 ? '+' : ''}{adj.amount}c
+                <span
+                  className={`text-lg font-headline font-bold shrink-0 ${adj.amount >= 0 ? 'text-emerald-400' : 'text-red-400'}`}
+                >
+                  {adj.amount >= 0 ? '+' : ''}
+                  {adj.amount}c
                 </span>
               </div>
             ))}
@@ -514,7 +579,11 @@ export default function AdminUsersShow({
           <div className="space-y-2">
             {notes.map((note) => (
               <div key={note.id} className="bg-[#1c1b1b] ghost-border px-5 py-4 flex gap-3">
-                <img src={note.author_avatar} alt={note.author_name} className="w-8 h-8 border border-white/10 shrink-0" />
+                <img
+                  src={note.author_avatar}
+                  alt={note.author_name}
+                  className="w-8 h-8 border border-white/10 shrink-0"
+                />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="font-headline font-bold text-[#e5e2e1] text-sm">{note.author_name}</span>
@@ -523,7 +592,9 @@ export default function AdminUsersShow({
                   <p className="text-stone-300 text-sm whitespace-pre-wrap">{note.content}</p>
                 </div>
                 <button
-                  onClick={() => { if (confirm('Delete this note?')) router.delete(`/admin/users/${user.id}/notes/${note.id}`) }}
+                  onClick={() => {
+                    if (confirm('Delete this note?')) router.delete(`/admin/users/${user.id}/notes/${note.id}`)
+                  }}
                   className="text-stone-600 hover:text-red-400 transition-colors shrink-0 cursor-pointer"
                 >
                   <span className="material-symbols-outlined text-sm">close</span>
@@ -565,7 +636,11 @@ export default function AdminUsersShow({
           <div className="space-y-2">
             {kudos.map((kudo) => (
               <div key={kudo.id} className="bg-[#1c1b1b] ghost-border px-5 py-4 flex gap-3">
-                <img src={kudo.author_avatar} alt={kudo.author_name} className="w-8 h-8 border border-white/10 shrink-0" />
+                <img
+                  src={kudo.author_avatar}
+                  alt={kudo.author_name}
+                  className="w-8 h-8 border border-white/10 shrink-0"
+                />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="font-headline font-bold text-[#e5e2e1] text-sm">{kudo.author_name}</span>
@@ -574,7 +649,9 @@ export default function AdminUsersShow({
                   <p className="text-stone-300 text-sm whitespace-pre-wrap break-words">{kudo.content}</p>
                 </div>
                 <button
-                  onClick={() => { if (confirm('Delete this kudos?')) router.delete(`/admin/users/${user.id}/kudos/${kudo.id}`) }}
+                  onClick={() => {
+                    if (confirm('Delete this kudos?')) router.delete(`/admin/users/${user.id}/kudos/${kudo.id}`)
+                  }}
                   className="text-stone-600 hover:text-red-400 transition-colors shrink-0 cursor-pointer"
                 >
                   <span className="material-symbols-outlined text-sm">close</span>
@@ -644,7 +721,10 @@ export default function AdminUsersShow({
                       Confirm Ban
                     </button>
                     <button
-                      onClick={() => { setShowBanForm(false); setBanReason('') }}
+                      onClick={() => {
+                        setShowBanForm(false)
+                        setBanReason('')
+                      }}
                       className="ghost-border text-stone-400 hover:text-[#e5e2e1] px-6 py-3 text-xs font-bold uppercase tracking-wider cursor-pointer transition-colors"
                     >
                       Cancel
@@ -657,7 +737,9 @@ export default function AdminUsersShow({
         </div>
       )}
 
-      <h2 className="text-xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-4">Projects ({projects.length})</h2>
+      <h2 className="text-xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-4">
+        Projects ({projects.length})
+      </h2>
 
       {projects.length > 0 ? (
         <div className="space-y-2">
@@ -668,11 +750,15 @@ export default function AdminUsersShow({
               className="block bg-[#1c1b1b] ghost-border px-5 py-4 hover:bg-[#2a2a2a] transition-all group"
             >
               <div className="flex items-center justify-between">
-                <span className="font-headline font-bold text-[#e5e2e1] group-hover:text-[#ffb595] transition-colors">{project.name}</span>
+                <span className="font-headline font-bold text-[#e5e2e1] group-hover:text-[#ffb595] transition-colors">
+                  {project.name}
+                </span>
                 <div className="flex items-center gap-4 text-xs text-stone-500">
                   <span>{project.ships_count} ships</span>
                   <span>{project.created_at}</span>
-                  <span className="material-symbols-outlined text-stone-600 group-hover:text-[#ffb595] transition-colors text-sm">arrow_forward</span>
+                  <span className="material-symbols-outlined text-stone-600 group-hover:text-[#ffb595] transition-colors text-sm">
+                    arrow_forward
+                  </span>
                 </div>
               </div>
             </Link>
@@ -685,7 +771,9 @@ export default function AdminUsersShow({
       {can.restore && (
         <div className="mt-16 ghost-border bg-[#1c1b1b] p-6">
           <h2 className="text-xl font-headline font-bold text-emerald-400 tracking-tight mb-2">Restore</h2>
-          <p className="text-stone-500 text-sm mb-4">This user is soft-deleted. Restore them to make their account active again.</p>
+          <p className="text-stone-500 text-sm mb-4">
+            This user is soft-deleted. Restore them to make their account active again.
+          </p>
           <button
             onClick={handleRestore}
             className="bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/30 hover:text-emerald-300 px-6 py-3 text-xs font-bold uppercase tracking-[0.2em] transition-colors cursor-pointer flex items-center gap-2"

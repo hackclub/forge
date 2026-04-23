@@ -48,7 +48,12 @@ export default function AdminReferralsIndex({
   }
 
   function forceApproveAll() {
-    if (!confirm('Pay out every non-approved referral, including pending ones where the referred builder has NOT shipped? This cannot be undone.')) return
+    if (
+      !confirm(
+        'Pay out every non-approved referral, including pending ones where the referred builder has NOT shipped? This cannot be undone.',
+      )
+    )
+      return
     router.post('/admin/referrals/force_approve_all')
   }
 
@@ -96,7 +101,10 @@ export default function AdminReferralsIndex({
           <div className="flex items-center gap-4">
             <img src={winner.avatar} alt="" className="w-12 h-12 object-cover" />
             <div className="flex-1">
-              <Link href={`/admin/users/${winner.id}`} className="font-headline font-bold text-[#e5e2e1] text-xl hover:text-[#ffb595] transition-colors">
+              <Link
+                href={`/admin/users/${winner.id}`}
+                className="font-headline font-bold text-[#e5e2e1] text-xl hover:text-[#ffb595] transition-colors"
+              >
                 {winner.display_name}
               </Link>
               <p className="text-stone-500 text-sm">

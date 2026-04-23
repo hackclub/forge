@@ -87,7 +87,9 @@ export default function AdminOrdersIndex({ orders, pagy, filters, counts, region
           >
             <option value="">All Regions</option>
             {Object.entries(regions).map(([key, label]) => (
-              <option key={key} value={key}>{label}</option>
+              <option key={key} value={key}>
+                {label}
+              </option>
             ))}
           </select>
         </div>
@@ -98,13 +100,27 @@ export default function AdminOrdersIndex({ orders, pagy, filters, counts, region
               <table className="w-full min-w-[720px]">
                 <thead>
                   <tr className="border-b border-white/5">
-                    <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">Order</th>
-                    <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">User</th>
-                    <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">Region</th>
-                    <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">Assigned To</th>
-                    <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">Cost</th>
-                    <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">Status</th>
-                    <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">Created</th>
+                    <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">
+                      Order
+                    </th>
+                    <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">
+                      User
+                    </th>
+                    <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">
+                      Region
+                    </th>
+                    <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">
+                      Assigned To
+                    </th>
+                    <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">
+                      Cost
+                    </th>
+                    <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">
+                      Status
+                    </th>
+                    <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">
+                      Created
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -117,8 +133,12 @@ export default function AdminOrdersIndex({ orders, pagy, filters, counts, region
                           )}
                           <div className="min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <Link href={`/admin/orders/${order.id}`} className="font-headline font-bold text-[#e5e2e1] hover:text-[#ffb595] transition-colors text-sm">
-                                {order.quantity > 1 ? `${order.quantity}× ` : ''}{order.kind_label}
+                              <Link
+                                href={`/admin/orders/${order.id}`}
+                                className="font-headline font-bold text-[#e5e2e1] hover:text-[#ffb595] transition-colors text-sm"
+                              >
+                                {order.quantity > 1 ? `${order.quantity}× ` : ''}
+                                {order.kind_label}
                               </Link>
                               {order.needs_attention && (
                                 <span className="bg-amber-500/15 text-amber-400 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider flex items-center gap-1">
@@ -134,14 +154,18 @@ export default function AdminOrdersIndex({ orders, pagy, filters, counts, region
                         </div>
                       </td>
                       <td className="px-5 py-4 text-stone-400 text-sm">{order.user_display_name}</td>
-                      <td className="px-5 py-4 text-stone-500 text-xs">{order.region ? regions[order.region] || order.region : '-'}</td>
+                      <td className="px-5 py-4 text-stone-500 text-xs">
+                        {order.region ? regions[order.region] || order.region : '-'}
+                      </td>
                       <td className="px-5 py-4 text-stone-400 text-xs">{order.assigned_to_name || '-'}</td>
                       <td className="px-5 py-4 text-sm">
                         <span className="text-[#ee671c] font-bold">{order.coin_cost}c</span>
                         {order.amount_usd != null && <span className="text-stone-600 ml-2">${order.amount_usd}</span>}
                       </td>
                       <td className="px-5 py-4">
-                        <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 ${STATUS_STYLES[order.status]}`}>
+                        <span
+                          className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 ${STATUS_STYLES[order.status]}`}
+                        >
                           {order.status}
                         </span>
                       </td>

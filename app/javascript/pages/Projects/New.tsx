@@ -13,7 +13,8 @@ const TIERS: TierOption[] = [
     tier: 'tier_4',
     label: 'Tier 4',
     rate: '4c / hour',
-    description: 'Basic project. The simplest starting point for things like PCB Buisness Cards, LED timers, DIY Mouse. Should be $0-50',
+    description:
+      'Basic project. The simplest starting point for things like PCB Buisness Cards, LED timers, DIY Mouse. Should be $0-50',
     pitch: false,
   },
   {
@@ -34,7 +35,8 @@ const TIERS: TierOption[] = [
     tier: 'tier_1',
     label: 'Tier 1',
     rate: '7c / hour',
-    description: 'Advanced project ($200+).Requires a Slack pitch. Eg a DIY 3d printer, Battlebot with custom attachements. For projects $0-200+',
+    description:
+      'Advanced project ($200+).Requires a Slack pitch. Eg a DIY 3d printer, Battlebot with custom attachements. For projects $0-200+',
     pitch: true,
   },
 ]
@@ -43,7 +45,9 @@ export default function ProjectsNew() {
   return (
     <div className="p-5 md:p-12 max-w-4xl mx-auto">
       <h1 className="text-4xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-3">New Project</h1>
-      <p className="text-stone-400 text-sm mb-10">Pick a tier. Each tier earns a different rate of steel coins per hour you log on the project.</p>
+      <p className="text-stone-400 text-sm mb-10">
+        Pick a tier. Each tier earns a different rate of steel coins per hour you log on the project.
+      </p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {TIERS.map((t) => (

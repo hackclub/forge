@@ -27,8 +27,8 @@ export default function Maintenance() {
               className="text-[#ffb595] hover:underline"
             >
               #forge-help
-            </a>
-            {' '}on Slack.
+            </a>{' '}
+            on Slack.
           </p>
         </div>
       </div>

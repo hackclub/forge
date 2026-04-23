@@ -72,7 +72,11 @@ function SidebarTree({
             <Link
               href={node.path}
               className={`block px-2 py-1 text-sm transition-colors ${
-                isCurrent ? 'text-[#ffb595] bg-[#2a2a2a]' : active ? 'text-stone-200' : 'text-stone-400 hover:text-stone-200'
+                isCurrent
+                  ? 'text-[#ffb595] bg-[#2a2a2a]'
+                  : active
+                    ? 'text-stone-200'
+                    : 'text-stone-400 hover:text-stone-200'
               }`}
             >
               {node.title}

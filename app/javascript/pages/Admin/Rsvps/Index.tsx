@@ -37,7 +37,9 @@ export default function AdminRsvpsIndex({
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
         <div>
           <h1 className="text-4xl font-headline font-bold text-[#e5e2e1] tracking-tight">RSVPs</h1>
-          <p className="text-stone-500 text-sm mt-1">{total} email{total === 1 ? '' : 's'} on the waitlist</p>
+          <p className="text-stone-500 text-sm mt-1">
+            {total} email{total === 1 ? '' : 's'} on the waitlist
+          </p>
         </div>
         <div className="flex gap-3 items-center">
           <form onSubmit={search} className="flex gap-2">
@@ -48,7 +50,10 @@ export default function AdminRsvpsIndex({
               placeholder="Search by email"
               className="bg-[#0e0e0e] border-none px-4 py-2 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 w-64"
             />
-            <button type="submit" className="ghost-border bg-[#1c1b1b] text-stone-400 hover:bg-[#2a2a2a] hover:text-[#e5e2e1] px-4 py-2 text-xs font-bold uppercase tracking-wider cursor-pointer transition-colors">
+            <button
+              type="submit"
+              className="ghost-border bg-[#1c1b1b] text-stone-400 hover:bg-[#2a2a2a] hover:text-[#e5e2e1] px-4 py-2 text-xs font-bold uppercase tracking-wider cursor-pointer transition-colors"
+            >
               Search
             </button>
           </form>
@@ -68,9 +73,15 @@ export default function AdminRsvpsIndex({
             <table className="w-full min-w-[560px]">
               <thead>
                 <tr className="border-b border-white/5 bg-[#1c1b1b]">
-                  <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">Email</th>
-                  <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">Submitted</th>
-                  <th className="text-right px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">Actions</th>
+                  <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">
+                    Email
+                  </th>
+                  <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">
+                    Submitted
+                  </th>
+                  <th className="text-right px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody>

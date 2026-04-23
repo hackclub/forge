@@ -99,14 +99,18 @@ const GIT_PROVIDERS: Record<string, { label: string; baseUrl: string }> = {
 
 function gitProfileUrl(user: ProfileUser): string {
   const provider = GIT_PROVIDERS[user.git_provider] || GIT_PROVIDERS.github
-  const base = user.git_provider === 'gitea' && user.git_instance_url ? user.git_instance_url.replace(/\/+$/, '') : provider.baseUrl
+  const base =
+    user.git_provider === 'gitea' && user.git_instance_url
+      ? user.git_instance_url.replace(/\/+$/, '')
+      : provider.baseUrl
   return `${base}/${user.github_username}`
 }
 
 function gitAvatarUrl(user: ProfileUser): string | null {
-  const base = user.git_provider === 'gitea' && user.git_instance_url
-    ? user.git_instance_url.replace(/\/+$/, '')
-    : GIT_PROVIDERS[user.git_provider]?.baseUrl
+  const base =
+    user.git_provider === 'gitea' && user.git_instance_url
+      ? user.git_instance_url.replace(/\/+$/, '')
+      : GIT_PROVIDERS[user.git_provider]?.baseUrl
   if (!base) return null
   return `${base}/${user.github_username}.png?size=120`
 }
@@ -120,21 +124,29 @@ export default function UsersShow({ user, stats, projects, kudos, can_give_kudos
 
   function saveGithub(e: React.FormEvent) {
     e.preventDefault()
-    router.patch(`/users/${user.id}/github`, {
-      github_username: githubInput.trim(),
-      git_provider: providerInput,
-      git_instance_url: providerInput === 'gitea' ? instanceUrlInput.trim() : '',
-    }, {
-      onSuccess: () => setEditingGithub(false),
-    })
+    router.patch(
+      `/users/${user.id}/github`,
+      {
+        github_username: githubInput.trim(),
+        git_provider: providerInput,
+        git_instance_url: providerInput === 'gitea' ? instanceUrlInput.trim() : '',
+      },
+      {
+        onSuccess: () => setEditingGithub(false),
+      },
+    )
   }
 
   function submitKudo(e: React.FormEvent) {
     e.preventDefault()
     if (!kudoContent.trim()) return
-    router.post(`/users/${user.id}/kudos`, { content: kudoContent }, {
-      onSuccess: () => setKudoContent(''),
-    })
+    router.post(
+      `/users/${user.id}/kudos`,
+      { content: kudoContent },
+      {
+        onSuccess: () => setKudoContent(''),
+      },
+    )
   }
 
   function deleteKudo(kudoId: number) {
@@ -147,11 +159,7 @@ export default function UsersShow({ user, stats, projects, kudos, can_give_kudos
       <Head title={`${user.display_name} - Forge`} />
       <div className="p-5 md:p-12 max-w-6xl mx-auto space-y-10">
         <section className="bg-[#1c1b1b] ghost-border p-5 md:p-8 flex flex-col sm:flex-row items-center gap-6 text-center sm:text-left">
-          <img
-            src={user.avatar}
-            alt={user.display_name}
-            className="w-24 h-24 border border-white/10 shrink-0"
-          />
+          <img src={user.avatar} alt={user.display_name} className="w-24 h-24 border border-white/10 shrink-0" />
           <div className="min-w-0 flex-1">
             <h1 className="text-4xl font-headline font-bold text-[#e5e2e1] tracking-tight break-words">
               {user.display_name}
@@ -160,11 +168,21 @@ export default function UsersShow({ user, stats, projects, kudos, can_give_kudos
           </div>
           <div
             className={`flex items-center gap-3 px-5 py-3 ghost-border shrink-0 ${stats.current_streak > 0 ? 'bg-[#ee671c]/10' : 'bg-[#0e0e0e]'}`}
-            title={stats.current_streak > 0 ? `Active ${stats.current_streak} ${stats.current_streak === 1 ? 'day' : 'days'} in a row` : 'No current streak'}
+            title={
+              stats.current_streak > 0
+                ? `Active ${stats.current_streak} ${stats.current_streak === 1 ? 'day' : 'days'} in a row`
+                : 'No current streak'
+            }
           >
-            <span className={`material-symbols-outlined text-3xl ${stats.current_streak > 0 ? 'text-[#ee671c]' : 'text-stone-600'}`}>local_fire_department</span>
+            <span
+              className={`material-symbols-outlined text-3xl ${stats.current_streak > 0 ? 'text-[#ee671c]' : 'text-stone-600'}`}
+            >
+              local_fire_department
+            </span>
             <div className="text-left">
-              <p className={`text-2xl font-headline font-bold leading-none ${stats.current_streak > 0 ? 'text-[#ffb595]' : 'text-stone-500'}`}>
+              <p
+                className={`text-2xl font-headline font-bold leading-none ${stats.current_streak > 0 ? 'text-[#ffb595]' : 'text-stone-500'}`}
+              >
                 {stats.current_streak}
               </p>
               <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-500 mt-1">
@@ -179,8 +197,14 @@ export default function UsersShow({ user, stats, projects, kudos, can_give_kudos
           <div className="bg-[#1c1b1b] ghost-border p-6 mb-8">
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
               <div className="flex items-center gap-4">
-                <div className={`w-14 h-14 flex items-center justify-center ${stats.current_streak > 0 ? 'bg-[#ee671c]/15' : 'bg-stone-500/10'}`}>
-                  <span className={`material-symbols-outlined text-3xl ${stats.current_streak > 0 ? 'text-[#ee671c]' : 'text-stone-600'}`}>local_fire_department</span>
+                <div
+                  className={`w-14 h-14 flex items-center justify-center ${stats.current_streak > 0 ? 'bg-[#ee671c]/15' : 'bg-stone-500/10'}`}
+                >
+                  <span
+                    className={`material-symbols-outlined text-3xl ${stats.current_streak > 0 ? 'text-[#ee671c]' : 'text-stone-600'}`}
+                  >
+                    local_fire_department
+                  </span>
                 </div>
                 <div>
                   <p className="text-4xl font-headline font-bold text-[#e5e2e1] tracking-tight leading-none">
@@ -193,13 +217,17 @@ export default function UsersShow({ user, stats, projects, kudos, can_give_kudos
               <div className="flex gap-6 text-sm">
                 <div>
                   <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">Multiplier</p>
-                  <p className={`font-headline font-bold ${stats.streak_multiplier > 1 ? 'text-[#ffb595]' : 'text-[#e5e2e1]'}`}>
+                  <p
+                    className={`font-headline font-bold ${stats.streak_multiplier > 1 ? 'text-[#ffb595]' : 'text-[#e5e2e1]'}`}
+                  >
                     {stats.streak_multiplier.toFixed(2)}×
                   </p>
                 </div>
                 <div>
                   <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">Longest</p>
-                  <p className="text-[#e5e2e1] font-headline font-bold">{stats.longest_streak} {stats.longest_streak === 1 ? 'day' : 'days'}</p>
+                  <p className="text-[#e5e2e1] font-headline font-bold">
+                    {stats.longest_streak} {stats.longest_streak === 1 ? 'day' : 'days'}
+                  </p>
                 </div>
                 {stats.last_active_on && (
                   <div>
@@ -228,13 +256,17 @@ export default function UsersShow({ user, stats, projects, kudos, can_give_kudos
                   />
                 </div>
                 <p className="text-stone-600 text-[10px] mt-2">
-                  {stats.next_streak_milestone - stats.current_streak} {stats.next_streak_milestone - stats.current_streak === 1 ? 'day' : 'days'} to go - keep the streak alive to boost project payouts.
+                  {stats.next_streak_milestone - stats.current_streak}{' '}
+                  {stats.next_streak_milestone - stats.current_streak === 1 ? 'day' : 'days'} to go - keep the streak
+                  alive to boost project payouts.
                 </p>
               </div>
             )}
           </div>
 
-          <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">Achievements</h2>
+          <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">
+            Achievements
+          </h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
             <StatTile label="Hours" value={stats.total_hours} icon="schedule" />
             <StatTile label="Projects" value={stats.projects_count} icon="folder_open" />
@@ -246,7 +278,9 @@ export default function UsersShow({ user, stats, projects, kudos, can_give_kudos
 
         {(user.github_username || can_edit_profile) && (
           <section>
-            <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">Git Profile</h2>
+            <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">
+              Git Profile
+            </h2>
             <div className="bg-[#1c1b1b] ghost-border p-6">
               {editingGithub ? (
                 <form onSubmit={saveGithub} className="space-y-3">
@@ -257,7 +291,9 @@ export default function UsersShow({ user, stats, projects, kudos, can_give_kudos
                       className="bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ee671c]/30 cursor-pointer"
                     >
                       {Object.entries(GIT_PROVIDERS).map(([key, { label }]) => (
-                        <option key={key} value={key}>{label}</option>
+                        <option key={key} value={key}>
+                          {label}
+                        </option>
                       ))}
                     </select>
                     <input
@@ -279,7 +315,10 @@ export default function UsersShow({ user, stats, projects, kudos, can_give_kudos
                     />
                   )}
                   <div className="flex gap-2">
-                    <button type="submit" className="signature-smolder text-[#4c1a00] px-5 py-3 text-xs font-bold uppercase tracking-wider cursor-pointer">
+                    <button
+                      type="submit"
+                      className="signature-smolder text-[#4c1a00] px-5 py-3 text-xs font-bold uppercase tracking-wider cursor-pointer"
+                    >
                       Save
                     </button>
                     <button
@@ -299,7 +338,11 @@ export default function UsersShow({ user, stats, projects, kudos, can_give_kudos
               ) : user.github_username ? (
                 <div className="flex items-center gap-4">
                   {gitAvatarUrl(user) ? (
-                    <img src={gitAvatarUrl(user)!} alt={user.github_username} className="w-14 h-14 border border-white/10 shrink-0" />
+                    <img
+                      src={gitAvatarUrl(user)!}
+                      alt={user.github_username}
+                      className="w-14 h-14 border border-white/10 shrink-0"
+                    />
                   ) : (
                     <div className="w-14 h-14 bg-[#0e0e0e] border border-white/10 flex items-center justify-center shrink-0">
                       <span className="material-symbols-outlined text-stone-600 text-2xl">code</span>
@@ -317,7 +360,9 @@ export default function UsersShow({ user, stats, projects, kudos, can_give_kudos
                     </a>
                     <p className="text-stone-500 text-xs font-mono truncate">
                       {GIT_PROVIDERS[user.git_provider]?.label || 'GitHub'}
-                      {user.git_provider === 'gitea' && user.git_instance_url && ` · ${user.git_instance_url.replace(/^https?:\/\//, '')}`}
+                      {user.git_provider === 'gitea' &&
+                        user.git_instance_url &&
+                        ` · ${user.git_instance_url.replace(/^https?:\/\//, '')}`}
                     </p>
                   </div>
                   {can_edit_profile && (
@@ -375,7 +420,9 @@ export default function UsersShow({ user, stats, projects, kudos, can_give_kudos
                       <h3 className="font-headline font-bold text-[#e5e2e1] group-hover:text-[#ffb595] transition-colors tracking-tight truncate">
                         {project.name}
                       </h3>
-                      <span className={`shrink-0 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 ${STATUS_COLORS[project.status]}`}>
+                      <span
+                        className={`shrink-0 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 ${STATUS_COLORS[project.status]}`}
+                      >
                         {STATUS_LABELS[project.status]}
                       </span>
                     </div>
@@ -425,7 +472,11 @@ export default function UsersShow({ user, stats, projects, kudos, can_give_kudos
               {kudos.map((kudo) => (
                 <article key={kudo.id} className="bg-[#0e0e0e] ghost-border p-6 min-w-0 overflow-hidden">
                   <div className="flex items-start gap-3 mb-3">
-                    <img src={kudo.author_avatar} alt={kudo.author_name} className="w-8 h-8 border border-white/10 shrink-0" />
+                    <img
+                      src={kudo.author_avatar}
+                      alt={kudo.author_name}
+                      className="w-8 h-8 border border-white/10 shrink-0"
+                    />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
                         <Link

@@ -14,8 +14,12 @@ export default function LandingIndex() {
           <div className="flex items-center gap-8">
             <span className="text-2xl font-bold tracking-tighter text-[#FFB595] uppercase font-headline">Forge</span>
             <div className="hidden md:flex gap-6 text-sm font-medium text-stone-400">
-              <a className="hover:text-white transition-colors" href="/explore">Explore</a>
-              <a className="hover:text-white transition-colors" href="/docs">Resources</a>
+              <a className="hover:text-white transition-colors" href="/explore">
+                Explore
+              </a>
+              <a className="hover:text-white transition-colors" href="/docs">
+                Resources
+              </a>
             </div>
           </div>
           <div className="flex items-center gap-4">
@@ -28,7 +32,10 @@ export default function LandingIndex() {
               </a>
             ) : (
               <>
-                <a href={shared.sign_in_path} className="text-stone-400 hover:text-white transition-colors flex items-center gap-2 text-sm">
+                <a
+                  href={shared.sign_in_path}
+                  className="text-stone-400 hover:text-white transition-colors flex items-center gap-2 text-sm"
+                >
                   <span className="material-symbols-outlined text-lg">login</span>
                   Sign In
                 </a>
@@ -49,16 +56,14 @@ export default function LandingIndex() {
             <div className="absolute bottom-1/4 -left-20 w-64 h-64 bg-[#7a2e25]/10 blur-[100px] rounded-full" />
 
             <div className="relative z-10 max-w-5xl">
-
-
               <h1 className="text-6xl md:text-8xl font-headline font-medium tracking-tighter leading-[0.9] mb-8">
-                Build hardware,{' '}
-                <br />
+                Build hardware, <br />
                 <span className="text-[#ee671c]">get funded.</span>
               </h1>
 
               <p className="text-lg md:text-xl text-stone-400 max-w-xl font-light leading-relaxed mb-12">
-                Up to <span className="text-[#ffb595] font-medium">$2,000</span> in grants for hardware projects. For ages 13 to 18.
+                Up to <span className="text-[#ffb595] font-medium">$2,000</span> in grants for hardware projects. For
+                ages 13 to 18.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 items-start">
@@ -67,7 +72,9 @@ export default function LandingIndex() {
                   className="signature-smolder text-[#4c1a00] px-10 py-4 text-sm font-bold uppercase tracking-widest rounded-lg flex items-center gap-3 group"
                 >
                   {shared.auth.user ? 'Go to Dashboard' : 'Apply for Funding'}
-                  <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                  <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">
+                    arrow_forward
+                  </span>
                 </a>
                 <a
                   href="#how-it-works"
@@ -93,7 +100,8 @@ export default function LandingIndex() {
                 <div>
                   <h3 className="text-3xl font-headline font-medium mb-4 text-[#ffb595]">Real Hardware Only.</h3>
                   <p className="text-stone-400 max-w-md leading-relaxed">
-                    Forge is for builders who solder, 3D print, laser cut, and wire things together. Circuits, robots, custom PCBs, mechanical builds - if you can hold it in your hands, it belongs here.
+                    Forge is for builders who solder, 3D print, laser cut, and wire things together. Circuits, robots,
+                    custom PCBs, mechanical builds - if you can hold it in your hands, it belongs here.
                   </p>
                 </div>
                 <div className="flex gap-4 items-center">
@@ -108,7 +116,9 @@ export default function LandingIndex() {
 
               <div className="md:col-span-4 bg-[#2a2a2a] rounded-xl ghost-border p-8 flex flex-col justify-center items-center text-center">
                 <span className="text-5xl font-headline font-bold text-[#e5e2e1] mb-2">$1,000</span>
-                <span className="text-xs tracking-widest uppercase text-[#ffb595] font-bold">Max Grant per Project</span>
+                <span className="text-xs tracking-widest uppercase text-[#ffb595] font-bold">
+                  Max Grant per Project
+                </span>
                 <p className="text-sm text-stone-500 mt-4 px-4">Equity-free. No strings. Just build and document.</p>
               </div>
 
@@ -118,7 +128,9 @@ export default function LandingIndex() {
                 </div>
                 <div>
                   <h4 className="font-headline font-bold uppercase tracking-tight mb-2">Expert Review</h4>
-                  <p className="text-sm text-stone-400">Our team reviews your project submissions and provides feedback to help you improve and get funded.</p>
+                  <p className="text-sm text-stone-400">
+                    Our team reviews your project submissions and provides feedback to help you improve and get funded.
+                  </p>
                 </div>
               </div>
 
@@ -126,9 +138,13 @@ export default function LandingIndex() {
                 <div className="p-10 flex-1">
                   <h3 className="text-2xl font-headline font-medium mb-4">Document Your Build.</h3>
                   <p className="text-sm text-stone-400 leading-relaxed mb-6">
-                    Ship updates as you go. Log your progress, share your process, and show the world what you're building. The better you document, the more you earn.
+                    Ship updates as you go. Log your progress, share your process, and show the world what you're
+                    building. The better you document, the more you earn.
                   </p>
-                  <a className="text-xs font-bold uppercase tracking-widest text-[#ffb595] flex items-center gap-2" href="/explore">
+                  <a
+                    className="text-xs font-bold uppercase tracking-widest text-[#ffb595] flex items-center gap-2"
+                    href="/explore"
+                  >
                     See live projects
                     <span className="material-symbols-outlined text-sm">open_in_new</span>
                   </a>
@@ -147,12 +163,12 @@ export default function LandingIndex() {
             </div>
             <div className="max-w-2xl relative z-10">
               <h2 className="text-4xl md:text-5xl font-headline font-medium mb-8 leading-tight">
-                Ready to start{' '}
-                <br />
+                Ready to start <br />
                 <span className="text-stone-600">building</span> something <span className="text-[#e5e2e1]">real?</span>
               </h2>
               <p className="text-stone-400 mb-12 leading-relaxed">
-                Sign in with Slack to register your project and start earning. All you need is an idea and the willingness to build it.
+                Sign in with Slack to register your project and start earning. All you need is an idea and the
+                willingness to build it.
               </p>
               <div className="flex flex-col sm:flex-row justify-center gap-4">
                 <a
@@ -174,7 +190,9 @@ export default function LandingIndex() {
           <footer className="border-t border-white/5 py-16 px-8 md:px-24 bg-[#0e0e0e]">
             <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-start gap-12">
               <div className="flex flex-col gap-6">
-                <span className="text-2xl font-bold tracking-tighter text-[#FFB595] uppercase font-headline">Forge</span>
+                <span className="text-2xl font-bold tracking-tighter text-[#FFB595] uppercase font-headline">
+                  Forge
+                </span>
                 <p className="text-xs text-stone-500 max-w-xs leading-loose font-light">
                   Forge is a Hack Club event where teen builders get funded for their hardware projects.
                 </p>
@@ -182,13 +200,31 @@ export default function LandingIndex() {
               <div className="grid grid-cols-2 gap-16">
                 <div className="flex flex-col gap-4">
                   <span className="text-[10px] font-bold uppercase tracking-widest text-[#ffb595]">Navigate</span>
-                  <a className="text-xs text-stone-500 hover:text-white transition-colors" href="/explore">Explore</a>
-                  <a className="text-xs text-stone-500 hover:text-white transition-colors" href="/docs">Resources</a>
+                  <a className="text-xs text-stone-500 hover:text-white transition-colors" href="/explore">
+                    Explore
+                  </a>
+                  <a className="text-xs text-stone-500 hover:text-white transition-colors" href="/docs">
+                    Resources
+                  </a>
                 </div>
                 <div className="flex flex-col gap-4">
                   <span className="text-[10px] font-bold uppercase tracking-widest text-[#ffb595]">Hack Club</span>
-                  <a className="text-xs text-stone-500 hover:text-white transition-colors" href="https://hackclub.com" target="_blank" rel="noopener">Website</a>
-                  <a className="text-xs text-stone-500 hover:text-white transition-colors" href="https://hackclub.com/slack" target="_blank" rel="noopener">Slack</a>
+                  <a
+                    className="text-xs text-stone-500 hover:text-white transition-colors"
+                    href="https://hackclub.com"
+                    target="_blank"
+                    rel="noopener"
+                  >
+                    Website
+                  </a>
+                  <a
+                    className="text-xs text-stone-500 hover:text-white transition-colors"
+                    href="https://hackclub.com/slack"
+                    target="_blank"
+                    rel="noopener"
+                  >
+                    Slack
+                  </a>
                 </div>
               </div>
             </div>

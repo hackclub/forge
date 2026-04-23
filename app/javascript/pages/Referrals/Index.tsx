@@ -55,7 +55,9 @@ export default function ReferralsIndex({
       <div className="p-5 md:p-12 max-w-[1100px] mx-auto">
         <div className="mb-8">
           <h1 className="text-4xl font-headline font-bold text-[#ee671c] tracking-tight">Referrals</h1>
-          <p className="text-stone-500 text-sm mt-1">Share your code. When they ship their first project, you earn 0.25 coins + a prize pool ticket.</p>
+          <p className="text-stone-500 text-sm mt-1">
+            Share your code. When they ship their first project, you earn 0.25 coins + a prize pool ticket.
+          </p>
         </div>
 
         <div className="ghost-border bg-[#1c1b1b] p-6 md:p-8 mb-6">
@@ -91,10 +93,18 @@ export default function ReferralsIndex({
             <table className="w-full min-w-[560px]">
               <thead>
                 <tr className="border-b border-white/5">
-                  <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">Builder</th>
-                  <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">Status</th>
-                  <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">Joined</th>
-                  <th className="text-right px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">Payout</th>
+                  <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">
+                    Builder
+                  </th>
+                  <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">
+                    Status
+                  </th>
+                  <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">
+                    Joined
+                  </th>
+                  <th className="text-right px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">
+                    Payout
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -102,8 +112,17 @@ export default function ReferralsIndex({
                   <tr key={r.id} className="border-b border-white/5 hover:bg-[#1c1b1b] transition-colors">
                     <td className="px-5 py-3">
                       <div className="flex items-center gap-3">
-                        <img src={r.avatar} alt="" width={28} height={28} className="object-cover shrink-0" style={{ width: 28, height: 28 }} />
-                        <span className="font-headline font-bold text-[#e5e2e1] text-sm truncate">{r.display_name}</span>
+                        <img
+                          src={r.avatar}
+                          alt=""
+                          width={28}
+                          height={28}
+                          className="object-cover shrink-0"
+                          style={{ width: 28, height: 28 }}
+                        />
+                        <span className="font-headline font-bold text-[#e5e2e1] text-sm truncate">
+                          {r.display_name}
+                        </span>
                       </div>
                     </td>
                     <td className="px-5 py-3">
@@ -113,7 +132,11 @@ export default function ReferralsIndex({
                     </td>
                     <td className="px-5 py-3 text-stone-500 text-xs">{r.created_at}</td>
                     <td className="px-5 py-3 text-right font-mono text-sm">
-                      {r.payout != null ? <span className="text-[#ffb595]">+{r.payout.toFixed(2)}c</span> : <span className="text-stone-600">-</span>}
+                      {r.payout != null ? (
+                        <span className="text-[#ffb595]">+{r.payout.toFixed(2)}c</span>
+                      ) : (
+                        <span className="text-stone-600">-</span>
+                      )}
                     </td>
                   </tr>
                 ))}

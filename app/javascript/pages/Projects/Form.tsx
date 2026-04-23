@@ -43,7 +43,7 @@ export default function ProjectsForm({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json',
+          Accept: 'application/json',
           ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
         },
         body: JSON.stringify({ repo_url: importUrl }),
@@ -102,7 +102,14 @@ export default function ProjectsForm({
         <div className="ghost-border bg-[#1c1b1b] p-6 mb-8 space-y-4">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500">Import from GitHub</span>
-            <button type="button" onClick={() => { setShowImport(false); setImportError('') }} className="text-stone-600 hover:text-stone-400 transition-colors">
+            <button
+              type="button"
+              onClick={() => {
+                setShowImport(false)
+                setImportError('')
+              }}
+              className="text-stone-600 hover:text-stone-400 transition-colors"
+            >
               <span className="material-symbols-outlined text-lg">close</span>
             </button>
           </div>
@@ -211,13 +218,18 @@ export default function ProjectsForm({
               <option value="tier_3">Tier 3 - 4.5c/hr (Standard, $0–100)</option>
               <option value="tier_2">Tier 2 - 5.5c/hr (Bigger, $0–200)</option>
             </select>
-            <p className="text-stone-600 text-xs mt-2">Higher tiers earn more coins per hour but are expected to be more ambitious.</p>
+            <p className="text-stone-600 text-xs mt-2">
+              Higher tiers earn more coins per hour but are expected to be more ambitious.
+            </p>
           </div>
         )}
 
         {method === 'patch' && (
           <div>
-            <label htmlFor="devlog_mode" className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
+            <label
+              htmlFor="devlog_mode"
+              className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2"
+            >
               Devlog Method
             </label>
             <select

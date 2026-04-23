@@ -187,7 +187,9 @@ export default function AdminMetricsIndex({
               <td className="px-4 py-3 text-stone-600">-</td>
             </tr>
             <tr className="border-t border-white/10 bg-[#0e0e0e]/50">
-              <td className="px-4 py-3 text-[#e5e2e1] font-headline font-bold uppercase text-xs tracking-[0.15em]">All tiers</td>
+              <td className="px-4 py-3 text-[#e5e2e1] font-headline font-bold uppercase text-xs tracking-[0.15em]">
+                All tiers
+              </td>
               <td className="px-4 py-3 text-stone-600">-</td>
               <td className="px-4 py-3 text-stone-500">{tier_breakdown.reduce((n, t) => n + t.projects, 0)}</td>
               <td className="px-4 py-3 text-stone-500">{coin_economy.total_hours}</td>
@@ -202,7 +204,9 @@ export default function AdminMetricsIndex({
         <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">
           Active streak distribution
         </h2>
-        <p className="text-stone-600 text-xs mb-4">Users active in the last 2 days, bucketed by current streak length.</p>
+        <p className="text-stone-600 text-xs mb-4">
+          Users active in the last 2 days, bucketed by current streak length.
+        </p>
         <div className="space-y-2">
           {Object.entries(streak_buckets).map(([bucket, count]) => {
             const pct = (count / bucketMax) * 100
@@ -224,11 +228,23 @@ export default function AdminMetricsIndex({
   )
 }
 
-function Stat({ label, value, accent, hint }: { label: string; value: string | number; accent?: boolean; hint?: string }) {
+function Stat({
+  label,
+  value,
+  accent,
+  hint,
+}: {
+  label: string
+  value: string | number
+  accent?: boolean
+  hint?: string
+}) {
   return (
     <div className="bg-[#1c1b1b] ghost-border p-4">
       <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-500 mb-1">{label}</p>
-      <p className={`text-2xl font-headline font-bold tracking-tight ${accent ? 'text-[#ffb595]' : 'text-[#e5e2e1]'}`}>{value}</p>
+      <p className={`text-2xl font-headline font-bold tracking-tight ${accent ? 'text-[#ffb595]' : 'text-[#e5e2e1]'}`}>
+        {value}
+      </p>
       {hint && <p className="text-stone-600 text-[10px] mt-1">{hint}</p>}
     </div>
   )

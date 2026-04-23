@@ -44,7 +44,17 @@ const STATUS_STYLES: Record<OrderDetail['status'], string> = {
   rejected: 'bg-red-500/15 text-red-400',
 }
 
-export default function AdminOrdersShow({ order, warnings, regions, fulfillment_users }: { order: OrderDetail; warnings: Warning[]; regions: Record<string, string>; fulfillment_users: { id: number; display_name: string }[] }) {
+export default function AdminOrdersShow({
+  order,
+  warnings,
+  regions,
+  fulfillment_users,
+}: {
+  order: OrderDetail
+  warnings: Warning[]
+  regions: Record<string, string>
+  fulfillment_users: { id: number; display_name: string }[]
+}) {
   const [reviewNotes, setReviewNotes] = useState('')
   const [grantLink, setGrantLink] = useState('')
 
@@ -73,7 +83,10 @@ export default function AdminOrdersShow({ order, warnings, regions, fulfillment_
     <>
       <Head title={`Order #${order.id} - Admin`} />
       <div className="p-5 md:p-12 max-w-4xl mx-auto space-y-8">
-        <Link href="/admin/orders" className="text-stone-500 text-sm hover:text-[#ffb595] transition-colors flex items-center gap-1">
+        <Link
+          href="/admin/orders"
+          className="text-stone-500 text-sm hover:text-[#ffb595] transition-colors flex items-center gap-1"
+        >
           <span className="material-symbols-outlined text-sm">arrow_back</span>
           All orders
         </Link>
@@ -100,7 +113,11 @@ export default function AdminOrdersShow({ order, warnings, regions, fulfillment_
 
         {order.shop_item_image && (
           <div className="bg-[#1c1b1b] ghost-border p-6 flex items-center gap-5">
-            <img src={order.shop_item_image} alt={order.shop_item_name || ''} className="w-24 h-24 object-cover shrink-0" />
+            <img
+              src={order.shop_item_image}
+              alt={order.shop_item_name || ''}
+              className="w-24 h-24 object-cover shrink-0"
+            />
             <div className="min-w-0">
               <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-1">Shop item</p>
               <p className="font-headline font-bold text-[#e5e2e1] text-lg break-words">{order.shop_item_name}</p>
@@ -113,7 +130,8 @@ export default function AdminOrdersShow({ order, warnings, regions, fulfillment_
             <div className="min-w-0">
               <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-1">{order.created_at}</p>
               <h1 className="text-3xl font-headline font-bold text-[#e5e2e1] tracking-tight break-words">
-                {order.quantity > 1 ? `${order.quantity}× ` : ''}{order.kind_label}
+                {order.quantity > 1 ? `${order.quantity}× ` : ''}
+                {order.kind_label}
               </h1>
             </div>
             <span className={`text-[10px] font-bold uppercase tracking-wider px-3 py-1 ${STATUS_STYLES[order.status]}`}>
@@ -161,7 +179,9 @@ export default function AdminOrdersShow({ order, warnings, regions, fulfillment_
           <div className="bg-[#1c1b1b] ghost-border p-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
               <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-3">Region</p>
-              <p className="text-[#e5e2e1] text-sm">{order.region ? regions[order.region] || order.region : 'Not set'}</p>
+              <p className="text-[#e5e2e1] text-sm">
+                {order.region ? regions[order.region] || order.region : 'Not set'}
+              </p>
             </div>
             <div>
               <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-3">Assigned to</p>
@@ -172,7 +192,9 @@ export default function AdminOrdersShow({ order, warnings, regions, fulfillment_
               >
                 <option value="">Unassigned</option>
                 {fulfillment_users.map((u) => (
-                  <option key={u.id} value={u.id}>{u.display_name}</option>
+                  <option key={u.id} value={u.id}>
+                    {u.display_name}
+                  </option>
                 ))}
               </select>
             </div>
@@ -191,19 +213,28 @@ export default function AdminOrdersShow({ order, warnings, regions, fulfillment_
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-3">Staff review notes</p>
             <p className="text-stone-300 text-sm whitespace-pre-wrap break-words">{order.review_notes}</p>
             {order.reviewer_name && (
-              <p className="text-stone-600 text-xs mt-2">- {order.reviewer_name} on {order.reviewed_at}</p>
+              <p className="text-stone-600 text-xs mt-2">
+                - {order.reviewer_name} on {order.reviewed_at}
+              </p>
             )}
           </div>
         )}
 
         {(order.internal_order_link || order.internal_price_usd != null) && (
           <div className="bg-[#1c1b1b] ghost-border p-6">
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-3">Internal (from shop item)</p>
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-3">
+              Internal (from shop item)
+            </p>
             <div className="space-y-2 text-sm">
               {order.internal_order_link && (
                 <div className="flex items-center gap-2 min-w-0">
                   <span className="text-stone-500 text-xs shrink-0">Order link:</span>
-                  <a href={order.internal_order_link} target="_blank" rel="noopener" className="text-[#ffb595] hover:text-[#ee671c] truncate">
+                  <a
+                    href={order.internal_order_link}
+                    target="_blank"
+                    rel="noopener"
+                    className="text-[#ffb595] hover:text-[#ee671c] truncate"
+                  >
                     {order.internal_order_link}
                   </a>
                 </div>
@@ -271,12 +302,15 @@ export default function AdminOrdersShow({ order, warnings, regions, fulfillment_
         {order.status === 'fulfilled' && order.hcb_grant_link && (
           <div className="bg-[#1c1b1b] ghost-border p-6">
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-3">Grant link</p>
-            <a href={order.hcb_grant_link} target="_blank" rel="noopener" className="text-[#ffb595] hover:text-[#ee671c] text-sm break-all">
+            <a
+              href={order.hcb_grant_link}
+              target="_blank"
+              rel="noopener"
+              className="text-[#ffb595] hover:text-[#ee671c] text-sm break-all"
+            >
               {order.hcb_grant_link}
             </a>
-            {order.fulfilled_at && (
-              <p className="text-stone-600 text-xs mt-2">Fulfilled on {order.fulfilled_at}</p>
-            )}
+            {order.fulfilled_at && <p className="text-stone-600 text-xs mt-2">Fulfilled on {order.fulfilled_at}</p>}
           </div>
         )}
       </div>

@@ -48,8 +48,12 @@ function ChangesTable({ changes }: { changes: Record<string, { from: unknown; to
         {keys.map((k) => (
           <tr key={k} className="border-t border-white/5 align-top">
             <td className="py-1 pr-3 text-[#e5e2e1] font-bold">{k}</td>
-            <td className="py-1 pr-3 text-red-300/80 break-words [overflow-wrap:anywhere]">{renderValue(changes[k].from)}</td>
-            <td className="py-1 text-emerald-300/80 break-words [overflow-wrap:anywhere]">{renderValue(changes[k].to)}</td>
+            <td className="py-1 pr-3 text-red-300/80 break-words [overflow-wrap:anywhere]">
+              {renderValue(changes[k].from)}
+            </td>
+            <td className="py-1 text-emerald-300/80 break-words [overflow-wrap:anywhere]">
+              {renderValue(changes[k].to)}
+            </td>
           </tr>
         ))}
       </tbody>
@@ -64,7 +68,9 @@ function QueryResultTable({ columns, rows }: { columns: string[]; rows: unknown[
         <thead className="bg-[#0e0e0e]">
           <tr className="text-left text-stone-500">
             {columns.map((c) => (
-              <th key={c} className="px-3 py-2 font-bold uppercase tracking-[0.15em]">{c}</th>
+              <th key={c} className="px-3 py-2 font-bold uppercase tracking-[0.15em]">
+                {c}
+              </th>
             ))}
           </tr>
         </thead>
@@ -89,15 +95,16 @@ export default function AdminAuditLogShow({ entry }: { entry: AuditEntryDetail }
 
   return (
     <div className="p-5 md:p-12 max-w-4xl mx-auto">
-      <Link href="/admin/audit_log" className="text-stone-500 text-sm hover:text-[#ffb595] transition-colors flex items-center gap-1 mb-8">
+      <Link
+        href="/admin/audit_log"
+        className="text-stone-500 text-sm hover:text-[#ffb595] transition-colors flex items-center gap-1 mb-8"
+      >
         <span className="material-symbols-outlined text-sm">arrow_back</span>
         Back to audit log
       </Link>
 
       <div className="flex items-center gap-3 mb-4">
-        <span className="text-[#ee671c] text-xs font-bold uppercase tracking-wider font-mono">
-          {entry.action}
-        </span>
+        <span className="text-[#ee671c] text-xs font-bold uppercase tracking-wider font-mono">{entry.action}</span>
       </div>
 
       <h1 className="text-3xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-2 break-words">
@@ -106,7 +113,10 @@ export default function AdminAuditLogShow({ entry }: { entry: AuditEntryDetail }
       <p className="text-stone-500 text-sm mb-10">
         by{' '}
         {entry.actor_id ? (
-          <Link href={`/admin/users/${entry.actor_id}`} className="text-[#ffb595] hover:text-[#ee671c] transition-colors">
+          <Link
+            href={`/admin/users/${entry.actor_id}`}
+            className="text-[#ffb595] hover:text-[#ee671c] transition-colors"
+          >
             {entry.actor_name}
           </Link>
         ) : (
@@ -135,14 +145,19 @@ export default function AdminAuditLogShow({ entry }: { entry: AuditEntryDetail }
                   entry.target_label || `${entry.target_type} #${entry.target_id}`
                 )}
               </p>
-              <p className="text-[10px] text-stone-600 mt-1">{entry.target_type} #{entry.target_id}</p>
+              <p className="text-[10px] text-stone-600 mt-1">
+                {entry.target_type} #{entry.target_id}
+              </p>
             </div>
           )}
           {entry.actor_id && (
             <div className="bg-[#1c1b1b] ghost-border p-4 min-w-0 overflow-hidden">
               <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">Actor</span>
               <p className="text-[#e5e2e1] mt-1">
-                <Link href={`/admin/users/${entry.actor_id}`} className="text-[#ffb595] hover:text-[#ee671c] transition-colors">
+                <Link
+                  href={`/admin/users/${entry.actor_id}`}
+                  className="text-[#ffb595] hover:text-[#ee671c] transition-colors"
+                >
                   {entry.actor_name}
                 </Link>
               </p>
@@ -159,10 +174,7 @@ export default function AdminAuditLogShow({ entry }: { entry: AuditEntryDetail }
               <tbody>
                 {metadataKeys.map((key) => {
                   const value = entry.metadata[key]
-                  const isQueryRows =
-                    key === 'rows' &&
-                    Array.isArray(value) &&
-                    Array.isArray(entry.metadata.columns)
+                  const isQueryRows = key === 'rows' && Array.isArray(value) && Array.isArray(entry.metadata.columns)
                   return (
                     <tr key={key} className="border-b border-white/5">
                       <td className="px-5 py-3 font-headline font-bold text-[#e5e2e1] text-sm align-top w-48">{key}</td>
@@ -170,10 +182,7 @@ export default function AdminAuditLogShow({ entry }: { entry: AuditEntryDetail }
                         {isChangeObject(value) ? (
                           <ChangesTable changes={value} />
                         ) : isQueryRows ? (
-                          <QueryResultTable
-                            columns={entry.metadata.columns as string[]}
-                            rows={value as unknown[][]}
-                          />
+                          <QueryResultTable columns={entry.metadata.columns as string[]} rows={value as unknown[][]} />
                         ) : (
                           renderValue(value)
                         )}

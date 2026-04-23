@@ -84,7 +84,11 @@ export default function AdminSupportTicketsIndex({
               >
                 <div className="w-8 h-8 shrink-0">
                   {ticket.slack_avatar_url ? (
-                    <img src={ticket.slack_avatar_url} alt={ticket.slack_display_name} className="w-8 h-8 border border-white/10" />
+                    <img
+                      src={ticket.slack_avatar_url}
+                      alt={ticket.slack_display_name}
+                      className="w-8 h-8 border border-white/10"
+                    />
                   ) : (
                     <div className="w-8 h-8 bg-stone-700 flex items-center justify-center text-stone-400 text-xs font-bold">
                       {ticket.slack_display_name?.[0] || '?'}
@@ -97,7 +101,9 @@ export default function AdminSupportTicketsIndex({
                   </span>
                   <p className="text-stone-500 text-xs truncate mt-0.5">{ticket.original_text}</p>
                 </div>
-                <span className={`px-2 py-1 text-[9px] uppercase font-bold tracking-widest ${statusConfig[ticket.status].bg} ${statusConfig[ticket.status].text}`}>
+                <span
+                  className={`px-2 py-1 text-[9px] uppercase font-bold tracking-widest ${statusConfig[ticket.status].bg} ${statusConfig[ticket.status].text}`}
+                >
                   {statusConfig[ticket.status].label}
                 </span>
                 <span className="text-stone-500 text-xs whitespace-nowrap">
@@ -106,9 +112,7 @@ export default function AdminSupportTicketsIndex({
                 <span className="text-stone-500 text-xs whitespace-nowrap">{ticket.created_at}</span>
               </Link>
             ))}
-            {tickets.length === 0 && (
-              <p className="text-stone-500 text-sm py-8 text-center">No tickets found.</p>
-            )}
+            {tickets.length === 0 && <p className="text-stone-500 text-sm py-8 text-center">No tickets found.</p>}
           </div>
 
           <Pagination pagy={pagy} />
@@ -116,13 +120,17 @@ export default function AdminSupportTicketsIndex({
 
         <div className="col-span-12 md:col-span-4">
           <div className="bg-[#1c1b1b] ghost-border p-6">
-            <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">Leaderboard</h2>
+            <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">
+              Leaderboard
+            </h2>
             {leaderboard.length > 0 ? (
               <div className="space-y-3">
                 {leaderboard.map((entry, i) => (
                   <div key={entry.name} className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <span className={`text-sm font-bold font-headline ${i === 0 ? 'text-amber-400' : i === 1 ? 'text-stone-300' : i === 2 ? 'text-orange-400' : 'text-stone-500'}`}>
+                      <span
+                        className={`text-sm font-bold font-headline ${i === 0 ? 'text-amber-400' : i === 1 ? 'text-stone-300' : i === 2 ? 'text-orange-400' : 'text-stone-500'}`}
+                      >
                         #{i + 1}
                       </span>
                       <span className="text-[#e5e2e1] text-sm">{entry.name}</span>

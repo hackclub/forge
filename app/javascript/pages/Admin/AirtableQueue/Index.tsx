@@ -46,7 +46,9 @@ export default function AdminAirtableQueueIndex({
   return (
     <div className="p-5 md:p-12 max-w-[1400px] mx-auto">
       <h1 className="text-4xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-2">Airtable Queue</h1>
-      <p className="text-stone-500 text-sm mb-6">Staging area for Airtable projects. Review the submission before sending it off.</p>
+      <p className="text-stone-500 text-sm mb-6">
+        Staging area for Airtable projects. Review the submission before sending it off.
+      </p>
 
       {!airtable_enabled && (
         <div className="ghost-border bg-red-500/5 border-red-500/20 p-4 mb-6 text-red-400 text-sm">
@@ -56,8 +58,13 @@ export default function AdminAirtableQueueIndex({
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
         {(['pending', 'sent', 'failed', 'cancelled'] as Status[]).map((s) => (
-          <div key={s} className={`bg-[#1c1b1b] ghost-border p-4 ${filters.status === s ? 'ring-1 ring-[#ee671c]/30' : ''}`}>
-            <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-500 mb-1">{statusStyles[s].label}</p>
+          <div
+            key={s}
+            className={`bg-[#1c1b1b] ghost-border p-4 ${filters.status === s ? 'ring-1 ring-[#ee671c]/30' : ''}`}
+          >
+            <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-500 mb-1">
+              {statusStyles[s].label}
+            </p>
             <p className={`text-2xl font-headline font-bold ${statusStyles[s].text}`}>{counts[s]}</p>
           </div>
         ))}
@@ -94,7 +101,9 @@ export default function AdminAirtableQueueIndex({
                 >
                   <div className="flex items-center justify-between gap-4">
                     <div className="flex items-center gap-3 min-w-0">
-                      <span className={`${st.bg} ${st.text} px-2 py-1 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1 shrink-0`}>
+                      <span
+                        className={`${st.bg} ${st.text} px-2 py-1 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1 shrink-0`}
+                      >
                         <span className="material-symbols-outlined text-xs">{st.icon}</span>
                         {st.label}
                       </span>
@@ -117,7 +126,9 @@ export default function AdminAirtableQueueIndex({
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
                       <span className="text-stone-600 text-xs">{item.created_at}</span>
-                      <span className="material-symbols-outlined text-stone-600 group-hover:text-[#ffb595] transition-colors text-sm">arrow_forward</span>
+                      <span className="material-symbols-outlined text-stone-600 group-hover:text-[#ffb595] transition-colors text-sm">
+                        arrow_forward
+                      </span>
                     </div>
                   </div>
                 </Link>

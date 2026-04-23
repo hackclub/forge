@@ -50,7 +50,10 @@ export default function AdminReferralsShow({
 
   return (
     <div className="p-5 md:p-12 max-w-[1100px] mx-auto">
-      <Link href="/admin/referrals" className="ghost-border inline-block px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-stone-500 hover:text-[#e5e2e1] transition-colors mb-6">
+      <Link
+        href="/admin/referrals"
+        className="ghost-border inline-block px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-stone-500 hover:text-[#e5e2e1] transition-colors mb-6"
+      >
         ← Back to Referrals
       </Link>
 
@@ -58,7 +61,9 @@ export default function AdminReferralsShow({
         <img src={user.avatar} alt="" className="w-16 h-16 object-cover" />
         <div className="flex-1">
           <h1 className="text-3xl font-headline font-bold text-[#e5e2e1] tracking-tight">{user.display_name}</h1>
-          <p className="text-stone-500 text-sm mt-1">Referral code: <span className="font-mono text-[#ffb595]">{user.referral_code}</span></p>
+          <p className="text-stone-500 text-sm mt-1">
+            Referral code: <span className="font-mono text-[#ffb595]">{user.referral_code}</span>
+          </p>
         </div>
         {eligibleCount > 0 && (
           <button
@@ -88,12 +93,23 @@ export default function AdminReferralsShow({
             <div key={r.id} className="bg-[#1c1b1b] px-5 py-4 ghost-border flex items-center gap-4">
               <img src={r.referred.avatar} alt="" className="w-10 h-10 object-cover" />
               <div className="flex-1 min-w-0">
-                <Link href={`/admin/users/${r.referred.id}`} className="font-headline font-bold text-[#e5e2e1] hover:text-[#ffb595] transition-colors truncate block">
+                <Link
+                  href={`/admin/users/${r.referred.id}`}
+                  className="font-headline font-bold text-[#e5e2e1] hover:text-[#ffb595] transition-colors truncate block"
+                >
                   {r.referred.display_name}
                 </Link>
                 <p className="text-stone-500 text-xs mt-1">
                   Signed up {r.created_at}
-                  {r.qualifying_project && <> · Shipped <Link href={`/projects/${r.qualifying_project.id}`} className="hover:text-[#ffb595]">{r.qualifying_project.name}</Link></>}
+                  {r.qualifying_project && (
+                    <>
+                      {' '}
+                      · Shipped{' '}
+                      <Link href={`/projects/${r.qualifying_project.id}`} className="hover:text-[#ffb595]">
+                        {r.qualifying_project.name}
+                      </Link>
+                    </>
+                  )}
                 </p>
               </div>
               <span className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${STATUS_STYLES[r.status]}`}>
@@ -113,7 +129,8 @@ export default function AdminReferralsShow({
       )}
 
       <p className="text-stone-600 text-xs mt-8">
-        Approved referrals pay out 0.25c to the referrer and add 0.1c to the prize pool ({stats.prize_pool.toFixed(2)}c current).
+        Approved referrals pay out 0.25c to the referrer and add 0.1c to the prize pool ({stats.prize_pool.toFixed(2)}c
+        current).
       </p>
     </div>
   )

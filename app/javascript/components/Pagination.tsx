@@ -31,7 +31,9 @@ export default function Pagination({ pagy }: { pagy: PagyProps }) {
       <div className="flex gap-2">
         {pages.map((p, i) =>
           p === '...' ? (
-            <span key={`dots-${i}`} className="text-stone-600 px-2 flex items-end mb-2">...</span>
+            <span key={`dots-${i}`} className="text-stone-600 px-2 flex items-end mb-2">
+              ...
+            </span>
           ) : (
             <button
               key={p}

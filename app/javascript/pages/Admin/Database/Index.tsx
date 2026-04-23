@@ -117,14 +117,19 @@ export default function AdminDatabaseIndex({ tables }: { tables: string[] }) {
           {result && (
             <div>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-stone-500 text-xs">{result.row_count} row{result.row_count !== 1 ? 's' : ''} returned</span>
+                <span className="text-stone-500 text-xs">
+                  {result.row_count} row{result.row_count !== 1 ? 's' : ''} returned
+                </span>
               </div>
               <div className="ghost-border overflow-x-auto">
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-white/5">
                       {result.columns.map((col) => (
-                        <th key={col} className="text-left px-4 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600 whitespace-nowrap">
+                        <th
+                          key={col}
+                          className="text-left px-4 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600 whitespace-nowrap"
+                        >
                           {col}
                         </th>
                       ))}
@@ -134,7 +139,11 @@ export default function AdminDatabaseIndex({ tables }: { tables: string[] }) {
                     {result.rows.map((row, i) => (
                       <tr key={i} className="border-b border-white/5 hover:bg-[#1c1b1b] transition-colors">
                         {row.map((cell, j) => (
-                          <td key={j} className="px-4 py-3 text-sm text-stone-400 font-mono whitespace-nowrap max-w-xs truncate" title={String(cell ?? '')}>
+                          <td
+                            key={j}
+                            className="px-4 py-3 text-sm text-stone-400 font-mono whitespace-nowrap max-w-xs truncate"
+                            title={String(cell ?? '')}
+                          >
                             {cell === null ? <span className="text-stone-600 italic">NULL</span> : String(cell)}
                           </td>
                         ))}

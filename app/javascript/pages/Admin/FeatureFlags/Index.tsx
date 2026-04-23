@@ -58,7 +58,9 @@ export default function AdminFeatureFlagsIndex({ flags }: { flags: Flag[] }) {
             />
           </div>
           <div>
-            <label className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">Description</label>
+            <label className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
+              Description
+            </label>
             <input
               type="text"
               value={description}
@@ -68,10 +70,17 @@ export default function AdminFeatureFlagsIndex({ flags }: { flags: Flag[] }) {
             />
           </div>
           <div className="flex gap-3">
-            <button type="submit" className="signature-smolder text-[#4c1a00] px-6 py-3 font-bold uppercase tracking-wider text-xs cursor-pointer">
+            <button
+              type="submit"
+              className="signature-smolder text-[#4c1a00] px-6 py-3 font-bold uppercase tracking-wider text-xs cursor-pointer"
+            >
               Create
             </button>
-            <button type="button" onClick={() => setShowForm(false)} className="ghost-border text-stone-400 px-6 py-3 text-xs font-bold uppercase tracking-wider cursor-pointer">
+            <button
+              type="button"
+              onClick={() => setShowForm(false)}
+              className="ghost-border text-stone-400 px-6 py-3 text-xs font-bold uppercase tracking-wider cursor-pointer"
+            >
               Cancel
             </button>
           </div>
@@ -83,11 +92,21 @@ export default function AdminFeatureFlagsIndex({ flags }: { flags: Flag[] }) {
           <table className="w-full min-w-[640px]">
             <thead>
               <tr className="border-b border-white/5">
-                <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">Flag</th>
-                <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">Description</th>
-                <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">Status</th>
-                <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">Updated</th>
-                <th className="text-right px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">Actions</th>
+                <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">
+                  Flag
+                </th>
+                <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">
+                  Description
+                </th>
+                <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">
+                  Status
+                </th>
+                <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">
+                  Updated
+                </th>
+                <th className="text-right px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody>

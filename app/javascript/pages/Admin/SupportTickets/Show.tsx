@@ -24,12 +24,16 @@ export default function AdminSupportTicketsShow({
     e.preventDefault()
     if (!replyText.trim() || sending) return
     setSending(true)
-    router.post(`/admin/support/${ticket.id}/reply`, { message: replyText }, {
-      onFinish: () => {
-        setReplyText('')
-        setSending(false)
+    router.post(
+      `/admin/support/${ticket.id}/reply`,
+      { message: replyText },
+      {
+        onFinish: () => {
+          setReplyText('')
+          setSending(false)
+        },
       },
-    })
+    )
   }
 
   const status = statusConfig[ticket.status]
@@ -46,7 +50,11 @@ export default function AdminSupportTicketsShow({
 
       <div className="flex items-start gap-4 mb-6">
         {ticket.slack_avatar_url ? (
-          <img src={ticket.slack_avatar_url} alt={ticket.slack_display_name} className="w-12 h-12 border border-white/10 shrink-0" />
+          <img
+            src={ticket.slack_avatar_url}
+            alt={ticket.slack_display_name}
+            className="w-12 h-12 border border-white/10 shrink-0"
+          />
         ) : (
           <div className="w-12 h-12 bg-stone-700 flex items-center justify-center text-stone-400 font-bold shrink-0">
             {ticket.slack_display_name?.[0] || '?'}
@@ -54,17 +62,19 @@ export default function AdminSupportTicketsShow({
         )}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3 mb-1">
-            <h1 className="text-2xl font-headline font-bold text-[#e5e2e1] tracking-tight">{ticket.slack_display_name}</h1>
+            <h1 className="text-2xl font-headline font-bold text-[#e5e2e1] tracking-tight">
+              {ticket.slack_display_name}
+            </h1>
             <span className={`px-2 py-0.5 text-[9px] uppercase font-bold tracking-widest ${status.bg} ${status.text}`}>
               {status.label}
             </span>
           </div>
           <p className="text-stone-500 text-xs">{ticket.created_at}</p>
-          {ticket.claimed_by_name && (
-            <p className="text-stone-500 text-xs mt-1">Claimed by {ticket.claimed_by_name}</p>
-          )}
+          {ticket.claimed_by_name && <p className="text-stone-500 text-xs mt-1">Claimed by {ticket.claimed_by_name}</p>}
           {ticket.resolved_by_name && (
-            <p className="text-stone-500 text-xs mt-1">Resolved by {ticket.resolved_by_name} {ticket.resolved_at ? `at ${ticket.resolved_at}` : ''}</p>
+            <p className="text-stone-500 text-xs mt-1">
+              Resolved by {ticket.resolved_by_name} {ticket.resolved_at ? `at ${ticket.resolved_at}` : ''}
+            </p>
           )}
         </div>
       </div>
@@ -92,7 +102,9 @@ export default function AdminSupportTicketsShow({
         )}
         {can.resolve && ticket.status !== 'resolved' && (
           <button
-            onClick={() => { if (confirm('Mark this ticket as resolved?')) router.post(`/admin/support/${ticket.id}/resolve`) }}
+            onClick={() => {
+              if (confirm('Mark this ticket as resolved?')) router.post(`/admin/support/${ticket.id}/resolve`)
+            }}
             className="signature-smolder text-[#4c1a00] px-4 py-2 text-xs font-bold uppercase tracking-[0.15em] cursor-pointer inline-flex items-center gap-2"
           >
             <span className="material-symbols-outlined text-sm">check_circle</span>
@@ -101,7 +113,10 @@ export default function AdminSupportTicketsShow({
         )}
         {can.destroy && (
           <button
-            onClick={() => { if (confirm('Permanently delete this ticket? This cannot be undone.')) router.delete(`/admin/support/${ticket.id}`) }}
+            onClick={() => {
+              if (confirm('Permanently delete this ticket? This cannot be undone.'))
+                router.delete(`/admin/support/${ticket.id}`)
+            }}
             className="bg-red-500/20 border border-red-500/40 text-red-400 hover:bg-red-500/30 px-4 py-2 text-xs font-bold uppercase tracking-[0.15em] transition-colors cursor-pointer inline-flex items-center gap-2"
           >
             <span className="material-symbols-outlined text-sm">delete_forever</span>
@@ -131,9 +146,7 @@ export default function AdminSupportTicketsShow({
             </div>
           </div>
         ))}
-        {messages.length === 0 && (
-          <p className="text-stone-500 text-sm py-4 text-center">No messages yet.</p>
-        )}
+        {messages.length === 0 && <p className="text-stone-500 text-sm py-4 text-center">No messages yet.</p>}
       </div>
 
       {can.reply && (

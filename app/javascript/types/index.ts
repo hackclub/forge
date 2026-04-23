@@ -40,7 +40,14 @@ export interface PagyProps {
   prev: number | null
 }
 
-export type ProjectStatus = 'draft' | 'pending' | 'approved' | 'returned' | 'rejected' | 'pitch_approved' | 'pitch_pending'
+export type ProjectStatus =
+  | 'draft'
+  | 'pending'
+  | 'approved'
+  | 'returned'
+  | 'rejected'
+  | 'pitch_approved'
+  | 'pitch_pending'
 
 export interface ProjectCard {
   id: number

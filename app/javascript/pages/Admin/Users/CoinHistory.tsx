@@ -64,7 +64,10 @@ export default function AdminUsersCoinHistory({
     <>
       <Head title={`Coin history - ${user.display_name}`} />
       <div className="p-5 md:p-12 max-w-4xl mx-auto space-y-8">
-        <Link href={`/admin/users/${user.id}`} className="text-stone-500 text-sm hover:text-[#ffb595] transition-colors flex items-center gap-1">
+        <Link
+          href={`/admin/users/${user.id}`}
+          className="text-stone-500 text-sm hover:text-[#ffb595] transition-colors flex items-center gap-1"
+        >
           <span className="material-symbols-outlined text-sm">arrow_back</span>
           Back to {user.display_name}
         </Link>
@@ -106,8 +109,11 @@ export default function AdminUsersCoinHistory({
                       </div>
                     </div>
                     {entry.amount !== 0 && (
-                      <span className={`text-xl font-headline font-bold shrink-0 ${entry.amount >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                        {entry.amount >= 0 ? '+' : ''}{entry.amount}c
+                      <span
+                        className={`text-xl font-headline font-bold shrink-0 ${entry.amount >= 0 ? 'text-emerald-400' : 'text-red-400'}`}
+                      >
+                        {entry.amount >= 0 ? '+' : ''}
+                        {entry.amount}c
                       </span>
                     )}
                   </div>

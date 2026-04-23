@@ -75,10 +75,14 @@ export default function ProjectsShow({
   function submitKudo(e: React.FormEvent) {
     e.preventDefault()
     if (!kudoContent.trim()) return
-    router.post(`/projects/${project.id}/add_kudo`, { content: kudoContent }, {
-      preserveScroll: true,
-      onSuccess: () => setKudoContent(''),
-    })
+    router.post(
+      `/projects/${project.id}/add_kudo`,
+      { content: kudoContent },
+      {
+        preserveScroll: true,
+        onSuccess: () => setKudoContent(''),
+      },
+    )
   }
 
   function deleteKudo(kudoId: number) {
@@ -131,7 +135,6 @@ export default function ProjectsShow({
     })
   }
 
-
   function uploadCoverImage(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
@@ -143,10 +146,12 @@ export default function ProjectsShow({
       method: 'POST',
       headers: csrfToken ? { 'X-CSRF-Token': csrfToken } : {},
       body: formData,
-    }).then(() => {
-      setUploadingCover(false)
-      router.reload()
-    }).catch(() => setUploadingCover(false))
+    })
+      .then(() => {
+        setUploadingCover(false)
+        router.reload()
+      })
+      .catch(() => setUploadingCover(false))
   }
 
   function deleteProject() {
@@ -225,19 +230,36 @@ export default function ProjectsShow({
 
   function linkRepo(e: React.FormEvent) {
     e.preventDefault()
-    router.patch(`/projects/${project.id}/link_repo`, { repo_link: repoUrl }, {
-      onSuccess: () => { setShowRepoForm(false); setRepoUrl('') },
-    })
+    router.patch(
+      `/projects/${project.id}/link_repo`,
+      { repo_link: repoUrl },
+      {
+        onSuccess: () => {
+          setShowRepoForm(false)
+          setRepoUrl('')
+        },
+      },
+    )
   }
 
   function saveSubtitle(e: React.FormEvent) {
     e.preventDefault()
-    router.patch(`/projects/${project.id}`, {
-      project: { name: project.name, subtitle: subtitleDraft, repo_link: project.repo_link || '', tier: project.tier, tags: project.tags },
-    }, {
-      preserveScroll: true,
-      onSuccess: () => setEditingSubtitle(false),
-    })
+    router.patch(
+      `/projects/${project.id}`,
+      {
+        project: {
+          name: project.name,
+          subtitle: subtitleDraft,
+          repo_link: project.repo_link || '',
+          tier: project.tier,
+          tags: project.tags,
+        },
+      },
+      {
+        preserveScroll: true,
+        onSuccess: () => setEditingSubtitle(false),
+      },
+    )
   }
 
   const status = statusConfig[project.status]
@@ -246,7 +268,8 @@ export default function ProjectsShow({
   const isApproved = project.status === 'approved'
   const isPending = project.status === 'pending'
   const isReturned = project.status === 'returned'
-  const isBuildingPhase = isPitchApproved || isApproved || isPending || isReturned || (project.status === 'draft' && isNormalTier)
+  const isBuildingPhase =
+    isPitchApproved || isApproved || isPending || isReturned || (project.status === 'draft' && isNormalTier)
   const isGitMode = project.devlog_mode === 'git'
   const isWebMode = project.devlog_mode === 'website'
   const canLog = isBuildingPhase
@@ -256,9 +279,8 @@ export default function ProjectsShow({
   const showCoverUpload = can.update && canLog
   const isPitchReturn = isReturned && !isNormalTier && project.from_slack && devlogs.length === 0
 
-  const totalHours = Math.round(
-    devlogs.reduce((sum, entry) => sum + parseTimeSpentToHours(entry.time_spent), 0) * 10
-  ) / 10
+  const totalHours =
+    Math.round(devlogs.reduce((sum, entry) => sum + parseTimeSpentToHours(entry.time_spent), 0) * 10) / 10
 
   const isStaff = !!usePage<SharedProps>().props.auth.user?.is_staff
 
@@ -268,7 +290,8 @@ export default function ProjectsShow({
         <div className="mb-6 border border-amber-500/40 bg-amber-500/10 px-5 py-3 flex items-center gap-3 flex-wrap">
           <span className="material-symbols-outlined text-amber-400">shield_person</span>
           <p className="text-amber-300 text-sm flex-1 min-w-0">
-            <span className="font-bold">Admin view.</span> You're editing <span className="font-bold">{project.user_display_name}'s</span> project. Changes affect them, not you.
+            <span className="font-bold">Admin view.</span> You're editing{' '}
+            <span className="font-bold">{project.user_display_name}'s</span> project. Changes affect them, not you.
           </p>
         </div>
       )}
@@ -291,7 +314,13 @@ export default function ProjectsShow({
               <label className="absolute top-3 right-3 bg-black/70 hover:bg-black/90 text-white px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.15em] flex items-center gap-2 cursor-pointer transition-all opacity-0 group-hover:opacity-100">
                 <span className="material-symbols-outlined text-sm">upload</span>
                 {uploadingCover ? 'Uploading...' : 'Replace'}
-                <input type="file" accept="image/*" onChange={uploadCoverImage} className="hidden" disabled={uploadingCover} />
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={uploadCoverImage}
+                  className="hidden"
+                  disabled={uploadingCover}
+                />
               </label>
             )}
           </div>
@@ -299,13 +328,21 @@ export default function ProjectsShow({
           <label className="block bg-[#0e0e0e] hover:bg-[#2a2a2a] text-stone-500 hover:text-[#e5e2e1] px-4 py-12 text-xs font-bold uppercase tracking-[0.15em] flex flex-col items-center justify-center gap-2 cursor-pointer transition-colors border-b border-white/5">
             <span className="material-symbols-outlined text-3xl">add_photo_alternate</span>
             {uploadingCover ? 'Uploading...' : 'Upload Cover Image'}
-            <input type="file" accept="image/*" onChange={uploadCoverImage} className="hidden" disabled={uploadingCover} />
+            <input
+              type="file"
+              accept="image/*"
+              onChange={uploadCoverImage}
+              className="hidden"
+              disabled={uploadingCover}
+            />
           </label>
         ) : null}
         <div className="p-8">
           <div className="flex items-center gap-2 mb-4 flex-wrap">
             {!((isPitchApproved || isPending) && isNormalTier) && (
-              <span className={`${status.bg} ${status.text} px-3 py-1 text-[10px] uppercase font-bold tracking-widest flex items-center gap-1.5`}>
+              <span
+                className={`${status.bg} ${status.text} px-3 py-1 text-[10px] uppercase font-bold tracking-widest flex items-center gap-1.5`}
+              >
                 <span className="material-symbols-outlined text-sm">{status.icon}</span>
                 {status.label}
               </span>
@@ -341,15 +378,33 @@ export default function ProjectsShow({
                 autoFocus
               />
               <div className="flex gap-2">
-                <button type="submit" className="signature-smolder text-[#4c1a00] px-5 py-2 text-xs font-bold uppercase tracking-[0.15em] cursor-pointer">Save</button>
-                <button type="button" onClick={() => { setEditingSubtitle(false); setSubtitleDraft(project.subtitle || '') }} className="ghost-border text-stone-400 px-4 py-2 text-xs cursor-pointer">Cancel</button>
+                <button
+                  type="submit"
+                  className="signature-smolder text-[#4c1a00] px-5 py-2 text-xs font-bold uppercase tracking-[0.15em] cursor-pointer"
+                >
+                  Save
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingSubtitle(false)
+                    setSubtitleDraft(project.subtitle || '')
+                  }}
+                  className="ghost-border text-stone-400 px-4 py-2 text-xs cursor-pointer"
+                >
+                  Cancel
+                </button>
               </div>
             </form>
           ) : project.subtitle ? (
             <p className="text-lg text-stone-400 leading-relaxed max-w-2xl group inline-flex items-start gap-2 mb-4">
               <span>{project.subtitle}</span>
               {can.update && (
-                <button onClick={() => setEditingSubtitle(true)} className="text-stone-600 hover:text-[#ffb595] opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer mt-1" title="Edit description">
+                <button
+                  onClick={() => setEditingSubtitle(true)}
+                  className="text-stone-600 hover:text-[#ffb595] opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer mt-1"
+                  title="Edit description"
+                >
                   <span className="material-symbols-outlined text-sm">edit</span>
                 </button>
               )}
@@ -364,15 +419,20 @@ export default function ProjectsShow({
             </button>
           ) : null}
 
-
           <div className="flex flex-wrap items-center gap-4 pt-5 border-t border-white/5">
             <Link
               href={`/users/${project.user_id}`}
               className="flex items-center gap-3 text-stone-300 hover:text-[#ffb595] transition-colors group"
             >
-              <img src={project.user_avatar} alt={project.user_display_name} className="w-10 h-10 border border-white/10" />
+              <img
+                src={project.user_avatar}
+                alt={project.user_display_name}
+                className="w-10 h-10 border border-white/10"
+              />
               <div>
-                <p className="text-sm font-headline font-bold group-hover:text-[#ffb595] transition-colors">{project.user_display_name}</p>
+                <p className="text-sm font-headline font-bold group-hover:text-[#ffb595] transition-colors">
+                  {project.user_display_name}
+                </p>
                 <p className="text-[10px] uppercase tracking-[0.2em] text-stone-600">Started {project.created_at}</p>
               </div>
             </Link>
@@ -398,7 +458,12 @@ export default function ProjectsShow({
                 </div>
               )}
               {isSafeUrl(project.repo_link) && (
-                <a href={project.repo_link!} target="_blank" rel="noopener" className="flex items-center gap-2 text-stone-400 hover:text-[#ffb595] transition-colors">
+                <a
+                  href={project.repo_link!}
+                  target="_blank"
+                  rel="noopener"
+                  className="flex items-center gap-2 text-stone-400 hover:text-[#ffb595] transition-colors"
+                >
                   <span className="material-symbols-outlined text-base">code</span>
                   <span>Repository</span>
                   <span className="material-symbols-outlined text-xs">open_in_new</span>
@@ -411,13 +476,14 @@ export default function ProjectsShow({
 
       <div className="grid grid-cols-12 gap-8">
         <div className="col-span-12 lg:col-span-8">
-
           <ReviewTimeline events={review_history} />
 
           {can.update && !isSafeUrl(project.repo_link) && showRepoForm && (
             <section className="mb-12">
               <form onSubmit={linkRepo} className="ghost-border bg-[#1c1b1b] p-6 space-y-4">
-                <label className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">Repository URL</label>
+                <label className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
+                  Repository URL
+                </label>
                 <p className="text-stone-500 text-xs mb-3">Works with GitHub, GitLab, Codeberg, or any git provider.</p>
                 <div className="flex gap-3">
                   <input
@@ -428,10 +494,17 @@ export default function ProjectsShow({
                     placeholder="https://github.com/username/repo"
                     required
                   />
-                  <button type="submit" className="signature-smolder text-[#4c1a00] px-6 py-3 font-bold uppercase tracking-wider text-xs cursor-pointer">
+                  <button
+                    type="submit"
+                    className="signature-smolder text-[#4c1a00] px-6 py-3 font-bold uppercase tracking-wider text-xs cursor-pointer"
+                  >
                     Link
                   </button>
-                  <button type="button" onClick={() => setShowRepoForm(false)} className="ghost-border text-stone-400 px-4 py-3 text-xs cursor-pointer">
+                  <button
+                    type="button"
+                    onClick={() => setShowRepoForm(false)}
+                    className="ghost-border text-stone-400 px-4 py-3 text-xs cursor-pointer"
+                  >
                     Cancel
                   </button>
                 </div>
@@ -442,7 +515,9 @@ export default function ProjectsShow({
           {needsDevlogChoice && (
             <section className="mb-8">
               <div className="ghost-border bg-[#1c1b1b] p-6">
-                <h2 className="text-lg font-headline font-bold text-[#e5e2e1] tracking-tight mb-1">Choose Your Devlog Method</h2>
+                <h2 className="text-lg font-headline font-bold text-[#e5e2e1] tracking-tight mb-1">
+                  Choose Your Devlog Method
+                </h2>
                 <p className="text-stone-500 text-xs mb-5">How do you want to document your build progress?</p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -467,9 +542,7 @@ export default function ProjectsShow({
                       <span className="material-symbols-outlined text-stone-400 text-lg">edit_note</span>
                       <span className="font-headline font-bold text-[#e5e2e1] text-sm">Web Devlog</span>
                     </div>
-                    <p className="text-stone-500 text-xs">
-                      Write devlog entries directly on Forge.
-                    </p>
+                    <p className="text-stone-500 text-xs">Write devlog entries directly on Forge.</p>
                   </button>
                 </div>
               </div>
@@ -491,7 +564,10 @@ export default function ProjectsShow({
                     </button>
                     {devlogs.length > 0 && (
                       <button
-                        onClick={() => { if (confirm('Clear all entries and re-sync from JOURNAL.md?')) router.post(`/projects/${project.id}/sync_journal`, { clear: 'true' }) }}
+                        onClick={() => {
+                          if (confirm('Clear all entries and re-sync from JOURNAL.md?'))
+                            router.post(`/projects/${project.id}/sync_journal`, { clear: 'true' })
+                        }}
                         className="ghost-border bg-[#1c1b1b] hover:bg-[#2a2a2a] text-stone-400 hover:text-[#e5e2e1] px-4 py-2 text-xs font-bold uppercase tracking-[0.15em] flex items-center gap-2 cursor-pointer transition-colors"
                       >
                         <span className="material-symbols-outlined text-lg">refresh</span>
@@ -505,7 +581,9 @@ export default function ProjectsShow({
               {!project.repo_link && can.update && (
                 <div className="ghost-border bg-[#1c1b1b] p-8 text-center mb-6">
                   <span className="material-symbols-outlined text-3xl text-stone-700 mb-3">link_off</span>
-                  <p className="text-stone-400 text-sm mb-4">Link a repository first, then add a JOURNAL.md file to sync your devlog.</p>
+                  <p className="text-stone-400 text-sm mb-4">
+                    Link a repository first, then add a JOURNAL.md file to sync your devlog.
+                  </p>
                   <button
                     onClick={() => setShowRepoForm(true)}
                     className="signature-smolder text-[#4c1a00] px-6 py-3 font-bold uppercase tracking-wider text-xs cursor-pointer"
@@ -521,11 +599,21 @@ export default function ProjectsShow({
                   {can.update ? (
                     <>
                       <p className="text-stone-400 text-sm mb-2">No journal entries yet.</p>
-                      <p className="text-stone-500 text-xs">Add a <code className="text-[#ffb595]">JOURNAL.md</code> to your repo and click "Sync JOURNAL.md" above.</p>
-                      <a href="/docs/requirements/journal-format" className="text-[#ffb595] text-xs hover:underline mt-2 inline-block">See the format guide</a>
+                      <p className="text-stone-500 text-xs">
+                        Add a <code className="text-[#ffb595]">JOURNAL.md</code> to your repo and click "Sync
+                        JOURNAL.md" above.
+                      </p>
+                      <a
+                        href="/docs/requirements/journal-format"
+                        className="text-[#ffb595] text-xs hover:underline mt-2 inline-block"
+                      >
+                        See the format guide
+                      </a>
                     </>
                   ) : (
-                    <p className="text-stone-400 text-sm">{project.user_display_name} hasn't added a journal entry yet.</p>
+                    <p className="text-stone-400 text-sm">
+                      {project.user_display_name} hasn't added a journal entry yet.
+                    </p>
                   )}
                 </div>
               )}
@@ -537,7 +625,12 @@ export default function ProjectsShow({
                       <div className="flex items-start justify-between mb-3">
                         <div>
                           <div className="flex items-center gap-2 mb-1 flex-wrap">
-                            <Link href={`/projects/${project.id}/devlogs/${entry.id}`} className="font-headline font-bold text-[#e5e2e1] hover:text-[#ffb595] transition-colors">{entry.title}</Link>
+                            <Link
+                              href={`/projects/${project.id}/devlogs/${entry.id}`}
+                              className="font-headline font-bold text-[#e5e2e1] hover:text-[#ffb595] transition-colors"
+                            >
+                              {entry.title}
+                            </Link>
                           </div>
                           <div className="flex items-center gap-3 mt-1">
                             <span className="text-stone-500 text-xs">{entry.created_at}</span>
@@ -550,7 +643,11 @@ export default function ProjectsShow({
                           </div>
                         </div>
                       </div>
-                      <div className="prose prose-invert prose-sm max-w-none text-stone-300 prose-a:text-[#ffb595] prose-img:max-w-full prose-img:rounded-none break-words [overflow-wrap:anywhere]"><Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>{entry.content}</Markdown></div>
+                      <div className="prose prose-invert prose-sm max-w-none text-stone-300 prose-a:text-[#ffb595] prose-img:max-w-full prose-img:rounded-none break-words [overflow-wrap:anywhere]">
+                        <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
+                          {entry.content}
+                        </Markdown>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -561,12 +658,19 @@ export default function ProjectsShow({
           {!can.update && !showGitDevlog && !showWebDevlog && (
             <section className="mb-12">
               <div className="ghost-border bg-[#1c1b1b] p-12 text-center relative overflow-hidden">
-                <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'repeating-linear-gradient(45deg, #ffb595 0, #ffb595 1px, transparent 1px, transparent 24px)' }} />
+                <div
+                  className="absolute inset-0 opacity-[0.03]"
+                  style={{
+                    backgroundImage:
+                      'repeating-linear-gradient(45deg, #ffb595 0, #ffb595 1px, transparent 1px, transparent 24px)',
+                  }}
+                />
                 <div className="relative">
                   <img src="/orph-building.png" alt="" className="h-32 mx-auto mb-4 opacity-70" />
                   <p className="text-[#e5e2e1] font-headline font-bold text-lg mb-2">Forge in progress</p>
                   <p className="text-stone-500 text-sm max-w-sm mx-auto">
-                    {project.user_display_name.split(' ')[0]} hasn't posted devlog entries yet. Check back soon to follow along with the build.
+                    {project.user_display_name.split(' ')[0]} hasn't posted devlog entries yet. Check back soon to
+                    follow along with the build.
                   </p>
                 </div>
               </div>
@@ -604,7 +708,9 @@ export default function ProjectsShow({
               {showDevlogForm && (
                 <form onSubmit={submitDevlog} className="ghost-border bg-[#1c1b1b] p-6 mb-6 space-y-4">
                   <div>
-                    <label className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">Title</label>
+                    <label className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
+                      Title
+                    </label>
                     <input
                       type="text"
                       value={devlogForm.data.title}
@@ -621,7 +727,9 @@ export default function ProjectsShow({
                     <textarea
                       value={devlogForm.data.content}
                       onChange={(e) => devlogForm.setData('content', e.target.value)}
-                      onPaste={(e) => handleImagePaste(e, (v) => devlogForm.setData('content', v), devlogForm.data.content)}
+                      onPaste={(e) =>
+                        handleImagePaste(e, (v) => devlogForm.setData('content', v), devlogForm.data.content)
+                      }
                       rows={8}
                       className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 text-sm resize-y font-mono"
                       placeholder="What did you work on? Paste images directly..."
@@ -629,7 +737,9 @@ export default function ProjectsShow({
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">Time Spent</label>
+                    <label className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
+                      Time Spent
+                    </label>
                     <input
                       type="text"
                       value={devlogForm.data.time_spent}
@@ -660,7 +770,9 @@ export default function ProjectsShow({
                       {editingDevlogId === entry.id ? (
                         <form onSubmit={(e) => submitEditDevlog(e, entry.id)} className="space-y-4">
                           <div>
-                            <label className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">Title</label>
+                            <label className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
+                              Title
+                            </label>
                             <input
                               type="text"
                               value={editDevlogForm.data.title}
@@ -671,19 +783,28 @@ export default function ProjectsShow({
                           </div>
                           <div>
                             <label className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
-                              Content <span className="text-stone-600 normal-case tracking-normal">(markdown supported)</span>
+                              Content{' '}
+                              <span className="text-stone-600 normal-case tracking-normal">(markdown supported)</span>
                             </label>
                             <textarea
                               value={editDevlogForm.data.content}
                               onChange={(e) => editDevlogForm.setData('content', e.target.value)}
-                              onPaste={(e) => handleImagePaste(e, (v) => editDevlogForm.setData('content', v), editDevlogForm.data.content)}
+                              onPaste={(e) =>
+                                handleImagePaste(
+                                  e,
+                                  (v) => editDevlogForm.setData('content', v),
+                                  editDevlogForm.data.content,
+                                )
+                              }
                               rows={8}
                               className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 text-sm resize-y font-mono"
                               required
                             />
                           </div>
                           <div>
-                            <label className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">Time Spent</label>
+                            <label className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
+                              Time Spent
+                            </label>
                             <input
                               type="text"
                               value={editDevlogForm.data.time_spent}
@@ -715,7 +836,12 @@ export default function ProjectsShow({
                           <div className="flex items-start justify-between mb-3">
                             <div>
                               <div className="flex items-center gap-2 mb-1 flex-wrap">
-                                <Link href={`/projects/${project.id}/devlogs/${entry.id}`} className="font-headline font-bold text-[#e5e2e1] hover:text-[#ffb595] transition-colors">{entry.title}</Link>
+                                <Link
+                                  href={`/projects/${project.id}/devlogs/${entry.id}`}
+                                  className="font-headline font-bold text-[#e5e2e1] hover:text-[#ffb595] transition-colors"
+                                >
+                                  {entry.title}
+                                </Link>
                               </div>
                               <div className="flex items-center gap-3 mt-1">
                                 <span className="text-stone-500 text-xs">{entry.created_at}</span>
@@ -748,7 +874,11 @@ export default function ProjectsShow({
                               </div>
                             )}
                           </div>
-                          <div className="prose prose-invert prose-sm max-w-none text-stone-300 prose-a:text-[#ffb595] prose-img:max-w-full prose-img:rounded-none break-words [overflow-wrap:anywhere]"><Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>{entry.content}</Markdown></div>
+                          <div className="prose prose-invert prose-sm max-w-none text-stone-300 prose-a:text-[#ffb595] prose-img:max-w-full prose-img:rounded-none break-words [overflow-wrap:anywhere]">
+                            <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
+                              {entry.content}
+                            </Markdown>
+                          </div>
                         </>
                       )}
                     </div>
@@ -766,15 +896,20 @@ export default function ProjectsShow({
               )}
             </section>
           )}
-
         </div>
 
         <aside className="col-span-12 lg:col-span-4 space-y-6">
           {!can.update && (
             <div className="bg-[#1c1b1b] ghost-border p-6">
-              <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">Builder</h4>
+              <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">
+                Builder
+              </h4>
               <Link href={`/users/${project.user_id}`} className="flex items-center gap-3 group">
-                <img src={project.user_avatar} alt={project.user_display_name} className="w-12 h-12 border border-white/10 shrink-0" />
+                <img
+                  src={project.user_avatar}
+                  alt={project.user_display_name}
+                  className="w-12 h-12 border border-white/10 shrink-0"
+                />
                 <div className="min-w-0 flex-1">
                   <p className="font-headline font-bold text-[#e5e2e1] group-hover:text-[#ffb595] transition-colors truncate">
                     {project.user_display_name}
@@ -787,12 +922,17 @@ export default function ProjectsShow({
               </Link>
               <div className="grid grid-cols-3 gap-3 mt-5 pt-5 border-t border-white/5">
                 <div>
-                  <p className="text-xl font-headline font-bold text-[#e5e2e1]">{totalHours}<span className="text-xs text-stone-500 ml-0.5">h</span></p>
+                  <p className="text-xl font-headline font-bold text-[#e5e2e1]">
+                    {totalHours}
+                    <span className="text-xs text-stone-500 ml-0.5">h</span>
+                  </p>
                   <p className="text-[9px] uppercase tracking-[0.15em] text-stone-600 mt-0.5">Logged</p>
                 </div>
                 <div>
                   <p className="text-xl font-headline font-bold text-[#e5e2e1]">{devlogs.length}</p>
-                  <p className="text-[9px] uppercase tracking-[0.15em] text-stone-600 mt-0.5">{devlogs.length === 1 ? 'Entry' : 'Entries'}</p>
+                  <p className="text-[9px] uppercase tracking-[0.15em] text-stone-600 mt-0.5">
+                    {devlogs.length === 1 ? 'Entry' : 'Entries'}
+                  </p>
                 </div>
                 <div>
                   <p className="text-xl font-headline font-bold text-[#e5e2e1]">{kudos.length}</p>
@@ -806,9 +946,16 @@ export default function ProjectsShow({
             <div className="bg-emerald-500/5 ghost-border p-6">
               <div className="flex items-center gap-2 mb-3">
                 <span className="material-symbols-outlined text-emerald-400 text-lg">verified</span>
-                <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-400 font-headline">Built on {project.built_at}</h4>
+                <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-400 font-headline">
+                  Built on {project.built_at}
+                </h4>
               </div>
-              <a href={project.build_proof_url} target="_blank" rel="noopener" className="text-[#ffb595] hover:text-[#ee671c] text-xs flex items-center gap-1 break-all">
+              <a
+                href={project.build_proof_url}
+                target="_blank"
+                rel="noopener"
+                className="text-[#ffb595] hover:text-[#ee671c] text-xs flex items-center gap-1 break-all"
+              >
                 View build proof
                 <span className="material-symbols-outlined text-xs">open_in_new</span>
               </a>
@@ -819,10 +966,13 @@ export default function ProjectsShow({
             <div className="ghost-border bg-[#1c1b1b] p-6">
               <div className="flex items-center gap-2 mb-4">
                 <span className="material-symbols-outlined text-[#ffb595] text-lg">schedule</span>
-                <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline">Time Logged</h4>
+                <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline">
+                  Time Logged
+                </h4>
               </div>
               <p className="text-4xl font-headline font-bold text-[#e5e2e1] tracking-tight">
-                {totalHours}<span className="text-xl text-stone-500 ml-1">h</span>
+                {totalHours}
+                <span className="text-xl text-stone-500 ml-1">h</span>
               </p>
               <p className="text-stone-500 text-xs mt-2">
                 Across {devlogs.length} {devlogs.length === 1 ? 'entry' : 'entries'}
@@ -842,10 +992,13 @@ export default function ProjectsShow({
             <div className="bg-[#1c1b1b] ghost-border p-6">
               <div className="flex items-center gap-2 mb-3">
                 <span className="material-symbols-outlined text-[#ffb595] text-base">paid</span>
-                <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline">Expected Payout</h4>
+                <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline">
+                  Expected Payout
+                </h4>
               </div>
               <p className="text-4xl font-headline font-bold text-[#ffb595] tracking-tight">
-                {(totalHours * project.coin_rate).toFixed(2)}<span className="text-xl text-stone-500 ml-1">c</span>
+                {(totalHours * project.coin_rate).toFixed(2)}
+                <span className="text-xl text-stone-500 ml-1">c</span>
               </p>
 
               <p className="text-stone-600 text-[10px] uppercase tracking-[0.15em] mt-3 leading-relaxed">
@@ -858,9 +1011,13 @@ export default function ProjectsShow({
             <div className="bg-amber-500/5 ghost-border p-8">
               <div className="flex items-center gap-2 mb-3">
                 <span className="material-symbols-outlined text-amber-400 text-lg">schedule</span>
-                <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-amber-400 font-headline">Pitch Under Review</h4>
+                <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-amber-400 font-headline">
+                  Pitch Under Review
+                </h4>
               </div>
-              <p className="text-stone-400 text-sm">Your pitch is being reviewed. You'll hear back in Slack once a decision is made.</p>
+              <p className="text-stone-400 text-sm">
+                Your pitch is being reviewed. You'll hear back in Slack once a decision is made.
+              </p>
             </div>
           )}
 
@@ -868,17 +1025,21 @@ export default function ProjectsShow({
             <div className="bg-emerald-500/5 ghost-border p-8">
               <div className="flex items-center gap-2 mb-3">
                 <span className="material-symbols-outlined text-emerald-400 text-lg">check_circle</span>
-                <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-400 font-headline">Pitch Approved - Start Building!</h4>
+                <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-400 font-headline">
+                  Pitch Approved - Start Building!
+                </h4>
               </div>
               <p className="text-stone-400 text-sm">
                 {!project.devlog_mode
                   ? 'Choose your devlog method below to get started.'
-                  : 'Add devlog entries as you build. When you\'re done, submit the project for review.'}
+                  : "Add devlog entries as you build. When you're done, submit the project for review."}
               </p>
             </div>
           )}
 
-          {can.update && can.submit_for_review && !isPitchReturn && (
+          {can.update &&
+            can.submit_for_review &&
+            !isPitchReturn &&
             (() => {
               const hasRepo = !!project.repo_link
               const hasSubtitle = !!project.subtitle
@@ -888,7 +1049,9 @@ export default function ProjectsShow({
               const canSubmit = hasRepo && hasSubtitle && hasCover && hasAddress && hasDevlogs
               return (
                 <div className="bg-[#1c1b1b] ghost-border p-8">
-                  <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">Submit for Review</h4>
+                  <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">
+                    Submit for Review
+                  </h4>
                   {!canSubmit && (
                     <div className="mb-4 bg-amber-500/10 border border-amber-500/20 p-4 text-amber-200 text-xs">
                       <p className="font-bold uppercase tracking-wider mb-2">Before submitting:</p>
@@ -897,7 +1060,14 @@ export default function ProjectsShow({
                         {!hasSubtitle && <li>• Add a short description</li>}
                         {!hasCover && <li>• Upload a cover image</li>}
                         {!hasDevlogs && <li>• Add at least one devlog entry</li>}
-                        {!hasAddress && <li>• Add your shipping address in <a href="/settings" className="underline hover:text-amber-100">settings</a></li>}
+                        {!hasAddress && (
+                          <li>
+                            • Add your shipping address in{' '}
+                            <a href="/settings" className="underline hover:text-amber-100">
+                              settings
+                            </a>
+                          </li>
+                        )}
                       </ul>
                     </div>
                   )}
@@ -911,14 +1081,15 @@ export default function ProjectsShow({
                   </button>
                 </div>
               )
-            })()
-          )}
+            })()}
 
           {can.update && isApproved && (
             <div className="bg-emerald-500/5 ghost-border p-8">
               <div className="flex items-center gap-2 mb-3">
                 <span className="material-symbols-outlined text-emerald-400 text-lg">verified</span>
-                <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-400 font-headline">Project Approved!</h4>
+                <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-400 font-headline">
+                  Project Approved!
+                </h4>
               </div>
               <p className="text-stone-400 text-sm">Your project has been approved and is being processed.</p>
             </div>
@@ -926,9 +1097,12 @@ export default function ProjectsShow({
 
           {can.update && isPitchReturn && (
             <div className="bg-[#1c1b1b] ghost-border p-8">
-              <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">Resubmit Pitch</h4>
+              <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">
+                Resubmit Pitch
+              </h4>
               <p className="text-stone-400 text-sm mb-4">
-                Edit your original message in <span className="text-[#ffb595] font-bold">#into-the-forge</span> on Slack with the requested changes, then hit resubmit.
+                Edit your original message in <span className="text-[#ffb595] font-bold">#into-the-forge</span> on Slack
+                with the requested changes, then hit resubmit.
               </p>
               <button
                 onClick={() => router.post(`/projects/${project.id}/resubmit_pitch`)}
@@ -940,10 +1114,11 @@ export default function ProjectsShow({
             </div>
           )}
 
-
           {can.update && isApproved && (
             <div className="bg-[#1c1b1b] ghost-border p-6">
-              <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">Mark as Built</h4>
+              <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">
+                Mark as Built
+              </h4>
               {project.built_at ? (
                 <div className="bg-emerald-500/10 border border-emerald-500/20 p-4 text-sm">
                   <p className="text-emerald-300 font-headline font-bold mb-2 flex items-center gap-2">
@@ -951,7 +1126,12 @@ export default function ProjectsShow({
                     Built on {project.built_at}
                   </p>
                   {project.build_proof_url && (
-                    <a href={project.build_proof_url} target="_blank" rel="noopener" className="text-[#ffb595] hover:text-[#ee671c] text-xs flex items-center gap-1 break-all">
+                    <a
+                      href={project.build_proof_url}
+                      target="_blank"
+                      rel="noopener"
+                      className="text-[#ffb595] hover:text-[#ee671c] text-xs flex items-center gap-1 break-all"
+                    >
                       View proof
                       <span className="material-symbols-outlined text-xs">open_in_new</span>
                     </a>
@@ -967,7 +1147,10 @@ export default function ProjectsShow({
                   }}
                   className="space-y-3"
                 >
-                  <p className="text-stone-400 text-xs">Drop a link to a photo, video, or anything that shows you built this. Required to redeem direct grants and order shop items.</p>
+                  <p className="text-stone-400 text-xs">
+                    Drop a link to a photo, video, or anything that shows you built this. Required to redeem direct
+                    grants and order shop items.
+                  </p>
                   <input
                     type="url"
                     name="build_proof_url"
@@ -990,7 +1173,9 @@ export default function ProjectsShow({
           <div className="bg-[#1c1b1b] ghost-border p-6">
             <div className="flex items-center gap-2 mb-4">
               <span className="material-symbols-outlined text-[#ee671c] text-base">favorite</span>
-              <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline">Kudos ({kudos.length})</h4>
+              <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline">
+                Kudos ({kudos.length})
+              </h4>
             </div>
 
             {can.give_kudos && (
@@ -1020,20 +1205,32 @@ export default function ProjectsShow({
                 {kudos.map((kudo) => (
                   <div key={kudo.id} className="bg-[#0e0e0e] ghost-border p-3 min-w-0 overflow-hidden">
                     <div className="flex items-start gap-2 mb-1">
-                      <img src={kudo.author_avatar} alt={kudo.author_name} className="w-6 h-6 border border-white/10 shrink-0" />
+                      <img
+                        src={kudo.author_avatar}
+                        alt={kudo.author_name}
+                        className="w-6 h-6 border border-white/10 shrink-0"
+                      />
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5 flex-wrap">
-                          <Link href={`/users/${kudo.author_id}`} className="text-[#e5e2e1] text-xs font-bold hover:text-[#ffb595] transition-colors truncate">
+                          <Link
+                            href={`/users/${kudo.author_id}`}
+                            className="text-[#e5e2e1] text-xs font-bold hover:text-[#ffb595] transition-colors truncate"
+                          >
                             {kudo.author_name}
                           </Link>
                           {kudo.author_is_staff && (
-                            <span className="text-[8px] font-bold uppercase tracking-wider px-1 py-0.5 bg-[#ee671c]/15 text-[#ee671c]">staff</span>
+                            <span className="text-[8px] font-bold uppercase tracking-wider px-1 py-0.5 bg-[#ee671c]/15 text-[#ee671c]">
+                              staff
+                            </span>
                           )}
                         </div>
                         <p className="text-[9px] uppercase tracking-[0.15em] text-stone-600">{kudo.created_at}</p>
                       </div>
                       {kudo.can_destroy && (
-                        <button onClick={() => deleteKudo(kudo.id)} className="text-stone-600 hover:text-red-400 transition-colors shrink-0 cursor-pointer">
+                        <button
+                          onClick={() => deleteKudo(kudo.id)}
+                          className="text-stone-600 hover:text-red-400 transition-colors shrink-0 cursor-pointer"
+                        >
                           <span className="material-symbols-outlined text-xs">close</span>
                         </button>
                       )}
@@ -1057,7 +1254,9 @@ export default function ProjectsShow({
                     className="w-full py-2.5 px-4 bg-[#2a2a2a] hover:bg-[#3a3939] flex items-center justify-between group transition-all"
                   >
                     <span className="text-sm font-headline font-medium text-[#e5e2e1]">Edit Project</span>
-                    <span className="material-symbols-outlined text-stone-500 group-hover:text-[#ffb595] transition-colors text-lg">edit</span>
+                    <span className="material-symbols-outlined text-stone-500 group-hover:text-[#ffb595] transition-colors text-lg">
+                      edit
+                    </span>
                   </Link>
                 )}
                 {can.destroy && (
@@ -1066,7 +1265,9 @@ export default function ProjectsShow({
                     className="w-full py-2.5 px-4 bg-red-950/20 hover:bg-red-950/40 flex items-center justify-between group transition-all border border-red-500/20 cursor-pointer"
                   >
                     <span className="text-sm font-headline font-medium text-red-400">Delete Project</span>
-                    <span className="material-symbols-outlined text-red-500/50 group-hover:text-red-400 transition-colors text-lg">delete</span>
+                    <span className="material-symbols-outlined text-red-500/50 group-hover:text-red-400 transition-colors text-lg">
+                      delete
+                    </span>
                   </button>
                 )}
               </div>

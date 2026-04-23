@@ -55,7 +55,9 @@ export default function AdminProjectsShow({
   const [feedback, setFeedback] = useState('')
   const [noteContent, setNoteContent] = useState('')
   const [refreshingReadme, setRefreshingReadme] = useState(false)
-  const [overrideHours, setOverrideHours] = useState<string>(project.override_hours != null ? String(project.override_hours) : '')
+  const [overrideHours, setOverrideHours] = useState<string>(
+    project.override_hours != null ? String(project.override_hours) : '',
+  )
   const [overrideJustification, setOverrideJustification] = useState(project.override_hours_justification || '')
   const status = statusConfig[project.status] || statusConfig.draft
   const isPitchReview = project.status === 'pitch_pending'
@@ -83,17 +85,25 @@ export default function AdminProjectsShow({
       return
     }
     setReviewing(true)
-    router.post(`/admin/projects/${project.id}/review`, { decision, feedback, ...extra }, {
-      onFinish: () => setReviewing(false),
-    })
+    router.post(
+      `/admin/projects/${project.id}/review`,
+      { decision, feedback, ...extra },
+      {
+        onFinish: () => setReviewing(false),
+      },
+    )
   }
 
   function addNote() {
     if (!noteContent.trim()) return
-    router.post(`/admin/projects/${project.id}/add_note`, { content: noteContent }, {
-      preserveScroll: true,
-      onSuccess: () => setNoteContent(''),
-    })
+    router.post(
+      `/admin/projects/${project.id}/add_note`,
+      { content: noteContent },
+      {
+        preserveScroll: true,
+        onSuccess: () => setNoteContent(''),
+      },
+    )
   }
 
   function deleteNote(noteId: number) {
@@ -103,7 +113,10 @@ export default function AdminProjectsShow({
 
   return (
     <div className="p-5 md:p-12 max-w-[1400px] mx-auto">
-      <Link href="/admin/projects" className="text-stone-500 text-sm hover:text-[#ffb595] transition-colors flex items-center gap-1 mb-8">
+      <Link
+        href="/admin/projects"
+        className="text-stone-500 text-sm hover:text-[#ffb595] transition-colors flex items-center gap-1 mb-8"
+      >
         <span className="material-symbols-outlined text-sm">arrow_back</span>
         Back to projects
       </Link>
@@ -111,7 +124,9 @@ export default function AdminProjectsShow({
       <div className="grid grid-cols-12 gap-12">
         <div className="col-span-12 lg:col-span-8">
           <div className="flex items-center gap-3 mb-4">
-            <span className={`${status.bg} ${status.text} px-3 py-1 rounded-full text-[10px] uppercase font-bold tracking-widest flex items-center gap-1.5`}>
+            <span
+              className={`${status.bg} ${status.text} px-3 py-1 rounded-full text-[10px] uppercase font-bold tracking-widest flex items-center gap-1.5`}
+            >
               <span className="material-symbols-outlined text-sm">{status.icon}</span>
               {status.label}
             </span>
@@ -124,9 +139,7 @@ export default function AdminProjectsShow({
 
           <h1 className="text-5xl font-headline font-bold text-[#e5e2e1] tracking-tighter mb-4">{project.name}</h1>
 
-          {project.subtitle && (
-            <p className="text-lg text-stone-400 leading-relaxed mb-4">{project.subtitle}</p>
-          )}
+          {project.subtitle && <p className="text-lg text-stone-400 leading-relaxed mb-4">{project.subtitle}</p>}
 
           <p className="text-stone-400 text-sm mb-8">
             by{' '}
@@ -135,10 +148,16 @@ export default function AdminProjectsShow({
             </Link>
             {' · '}Created {project.created_at}
             <span className="ml-2 bg-[#ee671c]/15 text-[#ee671c] px-2 py-0.5 text-[10px] uppercase font-bold tracking-widest">
-              {project.tier.replace('_', ' ')}{project.budget ? ` · ${project.budget}` : ''}
+              {project.tier.replace('_', ' ')}
+              {project.budget ? ` · ${project.budget}` : ''}
             </span>
             {project.slack_url ? (
-              <a href={project.slack_url} target="_blank" rel="noopener noreferrer" className="ml-2 bg-[#4A154B]/20 text-[#E01E5A] px-2 py-0.5 text-[10px] uppercase font-bold tracking-widest hover:bg-[#4A154B]/30 transition-colors inline-flex items-center gap-1">
+              <a
+                href={project.slack_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="ml-2 bg-[#4A154B]/20 text-[#E01E5A] px-2 py-0.5 text-[10px] uppercase font-bold tracking-widest hover:bg-[#4A154B]/30 transition-colors inline-flex items-center gap-1"
+              >
                 Slack Pitch
                 <span className="material-symbols-outlined text-[10px]">open_in_new</span>
               </a>
@@ -151,10 +170,14 @@ export default function AdminProjectsShow({
 
           {project.pitch_text && (
             <div className="bg-[#1c1b1b] ghost-border rounded-xl p-8 mb-8">
-              <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">Original Pitch</h4>
+              <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">
+                Original Pitch
+              </h4>
               <div className="prose prose-invert prose-sm max-w-none text-stone-300 prose-a:text-[#ffb595] break-words [overflow-wrap:anywhere]">
                 <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
-                  {project.pitch_text.replace(/<(https?:\/\/[^|>]+)\|([^>]+)>/g, '[$2]($1)').replace(/<(https?:\/\/[^>]+)>/g, '$1')}
+                  {project.pitch_text
+                    .replace(/<(https?:\/\/[^|>]+)\|([^>]+)>/g, '[$2]($1)')
+                    .replace(/<(https?:\/\/[^>]+)>/g, '$1')}
                 </Markdown>
               </div>
             </div>
@@ -162,7 +185,9 @@ export default function AdminProjectsShow({
 
           {project.description && (
             <div className="bg-[#1c1b1b] ghost-border rounded-xl p-8 mb-8">
-              <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">Description</h4>
+              <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">
+                Description
+              </h4>
               <p className="text-stone-300 leading-relaxed">{project.description}</p>
             </div>
           )}
@@ -209,11 +234,16 @@ export default function AdminProjectsShow({
             </div>
           )}
 
-          {(project.devlogs.length > 0 || isProjectReview || project.status === 'approved' || project.status === 'pitch_approved') && (
+          {(project.devlogs.length > 0 ||
+            isProjectReview ||
+            project.status === 'approved' ||
+            project.status === 'pitch_approved') && (
             <>
               {project.cover_image_url && (
                 <div className="bg-[#1c1b1b] ghost-border rounded-xl p-8 mb-8">
-                  <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">Cover Image</h4>
+                  <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">
+                    Cover Image
+                  </h4>
                   <img src={project.cover_image_url} alt="Project cover" className="max-w-full" />
                 </div>
               )}
@@ -223,31 +253,41 @@ export default function AdminProjectsShow({
                   <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline">README</h4>
                   <div className="flex items-center gap-3">
                     {project.readme_fetched_at && (
-                      <span className="text-stone-600 text-[10px] uppercase tracking-wider">Fetched {project.readme_fetched_at}</span>
+                      <span className="text-stone-600 text-[10px] uppercase tracking-wider">
+                        Fetched {project.readme_fetched_at}
+                      </span>
                     )}
                     <button
                       disabled={refreshingReadme}
                       onClick={() => {
                         setRefreshingReadme(true)
-                        router.post(`/admin/projects/${project.id}/review`, { decision: 'refresh_readme' }, {
-                          preserveScroll: true,
-                          onFinish: () => {
-                            setTimeout(() => {
-                              router.reload({ only: ['project'], onFinish: () => setRefreshingReadme(false) })
-                            }, 1500)
+                        router.post(
+                          `/admin/projects/${project.id}/review`,
+                          { decision: 'refresh_readme' },
+                          {
+                            preserveScroll: true,
+                            onFinish: () => {
+                              setTimeout(() => {
+                                router.reload({ only: ['project'], onFinish: () => setRefreshingReadme(false) })
+                              }, 1500)
+                            },
                           },
-                        })
+                        )
                       }}
                       className="ghost-border bg-[#0e0e0e] hover:bg-[#2a2a2a] text-stone-400 hover:text-[#ffb595] disabled:opacity-50 disabled:cursor-not-allowed px-3 py-1.5 text-[10px] uppercase tracking-[0.15em] font-bold flex items-center gap-1 cursor-pointer transition-colors"
                     >
-                      <span className={`material-symbols-outlined text-sm ${refreshingReadme ? 'animate-spin' : ''}`}>sync</span>
+                      <span className={`material-symbols-outlined text-sm ${refreshingReadme ? 'animate-spin' : ''}`}>
+                        sync
+                      </span>
                       {refreshingReadme ? 'Fetching...' : 'Refresh'}
                     </button>
                   </div>
                 </div>
                 {project.readme_cache ? (
                   <div className="prose prose-invert prose-sm max-w-none text-stone-300 prose-a:text-[#ffb595] prose-img:max-w-full overflow-x-auto">
-                    <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>{project.readme_cache}</Markdown>
+                    <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
+                      {project.readme_cache}
+                    </Markdown>
                   </div>
                 ) : (
                   <p className="text-stone-600 text-sm">No README fetched yet. Click Refresh to pull from the repo.</p>
@@ -261,7 +301,9 @@ export default function AdminProjectsShow({
                   </h4>
                   <span className="text-[#ffb595] text-sm font-bold">
                     Total: {project.total_hours}h
-                    {project.override_hours != null && <span className="text-stone-500 text-xs ml-2">(overridden)</span>}
+                    {project.override_hours != null && (
+                      <span className="text-stone-500 text-xs ml-2">(overridden)</span>
+                    )}
                   </span>
                 </div>
                 {project.devlogs.length > 0 ? (
@@ -271,7 +313,9 @@ export default function AdminProjectsShow({
                         <div className="flex items-start justify-between mb-2 gap-2">
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2 flex-wrap mb-1">
-                              <h5 className="font-headline font-bold text-[#e5e2e1] break-words min-w-0">{entry.title}</h5>
+                              <h5 className="font-headline font-bold text-[#e5e2e1] break-words min-w-0">
+                                {entry.title}
+                              </h5>
                             </div>
                             <div className="flex items-center gap-3 text-xs flex-wrap">
                               {entry.time_spent && (
@@ -285,7 +329,9 @@ export default function AdminProjectsShow({
                           </div>
                         </div>
                         <div className="prose prose-invert prose-sm max-w-none text-stone-300 prose-a:text-[#ffb595] break-words [overflow-wrap:anywhere]">
-                          <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>{entry.content}</Markdown>
+                          <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
+                            {entry.content}
+                          </Markdown>
                         </div>
                       </div>
                     ))}
@@ -299,9 +345,16 @@ export default function AdminProjectsShow({
 
           <div className="grid grid-cols-2 gap-6 mb-8">
             <div className="bg-[#1c1b1b] ghost-border rounded-xl p-6">
-              <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-3">Repository</h4>
+              <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-3">
+                Repository
+              </h4>
               {isSafeUrl(project.repo_link) ? (
-                <a href={project.repo_link!} target="_blank" rel="noopener" className="text-[#ffb595] hover:underline text-sm flex items-center gap-1">
+                <a
+                  href={project.repo_link!}
+                  target="_blank"
+                  rel="noopener"
+                  className="text-[#ffb595] hover:underline text-sm flex items-center gap-1"
+                >
                   {project.repo_link}
                   <span className="material-symbols-outlined text-sm">open_in_new</span>
                 </a>
@@ -314,7 +367,10 @@ export default function AdminProjectsShow({
               {project.tags.length > 0 ? (
                 <div className="flex gap-2 flex-wrap">
                   {project.tags.map((tag) => (
-                    <span key={tag} className="px-2 py-1 bg-[#0e0e0e] text-[10px] rounded text-stone-400 uppercase tracking-wider">
+                    <span
+                      key={tag}
+                      className="px-2 py-1 bg-[#0e0e0e] text-[10px] rounded text-stone-400 uppercase tracking-wider"
+                    >
                       {tag}
                     </span>
                   ))}
@@ -330,7 +386,9 @@ export default function AdminProjectsShow({
           <div className="bg-[#1c1b1b] ghost-border rounded-xl p-8 mb-8">
             <div className="flex items-center justify-between gap-3 mb-4">
               <div>
-                <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline">Internal Notes</h4>
+                <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline">
+                  Internal Notes
+                </h4>
                 <p className="text-stone-600 text-xs mt-1">Visible only to staff in the admin view.</p>
               </div>
             </div>
@@ -356,7 +414,11 @@ export default function AdminProjectsShow({
               <div className="space-y-2">
                 {notes.map((note) => (
                   <div key={note.id} className="bg-[#0e0e0e] ghost-border px-5 py-4 flex gap-3">
-                    <img src={note.author_avatar} alt={note.author_name} className="w-8 h-8 border border-white/10 shrink-0" />
+                    <img
+                      src={note.author_avatar}
+                      alt={note.author_name}
+                      className="w-8 h-8 border border-white/10 shrink-0"
+                    />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <span className="font-headline font-bold text-[#e5e2e1] text-sm">{note.author_name}</span>
@@ -462,7 +524,13 @@ export default function AdminProjectsShow({
                   </div>
 
                   <button
-                    onClick={() => router.post(`/admin/projects/${project.id}/review`, { decision: 'save_review_notes', override_hours: overrideHours, override_hours_justification: overrideJustification })}
+                    onClick={() =>
+                      router.post(`/admin/projects/${project.id}/review`, {
+                        decision: 'save_review_notes',
+                        override_hours: overrideHours,
+                        override_hours_justification: overrideJustification,
+                      })
+                    }
                     className="w-full mb-4 py-2 ghost-border bg-[#0e0e0e] hover:bg-[#2a2a2a] text-stone-400 hover:text-[#ffb595] text-xs uppercase tracking-wider font-bold flex items-center justify-center gap-2 cursor-pointer transition-colors"
                   >
                     <span className="material-symbols-outlined text-sm">save</span>
@@ -488,11 +556,20 @@ export default function AdminProjectsShow({
                 {(isPitchReview || isProjectReview) && (
                   <>
                     <button
-                      onClick={() => submitReview('approve', isProjectReview ? { override_hours: overrideHours, override_hours_justification: overrideJustification } : {})}
+                      onClick={() =>
+                        submitReview(
+                          'approve',
+                          isProjectReview
+                            ? { override_hours: overrideHours, override_hours_justification: overrideJustification }
+                            : {},
+                        )
+                      }
                       disabled={reviewing}
                       className="w-full py-3 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 font-headline font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <span className="material-symbols-outlined text-lg">{isProjectReview ? 'verified' : 'check_circle'}</span>
+                      <span className="material-symbols-outlined text-lg">
+                        {isProjectReview ? 'verified' : 'check_circle'}
+                      </span>
                       {isProjectReview ? 'Approve Project' : 'Approve Pitch'}
                     </button>
                     <button
@@ -531,7 +608,10 @@ export default function AdminProjectsShow({
             <select
               value={project.tier}
               onChange={(e) => {
-                if (e.target.value !== project.tier && confirm(`Change tier from ${project.tier.replace('_', ' ')} to ${e.target.value.replace('_', ' ')}?`)) {
+                if (
+                  e.target.value !== project.tier &&
+                  confirm(`Change tier from ${project.tier.replace('_', ' ')} to ${e.target.value.replace('_', ' ')}?`)
+                ) {
                   router.post(`/admin/projects/${project.id}/change_tier`, { tier: e.target.value })
                 }
               }}
@@ -551,18 +631,24 @@ export default function AdminProjectsShow({
           </div>
 
           <div className="bg-[#1c1b1b] ghost-border p-8 rounded-xl">
-            <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">Visibility</h4>
+            <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">
+              Visibility
+            </h4>
             <div className="flex items-center justify-between mb-2">
               <span className="text-stone-400 text-sm">Hidden from explore</span>
               <button
                 onClick={() => router.post(`/admin/projects/${project.id}/toggle_hidden`)}
                 className={`relative inline-flex h-6 w-11 items-center transition-colors cursor-pointer ${project.hidden ? 'bg-[#ee671c]' : 'bg-stone-700'}`}
               >
-                <span className={`inline-block h-4 w-4 transform bg-white transition-transform ${project.hidden ? 'translate-x-6' : 'translate-x-1'}`} />
+                <span
+                  className={`inline-block h-4 w-4 transform bg-white transition-transform ${project.hidden ? 'translate-x-6' : 'translate-x-1'}`}
+                />
               </button>
             </div>
             {project.hidden && (
-              <p className="text-stone-600 text-xs mb-4">This project won't appear on the explore page or public API.</p>
+              <p className="text-stone-600 text-xs mb-4">
+                This project won't appear on the explore page or public API.
+              </p>
             )}
 
             <div className="flex items-center justify-between mt-4 mb-2">
@@ -571,7 +657,9 @@ export default function AdminProjectsShow({
                 onClick={() => router.post(`/admin/projects/${project.id}/toggle_staff_pick`)}
                 className={`relative inline-flex h-6 w-11 items-center transition-colors cursor-pointer ${project.staff_pick ? 'bg-[#ee671c]' : 'bg-stone-700'}`}
               >
-                <span className={`inline-block h-4 w-4 transform bg-white transition-transform ${project.staff_pick ? 'translate-x-6' : 'translate-x-1'}`} />
+                <span
+                  className={`inline-block h-4 w-4 transform bg-white transition-transform ${project.staff_pick ? 'translate-x-6' : 'translate-x-1'}`}
+                />
               </button>
             </div>
             {project.staff_pick && (
@@ -601,8 +689,12 @@ export default function AdminProjectsShow({
 
           {can.restore && (
             <div className="ghost-border bg-[#1c1b1b] p-6">
-              <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-400 font-headline mb-2">Restore</h4>
-              <p className="text-stone-500 text-sm mb-4">This project is soft-deleted. Restore it to make it active again.</p>
+              <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-400 font-headline mb-2">
+                Restore
+              </h4>
+              <p className="text-stone-500 text-sm mb-4">
+                This project is soft-deleted. Restore it to make it active again.
+              </p>
               <button
                 onClick={handleRestore}
                 className="bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/30 hover:text-emerald-300 px-6 py-3 text-xs font-bold uppercase tracking-[0.2em] transition-colors cursor-pointer flex items-center gap-2"
@@ -615,7 +707,9 @@ export default function AdminProjectsShow({
 
           {can.destroy && (!project.is_discarded || isSuperadmin) && (
             <div className="border border-red-500/20 p-6">
-              <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-red-400 font-headline mb-2">Danger Zone</h4>
+              <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-red-400 font-headline mb-2">
+                Danger Zone
+              </h4>
               <p className="text-stone-500 text-sm mb-4">
                 {project.is_discarded
                   ? 'This project is soft-deleted. You can permanently destroy it.'

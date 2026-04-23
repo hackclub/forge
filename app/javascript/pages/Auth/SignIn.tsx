@@ -18,17 +18,14 @@ export default function AuthSignIn() {
         <div
           className="fixed inset-0 pointer-events-none z-0"
           style={{
-            backgroundImage:
-              'radial-gradient(circle at 1px 1px, rgba(168,138,126,0.05) 1px, transparent 0)',
+            backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(168,138,126,0.05) 1px, transparent 0)',
             backgroundSize: '48px 48px',
           }}
         />
 
         <div className="relative z-10 w-full max-w-md">
           <div className="text-center mb-8">
-            <span className="text-2xl font-bold tracking-tighter text-[#ffb595] uppercase font-headline">
-              Forge
-            </span>
+            <span className="text-2xl font-bold tracking-tighter text-[#ffb595] uppercase font-headline">Forge</span>
           </div>
 
           <div className="bg-[#1c1b1b]/90 backdrop-blur-sm ghost-border p-8 md:p-10">
@@ -36,9 +33,7 @@ export default function AuthSignIn() {
               <h1 className="text-2xl md:text-3xl font-headline font-bold tracking-tight text-[#e5e2e1] mb-2">
                 Hey! Welcome to Forge
               </h1>
-              <p className="text-stone-500 text-sm">
-                If you don't already have an account, we'll make one for you.
-              </p>
+              <p className="text-stone-500 text-sm">If you don't already have an account, we'll make one for you.</p>
             </div>
 
             <a
@@ -51,9 +46,7 @@ export default function AuthSignIn() {
 
             <div className="flex items-center gap-3 my-6">
               <div className="flex-1 h-px bg-white/10" />
-              <span className="text-[10px] uppercase tracking-[0.3em] font-bold text-stone-600">
-                Or
-              </span>
+              <span className="text-[10px] uppercase tracking-[0.3em] font-bold text-stone-600">Or</span>
               <div className="flex-1 h-px bg-white/10" />
             </div>
 

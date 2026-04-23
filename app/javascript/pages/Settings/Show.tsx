@@ -48,16 +48,10 @@ export default function SettingsShow({
         <p className="text-stone-500 text-sm mb-10">Manage your Forge account.</p>
 
         <section className="bg-[#1c1b1b] ghost-border p-6 md:p-8 mb-6">
-          <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">
-            Account
-          </h2>
+          <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">Account</h2>
           <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:justify-between">
             <div className="flex items-center gap-4 min-w-0">
-              <img
-                src={user.avatar}
-                alt={user.display_name}
-                className="w-14 h-14 border border-white/10 shrink-0"
-              />
+              <img src={user.avatar} alt={user.display_name} className="w-14 h-14 border border-white/10 shrink-0" />
               <div className="min-w-0">
                 <p className="text-[#e5e2e1] font-headline font-bold truncate">{user.display_name}</p>
                 <p className="text-stone-500 text-xs truncate">{user.email}</p>
@@ -78,9 +72,7 @@ export default function SettingsShow({
             <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline">
               Shipping Address
               {address && (
-                <span className="ml-2 text-emerald-400 normal-case tracking-normal text-[10px]">
-                  ✓ Synced from HCA
-                </span>
+                <span className="ml-2 text-emerald-400 normal-case tracking-normal text-[10px]">✓ Synced from HCA</span>
               )}
             </h2>
           </div>
@@ -99,8 +91,8 @@ export default function SettingsShow({
             </p>
           ) : (
             <p className="text-stone-500 text-sm mb-2">
-              Required before submitting a project for review. Add it on your Hack Club account - we'll pull it
-              in automatically.
+              Required before submitting a project for review. Add it on your Hack Club account - we'll pull it in
+              automatically.
             </p>
           )}
 

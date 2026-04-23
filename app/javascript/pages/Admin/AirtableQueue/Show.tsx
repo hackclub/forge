@@ -44,7 +44,12 @@ export default function AdminAirtableQueueShow({
   const fieldKeys = Object.keys(item.payload || {})
 
   function send() {
-    if (!confirm(`Send this payload to Airtable table "${item.table_name}"? This will upsert the record via Forge Project ID = ${item.forge_id}.`)) return
+    if (
+      !confirm(
+        `Send this payload to Airtable table "${item.table_name}"? This will upsert the record via Forge Project ID = ${item.forge_id}.`,
+      )
+    )
+      return
     router.post(`/admin/airtable_queue/${item.id}/send_to_airtable`)
   }
 
@@ -55,19 +60,22 @@ export default function AdminAirtableQueueShow({
 
   return (
     <div className="p-5 md:p-12 max-w-5xl mx-auto">
-      <Link href="/admin/airtable_queue" className="text-stone-500 text-sm hover:text-[#ffb595] transition-colors flex items-center gap-1 mb-8">
+      <Link
+        href="/admin/airtable_queue"
+        className="text-stone-500 text-sm hover:text-[#ffb595] transition-colors flex items-center gap-1 mb-8"
+      >
         <span className="material-symbols-outlined text-sm">arrow_back</span>
         Back to queue
       </Link>
 
       <div className="flex items-center gap-3 mb-4">
-        <span className={`${st.bg} ${st.text} px-3 py-1 text-[10px] uppercase font-bold tracking-widest flex items-center gap-1.5`}>
+        <span
+          className={`${st.bg} ${st.text} px-3 py-1 text-[10px] uppercase font-bold tracking-widest flex items-center gap-1.5`}
+        >
           <span className="material-symbols-outlined text-sm">{st.icon}</span>
           {st.label}
         </span>
-        <span className="text-[#ee671c] text-xs font-bold uppercase tracking-wider font-mono">
-          {item.table_name}
-        </span>
+        <span className="text-[#ee671c] text-xs font-bold uppercase tracking-wider font-mono">{item.table_name}</span>
       </div>
 
       <h1 className="text-3xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-2 break-words">
@@ -101,7 +109,10 @@ export default function AdminAirtableQueueShow({
           <div className="bg-[#1c1b1b] ghost-border p-4">
             <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">Project</span>
             <p className="mt-1">
-              <Link href={`/admin/projects/${item.project_id}`} className="text-[#ffb595] hover:text-[#ee671c] transition-colors">
+              <Link
+                href={`/admin/projects/${item.project_id}`}
+                className="text-[#ffb595] hover:text-[#ee671c] transition-colors"
+              >
                 {item.project_name}
               </Link>
             </p>
@@ -117,7 +128,9 @@ export default function AdminAirtableQueueShow({
         <span className="material-symbols-outlined">table_view</span>
         Airtable Preview
       </h2>
-      <p className="text-stone-500 text-sm mb-4">Double-check every field below. This is exactly what will be upserted.</p>
+      <p className="text-stone-500 text-sm mb-4">
+        Double-check every field below. This is exactly what will be upserted.
+      </p>
 
       <div className="ghost-border overflow-x-auto mb-8">
         <table className="w-full min-w-[640px]">
@@ -130,7 +143,9 @@ export default function AdminAirtableQueueShow({
           <tbody>
             {fieldKeys.length === 0 ? (
               <tr>
-                <td colSpan={2} className="px-5 py-6 text-stone-600 text-sm italic">Empty payload.</td>
+                <td colSpan={2} className="px-5 py-6 text-stone-600 text-sm italic">
+                  Empty payload.
+                </td>
               </tr>
             ) : (
               fieldKeys.map((k) => {
@@ -139,7 +154,9 @@ export default function AdminAirtableQueueShow({
                 return (
                   <tr key={k} className="border-b border-white/5 align-top">
                     <td className="px-5 py-3 font-headline font-bold text-[#e5e2e1] text-sm">{k}</td>
-                    <td className={`px-5 py-3 text-sm break-words [overflow-wrap:anywhere] font-mono whitespace-pre-wrap ${empty ? 'text-stone-600 italic' : 'text-stone-300'}`}>
+                    <td
+                      className={`px-5 py-3 text-sm break-words [overflow-wrap:anywhere] font-mono whitespace-pre-wrap ${empty ? 'text-stone-600 italic' : 'text-stone-300'}`}
+                    >
                       {empty ? '-' : renderValue(v)}
                     </td>
                   </tr>
@@ -154,7 +171,9 @@ export default function AdminAirtableQueueShow({
         <div className="ghost-border bg-[#1c1b1b] p-6 flex flex-col md:flex-row gap-3 items-start md:items-center justify-between">
           <div>
             <h3 className="text-sm font-headline font-bold text-[#e5e2e1] mb-1">Final check</h3>
-            <p className="text-stone-500 text-xs">Once sent, the record is upserted into Airtable by Forge Project ID.</p>
+            <p className="text-stone-500 text-xs">
+              Once sent, the record is upserted into Airtable by Forge Project ID.
+            </p>
           </div>
           <div className="flex gap-2">
             <button

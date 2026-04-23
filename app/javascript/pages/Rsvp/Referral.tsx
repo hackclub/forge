@@ -60,7 +60,10 @@ export default function RsvpReferral({
       <div className="min-h-screen bg-[#0e0e0e] text-[#e5e2e1] flex flex-col">
         <nav className="flex justify-between items-center px-8 md:px-16 py-8">
           <span className="text-2xl font-bold tracking-tighter text-[#ee671c] uppercase font-headline">Forge</span>
-          <button onClick={signOut} className="text-stone-500 hover:text-[#ffb595] transition-colors text-xs font-bold uppercase tracking-[0.2em] cursor-pointer">
+          <button
+            onClick={signOut}
+            className="text-stone-500 hover:text-[#ffb595] transition-colors text-xs font-bold uppercase tracking-[0.2em] cursor-pointer"
+          >
             Sign Out
           </button>
         </nav>
@@ -68,19 +71,24 @@ export default function RsvpReferral({
         <main className="flex-1 flex flex-col items-center px-6 pb-24 pt-8">
           <div className="w-full max-w-2xl">
             <div className="text-center mb-10">
-              <p className="text-[10px] uppercase tracking-[0.3em] text-[#ee671c] font-bold mb-4">You're on the waitlist</p>
+              <p className="text-[10px] uppercase tracking-[0.3em] text-[#ee671c] font-bold mb-4">
+                You're on the waitlist
+              </p>
               <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tighter leading-[0.95] mb-4">
                 Refer a friend!
                 <br />
                 <span className="text-[#ee671c]">Get paid</span>
               </h1>
               <p className="text-stone-400 text-sm md:text-base max-w-lg mx-auto">
-                Share your code. When they sign up and ship their first project, you earn 0.25 coins + a ticket into the prize pool draw.
+                Share your code. When they sign up and ship their first project, you earn 0.25 coins + a ticket into the
+                prize pool draw.
               </p>
             </div>
 
             <div className="bg-[#1c1b1b] ghost-border p-6 md:p-8 mb-6">
-              <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-stone-500 mb-3">Your referral code</p>
+              <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-stone-500 mb-3">
+                Your referral code
+              </p>
               <div className="flex flex-col sm:flex-row gap-3 items-stretch">
                 <code className="flex-1 bg-[#0e0e0e] font-mono text-2xl md:text-3xl text-[#ffb595] px-5 py-4 font-bold tracking-widest text-center">
                   {referral_code}
@@ -118,7 +126,9 @@ export default function RsvpReferral({
                         <p className="font-headline font-bold text-[#e5e2e1] text-sm truncate">{r.display_name}</p>
                         <p className="text-stone-600 text-xs">{r.created_at}</p>
                       </div>
-                      <span className={`px-3 py-1 text-[9px] font-bold uppercase tracking-wider ${STATUS_STYLES[r.status]}`}>
+                      <span
+                        className={`px-3 py-1 text-[9px] font-bold uppercase tracking-wider ${STATUS_STYLES[r.status]}`}
+                      >
                         {STATUS_LABEL[r.status]}
                       </span>
                     </div>

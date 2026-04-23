@@ -76,7 +76,11 @@ export default function ExploreIndex({
                       {project.cover_image_url ? (
                         <img src={project.cover_image_url} alt={project.name} className="w-full h-full object-cover" />
                       ) : (
-                        <img src="/orph-building.png" alt={project.name} className="max-h-[90%] max-w-[90%] object-contain" />
+                        <img
+                          src="/orph-building.png"
+                          alt={project.name}
+                          className="max-h-[90%] max-w-[90%] object-contain"
+                        />
                       )}
                     </div>
 

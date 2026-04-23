@@ -51,7 +51,11 @@ export default function ReviewTimeline({ events }: { events: ReviewEvent[] }) {
                   </div>
                   <div className="flex items-center gap-3 text-[10px] uppercase tracking-[0.15em] text-stone-600 mb-3">
                     {event.reviewer_avatar && (
-                      <img src={event.reviewer_avatar} alt={event.reviewer_display_name || ''} className="w-4 h-4 border border-white/10" />
+                      <img
+                        src={event.reviewer_avatar}
+                        alt={event.reviewer_display_name || ''}
+                        className="w-4 h-4 border border-white/10"
+                      />
                     )}
                     <span>{event.reviewer_display_name || 'System'}</span>
                     <span>·</span>

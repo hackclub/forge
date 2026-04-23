@@ -21,13 +21,7 @@ interface Board {
   format?: (v: number) => string
 }
 
-function LeaderboardTable({
-  board,
-  current_user_id,
-}: {
-  board: Board
-  current_user_id: number | null
-}) {
+function LeaderboardTable({ board, current_user_id }: { board: Board; current_user_id: number | null }) {
   const format = board.format || ((v: number) => String(v))
   return (
     <div>
@@ -48,7 +42,9 @@ function LeaderboardTable({
                 href={`/users/${row.id}`}
                 className={`flex items-center gap-3 px-4 py-2.5 hover:bg-[#1c1b1b] transition-colors group ${isMe ? 'bg-[#ee671c]/5' : ''}`}
               >
-                <span className={`font-headline font-bold text-sm w-6 shrink-0 ${rank === 1 ? 'text-[#ee671c]' : rank <= 3 ? 'text-[#ffb595]' : 'text-stone-500'}`}>
+                <span
+                  className={`font-headline font-bold text-sm w-6 shrink-0 ${rank === 1 ? 'text-[#ee671c]' : rank <= 3 ? 'text-[#ffb595]' : 'text-stone-500'}`}
+                >
                   {rank}
                 </span>
                 <img

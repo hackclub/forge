@@ -102,10 +102,17 @@ export default function AdminNewsPostsIndex({ posts }: { posts: NewsPost[] }) {
               Publish immediately
             </label>
             <div className="flex gap-3">
-              <button type="submit" className="signature-smolder text-[#4c1a00] px-6 py-3 font-bold uppercase tracking-wider text-xs cursor-pointer">
+              <button
+                type="submit"
+                className="signature-smolder text-[#4c1a00] px-6 py-3 font-bold uppercase tracking-wider text-xs cursor-pointer"
+              >
                 {editingId ? 'Save Changes' : 'Create'}
               </button>
-              <button type="button" onClick={resetForm} className="ghost-border text-stone-400 px-6 py-3 text-xs font-bold uppercase tracking-wider cursor-pointer">
+              <button
+                type="button"
+                onClick={resetForm}
+                className="ghost-border text-stone-400 px-6 py-3 text-xs font-bold uppercase tracking-wider cursor-pointer"
+              >
                 Cancel
               </button>
             </div>
@@ -117,17 +124,29 @@ export default function AdminNewsPostsIndex({ posts }: { posts: NewsPost[] }) {
             <table className="w-full min-w-[640px]">
               <thead>
                 <tr className="border-b border-white/5">
-                  <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">Title</th>
-                  <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">Author</th>
-                  <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">Status</th>
-                  <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">Updated</th>
-                  <th className="text-right px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">Actions</th>
+                  <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">
+                    Title
+                  </th>
+                  <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">
+                    Author
+                  </th>
+                  <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">
+                    Status
+                  </th>
+                  <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">
+                    Updated
+                  </th>
+                  <th className="text-right px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {posts.map((post) => (
                   <tr key={post.id} className="border-b border-white/5 hover:bg-[#1c1b1b] transition-colors">
-                    <td className="px-5 py-4 font-headline font-bold text-[#e5e2e1] text-sm max-w-md truncate">{post.title}</td>
+                    <td className="px-5 py-4 font-headline font-bold text-[#e5e2e1] text-sm max-w-md truncate">
+                      {post.title}
+                    </td>
                     <td className="px-5 py-4 text-stone-500 text-xs">{post.author_name}</td>
                     <td className="px-5 py-4">
                       <button

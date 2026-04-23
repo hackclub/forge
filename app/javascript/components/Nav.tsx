@@ -37,9 +37,7 @@ export default function Nav() {
     router.delete(shared.sign_out_path)
   }
 
-  const visibleItems = navItems.filter(
-    (item) => !item.authOnly || shared.auth.user,
-  )
+  const visibleItems = navItems.filter((item) => !item.authOnly || shared.auth.user)
 
   return (
     <>
@@ -62,18 +60,11 @@ export default function Nav() {
           onClick={() => setMobileOpen((v) => !v)}
           className="p-2 text-stone-300 hover:text-[#ee671c] transition-colors"
         >
-          <span className="material-symbols-outlined text-3xl">
-            {mobileOpen ? 'close' : 'menu'}
-          </span>
+          <span className="material-symbols-outlined text-3xl">{mobileOpen ? 'close' : 'menu'}</span>
         </button>
       </header>
 
-      {mobileOpen && (
-        <div
-          className="md:hidden fixed inset-0 bg-black/60 z-40"
-          onClick={() => setMobileOpen(false)}
-        />
-      )}
+      {mobileOpen && <div className="md:hidden fixed inset-0 bg-black/60 z-40" onClick={() => setMobileOpen(false)} />}
 
       <aside
         className={`h-screen w-64 fixed left-0 top-0 border-r border-white/5 bg-[#1C1B1B] shadow-2xl flex flex-col p-6 justify-between z-50 transition-transform duration-200 ${
@@ -104,9 +95,7 @@ export default function Nav() {
                   key={item.href}
                   href={item.href}
                   className={`px-4 py-3 flex items-center gap-3 transition-all duration-150 font-headline font-medium tracking-tight corner-accents ${
-                    isActive
-                      ? 'text-[#ee671c] bg-[#353534]'
-                      : 'text-stone-500 hover:text-stone-200 hover:bg-[#353534]'
+                    isActive ? 'text-[#ee671c] bg-[#353534]' : 'text-stone-500 hover:text-stone-200 hover:bg-[#353534]'
                   }`}
                 >
                   <span
@@ -152,18 +141,16 @@ export default function Nav() {
                 <span>New Project</span>
               </Link>
               <div className="flex items-center gap-3 px-2">
-                <Link
-                  href="/settings"
-                  className="flex items-center gap-3 min-w-0 flex-1 group"
-                  title="Settings"
-                >
+                <Link href="/settings" className="flex items-center gap-3 min-w-0 flex-1 group" title="Settings">
                   <img
                     src={shared.auth.user.avatar}
                     alt={shared.auth.user.display_name}
                     className="w-10 h-10 rounded-full border border-white/10 shrink-0"
                   />
                   <div className="flex flex-col min-w-0 flex-1">
-                    <span className="text-xs font-bold text-[#e5e2e1] truncate group-hover:text-[#ffb595] transition-colors">{shared.auth.user.display_name}</span>
+                    <span className="text-xs font-bold text-[#e5e2e1] truncate group-hover:text-[#ffb595] transition-colors">
+                      {shared.auth.user.display_name}
+                    </span>
                     <span className="text-[10px] text-stone-600 uppercase tracking-wider">Settings</span>
                   </div>
                 </Link>

@@ -28,9 +28,24 @@ interface RegionPricingForm {
   enabled: boolean
 }
 
-const blank = { name: '', description: '', image_url: '', coin_cost: '', enabled: true, internal_order_link: '', internal_price_usd: '', max_quantity: '' }
+const blank = {
+  name: '',
+  description: '',
+  image_url: '',
+  coin_cost: '',
+  enabled: true,
+  internal_order_link: '',
+  internal_price_usd: '',
+  max_quantity: '',
+}
 
-export default function AdminShopItemsIndex({ items, regions }: { items: ShopItem[]; regions: Record<string, string> }) {
+export default function AdminShopItemsIndex({
+  items,
+  regions,
+}: {
+  items: ShopItem[]
+  regions: Record<string, string>
+}) {
   const [editingId, setEditingId] = useState<number | null>(null)
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState<typeof blank>(blank)
@@ -124,7 +139,9 @@ export default function AdminShopItemsIndex({ items, regions }: { items: ShopIte
           <form onSubmit={submit} className="ghost-border bg-[#1c1b1b] p-6 mb-8 space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">Name</label>
+                <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
+                  Name
+                </label>
                 <input
                   type="text"
                   value={form.name}
@@ -135,7 +152,9 @@ export default function AdminShopItemsIndex({ items, regions }: { items: ShopIte
                 />
               </div>
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">Coin cost</label>
+                <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
+                  Coin cost
+                </label>
                 <input
                   type="number"
                   step="0.01"
@@ -149,7 +168,9 @@ export default function AdminShopItemsIndex({ items, regions }: { items: ShopIte
               </div>
             </div>
             <div>
-              <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">Max purchase quantity</label>
+              <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
+                Max purchase quantity
+              </label>
               <input
                 type="number"
                 min="1"
@@ -159,10 +180,14 @@ export default function AdminShopItemsIndex({ items, regions }: { items: ShopIte
                 className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ee671c]/30"
                 placeholder="Leave blank for no cap"
               />
-              <p className="text-stone-600 text-[10px] mt-1">Maximum a user can buy in a single order. Leave blank for unlimited.</p>
+              <p className="text-stone-600 text-[10px] mt-1">
+                Maximum a user can buy in a single order. Leave blank for unlimited.
+              </p>
             </div>
             <div>
-              <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">Image URL</label>
+              <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
+                Image URL
+              </label>
               <input
                 type="url"
                 value={form.image_url}
@@ -172,7 +197,9 @@ export default function AdminShopItemsIndex({ items, regions }: { items: ShopIte
               />
             </div>
             <div>
-              <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">Description</label>
+              <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
+                Description
+              </label>
               <textarea
                 value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
@@ -186,7 +213,9 @@ export default function AdminShopItemsIndex({ items, regions }: { items: ShopIte
               <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500">Internal (staff only)</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">Order link</label>
+                  <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
+                    Order link
+                  </label>
                   <input
                     type="url"
                     value={form.internal_order_link}
@@ -196,7 +225,9 @@ export default function AdminShopItemsIndex({ items, regions }: { items: ShopIte
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">Internal price (USD, incl. shipping)</label>
+                  <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
+                    Internal price (USD, incl. shipping)
+                  </label>
                   <input
                     type="number"
                     step="0.01"
@@ -214,12 +245,18 @@ export default function AdminShopItemsIndex({ items, regions }: { items: ShopIte
               <div className="flex items-center justify-between">
                 <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500">Region Pricing</p>
                 {regionPricing.length === 0 && (
-                  <button type="button" onClick={() => setRegionPricing(defaultRegionPricing())} className="text-[#ffb595] text-xs hover:text-[#ee671c] cursor-pointer">
+                  <button
+                    type="button"
+                    onClick={() => setRegionPricing(defaultRegionPricing())}
+                    className="text-[#ffb595] text-xs hover:text-[#ee671c] cursor-pointer"
+                  >
                     Set up regions
                   </button>
                 )}
               </div>
-              <p className="text-stone-600 text-[10px]">Leave cost blank to use the default price above. Clear a filled cost to remove that region's override.</p>
+              <p className="text-stone-600 text-[10px]">
+                Leave cost blank to use the default price above. Clear a filled cost to remove that region's override.
+              </p>
               {regionPricing.length > 0 && (
                 <div className="space-y-2">
                   {regionPricing.map((rp, idx) => (
@@ -267,10 +304,17 @@ export default function AdminShopItemsIndex({ items, regions }: { items: ShopIte
               Enabled (global)
             </label>
             <div className="flex gap-3">
-              <button type="submit" className="signature-smolder text-[#4c1a00] px-6 py-3 font-bold uppercase tracking-wider text-xs cursor-pointer">
+              <button
+                type="submit"
+                className="signature-smolder text-[#4c1a00] px-6 py-3 font-bold uppercase tracking-wider text-xs cursor-pointer"
+              >
                 {editingId ? 'Save Changes' : 'Create'}
               </button>
-              <button type="button" onClick={reset} className="ghost-border text-stone-400 px-6 py-3 text-xs font-bold uppercase tracking-wider cursor-pointer">
+              <button
+                type="button"
+                onClick={reset}
+                className="ghost-border text-stone-400 px-6 py-3 text-xs font-bold uppercase tracking-wider cursor-pointer"
+              >
                 Cancel
               </button>
             </div>
@@ -280,7 +324,10 @@ export default function AdminShopItemsIndex({ items, regions }: { items: ShopIte
         {items.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {items.map((item) => (
-              <div key={item.id} className={`bg-[#1c1b1b] ghost-border min-w-0 overflow-hidden ${item.enabled ? '' : 'opacity-50'}`}>
+              <div
+                key={item.id}
+                className={`bg-[#1c1b1b] ghost-border min-w-0 overflow-hidden ${item.enabled ? '' : 'opacity-50'}`}
+              >
                 <div className="aspect-[4/3] bg-[#0e0e0e] flex items-center justify-center">
                   {item.image_url ? (
                     <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
@@ -292,7 +339,9 @@ export default function AdminShopItemsIndex({ items, regions }: { items: ShopIte
                   <div className="flex items-start justify-between mb-2 gap-2">
                     <h3 className="font-headline font-bold text-[#e5e2e1] tracking-tight break-words">{item.name}</h3>
                     {!item.enabled && (
-                      <span className="text-[9px] font-bold uppercase tracking-wider bg-stone-500/15 text-stone-400 px-2 py-0.5">disabled</span>
+                      <span className="text-[9px] font-bold uppercase tracking-wider bg-stone-500/15 text-stone-400 px-2 py-0.5">
+                        disabled
+                      </span>
                     )}
                   </div>
                   {item.description && (

@@ -46,7 +46,11 @@ export default function AdminProjectsIndex({
 
   function search(e: React.FormEvent) {
     e.preventDefault()
-    router.get(basePath, { query: searchQuery, status: hide_filters ? undefined : status_filter }, { preserveState: true })
+    router.get(
+      basePath,
+      { query: searchQuery, status: hide_filters ? undefined : status_filter },
+      { preserveState: true },
+    )
   }
 
   function filterByStatus(status: string) {
@@ -56,7 +60,9 @@ export default function AdminProjectsIndex({
   return (
     <div className="p-5 md:p-12 max-w-[1400px] mx-auto">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
-        <h1 className="text-4xl font-headline font-bold text-[#e5e2e1] tracking-tight">{page_title || 'All Projects'}</h1>
+        <h1 className="text-4xl font-headline font-bold text-[#e5e2e1] tracking-tight">
+          {page_title || 'All Projects'}
+        </h1>
         <form onSubmit={search} className="flex gap-2">
           <input
             type="search"
@@ -65,7 +71,10 @@ export default function AdminProjectsIndex({
             placeholder="Search by ID, title, or author"
             className="bg-[#0e0e0e] border-none px-4 py-2 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 w-80"
           />
-          <button type="submit" className="bg-[#2a2a2a] text-[#e5e2e1] px-4 py-2 text-sm font-medium hover:bg-[#3a3939] transition-colors ghost-border cursor-pointer">
+          <button
+            type="submit"
+            className="bg-[#2a2a2a] text-[#e5e2e1] px-4 py-2 text-sm font-medium hover:bg-[#3a3939] transition-colors ghost-border cursor-pointer"
+          >
             Search
           </button>
         </form>
@@ -98,29 +107,47 @@ export default function AdminProjectsIndex({
             <table className="w-full min-w-[720px]">
               <thead>
                 <tr className="border-b border-white/5">
-                  <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">ID</th>
-                  <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">Title</th>
-                  <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">Author</th>
-                  <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">Status</th>
-                  <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">Ships</th>
-                  <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">Created</th>
-                  <th className="text-right px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">Actions</th>
+                  <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">
+                    ID
+                  </th>
+                  <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">
+                    Title
+                  </th>
+                  <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">
+                    Author
+                  </th>
+                  <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">
+                    Status
+                  </th>
+                  <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">
+                    Ships
+                  </th>
+                  <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">
+                    Created
+                  </th>
+                  <th className="text-right px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {projects.map((project) => {
                   const sc = statusConfig[project.status] || statusConfig.draft
                   return (
-                    <tr key={project.id} className={`border-b border-white/5 hover:bg-[#1c1b1b] transition-colors ${project.is_discarded ? 'opacity-50' : ''}`}>
+                    <tr
+                      key={project.id}
+                      className={`border-b border-white/5 hover:bg-[#1c1b1b] transition-colors ${project.is_discarded ? 'opacity-50' : ''}`}
+                    >
                       <td className="px-5 py-3 text-stone-500 text-sm">{project.id}</td>
                       <td className="px-5 py-3">
-                        <span className="font-headline font-bold text-[#e5e2e1] text-sm">
-                          {project.name}
-                        </span>
+                        <span className="font-headline font-bold text-[#e5e2e1] text-sm">{project.name}</span>
                         {project.is_discarded && <span className="text-red-400 text-xs ml-2">Deleted</span>}
                       </td>
                       <td className="px-5 py-3">
-                        <Link href={`/admin/users/${project.user_id}`} className="text-[#ffb595] hover:text-[#ee671c] transition-colors text-sm">
+                        <Link
+                          href={`/admin/users/${project.user_id}`}
+                          className="text-[#ffb595] hover:text-[#ee671c] transition-colors text-sm"
+                        >
                           {project.user_display_name}
                         </Link>
                       </td>

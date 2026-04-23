@@ -65,9 +65,7 @@ export default function HomeIndex({ user, projects, news_posts, staff_picks }: P
       <Head title="Dashboard - Forge" />
       <div className="p-5 md:p-12 max-w-6xl mx-auto space-y-10">
         <section>
-          <h1 className="text-5xl font-headline font-bold tracking-tight text-[#e5e2e1] mb-2">
-            Dashboard
-          </h1>
+          <h1 className="text-5xl font-headline font-bold tracking-tight text-[#e5e2e1] mb-2">Dashboard</h1>
           <p className="text-stone-500">Here's what the forge is forging today, {user.display_name.split(' ')[0]}.</p>
         </section>
 
@@ -121,13 +119,13 @@ export default function HomeIndex({ user, projects, news_posts, staff_picks }: P
                       <h3 className="font-headline font-bold text-[#e5e2e1] group-hover:text-[#ffb595] transition-colors tracking-tight truncate">
                         {project.name}
                       </h3>
-                      <span className={`shrink-0 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 ${STATUS_COLORS[project.status]}`}>
+                      <span
+                        className={`shrink-0 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 ${STATUS_COLORS[project.status]}`}
+                      >
                         {STATUS_LABELS[project.status]}
                       </span>
                     </div>
-                    {project.subtitle && (
-                      <p className="text-stone-500 text-xs line-clamp-2 mb-4">{project.subtitle}</p>
-                    )}
+                    {project.subtitle && <p className="text-stone-500 text-xs line-clamp-2 mb-4">{project.subtitle}</p>}
                     <p className="text-[10px] text-stone-600 uppercase tracking-widest mt-auto">
                       Updated {project.updated_at}
                     </p>
@@ -183,9 +181,7 @@ export default function HomeIndex({ user, projects, news_posts, staff_picks }: P
                       alt={pick.user_display_name}
                       className="w-5 h-5 rounded-full border border-white/10"
                     />
-                    <span className="text-[10px] uppercase tracking-widest truncate">
-                      by {pick.user_display_name}
-                    </span>
+                    <span className="text-[10px] uppercase tracking-widest truncate">by {pick.user_display_name}</span>
                   </Link>
                 </div>
               ))}

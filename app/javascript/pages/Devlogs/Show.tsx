@@ -53,7 +53,11 @@ export default function DevlogsShow({ project, devlog }: Props) {
               href={`/users/${project.user_id}`}
               className="flex items-center gap-2 text-stone-400 hover:text-[#ffb595] transition-colors"
             >
-              <img src={project.user_avatar} alt={project.user_display_name} className="w-5 h-5 border border-white/10" />
+              <img
+                src={project.user_avatar}
+                alt={project.user_display_name}
+                className="w-5 h-5 border border-white/10"
+              />
               <span>{project.user_display_name}</span>
             </Link>
             <span>{devlog.created_at}</span>
@@ -62,7 +66,9 @@ export default function DevlogsShow({ project, devlog }: Props) {
 
         <article className="ghost-border bg-[#1c1b1b] p-8 mb-8">
           <div className="prose prose-invert prose-sm max-w-none text-stone-300 prose-a:text-[#ffb595] prose-img:max-w-full prose-img:rounded-none break-words [overflow-wrap:anywhere]">
-            <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>{devlog.content}</Markdown>
+            <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
+              {devlog.content}
+            </Markdown>
           </div>
         </article>
       </div>

@@ -70,7 +70,11 @@ export default function AdminAuditLogIndex({
 }) {
   function applyFilter(key: string, value: string) {
     const params = { ...filters, [key]: value }
-    router.get('/admin/audit_log', { action_filter: params.action, target_type: params.target_type, actor_id: params.actor_id }, { preserveState: true })
+    router.get(
+      '/admin/audit_log',
+      { action_filter: params.action, target_type: params.target_type, actor_id: params.actor_id },
+      { preserveState: true },
+    )
   }
 
   return (
@@ -87,12 +91,16 @@ export default function AdminAuditLogIndex({
           >
             <option value="">All actions</option>
             {actions.map((a) => (
-              <option key={a} value={a}>{a}</option>
+              <option key={a} value={a}>
+                {a}
+              </option>
             ))}
           </select>
         </div>
         <div>
-          <label className="block text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600 mb-2">Target Type</label>
+          <label className="block text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600 mb-2">
+            Target Type
+          </label>
           <select
             value={filters.target_type}
             onChange={(e) => applyFilter('target_type', e.target.value)}
@@ -100,7 +108,9 @@ export default function AdminAuditLogIndex({
           >
             <option value="">All targets</option>
             {target_types.map((t) => (
-              <option key={t} value={t}>{t}</option>
+              <option key={t} value={t}>
+                {t}
+              </option>
             ))}
           </select>
         </div>
@@ -141,7 +151,9 @@ export default function AdminAuditLogIndex({
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
                       <span className="text-stone-600 text-xs">{entry.created_at}</span>
-                      <span className="material-symbols-outlined text-stone-600 group-hover:text-[#ffb595] transition-colors text-sm">arrow_forward</span>
+                      <span className="material-symbols-outlined text-stone-600 group-hover:text-[#ffb595] transition-colors text-sm">
+                        arrow_forward
+                      </span>
                     </div>
                   </div>
                 </Link>

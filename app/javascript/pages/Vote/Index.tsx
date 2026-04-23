@@ -24,15 +24,7 @@ function isSafeUrl(url: string | null): boolean {
   }
 }
 
-function ProjectCard({
-  project,
-  onVote,
-  side,
-}: {
-  project: VoteProject
-  onVote: () => void
-  side: 'left' | 'right'
-}) {
+function ProjectCard({ project, onVote, side }: { project: VoteProject; onVote: () => void; side: 'left' | 'right' }) {
   return (
     <div className="bg-[#1c1b1b] rounded-xl ghost-border flex flex-col group hover:bg-[#2a2a2a] transition-all duration-300">
       <div className="p-8 flex-1">
@@ -53,10 +45,7 @@ function ProjectCard({
           {project.name}
         </h2>
 
-        {project.description && (
-          <p className="text-stone-500 text-sm leading-relaxed mb-4">{project.description}</p>
-        )}
-
+        {project.description && <p className="text-stone-500 text-sm leading-relaxed mb-4">{project.description}</p>}
 
         {isSafeUrl(project.repo_link) && (
           <a
