@@ -98,4 +98,4 @@ gem "pg_search", "~> 2.3"
 
 gem "inertia_rails", "~> 3.10"
 
-gem "vite_rails", "~> 3.0"
+gem "vite_rails", "~> 3.10"
