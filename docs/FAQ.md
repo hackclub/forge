@@ -95,7 +95,3 @@ Yes!
 ## Can I use auto-routing software?
 
 No. You must do your routing manually. 
-
-## How can I contribute? 
-
-PRs are accepted and appreciated! If you can make art, DM @CAN on Slack! We appreciate all help :) 
