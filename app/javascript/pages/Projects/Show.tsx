@@ -2,6 +2,7 @@ import { useMemo, useState, useRef } from 'react'
 import { router, Link, useForm, usePage } from '@inertiajs/react'
 import Markdown from 'react-markdown'
 import rehypeRaw from 'rehype-raw'
+import rehypeSanitize from 'rehype-sanitize'
 import remarkGfm from 'remark-gfm'
 import type { ProjectDetail, ProjectStatus, SharedProps } from '@/types'
 import ReviewTimeline, { type ReviewEvent } from '@/components/ReviewTimeline'
@@ -673,7 +674,7 @@ export default function ProjectsShow({
                         </div>
                       </div>
                       <div className="prose prose-invert prose-sm max-w-none text-stone-300 prose-a:text-[#ffb595] prose-img:max-w-full prose-img:rounded-none break-words [overflow-wrap:anywhere]">
-                        <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
+                        <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw, rehypeSanitize]}>
                           {entry.content}
                         </Markdown>
                       </div>
@@ -920,7 +921,7 @@ export default function ProjectsShow({
                             )}
                           </div>
                           <div className="prose prose-invert prose-sm max-w-none text-stone-300 prose-a:text-[#ffb595] prose-img:max-w-full prose-img:rounded-none break-words [overflow-wrap:anywhere]">
-                            <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
+                            <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw, rehypeSanitize]}>
                               {entry.content}
                             </Markdown>
                           </div>

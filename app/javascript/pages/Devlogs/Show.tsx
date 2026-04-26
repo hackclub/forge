@@ -1,6 +1,7 @@
 import { Head, Link } from '@inertiajs/react'
 import Markdown from 'react-markdown'
 import rehypeRaw from 'rehype-raw'
+import rehypeSanitize from 'rehype-sanitize'
 import remarkGfm from 'remark-gfm'
 
 interface Props {
@@ -66,7 +67,7 @@ export default function DevlogsShow({ project, devlog }: Props) {
 
         <article className="ghost-border bg-[#1c1b1b] p-8 mb-8">
           <div className="prose prose-invert prose-sm max-w-none text-stone-300 prose-a:text-[#ffb595] prose-img:max-w-full prose-img:rounded-none break-words [overflow-wrap:anywhere]">
-            <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
+            <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw, rehypeSanitize]}>
               {devlog.content}
             </Markdown>
           </div>
