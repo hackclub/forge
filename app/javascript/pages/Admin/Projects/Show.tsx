@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Link, router, usePage } from '@inertiajs/react'
 import Markdown from 'react-markdown'
 import rehypeRaw from 'rehype-raw'
+import rehypeSanitize from 'rehype-sanitize'
 import remarkGfm from 'remark-gfm'
 import type { AdminProjectDetail, ProjectStatus, SharedProps } from '@/types'
 import ReviewTimeline, { type ReviewEvent } from '@/components/ReviewTimeline'
@@ -188,7 +189,9 @@ export default function AdminProjectsShow({
                 {project.name}
               </h1>
 
-              {project.subtitle && <p className="text-lg text-stone-400 leading-relaxed max-w-2xl mb-4">{project.subtitle}</p>}
+              {project.subtitle && (
+                <p className="text-lg text-stone-400 leading-relaxed max-w-2xl mb-4">{project.subtitle}</p>
+              )}
 
               <div className="flex flex-wrap items-center gap-3 pt-5 border-t border-white/5 text-sm text-stone-400">
                 <span>
@@ -208,7 +211,7 @@ export default function AdminProjectsShow({
                 Original Pitch
               </h4>
               <div className="prose prose-invert prose-sm max-w-none text-stone-300 prose-a:text-[#ffb595] break-words [overflow-wrap:anywhere]">
-                <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
+                <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw, rehypeSanitize]}>
                   {project.pitch_text
                     .replace(/<(https?:\/\/[^|>]+)\|([^>]+)>/g, '[$2]($1)')
                     .replace(/<(https?:\/\/[^>]+)>/g, '$1')}
@@ -407,7 +410,7 @@ export default function AdminProjectsShow({
                 </div>
                 {project.readme_cache ? (
                   <div className="prose prose-invert prose-sm max-w-none text-stone-300 prose-a:text-[#ffb595] prose-img:max-w-full overflow-x-auto">
-                    <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
+                    <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw, rehypeSanitize]}>
                       {project.readme_cache}
                     </Markdown>
                   </div>
@@ -467,7 +470,7 @@ export default function AdminProjectsShow({
                           </div>
                         </div>
                         <div className="prose prose-invert prose-sm max-w-none text-stone-300 prose-a:text-[#ffb595] break-words [overflow-wrap:anywhere]">
-                          <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
+                          <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw, rehypeSanitize]}>
                             {entry.content}
                           </Markdown>
                         </div>
