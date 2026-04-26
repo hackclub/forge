@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link, router, usePage } from '@inertiajs/react'
 import Markdown from 'react-markdown'
 import rehypeRaw from 'rehype-raw'
@@ -77,6 +77,17 @@ export default function AdminProjectsShow({
   }
 
   const [reviewing, setReviewing] = useState(false)
+  const [devlogOrder, setDevlogOrder] = useState<'newest' | 'oldest'>('newest')
+
+  const sortedDevlogs = useMemo(() => {
+    return [...project.devlogs].sort((a, b) => {
+      const aTime = Date.parse(a.created_at)
+      const bTime = Date.parse(b.created_at)
+      const aSort = Number.isNaN(aTime) ? a.id : aTime
+      const bSort = Number.isNaN(bTime) ? b.id : bTime
+      return devlogOrder === 'newest' ? bSort - aSort : aSort - bSort
+    })
+  }, [project.devlogs, devlogOrder])
 
   function submitReview(decision: string, extra: Record<string, unknown> = {}) {
     if (reviewing) return
@@ -121,52 +132,75 @@ export default function AdminProjectsShow({
         Back to projects
       </Link>
 
+      <div className="mb-6 flex justify-end">
+        <Link
+          href={`/projects/${project.id}`}
+          className="ghost-border bg-[#1c1b1b] hover:bg-[#2a2a2a] text-stone-400 hover:text-[#ffb595] px-4 py-2 text-[10px] font-bold uppercase tracking-[0.15em] inline-flex items-center gap-2 transition-colors"
+        >
+          <span className="material-symbols-outlined text-sm">visibility</span>
+          View Public Page
+        </Link>
+      </div>
+
       <div className="grid grid-cols-12 gap-12">
         <div className="col-span-12 lg:col-span-8">
-          <div className="flex items-center gap-3 mb-4">
-            <span
-              className={`${status.bg} ${status.text} px-3 py-1 rounded-full text-[10px] uppercase font-bold tracking-widest flex items-center gap-1.5`}
-            >
-              <span className="material-symbols-outlined text-sm">{status.icon}</span>
-              {status.label}
-            </span>
-            {project.is_discarded && (
-              <span className="bg-red-500/10 text-red-400 px-3 py-1 rounded-full text-[10px] uppercase font-bold tracking-widest">
-                Deleted {project.discarded_at}
-              </span>
+          <header className="mb-10 ghost-border bg-[#1c1b1b] overflow-hidden">
+            {project.cover_image_url && (
+              <div>
+                <img src={project.cover_image_url} alt={project.name} className="w-full max-h-[320px] object-cover" />
+              </div>
             )}
-          </div>
+            <div className="p-8">
+              <div className="flex items-center gap-2 mb-4 flex-wrap">
+                <span
+                  className={`${status.bg} ${status.text} px-3 py-1 text-[10px] uppercase font-bold tracking-widest flex items-center gap-1.5`}
+                >
+                  <span className="material-symbols-outlined text-sm">{status.icon}</span>
+                  {status.label}
+                </span>
+                <span className="bg-[#353534] text-stone-400 px-3 py-1 text-[10px] uppercase font-bold tracking-widest">
+                  {project.tier.replace('_', ' ')}
+                  {project.budget ? ` · ${project.budget}` : ''}
+                </span>
+                {project.is_discarded && (
+                  <span className="bg-red-500/10 text-red-400 px-3 py-1 text-[10px] uppercase font-bold tracking-widest">
+                    Deleted {project.discarded_at}
+                  </span>
+                )}
+                {project.slack_url ? (
+                  <a
+                    href={project.slack_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-[#4A154B]/20 text-[#E01E5A] px-3 py-1 text-[10px] uppercase font-bold tracking-widest hover:bg-[#4A154B]/30 transition-colors inline-flex items-center gap-1"
+                  >
+                    Slack Pitch
+                    <span className="material-symbols-outlined text-[10px]">open_in_new</span>
+                  </a>
+                ) : project.from_slack ? (
+                  <span className="bg-[#4A154B]/20 text-[#E01E5A] px-3 py-1 text-[10px] uppercase font-bold tracking-widest">
+                    Slack Pitch
+                  </span>
+                ) : null}
+              </div>
 
-          <h1 className="text-5xl font-headline font-bold text-[#e5e2e1] tracking-tighter mb-4">{project.name}</h1>
+              <h1 className="text-5xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-3 leading-none">
+                {project.name}
+              </h1>
 
-          {project.subtitle && <p className="text-lg text-stone-400 leading-relaxed mb-4">{project.subtitle}</p>}
+              {project.subtitle && <p className="text-lg text-stone-400 leading-relaxed max-w-2xl mb-4">{project.subtitle}</p>}
 
-          <p className="text-stone-400 text-sm mb-8">
-            by{' '}
-            <Link href={`/admin/users/${project.user_id}`} className="text-[#ffb595] hover:underline">
-              {project.user_display_name}
-            </Link>
-            {' · '}Created {project.created_at}
-            <span className="ml-2 bg-[#ee671c]/15 text-[#ee671c] px-2 py-0.5 text-[10px] uppercase font-bold tracking-widest">
-              {project.tier.replace('_', ' ')}
-              {project.budget ? ` · ${project.budget}` : ''}
-            </span>
-            {project.slack_url ? (
-              <a
-                href={project.slack_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="ml-2 bg-[#4A154B]/20 text-[#E01E5A] px-2 py-0.5 text-[10px] uppercase font-bold tracking-widest hover:bg-[#4A154B]/30 transition-colors inline-flex items-center gap-1"
-              >
-                Slack Pitch
-                <span className="material-symbols-outlined text-[10px]">open_in_new</span>
-              </a>
-            ) : project.from_slack ? (
-              <span className="ml-2 bg-[#4A154B]/20 text-[#E01E5A] px-2 py-0.5 text-[10px] uppercase font-bold tracking-widest">
-                Slack Pitch
-              </span>
-            ) : null}
-          </p>
+              <div className="flex flex-wrap items-center gap-3 pt-5 border-t border-white/5 text-sm text-stone-400">
+                <span>
+                  by{' '}
+                  <Link href={`/admin/users/${project.user_id}`} className="text-[#ffb595] hover:underline">
+                    {project.user_display_name}
+                  </Link>
+                </span>
+                <span>Started {project.created_at}</span>
+              </div>
+            </div>
+          </header>
 
           {project.pitch_text && (
             <div className="bg-[#1c1b1b] ghost-border rounded-xl p-8 mb-8">
@@ -234,115 +268,6 @@ export default function AdminProjectsShow({
             </div>
           )}
 
-          {(project.devlogs.length > 0 ||
-            isProjectReview ||
-            project.status === 'approved' ||
-            project.status === 'pitch_approved') && (
-            <>
-              {project.cover_image_url && (
-                <div className="bg-[#1c1b1b] ghost-border rounded-xl p-8 mb-8">
-                  <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">
-                    Cover Image
-                  </h4>
-                  <img src={project.cover_image_url} alt="Project cover" className="max-w-full" />
-                </div>
-              )}
-
-              <div className="bg-[#1c1b1b] ghost-border rounded-xl p-8 mb-8">
-                <div className="flex items-center justify-between mb-4">
-                  <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline">README</h4>
-                  <div className="flex items-center gap-3">
-                    {project.readme_fetched_at && (
-                      <span className="text-stone-600 text-[10px] uppercase tracking-wider">
-                        Fetched {project.readme_fetched_at}
-                      </span>
-                    )}
-                    <button
-                      disabled={refreshingReadme}
-                      onClick={() => {
-                        setRefreshingReadme(true)
-                        router.post(
-                          `/admin/projects/${project.id}/review`,
-                          { decision: 'refresh_readme' },
-                          {
-                            preserveScroll: true,
-                            onFinish: () => {
-                              setTimeout(() => {
-                                router.reload({ only: ['project'], onFinish: () => setRefreshingReadme(false) })
-                              }, 1500)
-                            },
-                          },
-                        )
-                      }}
-                      className="ghost-border bg-[#0e0e0e] hover:bg-[#2a2a2a] text-stone-400 hover:text-[#ffb595] disabled:opacity-50 disabled:cursor-not-allowed px-3 py-1.5 text-[10px] uppercase tracking-[0.15em] font-bold flex items-center gap-1 cursor-pointer transition-colors"
-                    >
-                      <span className={`material-symbols-outlined text-sm ${refreshingReadme ? 'animate-spin' : ''}`}>
-                        sync
-                      </span>
-                      {refreshingReadme ? 'Fetching...' : 'Refresh'}
-                    </button>
-                  </div>
-                </div>
-                {project.readme_cache ? (
-                  <div className="prose prose-invert prose-sm max-w-none text-stone-300 prose-a:text-[#ffb595] prose-img:max-w-full overflow-x-auto">
-                    <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
-                      {project.readme_cache}
-                    </Markdown>
-                  </div>
-                ) : (
-                  <p className="text-stone-600 text-sm">No README fetched yet. Click Refresh to pull from the repo.</p>
-                )}
-              </div>
-
-              <div className="bg-[#1c1b1b] ghost-border rounded-xl p-8 mb-8">
-                <div className="flex items-center justify-between mb-4">
-                  <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline">
-                    Devlogs ({project.devlogs.length})
-                  </h4>
-                  <span className="text-[#ffb595] text-sm font-bold">
-                    Total: {project.total_hours}h
-                    {project.override_hours != null && (
-                      <span className="text-stone-500 text-xs ml-2">(overridden)</span>
-                    )}
-                  </span>
-                </div>
-                {project.devlogs.length > 0 ? (
-                  <div className="space-y-4">
-                    {project.devlogs.map((entry) => (
-                      <div key={entry.id} className="bg-[#0e0e0e] p-5 ghost-border overflow-hidden">
-                        <div className="flex items-start justify-between mb-2 gap-2">
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2 flex-wrap mb-1">
-                              <h5 className="font-headline font-bold text-[#e5e2e1] break-words min-w-0">
-                                {entry.title}
-                              </h5>
-                            </div>
-                            <div className="flex items-center gap-3 text-xs flex-wrap">
-                              {entry.time_spent && (
-                                <span className="text-[#ffb595] flex items-center gap-1">
-                                  <span className="material-symbols-outlined text-xs">schedule</span>
-                                  {entry.time_spent}
-                                </span>
-                              )}
-                              <span className="text-stone-500">{entry.created_at}</span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="prose prose-invert prose-sm max-w-none text-stone-300 prose-a:text-[#ffb595] break-words [overflow-wrap:anywhere]">
-                          <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
-                            {entry.content}
-                          </Markdown>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-stone-600 text-sm">No devlog entries yet.</p>
-                )}
-              </div>
-            </>
-          )}
-
           <div className="grid grid-cols-2 gap-6 mb-8">
             <div className="bg-[#1c1b1b] ghost-border rounded-xl p-6">
               <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-3">
@@ -380,8 +305,6 @@ export default function AdminProjectsShow({
               )}
             </div>
           </div>
-
-          <ReviewTimeline events={review_history} />
 
           <div className="bg-[#1c1b1b] ghost-border rounded-xl p-8 mb-8">
             <div className="flex items-center justify-between gap-3 mb-4">
@@ -439,6 +362,124 @@ export default function AdminProjectsShow({
               <p className="text-stone-600 text-sm">No internal notes yet.</p>
             )}
           </div>
+
+          <ReviewTimeline events={review_history} defaultExpanded />
+
+          {(project.devlogs.length > 0 ||
+            isProjectReview ||
+            project.status === 'approved' ||
+            project.status === 'pitch_approved') && (
+            <>
+              <div className="bg-[#1c1b1b] ghost-border rounded-xl p-8 mb-8">
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline">README</h4>
+                  <div className="flex items-center gap-3">
+                    {project.readme_fetched_at && (
+                      <span className="text-stone-600 text-[10px] uppercase tracking-wider">
+                        Fetched {project.readme_fetched_at}
+                      </span>
+                    )}
+                    <button
+                      disabled={refreshingReadme}
+                      onClick={() => {
+                        setRefreshingReadme(true)
+                        router.post(
+                          `/admin/projects/${project.id}/review`,
+                          { decision: 'refresh_readme' },
+                          {
+                            preserveScroll: true,
+                            onFinish: () => {
+                              setTimeout(() => {
+                                router.reload({ only: ['project'], onFinish: () => setRefreshingReadme(false) })
+                              }, 1500)
+                            },
+                          },
+                        )
+                      }}
+                      className="ghost-border bg-[#0e0e0e] hover:bg-[#2a2a2a] text-stone-400 hover:text-[#ffb595] disabled:opacity-50 disabled:cursor-not-allowed px-3 py-1.5 text-[10px] uppercase tracking-[0.15em] font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                    >
+                      <span className={`material-symbols-outlined text-sm ${refreshingReadme ? 'animate-spin' : ''}`}>
+                        sync
+                      </span>
+                      {refreshingReadme ? 'Fetching...' : 'Refresh'}
+                    </button>
+                  </div>
+                </div>
+                {project.readme_cache ? (
+                  <div className="prose prose-invert prose-sm max-w-none text-stone-300 prose-a:text-[#ffb595] prose-img:max-w-full overflow-x-auto">
+                    <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
+                      {project.readme_cache}
+                    </Markdown>
+                  </div>
+                ) : (
+                  <p className="text-stone-600 text-sm">No README fetched yet. Click Refresh to pull from the repo.</p>
+                )}
+              </div>
+
+              <div className="bg-[#1c1b1b] ghost-border rounded-xl p-8 mb-8">
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline">
+                    Devlogs ({project.devlogs.length})
+                  </h4>
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-1 bg-[#0e0e0e] ghost-border p-1">
+                      <button
+                        onClick={() => setDevlogOrder('newest')}
+                        className={`px-2 py-1 text-[10px] uppercase tracking-[0.15em] font-bold transition-colors cursor-pointer ${devlogOrder === 'newest' ? 'text-[#ffb595]' : 'text-stone-500 hover:text-stone-300'}`}
+                      >
+                        Newest
+                      </button>
+                      <button
+                        onClick={() => setDevlogOrder('oldest')}
+                        className={`px-2 py-1 text-[10px] uppercase tracking-[0.15em] font-bold transition-colors cursor-pointer ${devlogOrder === 'oldest' ? 'text-[#ffb595]' : 'text-stone-500 hover:text-stone-300'}`}
+                      >
+                        Oldest
+                      </button>
+                    </div>
+                    <span className="text-[#ffb595] text-sm font-bold">
+                      Total: {project.total_hours}h
+                      {project.override_hours != null && (
+                        <span className="text-stone-500 text-xs ml-2">(overridden)</span>
+                      )}
+                    </span>
+                  </div>
+                </div>
+                {project.devlogs.length > 0 ? (
+                  <div className="space-y-4">
+                    {sortedDevlogs.map((entry) => (
+                      <div key={entry.id} className="bg-[#0e0e0e] p-5 ghost-border overflow-hidden">
+                        <div className="flex items-start justify-between mb-2 gap-2">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 flex-wrap mb-1">
+                              <h5 className="font-headline font-bold text-[#e5e2e1] break-words min-w-0">
+                                {entry.title}
+                              </h5>
+                            </div>
+                            <div className="flex items-center gap-3 text-xs flex-wrap">
+                              {entry.time_spent && (
+                                <span className="text-[#ffb595] flex items-center gap-1">
+                                  <span className="material-symbols-outlined text-xs">schedule</span>
+                                  {entry.time_spent}
+                                </span>
+                              )}
+                              <span className="text-stone-500">{entry.created_at}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="prose prose-invert prose-sm max-w-none text-stone-300 prose-a:text-[#ffb595] break-words [overflow-wrap:anywhere]">
+                          <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
+                            {entry.content}
+                          </Markdown>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-stone-600 text-sm">No devlog entries yet.</p>
+                )}
+              </div>
+            </>
+          )}
 
           {ships.length > 0 && (
             <div>

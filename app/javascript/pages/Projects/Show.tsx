@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useMemo, useState, useRef } from 'react'
 import { router, Link, useForm, usePage } from '@inertiajs/react'
 import Markdown from 'react-markdown'
 import rehypeRaw from 'rehype-raw'
@@ -71,6 +71,7 @@ export default function ProjectsShow({
   is_admin_view: boolean
 }) {
   const [kudoContent, setKudoContent] = useState('')
+  const [devlogOrder, setDevlogOrder] = useState<'newest' | 'oldest'>('newest')
 
   function submitKudo(e: React.FormEvent) {
     e.preventDefault()
@@ -282,6 +283,16 @@ export default function ProjectsShow({
   const totalHours =
     Math.round(devlogs.reduce((sum, entry) => sum + parseTimeSpentToHours(entry.time_spent), 0) * 10) / 10
 
+  const sortedDevlogs = useMemo(() => {
+    return [...devlogs].sort((a, b) => {
+      const aTime = Date.parse(a.created_at)
+      const bTime = Date.parse(b.created_at)
+      const aSort = Number.isNaN(aTime) ? a.id : aTime
+      const bSort = Number.isNaN(bTime) ? b.id : bTime
+      return devlogOrder === 'newest' ? bSort - aSort : aSort - bSort
+    })
+  }, [devlogs, devlogOrder])
+
   const isStaff = !!usePage<SharedProps>().props.auth.user?.is_staff
 
   return (
@@ -476,7 +487,7 @@ export default function ProjectsShow({
 
       <div className="grid grid-cols-12 gap-8">
         <div className="col-span-12 lg:col-span-8">
-          <ReviewTimeline events={review_history} />
+          <ReviewTimeline events={review_history} defaultExpanded={false} />
 
           {can.update && !isSafeUrl(project.repo_link) && showRepoForm && (
             <section className="mb-12">
@@ -553,29 +564,47 @@ export default function ProjectsShow({
             <section className="mb-12">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-headline font-bold text-[#e5e2e1] tracking-tight">Journal</h2>
-                {can.update && project.repo_link && (
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => router.post(`/projects/${project.id}/sync_journal`)}
-                      className="signature-smolder text-[#4c1a00] px-5 py-2 text-xs font-bold uppercase tracking-[0.15em] flex items-center gap-2 cursor-pointer"
-                    >
-                      <span className="material-symbols-outlined text-lg">sync</span>
-                      Sync
-                    </button>
-                    {devlogs.length > 0 && (
+                <div className="flex gap-2">
+                  {devlogs.length > 0 && (
+                    <div className="flex items-center gap-1 bg-[#0e0e0e] ghost-border p-1">
                       <button
-                        onClick={() => {
-                          if (confirm('Clear all entries and re-sync from JOURNAL.md?'))
-                            router.post(`/projects/${project.id}/sync_journal`, { clear: 'true' })
-                        }}
-                        className="ghost-border bg-[#1c1b1b] hover:bg-[#2a2a2a] text-stone-400 hover:text-[#e5e2e1] px-4 py-2 text-xs font-bold uppercase tracking-[0.15em] flex items-center gap-2 cursor-pointer transition-colors"
+                        onClick={() => setDevlogOrder('newest')}
+                        className={`px-2 py-1 text-[10px] uppercase tracking-[0.15em] font-bold transition-colors cursor-pointer ${devlogOrder === 'newest' ? 'text-[#ffb595]' : 'text-stone-500 hover:text-stone-300'}`}
                       >
-                        <span className="material-symbols-outlined text-lg">refresh</span>
-                        Re-sync
+                        Newest
                       </button>
-                    )}
-                  </div>
-                )}
+                      <button
+                        onClick={() => setDevlogOrder('oldest')}
+                        className={`px-2 py-1 text-[10px] uppercase tracking-[0.15em] font-bold transition-colors cursor-pointer ${devlogOrder === 'oldest' ? 'text-[#ffb595]' : 'text-stone-500 hover:text-stone-300'}`}
+                      >
+                        Oldest
+                      </button>
+                    </div>
+                  )}
+                  {can.update && project.repo_link && (
+                    <>
+                      <button
+                        onClick={() => router.post(`/projects/${project.id}/sync_journal`)}
+                        className="signature-smolder text-[#4c1a00] px-5 py-2 text-xs font-bold uppercase tracking-[0.15em] flex items-center gap-2 cursor-pointer"
+                      >
+                        <span className="material-symbols-outlined text-lg">sync</span>
+                        Sync
+                      </button>
+                      {devlogs.length > 0 && (
+                        <button
+                          onClick={() => {
+                            if (confirm('Clear all entries and re-sync from JOURNAL.md?'))
+                              router.post(`/projects/${project.id}/sync_journal`, { clear: 'true' })
+                          }}
+                          className="ghost-border bg-[#1c1b1b] hover:bg-[#2a2a2a] text-stone-400 hover:text-[#e5e2e1] px-4 py-2 text-xs font-bold uppercase tracking-[0.15em] flex items-center gap-2 cursor-pointer transition-colors"
+                        >
+                          <span className="material-symbols-outlined text-lg">refresh</span>
+                          Re-sync
+                        </button>
+                      )}
+                    </>
+                  )}
+                </div>
               </div>
 
               {!project.repo_link && can.update && (
@@ -620,7 +649,7 @@ export default function ProjectsShow({
 
               {devlogs.length > 0 && (
                 <div className="space-y-4">
-                  {devlogs.map((entry) => (
+                  {sortedDevlogs.map((entry) => (
                     <div key={entry.id} className="ghost-border bg-[#1c1b1b] p-6 overflow-hidden">
                       <div className="flex items-start justify-between mb-3">
                         <div>
@@ -684,6 +713,22 @@ export default function ProjectsShow({
                   <h2 className="text-2xl font-headline font-bold text-[#e5e2e1] tracking-tight">Devlog</h2>
                 </div>
                 <div className="flex gap-2">
+                  {devlogs.length > 0 && (
+                    <div className="flex items-center gap-1 bg-[#0e0e0e] ghost-border p-1">
+                      <button
+                        onClick={() => setDevlogOrder('newest')}
+                        className={`px-2 py-1 text-[10px] uppercase tracking-[0.15em] font-bold transition-colors cursor-pointer ${devlogOrder === 'newest' ? 'text-[#ffb595]' : 'text-stone-500 hover:text-stone-300'}`}
+                      >
+                        Newest
+                      </button>
+                      <button
+                        onClick={() => setDevlogOrder('oldest')}
+                        className={`px-2 py-1 text-[10px] uppercase tracking-[0.15em] font-bold transition-colors cursor-pointer ${devlogOrder === 'oldest' ? 'text-[#ffb595]' : 'text-stone-500 hover:text-stone-300'}`}
+                      >
+                        Oldest
+                      </button>
+                    </div>
+                  )}
                   {can.update && devlogs.length > 0 && (
                     <a
                       href={`/projects/${project.id}/export_devlogs`}
@@ -765,7 +810,7 @@ export default function ProjectsShow({
 
               {devlogs.length > 0 ? (
                 <div className="space-y-4">
-                  {devlogs.map((entry) => (
+                  {sortedDevlogs.map((entry) => (
                     <div key={entry.id} className="ghost-border bg-[#1c1b1b] p-6 overflow-hidden">
                       {editingDevlogId === entry.id ? (
                         <form onSubmit={(e) => submitEditDevlog(e, entry.id)} className="space-y-4">
