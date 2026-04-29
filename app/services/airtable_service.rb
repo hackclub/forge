@@ -44,13 +44,10 @@ module AirtableService
 
     unless response.success?
       Rails.logger.error("Airtable find failed: #{response.status} - #{response.body}")
-      return nil
+      raise Error, "find #{response.status}: #{truncate_body(response.body)}"
     end
 
     JSON.parse(response.body)["records"]&.first
-  rescue StandardError => e
-    Rails.logger.error("Airtable find error: #{e.class}: #{e.message}")
-    nil
   end
 
   def create_record(fields, table: default_table)
@@ -64,13 +61,10 @@ module AirtableService
 
     unless response.success?
       Rails.logger.error("Airtable create failed: #{response.status} - #{response.body}")
-      return nil
+      raise Error, "create #{response.status}: #{truncate_body(response.body)}"
     end
 
     JSON.parse(response.body)
-  rescue StandardError => e
-    Rails.logger.error("Airtable create error: #{e.class}: #{e.message}")
-    nil
   end
 
   def update_record(record_id, fields, table: default_table)
@@ -84,13 +78,14 @@ module AirtableService
 
     unless response.success?
       Rails.logger.error("Airtable update failed: #{response.status} - #{response.body}")
-      return nil
+      raise Error, "update #{response.status}: #{truncate_body(response.body)}"
     end
 
     JSON.parse(response.body)
-  rescue StandardError => e
-    Rails.logger.error("Airtable update error: #{e.class}: #{e.message}")
-    nil
+  end
+
+  def truncate_body(body)
+    body.to_s[0, 500]
   end
 
   def connection

@@ -58,6 +58,11 @@ export default function AdminAirtableQueueShow({
     router.post(`/admin/airtable_queue/${item.id}/cancel`)
   }
 
+  function retry() {
+    if (!confirm('Retry this item? A fresh queue entry will be created with the latest project data.')) return
+    router.post(`/admin/airtable_queue/${item.id}/retry`)
+  }
+
   return (
     <div className="p-5 md:p-12 max-w-5xl mx-auto">
       <Link
@@ -192,6 +197,25 @@ export default function AdminAirtableQueueShow({
               Send to Airtable
             </button>
           </div>
+        </div>
+      )}
+
+      {item.status === 'failed' && (
+        <div className="ghost-border bg-[#1c1b1b] p-6 flex flex-col md:flex-row gap-3 items-start md:items-center justify-between">
+          <div>
+            <h3 className="text-sm font-headline font-bold text-[#e5e2e1] mb-1">Retry send</h3>
+            <p className="text-stone-500 text-xs">
+              Re-queues a fresh entry with the latest project data. The original failed item stays in history.
+            </p>
+          </div>
+          <button
+            onClick={retry}
+            disabled={!airtable_enabled || !item.project_id}
+            className="signature-smolder text-[#4c1a00] px-5 py-2 text-xs font-bold uppercase tracking-[0.15em] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            <span className="material-symbols-outlined text-sm">refresh</span>
+            Retry
+          </button>
         </div>
       )}
     </div>

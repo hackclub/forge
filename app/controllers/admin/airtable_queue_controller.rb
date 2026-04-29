@@ -58,6 +58,25 @@ class Admin::AirtableQueueController < Admin::ApplicationController
     redirect_to admin_airtable_queue_index_path, notice: "Item cancelled."
   end
 
+  def retry
+    item = AirtableQueueItem.find(params[:id])
+
+    unless item.failed?
+      redirect_to admin_airtable_queue_path(item), alert: "Only failed items can be retried."
+      return
+    end
+
+    if item.project.blank?
+      redirect_to admin_airtable_queue_path(item), alert: "Original project is no longer available."
+      return
+    end
+
+    new_item = AirtableQueueItem.enqueue_for_project(item.project, table: item.table_name)
+    new_item.update!(enqueued_by: current_user)
+    audit!("airtable.retried", target: item.project, metadata: { from_queue_item_id: item.id, queue_item_id: new_item.id })
+    redirect_to admin_airtable_queue_path(new_item), notice: "Re-queued with the latest project data."
+  end
+
   private
 
   def require_superadmin!
