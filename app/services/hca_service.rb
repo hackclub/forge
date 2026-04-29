@@ -16,7 +16,7 @@ module HcaService
 
   def scopes
     base_scopes = %w[openid email name profile verification_status slack_id]
-    base_scopes += %w[address phone] unless community?
+    base_scopes += %w[address phone birthdate] unless community?
     base_scopes.join(" ")
   end
 
