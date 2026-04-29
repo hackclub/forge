@@ -274,6 +274,7 @@ Rails.application.routes.draw do
         member do
           post :send_to_airtable
           post :cancel
+          post :retry
         end
       end
       get "metrics" => "metrics#index", as: :metrics
