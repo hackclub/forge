@@ -9,16 +9,34 @@ namespace :users do
     puts "Found #{total} users with missing birthdays and an HCA token. Dry run: #{dry_run}."
 
     updated = 0
-    skipped = 0
+    no_response = 0
+    no_birthday = 0
     failed = 0
+    sample_logged = false
 
     scope.find_each.with_index do |user, i|
-      identity = HcaService.identity(user.hca_token)
-      raw = identity["birthday"] if identity.is_a?(Hash)
+      response = HcaService.me(user.hca_token)
+
+      if response.nil?
+        no_response += 1
+        puts "[#{i + 1}/#{total}] user##{user.id} — HCA /me failed (token expired or unauthorized)"
+        next
+      end
+
+      unless sample_logged
+        puts "Sample HCA response keys for user##{user.id}: #{response.keys.inspect}"
+        if response["identity"].is_a?(Hash)
+          puts "Sample identity keys: #{response["identity"].keys.inspect}"
+        end
+        sample_logged = true
+      end
+
+      identity = response["identity"] || {}
+      raw = identity["birthday"]
 
       if raw.blank?
-        skipped += 1
-        puts "[#{i + 1}/#{total}] user##{user.id} — no birthday in HCA identity"
+        no_birthday += 1
+        puts "[#{i + 1}/#{total}] user##{user.id} — HCA returned identity but no birthday key/value"
         next
       end
 
@@ -48,6 +66,6 @@ namespace :users do
       sleep(sleep_seconds) if sleep_seconds.positive?
     end
 
-    puts "Done. updated=#{updated} skipped=#{skipped} failed=#{failed} total=#{total}"
+    puts "Done. updated=#{updated} no_response=#{no_response} no_birthday=#{no_birthday} failed=#{failed} total=#{total}"
   end
 end
