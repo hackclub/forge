@@ -10,6 +10,7 @@ class ApplicationController < ActionController::Base
   before_action :track_ahoy_visit
   before_action :track_user_activity
   before_action :set_paper_trail_whodunnit
+  before_action :prompt_birthday_reauth!
 
   rescue_from Pundit::NotAuthorizedError, with: :user_not_authorized
 
@@ -80,5 +81,17 @@ class ApplicationController < ActionController::Base
   def user_not_authorized
     flash[:alert] = "You are not authorized to perform this action."
     redirect_back(fallback_location: root_path)
+  end
+
+  def prompt_birthday_reauth!
+    return unless user_signed_in?
+    return unless request.get?
+    return if request.xhr? || request.format.json?
+    return if current_user.birthday.present?
+    return if session[:birthday_reauth_attempted]
+    return if request.path.start_with?("/auth/", "/signin", "/sorry")
+
+    session[:birthday_reauth_attempted] = true
+    redirect_to hca_start_path, notice: "Please re-authorize Forge to finish your profile."
   end
 end
