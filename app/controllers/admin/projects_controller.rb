@@ -192,6 +192,10 @@ class Admin::ProjectsController < Admin::ApplicationController
         if guard_duplicate_transition!(@project, :approved, "Project already approved.")
           return
         end
+        if (error = override_invalid_reason(params[:override_hours], params[:override_hours_justification]))
+          redirect_to admin_project_path(@project), alert: error
+          return
+        end
         capped = capped_override_hours(@project, params[:override_hours])
         @project.update!(
           status: :approved,
@@ -230,6 +234,10 @@ class Admin::ProjectsController < Admin::ApplicationController
       audit!("project.reverted_to_draft", target: @project, metadata: { feedback: feedback })
       redirect_to admin_project_path(@project), notice: "Project reverted to draft."
     when "save_review_notes"
+      if (error = override_invalid_reason(params[:override_hours], params[:override_hours_justification]))
+        redirect_to admin_project_path(@project), alert: error
+        return
+      end
       capped = capped_override_hours(@project, params[:override_hours])
       @project.update!(
         override_hours: capped,
@@ -266,6 +274,15 @@ class Admin::ProjectsController < Admin::ApplicationController
     ceiling = project.devlog_hours
     value = ceiling if value > ceiling
     value
+  end
+
+  def override_invalid_reason(raw_hours, raw_justification)
+    return nil if raw_hours.blank?
+
+    return "Override hours cannot be negative." if raw_hours.to_f.negative?
+    return "Override justification is required when overriding hours." if raw_justification.to_s.strip.blank?
+
+    nil
   end
 
   def notify_slack_decision(project, decision, feedback, stage: :project)

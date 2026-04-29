@@ -96,6 +96,17 @@ export default function AdminProjectsShow({
       alert('Please provide feedback when returning or rejecting a project.')
       return
     }
+    if (overrideHours.trim() !== '') {
+      const parsed = parseFloat(overrideHours)
+      if (!isNaN(parsed) && parsed < 0) {
+        alert('Override hours cannot be negative.')
+        return
+      }
+      if (!overrideJustification.trim()) {
+        alert('Please provide a justification when overriding hours.')
+        return
+      }
+    }
     setReviewing(true)
     router.post(
       `/admin/projects/${project.id}/review`,
@@ -568,13 +579,24 @@ export default function AdminProjectsShow({
                   </div>
 
                   <button
-                    onClick={() =>
+                    onClick={() => {
+                      if (overrideHours.trim() !== '') {
+                        const parsed = parseFloat(overrideHours)
+                        if (!isNaN(parsed) && parsed < 0) {
+                          alert('Override hours cannot be negative.')
+                          return
+                        }
+                        if (!overrideJustification.trim()) {
+                          alert('Please provide a justification when overriding hours.')
+                          return
+                        }
+                      }
                       router.post(`/admin/projects/${project.id}/review`, {
                         decision: 'save_review_notes',
                         override_hours: overrideHours,
                         override_hours_justification: overrideJustification,
                       })
-                    }
+                    }}
                     className="w-full mb-4 py-2 ghost-border bg-[#0e0e0e] hover:bg-[#2a2a2a] text-stone-400 hover:text-[#ffb595] text-xs uppercase tracking-wider font-bold flex items-center justify-center gap-2 cursor-pointer transition-colors"
                   >
                     <span className="material-symbols-outlined text-sm">save</span>
