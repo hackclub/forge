@@ -319,6 +319,12 @@ class User < ApplicationRecord
     addr = identity["address"] if addr.blank? && identity["address"].is_a?(Hash)
     addr ||= {}
 
+    birthday_val = begin
+      Date.parse(identity["birthday"].to_s)
+    rescue StandardError
+      nil
+    end
+
     attrs = {
       address_line1: pick(addr, %w[line_1 address_line_1 address_line1 line1 street]).presence,
       address_line2: pick(addr, %w[line_2 address_line_2 address_line2 line2]).presence,
@@ -326,7 +332,8 @@ class User < ApplicationRecord
       state: pick(addr, %w[state state_province province region]).presence,
       country: pick(addr, %w[country country_code]).presence,
       postal_code: pick(addr, %w[postal_code zip zip_code postcode]).presence,
-      phone_number: (pick(identity, %w[phone_number phone]).presence || pick(addr, %w[phone_number phone]).presence)
+      phone_number: (pick(identity, %w[phone_number phone]).presence || pick(addr, %w[phone_number phone]).presence),
+      birthday: birthday_val
     }.compact
 
     update(attrs) if attrs.any?
