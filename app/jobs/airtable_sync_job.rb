@@ -16,7 +16,7 @@ class AirtableSyncJob < ApplicationJob
     fields = {
       "Code URL" => project.repo_link,
       "Playable URL" => playable_url,
-      "Description" => project.pitch_text,
+      "Description" => project.pitch_text.presence || project.description.presence || project.subtitle,
       "GitHub Username" => github_username(project.repo_link),
       "First Name" => user.first_name,
       "Last Name" => user.last_name,
