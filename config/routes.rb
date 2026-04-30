@@ -227,6 +227,8 @@ Rails.application.routes.draw do
           delete "notes/:note_id" => "users#destroy_note", as: :destroy_note
           post :add_kudo
           delete "kudos/:kudo_id" => "users#destroy_kudo", as: :destroy_kudo
+          post :add_badge
+          delete "badges/:badge_id" => "users#destroy_badge", as: :destroy_badge
           post :adjust_coins
           get :coin_history
           post :toggle_shop_unlocked

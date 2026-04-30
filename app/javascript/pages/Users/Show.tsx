@@ -49,13 +49,38 @@ interface ProfileKudo {
   project_name: string | null
 }
 
+interface ProfileBadge {
+  id: number
+  key: string | null
+  name: string
+  description: string | null
+  icon: string
+  color: string
+  awarded_at: string
+}
+
 interface Props {
   user: ProfileUser
   stats: ProfileStats
   projects: ProfileProject[]
   kudos: ProfileKudo[]
+  badges: ProfileBadge[]
   can_give_kudos: boolean
   can_edit_profile: boolean
+}
+
+const BADGE_COLOR_CLASSES: Record<string, string> = {
+  orange: 'bg-[#ee671c]/15 text-[#ffb595]',
+  emerald: 'bg-emerald-500/15 text-emerald-400',
+  amber: 'bg-amber-500/15 text-amber-400',
+  red: 'bg-red-500/15 text-red-400',
+  purple: 'bg-purple-500/15 text-purple-400',
+  blue: 'bg-blue-500/15 text-blue-400',
+  stone: 'bg-stone-500/15 text-stone-300',
+}
+
+function badgeClass(color: string): string {
+  return BADGE_COLOR_CLASSES[color] || BADGE_COLOR_CLASSES.orange
 }
 
 const STATUS_LABELS: Record<ProjectStatus, string> = {
@@ -115,7 +140,7 @@ function gitAvatarUrl(user: ProfileUser): string | null {
   return `${base}/${user.github_username}.png?size=120`
 }
 
-export default function UsersShow({ user, stats, projects, kudos, can_give_kudos, can_edit_profile }: Props) {
+export default function UsersShow({ user, stats, projects, kudos, badges, can_give_kudos, can_edit_profile }: Props) {
   const [kudoContent, setKudoContent] = useState('')
   const [editingGithub, setEditingGithub] = useState(false)
   const [githubInput, setGithubInput] = useState(user.github_username || '')
@@ -165,6 +190,20 @@ export default function UsersShow({ user, stats, projects, kudos, can_give_kudos
               {user.display_name}
             </h1>
             <p className="text-stone-500 text-sm mt-2">Forging since {user.joined_at}</p>
+            {badges.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-3 justify-center sm:justify-start">
+                {badges.map((badge) => (
+                  <span
+                    key={badge.id}
+                    title={badge.description ? `${badge.name} — ${badge.description}` : badge.name}
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 ${badgeClass(badge.color)}`}
+                  >
+                    <span className="material-symbols-outlined text-sm">{badge.icon}</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider">{badge.name}</span>
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
           <div
             className={`flex items-center gap-3 px-5 py-3 ghost-border shrink-0 ${stats.current_streak > 0 ? 'bg-[#ee671c]/10' : 'bg-[#0e0e0e]'}`}

@@ -3,6 +3,7 @@ class HomeController < ApplicationController
     projects = current_user.projects.kept.order(updated_at: :desc).to_a
     news_posts = NewsPost.includes(:author).published.limit(3)
     staff_picks = Project.kept.where(hidden: false).includes(:user).staff_picks.limit(3)
+    approved_count = Project.kept.where(status: :approved).count
 
     render inertia: "Home/Index", props: {
       user: {
@@ -13,6 +14,11 @@ class HomeController < ApplicationController
       },
       stats: {
         projects_count: projects.size
+      },
+      orph_motivation: {
+        approved_count: approved_count,
+        goal: 100,
+        dino_image: random_orph_dino
       },
       projects: projects.map { |p|
         {
@@ -45,5 +51,15 @@ class HomeController < ApplicationController
         }
       }
     }
+  end
+
+  private
+
+  def random_orph_dino
+    dir = Rails.public_path.join("dino_images/orph_motivation")
+    images = Dir.glob(dir.join("*.{png,jpg,jpeg,gif,webp}")).map { |p| File.basename(p) }
+    return "/dino_images/dinosaur_sweating_bullets.png" if images.empty?
+
+    "/dino_images/orph_motivation/#{images.sample}"
   end
 end

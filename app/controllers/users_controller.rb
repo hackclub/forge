@@ -9,6 +9,7 @@ class UsersController < ApplicationController
       .where("kudos.project_id IS NULL OR (projects.discarded_at IS NULL AND projects.hidden = FALSE)")
       .includes(:author, :project)
       .order(created_at: :desc)
+    badges = user.badges.order(awarded_at: :desc)
 
     total_hours = projects.sum(&:total_hours)
     approved_count = projects.count(&:approved?)
@@ -47,6 +48,17 @@ class UsersController < ApplicationController
           cover_image_url: p.cover_image_url,
           total_hours: p.total_hours.round(1),
           created_at: p.created_at.strftime("%b %d, %Y")
+        }
+      },
+      badges: badges.map { |b|
+        {
+          id: b.id,
+          key: b.key,
+          name: b.name,
+          description: b.description,
+          icon: b.icon,
+          color: b.color,
+          awarded_at: b.awarded_at.strftime("%b %d, %Y")
         }
       },
       kudos: kudos.map { |k|
