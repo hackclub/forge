@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_21_102724) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_30_020032) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -118,6 +118,22 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_21_102724) do
     t.index ["actor_id"], name: "index_audit_events_on_actor_id"
     t.index ["created_at"], name: "index_audit_events_on_created_at"
     t.index ["target_type", "target_id"], name: "index_audit_events_on_target_type_and_target_id"
+  end
+
+  create_table "badges", force: :cascade do |t|
+    t.datetime "awarded_at", null: false
+    t.bigint "awarder_id"
+    t.string "color", default: "orange", null: false
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.string "icon", default: "military_tech", null: false
+    t.string "key"
+    t.string "name", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["awarder_id"], name: "index_badges_on_awarder_id"
+    t.index ["user_id", "key"], name: "index_badges_on_user_id_and_key", unique: true, where: "(key IS NOT NULL)"
+    t.index ["user_id"], name: "index_badges_on_user_id"
   end
 
   create_table "coin_adjustments", force: :cascade do |t|
@@ -554,6 +570,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_21_102724) do
   add_foreign_key "airtable_queue_items", "users", column: "enqueued_by_id"
   add_foreign_key "airtable_queue_items", "users", column: "sent_by_id"
   add_foreign_key "audit_events", "users", column: "actor_id"
+  add_foreign_key "badges", "users"
+  add_foreign_key "badges", "users", column: "awarder_id"
   add_foreign_key "coin_adjustments", "users"
   add_foreign_key "coin_adjustments", "users", column: "actor_id"
   add_foreign_key "devlogs", "projects"

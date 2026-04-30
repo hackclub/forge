@@ -42,11 +42,33 @@ interface CoinAdjustment {
   created_at: string
 }
 
+interface BadgeEntry {
+  id: number
+  key: string | null
+  name: string
+  description: string | null
+  icon: string
+  color: string
+  awarded_at: string
+  awarder_name: string | null
+}
+
+const BADGE_COLOR_SWATCH: Record<string, string> = {
+  orange: 'bg-[#ee671c]/15 text-[#ffb595]',
+  emerald: 'bg-emerald-500/15 text-emerald-400',
+  amber: 'bg-amber-500/15 text-amber-400',
+  red: 'bg-red-500/15 text-red-400',
+  purple: 'bg-purple-500/15 text-purple-400',
+  blue: 'bg-blue-500/15 text-blue-400',
+  stone: 'bg-stone-500/15 text-stone-300',
+}
+
 export default function AdminUsersShow({
   user,
   projects,
   notes,
   kudos,
+  badges,
   coins,
   coin_adjustments,
   hackatime,
@@ -54,11 +76,13 @@ export default function AdminUsersShow({
   available_roles,
   available_permissions,
   available_regions,
+  badge_colors,
 }: {
   user: AdminUserDetail
   projects: { id: number; name: string; ships_count: number; created_at: string }[]
   notes: UserNote[]
   kudos: KudoEntry[]
+  badges: BadgeEntry[]
   coins: CoinSummary
   coin_adjustments: CoinAdjustment[]
   hackatime: HackatimeInfo | null
@@ -66,6 +90,7 @@ export default function AdminUsersShow({
   available_roles: string[]
   available_permissions: string[]
   available_regions: Record<string, string>
+  badge_colors: string[]
 }) {
   const currentUser = usePage<SharedProps>().props.auth.user
   const isSuperadmin = !!currentUser?.is_superadmin
@@ -77,6 +102,10 @@ export default function AdminUsersShow({
   const [kudoContent, setKudoContent] = useState('')
   const [coinAmount, setCoinAmount] = useState('')
   const [coinReason, setCoinReason] = useState('')
+  const [badgeName, setBadgeName] = useState('')
+  const [badgeDescription, setBadgeDescription] = useState('')
+  const [badgeIcon, setBadgeIcon] = useState('military_tech')
+  const [badgeColor, setBadgeColor] = useState(badge_colors[0] || 'orange')
 
   function handleBan() {
     if (!banReason.trim()) {
@@ -661,6 +690,127 @@ export default function AdminUsersShow({
           </div>
         ) : (
           <p className="text-stone-600 text-sm">No kudos yet.</p>
+        )}
+      </div>
+
+      <div className="mb-10">
+        <h2 className="text-xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-2">Badges</h2>
+        <p className="text-stone-500 text-sm mb-4">
+          Award custom badges shown on the user's public profile. Auto-earned badges (e.g. quests) appear here too.
+        </p>
+
+        <div className="bg-[#1c1b1b] ghost-border p-5 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+            <input
+              type="text"
+              value={badgeName}
+              onChange={(e) => setBadgeName(e.target.value)}
+              placeholder="Badge name"
+              className="bg-[#0e0e0e] border-none px-4 py-3 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600"
+            />
+            <input
+              type="text"
+              value={badgeIcon}
+              onChange={(e) => setBadgeIcon(e.target.value)}
+              placeholder="Icon (material symbol name)"
+              className="bg-[#0e0e0e] border-none px-4 py-3 text-sm font-mono text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600"
+            />
+          </div>
+          <textarea
+            value={badgeDescription}
+            onChange={(e) => setBadgeDescription(e.target.value)}
+            placeholder="Description (optional, shown on hover)"
+            rows={2}
+            className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 resize-y mb-3"
+          />
+          <div className="flex flex-wrap gap-2 mb-3">
+            {badge_colors.map((color) => {
+              const active = badgeColor === color
+              return (
+                <button
+                  key={color}
+                  onClick={() => setBadgeColor(color)}
+                  className={`px-3 py-2 text-[10px] font-bold uppercase tracking-[0.15em] transition-all cursor-pointer flex items-center gap-2 ${
+                    BADGE_COLOR_SWATCH[color] || BADGE_COLOR_SWATCH.orange
+                  } ${active ? 'ring-1 ring-[#ee671c]' : 'opacity-60 hover:opacity-100'}`}
+                >
+                  <span className="material-symbols-outlined text-sm">{badgeIcon || 'military_tech'}</span>
+                  {color}
+                </button>
+              )
+            })}
+          </div>
+          <button
+            onClick={() => {
+              if (!badgeName.trim()) return
+              router.post(
+                `/admin/users/${user.id}/add_badge`,
+                {
+                  name: badgeName.trim(),
+                  description: badgeDescription.trim(),
+                  icon: badgeIcon.trim() || 'military_tech',
+                  color: badgeColor,
+                },
+                {
+                  onSuccess: () => {
+                    setBadgeName('')
+                    setBadgeDescription('')
+                    setBadgeIcon('military_tech')
+                    setBadgeColor(badge_colors[0] || 'orange')
+                  },
+                },
+              )
+            }}
+            disabled={!badgeName.trim()}
+            className="signature-smolder text-[#4c1a00] px-5 py-2 text-xs font-bold uppercase tracking-[0.15em] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Award Badge
+          </button>
+        </div>
+
+        {badges.length > 0 ? (
+          <div className="space-y-2">
+            {badges.map((badge) => (
+              <div
+                key={badge.id}
+                className="bg-[#1c1b1b] ghost-border px-5 py-4 flex items-center gap-4"
+              >
+                <div
+                  className={`shrink-0 w-12 h-12 flex items-center justify-center ${BADGE_COLOR_SWATCH[badge.color] || BADGE_COLOR_SWATCH.orange}`}
+                >
+                  <span className="material-symbols-outlined text-2xl">{badge.icon}</span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-headline font-bold text-[#e5e2e1] text-sm">{badge.name}</span>
+                    {badge.key && (
+                      <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 bg-[#ee671c]/15 text-[#ffb595]">
+                        Auto
+                      </span>
+                    )}
+                  </div>
+                  {badge.description && (
+                    <p className="text-stone-400 text-xs mt-1 break-words">{badge.description}</p>
+                  )}
+                  <p className="text-stone-600 text-[10px] mt-1 uppercase tracking-[0.15em]">
+                    {badge.awarded_at}
+                    {badge.awarder_name ? ` · awarded by ${badge.awarder_name}` : ' · auto-awarded'}
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    if (confirm(`Remove the "${badge.name}" badge?`))
+                      router.delete(`/admin/users/${user.id}/badges/${badge.id}`)
+                  }}
+                  className="text-stone-600 hover:text-red-400 transition-colors shrink-0 cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-sm">close</span>
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-stone-600 text-sm">No badges yet.</p>
         )}
       </div>
 

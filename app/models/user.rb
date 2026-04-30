@@ -77,6 +77,8 @@ class User < ApplicationRecord
   has_many :referrals_made, class_name: "Referral", foreign_key: :referrer_id, dependent: :destroy, inverse_of: :referrer
   has_one :referral_received, class_name: "Referral", foreign_key: :referred_id, dependent: :destroy, inverse_of: :referred
   has_many :activity_days, class_name: "UserActivityDay", dependent: :destroy
+  has_many :badges, dependent: :destroy
+  has_many :awarded_badges, class_name: "Badge", foreign_key: :awarder_id, dependent: :nullify, inverse_of: :awarder
 
   STREAK_MULTIPLIER_TIERS = [
     [ 3,   1.02 ],

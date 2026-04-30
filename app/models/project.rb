@@ -65,6 +65,7 @@ class Project < ApplicationRecord
   has_one_attached :cover_image
 
   after_commit :sync_to_airtable, on: [ :create, :update ], if: -> { approved? }
+  after_update_commit :maybe_award_orph_quest, if: :saved_change_to_status?
   after_update_commit :process_cover_image_upload, if: -> { cover_image.attached? && cover_image_url.blank? }
 
   enum :status, { draft: 0, pending: 1, approved: 2, returned: 3, rejected: 4, pitch_approved: 7, pitch_pending: 8 }
@@ -155,6 +156,12 @@ class Project < ApplicationRecord
 
   def sync_to_airtable
     AirtableSyncJob.perform_later(id)
+  end
+
+  def maybe_award_orph_quest
+    return unless approved?
+
+    Badge.award_orph_quest!(user)
   end
 
   def process_cover_image_upload

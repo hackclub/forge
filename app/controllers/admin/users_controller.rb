@@ -28,6 +28,7 @@ class Admin::UsersController < Admin::ApplicationController
       projects: @projects.map { |p| serialize_project_row(p) },
       notes: @user.user_notes.includes(:author).order(created_at: :desc).map { |n| serialize_note(n) },
       kudos: @user.kudos.includes(:author).order(created_at: :desc).map { |k| serialize_kudo(k) },
+      badges: @user.badges.includes(:awarder).order(awarded_at: :desc).map { |b| serialize_badge(b) },
       coins: {
         balance: @user.coin_balance,
         earned: @user.coins_earned.round(2),
@@ -39,7 +40,8 @@ class Admin::UsersController < Admin::ApplicationController
       can: { destroy: policy(@user).destroy?, restore: policy(@user).restore? },
       available_roles: %w[user admin reviewer support fulfillment],
       available_permissions: User::AVAILABLE_PERMISSIONS,
-      available_regions: HasRegion::REGIONS
+      available_regions: HasRegion::REGIONS,
+      badge_colors: Badge::COLORS
     }
   end
 
@@ -58,6 +60,40 @@ class Admin::UsersController < Admin::ApplicationController
     audit!("user.kudo_destroyed", target: @user, metadata: { kudo_id: kudo.id, content: kudo.content })
     kudo.destroy
     redirect_to admin_user_path(@user), notice: "Kudos deleted."
+  end
+
+  def add_badge
+    @user = User.find(params[:id])
+    authorize @user, :show?
+
+    name = params[:name].to_s.strip
+    if name.blank?
+      redirect_to admin_user_path(@user), alert: "Badge needs a name."
+      return
+    end
+
+    color = params[:color].to_s.presence_in(Badge::COLORS) || "orange"
+    icon = params[:icon].to_s.strip.presence || "military_tech"
+
+    badge = @user.badges.create!(
+      awarder: current_user,
+      name: name,
+      description: params[:description].to_s.strip.presence,
+      icon: icon,
+      color: color,
+      awarded_at: Time.current
+    )
+    audit!("user.badge_added", target: @user, metadata: { badge_id: badge.id, name: badge.name })
+    redirect_to admin_user_path(@user), notice: "Badge awarded."
+  end
+
+  def destroy_badge
+    @user = User.find(params[:id])
+    authorize @user, :show?
+    badge = @user.badges.find(params[:badge_id])
+    audit!("user.badge_destroyed", target: @user, metadata: { badge_id: badge.id, name: badge.name, key: badge.key })
+    badge.destroy
+    redirect_to admin_user_path(@user), notice: "Badge removed."
   end
 
   def coin_history
@@ -320,6 +356,19 @@ class Admin::UsersController < Admin::ApplicationController
       author_name: kudo.author.display_name,
       author_avatar: kudo.author.avatar,
       created_at: kudo.created_at.strftime("%b %d, %Y")
+    }
+  end
+
+  def serialize_badge(badge)
+    {
+      id: badge.id,
+      key: badge.key,
+      name: badge.name,
+      description: badge.description,
+      icon: badge.icon,
+      color: badge.color,
+      awarded_at: badge.awarded_at.strftime("%b %d, %Y"),
+      awarder_name: badge.awarder&.display_name
     }
   end
 

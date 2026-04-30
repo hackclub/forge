@@ -31,9 +31,16 @@ interface StaffPick {
   user_avatar: string
 }
 
+interface OrphMotivation {
+  approved_count: number
+  goal: number
+  dino_image: string
+}
+
 interface Props {
   user: DashboardUser
   stats: Stats
+  orph_motivation: OrphMotivation
   projects: DashboardProject[]
   news_posts: NewsPostSummary[]
   staff_picks: StaffPick[]
@@ -59,7 +66,10 @@ const STATUS_COLORS: Record<ProjectStatus, string> = {
   pitch_pending: 'bg-amber-500/15 text-amber-400',
 }
 
-export default function HomeIndex({ user, projects, news_posts, staff_picks }: Props) {
+export default function HomeIndex({ user, orph_motivation, projects, news_posts, staff_picks }: Props) {
+  const orphProgress = Math.min(100, (orph_motivation.approved_count / orph_motivation.goal) * 100)
+  const orphReached = orph_motivation.approved_count >= orph_motivation.goal
+
   return (
     <>
       <Head title="Dashboard - Forge" />
@@ -67,6 +77,43 @@ export default function HomeIndex({ user, projects, news_posts, staff_picks }: P
         <section>
           <h1 className="text-5xl font-headline font-bold tracking-tight text-[#e5e2e1] mb-2">Dashboard</h1>
           <p className="text-stone-500">Here's what the forge is forging today, {user.display_name.split(' ')[0]}.</p>
+        </section>
+
+        <section className="bg-[#1c1b1b] ghost-border p-6 sm:p-8 flex flex-col sm:flex-row items-center gap-6">
+          <img
+            src={orph_motivation.dino_image}
+            alt="Orph the dino"
+            className="w-28 h-28 sm:w-32 sm:h-32 object-contain shrink-0"
+          />
+          <div className="flex-1 w-full min-w-0">
+            <div className="flex items-center gap-2 mb-2">
+              <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-500">Orph's motivation</p>
+              <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 bg-[#ee671c]/15 text-[#ffb595]">
+                <span className="material-symbols-outlined text-[11px]">flag</span>
+                Quest
+              </span>
+            </div>
+            <h2 className="text-xl sm:text-2xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-2">
+              {orphReached ? 'The forge did it — Orph is grinning again!' : 'Help cheer Orph back up'}
+            </h2>
+            <p className="text-stone-400 text-sm mb-4">
+              Orph was tinkering away in his workshop when his project crashed and shattered to pieces. Orph got very very sad. As a community our goal is to build 100 projects together and cheer him up and show him that he can make cool stuff too!
+            </p>
+            <div className="h-3 bg-[#0e0e0e] ghost-border overflow-hidden">
+              <div
+                className="h-full signature-smolder transition-all duration-500"
+                style={{ width: `${orphProgress}%` }}
+              />
+            </div>
+            <div className="flex items-center justify-between mt-2">
+              <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-500">
+                {orph_motivation.approved_count} / {orph_motivation.goal} projects
+              </span>
+              <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#ffb595]">
+                {Math.floor(orphProgress)}%
+              </span>
+            </div>
+          </div>
         </section>
 
         <section className="bg-[#1c1b1b] ghost-border p-8">
