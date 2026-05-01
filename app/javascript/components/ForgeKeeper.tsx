@@ -244,11 +244,11 @@ export default function ForgeKeeper({ userName }: Props) {
             key={dinoSrc}
             src={dinoSrc}
             alt="The Forge Keeper"
-            className="w-20 h-20 sm:w-24 sm:h-24 object-contain bg-[#1c1b1b] ghost-border p-1.5 group-hover:bg-[#2a2a2a] transition-colors animate-[tour-bounce_400ms_ease-out]"
+            className="w-12 h-12 sm:w-24 sm:h-24 object-contain bg-[#1c1b1b] ghost-border p-1 sm:p-1.5 group-hover:bg-[#2a2a2a] transition-colors animate-[tour-bounce_400ms_ease-out]"
           />
           {unread && (
             <span
-              className="absolute -top-1 -right-1 w-4 h-4 bg-[#ee671c] border-2 border-[#0e0e0e]"
+              className="absolute -top-1 -right-1 w-3 h-3 sm:w-4 sm:h-4 bg-[#ee671c] border-2 border-[#0e0e0e]"
               aria-label="Unread message from the Forge Keeper"
             />
           )}
