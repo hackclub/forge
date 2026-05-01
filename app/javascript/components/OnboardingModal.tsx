@@ -152,6 +152,17 @@ function useTargetRect(selector: string | undefined) {
         return
       }
       const r = el.getBoundingClientRect()
+      const visible =
+        r.width > 0 &&
+        r.height > 0 &&
+        r.right > 0 &&
+        r.bottom > 0 &&
+        r.left < window.innerWidth &&
+        r.top < window.innerHeight
+      if (!visible) {
+        setRect(null)
+        return
+      }
       setRect({ top: r.top, left: r.left, width: r.width, height: r.height })
     }
 

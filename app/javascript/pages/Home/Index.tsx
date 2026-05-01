@@ -75,10 +75,10 @@ export default function HomeIndex({ user, orph_motivation, projects, news_posts,
     <>
       <Head title="Dashboard - Forge" />
       <div className="p-5 md:p-12 max-w-6xl mx-auto space-y-10">
-        <section className="flex items-start justify-between gap-4 relative">
-          <div>
-            <h1 className="text-5xl font-headline font-bold tracking-tight text-[#e5e2e1] mb-2">Dashboard</h1>
-            <p className="text-stone-500">Here's what the forge is forging today, {user.display_name.split(' ')[0]}.</p>
+        <section className="flex items-start justify-between gap-3 sm:gap-4 relative">
+          <div className="min-w-0 flex-1">
+            <h1 className="text-3xl sm:text-5xl font-headline font-bold tracking-tight text-[#e5e2e1] mb-2">Dashboard</h1>
+            <p className="text-stone-500 text-sm sm:text-base">Here's what the forge is forging today, {user.display_name.split(' ')[0]}.</p>
           </div>
           <div className="relative shrink-0">
             <ForgeKeeper userName={user.display_name.split(' ')[0]} />
