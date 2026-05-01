@@ -3,7 +3,7 @@ class HomeController < ApplicationController
     projects = current_user.projects.kept.order(updated_at: :desc).to_a
     news_posts = NewsPost.includes(:author).published.limit(3)
     staff_picks = Project.kept.where(hidden: false).includes(:user).staff_picks.limit(3)
-    approved_count = Project.kept.where(status: :approved).count
+    approved_count = Project.kept.where(status: %i[approved pending pitch_approved pitch_pending]).count
 
     render inertia: "Home/Index", props: {
       user: {

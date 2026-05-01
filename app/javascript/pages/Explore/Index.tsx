@@ -42,7 +42,7 @@ export default function ExploreIndex({
                 <span className="text-[#ee671c]">Explore</span>
               </h1>
               <p className="text-stone-400 text-lg leading-relaxed">
-                Discover other Hack Clubbers working on hardware projects!
+                Discover what other forgers are workin on! (feel free to steal some ideas)
               </p>
             </div>
             <form onSubmit={search} className="flex gap-2 w-full md:w-auto">

@@ -1,5 +1,6 @@
 import { Head, Link } from '@inertiajs/react'
 import type { ProjectStatus, NewsPostSummary } from '@/types'
+import ForgeKeeper from '@/components/ForgeKeeper'
 
 interface DashboardUser {
   display_name: string
@@ -74,12 +75,20 @@ export default function HomeIndex({ user, orph_motivation, projects, news_posts,
     <>
       <Head title="Dashboard - Forge" />
       <div className="p-5 md:p-12 max-w-6xl mx-auto space-y-10">
-        <section>
-          <h1 className="text-5xl font-headline font-bold tracking-tight text-[#e5e2e1] mb-2">Dashboard</h1>
-          <p className="text-stone-500">Here's what the forge is forging today, {user.display_name.split(' ')[0]}.</p>
+        <section className="flex items-start justify-between gap-4 relative">
+          <div>
+            <h1 className="text-5xl font-headline font-bold tracking-tight text-[#e5e2e1] mb-2">Dashboard</h1>
+            <p className="text-stone-500">Here's what the forge is forging today, {user.display_name.split(' ')[0]}.</p>
+          </div>
+          <div className="relative shrink-0">
+            <ForgeKeeper userName={user.display_name.split(' ')[0]} />
+          </div>
         </section>
 
-        <section className="bg-[#1c1b1b] ghost-border p-6 sm:p-8 flex flex-col sm:flex-row items-center gap-6">
+        <section
+          data-tour="dashboard-quest"
+          className="bg-[#1c1b1b] ghost-border p-6 sm:p-8 flex flex-col sm:flex-row items-center gap-6"
+        >
           <img
             src={orph_motivation.dino_image}
             alt="Orph the dino"
@@ -116,11 +125,12 @@ export default function HomeIndex({ user, orph_motivation, projects, news_posts,
           </div>
         </section>
 
-        <section className="bg-[#1c1b1b] ghost-border p-8">
+        <section data-tour="dashboard-projects" className="bg-[#1c1b1b] ghost-border p-8">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-headline font-bold text-[#e5e2e1] tracking-tight">Your projects</h2>
             <Link
               href="/projects/new"
+              data-tour="dashboard-new-project"
               className="signature-smolder text-[#4c1a00] px-4 py-2 font-bold uppercase tracking-wider text-xs flex items-center gap-2"
             >
               <span className="material-symbols-outlined text-base">add</span>

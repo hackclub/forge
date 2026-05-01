@@ -32,6 +32,10 @@ export default function SettingsShow({
     router.post('/profile/sync_address', {}, { preserveScroll: true })
   }
 
+  function restartOnboarding() {
+    router.post('/onboarding/restart', {}, { preserveScroll: false, preserveState: false })
+  }
+
   return (
     <>
       <Head title="Settings - Forge" />
@@ -112,6 +116,24 @@ export default function SettingsShow({
             >
               <span className="material-symbols-outlined text-sm">sync</span>
               Refresh from HCA
+            </button>
+          </div>
+        </section>
+
+        <section className="bg-[#1c1b1b] ghost-border p-6 md:p-8 mt-6">
+          <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">
+            Onboarding
+          </h2>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
+            <p className="text-stone-400 text-sm">
+              Want the welcome tour again? Replay Orph's walkthrough of the forge.
+            </p>
+            <button
+              onClick={restartOnboarding}
+              className="ghost-border bg-[#0e0e0e] hover:bg-[#2a2a2a] text-stone-400 hover:text-[#ffb595] px-4 py-2 uppercase tracking-wider text-[10px] font-bold flex items-center justify-center gap-2 cursor-pointer transition-colors shrink-0"
+            >
+              <span className="material-symbols-outlined text-sm">replay</span>
+              Restart tour
             </button>
           </div>
         </section>

@@ -3,13 +3,13 @@ import { usePage, router, Link } from '@inertiajs/react'
 import type { SharedProps } from '@/types'
 
 const navItems = [
-  { href: '/explore', label: 'Explore', icon: 'explore', authOnly: false },
-  { href: '/home', label: 'Dashboard', icon: 'dashboard', authOnly: true },
-  { href: '/shop', label: 'Shop', icon: 'storefront', authOnly: true },
-  { href: '/leaderboard', label: 'Leaderboard', icon: 'emoji_events', authOnly: true },
-  { href: '/referrals', label: 'Referrals', icon: 'group_add', authOnly: true },
-  { href: '/news', label: 'News', icon: 'campaign', authOnly: true },
-  { href: '/docs', label: 'Resources', icon: 'menu_book', authOnly: false },
+  { href: '/explore', label: 'Explore', icon: 'explore', authOnly: false, tour: 'nav-explore' },
+  { href: '/home', label: 'Dashboard', icon: 'dashboard', authOnly: true, tour: 'nav-dashboard' },
+  { href: '/shop', label: 'Shop', icon: 'storefront', authOnly: true, tour: 'nav-shop' },
+  { href: '/leaderboard', label: 'Leaderboard', icon: 'emoji_events', authOnly: true, tour: undefined },
+  { href: '/referrals', label: 'Referrals', icon: 'group_add', authOnly: true, tour: undefined },
+  { href: '/news', label: 'News', icon: 'campaign', authOnly: true, tour: undefined },
+  { href: '/docs', label: 'Resources', icon: 'menu_book', authOnly: false, tour: 'nav-docs' },
 ]
 
 export default function Nav() {
@@ -94,6 +94,7 @@ export default function Nav() {
                 <Link
                   key={item.href}
                   href={item.href}
+                  data-tour={item.tour}
                   className={`px-4 py-3 flex items-center gap-3 transition-all duration-150 font-headline font-medium tracking-tight corner-accents ${
                     isActive ? 'text-[#ee671c] bg-[#353534]' : 'text-stone-500 hover:text-stone-200 hover:bg-[#353534]'
                   }`}
@@ -135,6 +136,7 @@ export default function Nav() {
             <>
               <Link
                 href="/projects/new"
+                data-tour="new-project"
                 className="w-full signature-smolder text-[#4c1a00] font-headline font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 active:scale-95 transition-transform"
               >
                 <span className="material-symbols-outlined text-lg">add</span>
@@ -156,6 +158,7 @@ export default function Nav() {
                 </Link>
                 {shared.auth.user.current_streak > 0 && (
                   <span
+                    data-tour="streak-target"
                     className="flex items-center gap-1 bg-[#ee671c]/10 text-[#ffb595] px-2 py-1 shrink-0"
                     title={`${shared.auth.user.current_streak} day streak`}
                   >
@@ -166,8 +169,9 @@ export default function Nav() {
               </div>
               <button
                 onClick={signOut}
-                className="text-[10px] text-stone-500 hover:text-stone-300 uppercase tracking-wider text-left px-2 transition-colors cursor-pointer"
+                className="w-full ghost-border bg-[#0e0e0e] hover:bg-[#2a2a2a] text-stone-400 hover:text-[#ffb595] px-3 py-2 uppercase tracking-wider text-[10px] font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer corner-accents"
               >
+                <span className="material-symbols-outlined text-sm">logout</span>
                 Sign Out
               </button>
             </>
