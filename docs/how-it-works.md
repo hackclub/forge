@@ -6,27 +6,6 @@
 
 Forge will fund as much as you need to build any hardware project! Here's how:
 
-
-## Step 3: Start Building
-
-Once approved, your project page unlocks the **Devlog** section. Document your progress as you build:
-
-- Add devlog entries directly on your project page, OR
-- Create a `JOURNAL.md` file in your GitHub repo and sync it
-
-See [JOURNAL.md Format](/docs/requirements/journal-format) for details.
-
-## Step 4: Ship It
-
-When you've finished, ship it! This involves publishing your functioning design out there for the world to see.
-See [Shipping](/docs/requirements/shipping) for more details.
-
-
-
-
-
-
-
 ## 1. Start a new project!
 
 ### Option 1: on the website
@@ -72,19 +51,21 @@ See [JOURNAL.md Format](/docs/requirements/journal-format) and [Good Journalling
 
 **A great example journal entry can be found [here!](https://hwdocs.hackclub.dev/shipping/example-journal/)**
 
-## 3. Submit your design, get coins!
+## 3. Ship your design, get coins!
 
-Once you think you're done your project, make sure to go over each item in the **[submission requirements!](/about/submission-guidelines)** It'll ensure that your project is good to ship. Your project will be returned if it does not follow the requirements.
+Once you think you're done your project, make sure to go over each item in the **[project requirements!](/docs/requirements/project-guidelines)** It'll ensure that your project is good to ship. Your project will be returned if it does not follow the requirements.
+
+
+When you've finished, ship it! This involves publishing your functioning design out there for the world to see.
+See [Shipping](/docs/requirements/shipping) for more details.
 
 **Taking the extra few minutes to go through the checklist makes the review process faster for you and everyone else, since it means that we return projects less often.**
 
 With coins, you can redeem them for funding for your project. If you don't need any more funding, you can spend these in the shop!
 
-## 4. Build your project, get tickets!
+## 4. Build your project, get more coins!
 
 Order your parts and actually build your project! Make sure you keep journalling!
 
 At the end, post a demo on reddit or YouTube! You'll get more for your build which you can spend in the shop!
 
-
-<!-- _Not all projects need a grant. You can earn extra tickets for the time spent if you do not request a grant._ -->
