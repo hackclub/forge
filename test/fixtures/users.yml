@@ -27,6 +27,7 @@
 #  last_name           :string
 #  last_seen_at        :datetime
 #  maintenance_bypass  :boolean          default(FALSE), not null
+#  onboarded_at        :datetime
 #  permissions         :string           default([]), not null, is an Array
 #  phone_number        :string
 #  postal_code         :string

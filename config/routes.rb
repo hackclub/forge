@@ -314,6 +314,9 @@ Rails.application.routes.draw do
 
   get "home" => "home#index", as: :home
   get "settings" => "settings#show", as: :settings
+  post "onboarding/complete" => "onboarding#complete", as: :complete_onboarding
+  post "onboarding/restart" => "onboarding#restart", as: :restart_onboarding
+  post "forge_keeper/chat" => "forge_keeper#chat", as: :forge_keeper_chat
   post "profile/sync_address" => "profile#sync_address", as: :sync_address
   get "rsvp" => "rsvps#index", as: :rsvp
   post "rsvp" => "rsvps#create"

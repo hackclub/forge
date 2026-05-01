@@ -2,11 +2,13 @@ import type { ReactNode } from 'react'
 import { usePage } from '@inertiajs/react'
 import Nav from '@/components/Nav'
 import FlashMessages from '@/components/FlashMessages'
+import OnboardingModal from '@/components/OnboardingModal'
 import type { SharedProps } from '@/types'
 
 export default function DefaultLayout({ children }: { children: ReactNode }) {
   const { maintenance_mode, auth } = usePage<SharedProps>().props
   const showBanner = maintenance_mode && auth.user?.is_staff
+  const showOnboarding = !!auth.user?.needs_onboarding && !auth.user?.is_banned
 
   return (
     <div className="min-h-screen bg-[#0E0E0E] text-[#e5e2e1]">
@@ -21,6 +23,7 @@ export default function DefaultLayout({ children }: { children: ReactNode }) {
         <FlashMessages />
         {children}
       </main>
+      {showOnboarding && <OnboardingModal />}
     </div>
   )
 }

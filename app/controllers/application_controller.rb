@@ -30,7 +30,8 @@ class ApplicationController < ActionController::Base
           is_staff: u.staff?,
           is_superadmin: u.superadmin?,
           is_banned: u.is_banned,
-          current_streak: u.current_streak
+          current_streak: u.current_streak,
+          needs_onboarding: u.onboarded_at.nil?
         }
       }
     }

@@ -9,6 +9,7 @@ export interface User {
   is_superadmin: boolean
   is_banned: boolean
   current_streak: number
+  needs_onboarding: boolean
 }
 
 export type FlashData = Record<string, string>
