@@ -33,10 +33,20 @@ class Devlog < ApplicationRecord
 
   enum :status, { draft: 0, pending: 1, approved: 2, returned: 3 }
 
+  IMAGE_PATTERN = /!\[[^\]]*\]\([^)]+\)|<img\b[^>]*>/i
+
   validates :title, presence: true
   validates :content, presence: true
+  validate :content_includes_image
 
   default_scope { order(created_at: :desc) }
+
+  def content_includes_image
+    return if content.blank?
+    return if content.match?(IMAGE_PATTERN)
+
+    errors.add(:content, "must include at least one image — paste or drop one into the devlog")
+  end
 
   def parsed_hours
     return 0 unless time_spent
