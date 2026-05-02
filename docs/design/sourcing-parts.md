@@ -82,15 +82,9 @@ Coming soon.
 - Most vendors do not take international cards [cards issued outside India], which unfortunately, HCB falls into the category of. Contact your local vendors to try to get that changed!
 - Here are some vendors that are documented to work with HCB cards currently, segregated into categories
     - Electronic parts (RPIs, modules, power supplies and the like)
-        - [Silverline Electronics](https://www.silverlineelectronics.in/)
-        - [RoboSap](https://robosap.in/)
-        - [RoboticsDNA](https://roboticsdna.in/)
+        - [Robu](https://robu.in/)
+        - [Robocraze](https://robocraze.com/)
         - [EBhoot](https://ebhoot.in/)
-        - [Electronicscomp](https://www.electronicscomp.com/)
-        - [Sharvi Electronics](https://sharvielectronics.com/)
-        - [Novo3D](https://novo3d.in/)
-    - 3D printed parts (3D printing as a Service, JLC3DP-alike)
-        - [3Ding](https://www.3ding.in/)
 
 > confirmed more vendors? wanna add specific notes for your country? contribute [here](https://github.com/hackclub/forge/edit/main/docs/design/sourcing-parts.md)!! You'd be helping a ton of people!
 

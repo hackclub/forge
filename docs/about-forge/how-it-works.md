@@ -46,7 +46,7 @@ You can:
 - Add devlog entries directly on your project page, OR
 - Create a `JOURNAL.md` file in your GitHub repo and sync it
 
-See [JOURNAL.md Format](/docs/requirements/journal-format) and [Good Journalling](/docs/requirements/how-to-journal) for details.
+See [JOURNAL.md Format](/docs/design/journal-format) and [Good Journalling](/docs/design/how-to-journal) for details.
 
 
 **A great example journal entry can be found [here!](https://hwdocs.hackclub.dev/shipping/example-journal/)**

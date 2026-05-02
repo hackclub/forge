@@ -1,5 +1,5 @@
 
-| title       | Shipping                            |
+| title       | What is Shipping?                   |
 | ----------- | ----------------------------------- |
 | description | A guide on how to create good ships |
 
