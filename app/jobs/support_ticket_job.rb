@@ -3,6 +3,7 @@ class SupportTicketJob < ApplicationJob
 
   def perform(slack_user_id:, channel_id:, message_ts:, text:, files: nil)
     return if SupportTicket.exists?(thread_ts: message_ts)
+    return unless message_still_exists?(channel_id, message_ts)
 
     user_info = slack_client.users_info(user: slack_user_id)
     profile = user_info&.user&.profile
@@ -128,5 +129,13 @@ class SupportTicketJob < ApplicationJob
 
   def slack_client
     @slack_client ||= Slack::Web::Client.new(token: ENV.fetch("SLACK_BOT_TOKEN", nil))
+  end
+
+  def message_still_exists?(channel, ts)
+    result = slack_client.conversations_history(channel: channel, oldest: ts, latest: ts, inclusive: true, limit: 1)
+    Array(result&.messages).any? { |m| m["ts"] == ts }
+  rescue StandardError => e
+    Rails.logger.warn("Slack message existence check failed: #{e.class}: #{e.message}")
+    true
   end
 end
