@@ -67,6 +67,21 @@
   list-style-type: disc;
 }
 
+/* Nested unordered list styles: three tiers with distinct symbols */
+.markdown-content ul ul {
+  list-style-type: circle;
+  margin-top: 0.25rem;
+  margin-bottom: 0;
+  padding-left: 1rem;
+}
+
+.markdown-content ul ul ul {
+  list-style-type: square;
+  margin-top: 0.25rem;
+  margin-bottom: 0;
+  padding-left: 1rem;
+}
+
 .markdown-content ol {
   list-style-type: decimal;
 }

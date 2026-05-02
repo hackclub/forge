@@ -11,5 +11,7 @@ The docs section is forever a WIP (poke @cybdo on slack for anything inaccurate 
 
 in the meantime, check out [hwdocs.hackclub.dev](https://hwdocs.hackclub.dev) by [@alexren](https://github.com/qcoral)!
 
+*#forging-it*
+
 
 

@@ -20,7 +20,7 @@ Here's an overall list of criteria that applies to all tiers, regardless of your
 
 ### Originality & idea
 
-Almost every idea out there has been thought of before - what matters is that when designing it, which means that you do *not* do the following:
+Almost every idea out there has been thought of before - what matters is the process in which you design and build it yourself, which means that you do *not* do the following:
 
 - Directly copy paste schematics
 - Directly copy paste layouts
@@ -28,12 +28,20 @@ Almost every idea out there has been thought of before - what matters is that wh
 - Directly copy paste 3D printed / manufactured models (reference parts are OK)
 - **In general, do not copy paste stuff directly - use them as references**
 
-Generally speaking, each project must be closer to a product than a demo - that doesn't mean go ultra advertising mode, but that does mean that a breadboarded together project with no case *doesn't* count.
-
 Making multiple very-similar projects will also result in a decrease of coins or a rejection (if they are too simillar).
 
-(more to be added)
 
+### DIY First
+Do as much of the design and implementation yourself as you can, i.e. write the code, solder the circuits, and design the parts. Avoid relying on premade modules or plug‑and‑play solutions for the core of your project.
+
+- Don't drop in complete modules that do the whole task for you (we wont pay for you to plug a raspberry pi into a monitor.)
+- Don't submit projects that are basically prebuilt kits or full templates
+- Don't copy paste third‑party code or designs without understanding or attribution
+
+References, examples, and small helper libraries are fine, but cite them and explain what you built yourself. Projects that are mostly assembled from premade parts may receive fewer coins or be rejected.
+
+
+After that, go wild! If you're unsure of anything, feel free to ask in #forge or pitch your idea in #forgery! Remember, projects under T1 are also welcome to pitch for feedback!
 
 
 
