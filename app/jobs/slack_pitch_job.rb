@@ -2,14 +2,16 @@ class SlackPitchJob < ApplicationJob
   queue_as :default
 
   def perform(slack_user_id:, channel_id:, message_ts:, text:)
+    return if Project.exists?(slack_message_ts: message_ts)
+    return unless Rails.cache.write("slack_pitch_lock:#{message_ts}", true, expires_in: 10.minutes, unless_exist: true)
+
     user = User.find_by(slack_id: slack_user_id)
     unless user
       post_reply(channel_id, message_ts, "Hey! You need to sign in to Forge first before pitching. Head to #{ENV.fetch('APP_URL', 'https://forge.hackclub.com')} and sign in with Slack.")
       return
     end
 
-    existing = Project.find_by(slack_message_ts: message_ts)
-    return if existing
+    return if Project.exists?(slack_message_ts: message_ts)
 
     parsed = parse_pitch_with_ai(text)
 
