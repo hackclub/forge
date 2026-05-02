@@ -4,6 +4,9 @@ import { createRoot } from 'react-dom/client'
 import DefaultLayout from '../layouts/DefaultLayout'
 import type { ReactNode } from 'react'
 
+// Enhance server-rendered markdown links (internal prefetch + Inertia visits)
+import './markdown-links'
+
 interface PageModule {
   default: { layout?: (page: ReactNode) => ReactNode }
 }
