@@ -186,6 +186,7 @@ export interface AdminDevlog {
   title: string
   content: string
   time_spent: string | null
+  time_hours: number | null
   created_at: string
 }
 

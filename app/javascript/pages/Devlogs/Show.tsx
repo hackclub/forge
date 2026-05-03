@@ -17,6 +17,7 @@ interface Props {
     title: string
     content: string
     time_spent: string | null
+    time_hours: number | null
     created_at: string
   }
   can_edit: boolean

@@ -32,6 +32,7 @@ interface DevlogEntry {
   title: string
   content: string
   time_spent: string | null
+  time_hours: number | null
   created_at: string
 }
 
@@ -282,7 +283,7 @@ export default function ProjectsShow({
   const isPitchReturn = isReturned && !isNormalTier && project.from_slack && devlogs.length === 0
 
   const totalHours =
-    Math.round(devlogs.reduce((sum, entry) => sum + parseTimeSpentToHours(entry.time_spent), 0) * 10) / 10
+    Math.round(devlogs.reduce((sum, entry) => sum + (entry.time_hours ?? 0), 0) * 10) / 10
 
   const sortedDevlogs = useMemo(() => {
     return [...devlogs].sort((a, b) => {
@@ -652,6 +653,15 @@ export default function ProjectsShow({
                 <div className="space-y-4">
                   {sortedDevlogs.map((entry) => (
                     <div key={entry.id} className="ghost-border bg-[#1c1b1b] p-6 overflow-hidden">
+                      {can.update && entry.time_hours === null && entry.time_spent && (
+                        <div className="bg-amber-900/30 border border-amber-600/50 rounded-none p-3 mb-4 flex items-start gap-2">
+                          <span className="material-symbols-outlined text-amber-500 text-lg shrink-0 mt-0.5">warning</span>
+                          <div className="text-xs text-amber-100/90">
+                            <p className="font-semibold mb-1">Time entry needs review</p>
+                            <p>We couldn't automatically parse the time spent (&quot;<span className="text-amber-300">{entry.time_spent}</span>&quot;). Please edit this entry to use a clearer format like &quot;3 hours&quot;, &quot;3h 15m&quot;, or &quot;3:15&quot;.</p>
+                          </div>
+                        </div>
+                      )}
                       <div className="flex items-start justify-between mb-3">
                         <div>
                           <div className="flex items-center gap-2 mb-1 flex-wrap">
@@ -813,6 +823,15 @@ export default function ProjectsShow({
                 <div className="space-y-4">
                   {sortedDevlogs.map((entry) => (
                     <div key={entry.id} className="ghost-border bg-[#1c1b1b] p-6 overflow-hidden">
+                      {can.update && entry.time_hours === null && entry.time_spent && (
+                        <div className="bg-amber-900/30 border border-amber-600/50 rounded-none p-3 mb-4 flex items-start gap-2">
+                          <span className="material-symbols-outlined text-amber-500 text-lg shrink-0 mt-0.5">warning</span>
+                          <div className="text-xs text-amber-100/90">
+                            <p className="font-semibold mb-1">Time entry needs review</p>
+                            <p>We couldn't automatically parse the time spent (&quot;<span className="text-amber-300">{entry.time_spent}</span>&quot;). Please edit this entry to use a clearer format like &quot;3 hours&quot;, &quot;3h 15m&quot;, or &quot;3:15&quot;.</p>
+                          </div>
+                        </div>
+                      )}
                       {editingDevlogId === entry.id ? (
                         <form onSubmit={(e) => submitEditDevlog(e, entry.id)} className="space-y-4">
                           <div>
@@ -1008,7 +1027,7 @@ export default function ProjectsShow({
             </div>
           )}
 
-          {showWebDevlog && devlogs.length > 0 && (
+            {(showWebDevlog || showGitDevlog) && devlogs.length > 0 && (
             <div className="ghost-border bg-[#1c1b1b] p-6">
               <div className="flex items-center gap-2 mb-4">
                 <span className="material-symbols-outlined text-[#ffb595] text-lg">schedule</span>

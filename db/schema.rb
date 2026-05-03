@@ -156,6 +156,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_01_000309) do
     t.datetime "reviewed_at"
     t.bigint "reviewer_id"
     t.integer "status", default: 0, null: false
+    t.decimal "time_hours", precision: 8, scale: 2
     t.string "time_spent"
     t.string "title"
     t.datetime "updated_at", null: false

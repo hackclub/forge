@@ -32,10 +32,11 @@ class SyncJournalJob < ApplicationJob
         project_id: project.id,
         title: entry[:title],
         content: content,
-        time_spent: entry[:time_spent]
+        time_spent: entry[:time_spent],
+        time_hours: TimeSpentParser.parse(entry[:time_spent])
       )
       if devlog.save
-        Rails.logger.info("SyncJournal: created devlog '#{entry[:title]}' with time_spent=#{entry[:time_spent]}")
+        Rails.logger.info("SyncJournal: created devlog '#{entry[:title]}' with time_spent=#{entry[:time_spent]}, time_hours=#{devlog.time_hours}")
       else
         Rails.logger.error("SyncJournal: failed to create devlog '#{entry[:title]}': #{devlog.errors.full_messages}")
       end

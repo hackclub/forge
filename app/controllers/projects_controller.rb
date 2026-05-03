@@ -397,6 +397,7 @@ class ProjectsController < ApplicationController
       title: devlog.title,
       content: devlog.content,
       time_spent: devlog.time_spent,
+      time_hours: devlog.time_hours&.to_f,
       created_at: devlog.created_at.strftime("%B %d, %Y")
     }
   end
