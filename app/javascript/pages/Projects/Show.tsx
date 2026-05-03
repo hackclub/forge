@@ -634,7 +634,7 @@ export default function ProjectsShow({
                         JOURNAL.md" above.
                       </p>
                       <a
-                        href="/docs/requirements/journal-format"
+                        href="/docs/design/journal-format"
                         className="text-[#ffb595] text-xs hover:underline mt-2 inline-block"
                       >
                         See the format guide
