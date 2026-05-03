@@ -242,6 +242,12 @@ Rails.application.routes.draw do
           post :toggle
         end
       end
+      resources :reel_payouts, only: [ :index ] do
+        member do
+          post :approve
+          post :reject
+        end
+      end
       resources :news_posts, only: [ :index, :create, :update, :destroy ] do
         member do
           post :toggle
@@ -335,6 +341,13 @@ Rails.application.routes.draw do
   get "news" => "news#index", as: :news
   get "news/:id" => "news#show", as: :news_post
 
+  get "feed" => "feed#index", as: :feed
+  resources :reels, only: [ :edit, :update, :destroy ] do
+    resource :kudo, only: [ :create, :destroy ], module: :reels, controller: "kudos"
+    resource :view, only: [ :create ], module: :reels, controller: "views"
+    resources :comments, only: [ :index, :create, :destroy ], module: :reels
+  end
+
   resources :projects, except: :index do
     collection do
       post :import_from_github
@@ -353,6 +366,7 @@ Rails.application.routes.draw do
     end
     resources :devlogs, only: [ :show, :create, :update, :destroy ]
     post "devlog_image" => "devlogs#upload_image", as: :devlog_image
+    resources :reels, only: [ :index, :new, :create ]
   end
 
   get "docs" => "markdown#show", as: :docs
