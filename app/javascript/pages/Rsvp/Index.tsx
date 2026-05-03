@@ -215,15 +215,11 @@ export default function RsvpIndex() {
       <Head title="Forge" />
 
       <div className="min-h-screen bg-[#0e0e0e] text-[#e5e2e1] relative overflow-hidden flex flex-col">
-        <FloatingIcons />
-
         <div
-          className="fixed inset-0 pointer-events-none z-0"
-          style={{
-            backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(168,138,126,0.04) 1px, transparent 0)',
-            backgroundSize: '48px 48px',
-          }}
+          className="fixed inset-0 pointer-events-none z-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: 'url(/login_page_bg.png)' }}
         />
+        <div className="fixed inset-0 pointer-events-none z-0 bg-[#0e0e0e]/70" />
 
         <nav className="relative z-10 flex justify-between items-center px-8 md:px-16 py-8">
           <span className="text-2xl font-bold tracking-tighter text-[#ffb595] uppercase font-headline">Forge</span>
@@ -256,7 +252,6 @@ export default function RsvpIndex() {
             <span className="material-symbols-outlined text-lg">local_fire_department</span>
             Get Started
           </a>
-          <p className="text-stone-600 text-[10px] uppercase tracking-[0.2em] font-bold mt-4">Sign in with Hack Club</p>
         </main>
 
         <section className="relative z-10 px-6 md:px-16 pt-24 pb-32 max-w-[1200px] mx-auto w-full">

@@ -7,7 +7,6 @@ const navItems = [
   { href: '/home', label: 'Dashboard', icon: 'dashboard', authOnly: true, tour: 'nav-dashboard' },
   { href: '/shop', label: 'Shop', icon: 'storefront', authOnly: true, tour: 'nav-shop' },
   { href: '/leaderboard', label: 'Leaderboard', icon: 'emoji_events', authOnly: true, tour: undefined },
-  { href: '/referrals', label: 'Referrals', icon: 'group_add', authOnly: true, tour: undefined },
   { href: '/news', label: 'News', icon: 'campaign', authOnly: true, tour: undefined },
   { href: '/docs', label: 'Resources', icon: 'menu_book', authOnly: false, tour: 'nav-docs' },
 ]

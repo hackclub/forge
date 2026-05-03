@@ -19,15 +19,28 @@ interface Board {
   emptyBody: string
   icon: string
   format?: (v: number) => string
+  actionHref?: string
+  actionLabel?: string
 }
 
 function LeaderboardTable({ board, current_user_id }: { board: Board; current_user_id: number | null }) {
   const format = board.format || ((v: number) => String(v))
   return (
     <div>
-      <div className="flex items-center gap-2 mb-3">
-        <span className="material-symbols-outlined text-[#ee671c]">{board.icon}</span>
-        <h2 className="text-xl font-headline font-bold text-[#e5e2e1] tracking-tight">{board.title}</h2>
+      <div className="flex items-center justify-between gap-2 mb-3">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="material-symbols-outlined text-[#ee671c]">{board.icon}</span>
+          <h2 className="text-xl font-headline font-bold text-[#e5e2e1] tracking-tight truncate">{board.title}</h2>
+        </div>
+        {board.actionHref && (
+          <Link
+            href={board.actionHref}
+            className="shrink-0 ghost-border bg-[#1c1b1b] hover:bg-[#2a2a2a] text-stone-400 hover:text-[#ffb595] px-3 py-1.5 uppercase tracking-wider text-[10px] font-bold flex items-center gap-1.5 transition-colors"
+          >
+            {board.actionLabel}
+            <span className="material-symbols-outlined text-sm">arrow_forward</span>
+          </Link>
+        )}
       </div>
       <p className="text-stone-500 text-xs mb-4">{board.subtitle}</p>
 
@@ -94,6 +107,8 @@ export default function LeaderboardIndex({
       emptyTitle: "No one's on the board yet",
       emptyBody: 'Share your referral code to be the first.',
       icon: 'group_add',
+      actionHref: '/referrals',
+      actionLabel: 'View page',
     },
     {
       title: 'Most Hours',
