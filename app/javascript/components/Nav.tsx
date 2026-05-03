@@ -3,12 +3,13 @@ import { usePage, router, Link } from '@inertiajs/react'
 import type { SharedProps } from '@/types'
 
 const navItems = [
-  { href: '/explore', label: 'Explore', icon: 'explore', authOnly: false, tour: 'nav-explore' },
-  { href: '/home', label: 'Dashboard', icon: 'dashboard', authOnly: true, tour: 'nav-dashboard' },
-  { href: '/shop', label: 'Shop', icon: 'storefront', authOnly: true, tour: 'nav-shop' },
-  { href: '/leaderboard', label: 'Leaderboard', icon: 'emoji_events', authOnly: true, tour: undefined },
-  { href: '/news', label: 'News', icon: 'campaign', authOnly: true, tour: undefined },
-  { href: '/docs', label: 'Resources', icon: 'menu_book', authOnly: false, tour: 'nav-docs' },
+  { href: '/explore', label: 'Explore', icon: 'explore', authOnly: false, tour: 'nav-explore', flag: undefined },
+  { href: '/feed', label: 'Feed', icon: 'play_circle', authOnly: true, tour: undefined, flag: 'reels_enabled' },
+  { href: '/home', label: 'Dashboard', icon: 'dashboard', authOnly: true, tour: 'nav-dashboard', flag: undefined },
+  { href: '/shop', label: 'Shop', icon: 'storefront', authOnly: true, tour: 'nav-shop', flag: undefined },
+  { href: '/leaderboard', label: 'Leaderboard', icon: 'emoji_events', authOnly: true, tour: undefined, flag: undefined },
+  { href: '/news', label: 'News', icon: 'campaign', authOnly: true, tour: undefined, flag: undefined },
+  { href: '/docs', label: 'Resources', icon: 'menu_book', authOnly: false, tour: 'nav-docs', flag: undefined },
 ]
 
 export default function Nav() {
@@ -36,7 +37,11 @@ export default function Nav() {
     router.delete(shared.sign_out_path)
   }
 
-  const visibleItems = navItems.filter((item) => !item.authOnly || shared.auth.user)
+  const visibleItems = navItems.filter((item) => {
+    if (item.authOnly && !shared.auth.user) return false
+    if (item.flag && !shared[item.flag]) return false
+    return true
+  })
 
   return (
     <>

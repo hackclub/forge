@@ -18,3 +18,8 @@ production:
     class: UptimePingJob
     queue: uptime
     schedule: every minute
+
+  reel_payouts:
+    class: ReelPayoutJob
+    queue: background
+    schedule: every day at 3am

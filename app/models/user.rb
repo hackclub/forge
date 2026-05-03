@@ -80,6 +80,10 @@ class User < ApplicationRecord
   has_many :activity_days, class_name: "UserActivityDay", dependent: :destroy
   has_many :badges, dependent: :destroy
   has_many :awarded_badges, class_name: "Badge", foreign_key: :awarder_id, dependent: :nullify, inverse_of: :awarder
+  has_many :reels, dependent: :destroy
+  has_many :reel_kudos, dependent: :destroy
+  has_many :reel_comments, dependent: :destroy
+  has_many :reel_views, dependent: :destroy
 
   STREAK_MULTIPLIER_TIERS = [
     [ 3,   1.02 ],
