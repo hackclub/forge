@@ -16,18 +16,12 @@ export default function AuthSignIn() {
 
       <div className="min-h-screen bg-[#0e0e0e] text-[#e5e2e1] relative overflow-hidden flex flex-col items-center justify-center px-6 py-12">
         <div
-          className="fixed inset-0 pointer-events-none z-0"
-          style={{
-            backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(168,138,126,0.05) 1px, transparent 0)',
-            backgroundSize: '48px 48px',
-          }}
+          className="fixed inset-0 pointer-events-none z-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: 'url(/login_page_bg.png)' }}
         />
+        <div className="fixed inset-0 pointer-events-none z-0 bg-[#0e0e0e]/20" />
 
         <div className="relative z-10 w-full max-w-md">
-          <div className="text-center mb-8">
-            <span className="text-2xl font-bold tracking-tighter text-[#ffb595] uppercase font-headline">Forge</span>
-          </div>
-
           <div className="bg-[#1c1b1b]/90 backdrop-blur-sm ghost-border p-8 md:p-10">
             <div className="text-center mb-8">
               <h1 className="text-2xl md:text-3xl font-headline font-bold tracking-tight text-[#e5e2e1] mb-2">
