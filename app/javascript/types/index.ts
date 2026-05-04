@@ -188,6 +188,14 @@ export interface AdminDevlog {
   time_spent: string | null
   time_hours: number | null
   created_at: string
+  meets_requirements: boolean
+  validation: {
+    content_length: number
+    min_content_length: number
+    has_image: boolean
+    meets_length_requirement: boolean
+    meets_image_requirement: boolean
+  }
 }
 
 export interface AdminProjectDetail {

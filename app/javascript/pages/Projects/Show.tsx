@@ -27,6 +27,35 @@ function parseTimeSpentToHours(value: string | null): number {
   return isMinutes ? n / 60 : n
 }
 
+function getContentWithoutLinks(content: string): string {
+  // Remove markdown links: [text](url) -> text
+  let text = content.replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1')
+  // Remove HTML tags
+  text = text.replace(/<[^>]+>/g, '')
+  return text
+}
+
+function hasImage(content: string): boolean {
+  // Check for markdown ![alt](url) or <img
+  return (content.includes('![') && content.includes('](')) || content.includes('<img')
+}
+
+function validateDevlogContent(content: string): { valid: boolean; errors: string[] } {
+  const errors: string[] = []
+  const minLength = 100
+  const textWithoutLinks = getContentWithoutLinks(content)
+
+  if (textWithoutLinks.length < minLength) {
+    errors.push(`Content must be at least ${minLength} characters (currently ${textWithoutLinks.length})`)
+  }
+
+  if (!hasImage(content)) {
+    errors.push('Content must include at least one image')
+  }
+
+  return { valid: errors.length === 0, errors }
+}
+
 interface DevlogEntry {
   id: number
   title: string
@@ -34,6 +63,14 @@ interface DevlogEntry {
   time_spent: string | null
   time_hours: number | null
   created_at: string
+  meets_requirements: boolean
+  validation: {
+    content_length: number
+    min_content_length: number
+    has_image: boolean
+    meets_length_requirement: boolean
+    meets_image_requirement: boolean
+  }
 }
 
 interface ProjectKudo {
@@ -99,6 +136,10 @@ export default function ProjectsShow({
   const [uploadingCover, setUploadingCover] = useState(false)
   const [editingSubtitle, setEditingSubtitle] = useState(false)
   const [subtitleDraft, setSubtitleDraft] = useState(project.subtitle || '')
+  const [devlogValidationErrors, setDevlogValidationErrors] = useState<string[]>([])
+  const [editDevlogValidationErrors, setEditDevlogValidationErrors] = useState<string[]>([])
+  const [showSubmitWarning, setShowSubmitWarning] = useState(false)
+  const [invalidDevlogs, setInvalidDevlogs] = useState<{id: number; title: string; errors: string[]}[]>([])
 
   const devlogForm = useForm({
     title: '',
@@ -164,6 +205,31 @@ export default function ProjectsShow({
   }
 
   function submitForReview() {
+    const invalid: {id: number; title: string; errors: string[]}[] = []
+    
+    devlogs.forEach((entry) => {
+      if (!entry.validation.meets_length_requirement || !entry.validation.meets_image_requirement) {
+        const errors: string[] = []
+        if (!entry.validation.meets_length_requirement) {
+          errors.push(`${entry.validation.content_length}/${entry.validation.min_content_length} characters`)
+        }
+        if (!entry.validation.meets_image_requirement) {
+          errors.push('Missing required image')
+        }
+        invalid.push({ id: entry.id, title: entry.title, errors })
+      }
+    })
+    
+    if (invalid.length > 0) {
+      setInvalidDevlogs(invalid)
+      setShowSubmitWarning(true)
+    } else {
+      proceedWithSubmission()
+    }
+  }
+  
+  function proceedWithSubmission() {
+    setShowSubmitWarning(false)
     router.post(`/projects/${project.id}/submit_for_review`)
   }
 
@@ -662,6 +728,22 @@ export default function ProjectsShow({
                           </div>
                         </div>
                       )}
+                      {(can.update || is_admin_view) && !entry.meets_requirements && (
+                        <div className="bg-amber-900/40 border-2 border-amber-600 rounded-none p-4 mb-4 flex items-start gap-3">
+                          <span className="material-symbols-outlined text-amber-400 text-2xl shrink-0 mt-0.5">warning</span>
+                          <div className="text-sm text-amber-100">
+                            <p className="font-bold mb-2">⚠️ Entry doesn't meet requirements</p>
+                            <ul className="space-y-1 ml-4 list-disc text-amber-100/90">
+                              {!entry.validation.meets_length_requirement && (
+                                <li>{entry.validation.content_length}/100 characters of content (excluding links)</li>
+                              )}
+                              {!entry.validation.meets_image_requirement && (
+                                <li>{entry.validation.has_image ? '✓' : '0'}/1 images required</li>
+                              )}
+                            </ul>
+                          </div>
+                        </div>
+                      )}
                       <div className="flex items-start justify-between mb-3">
                         <div>
                           <div className="flex items-center gap-2 mb-1 flex-wrap">
@@ -782,15 +864,26 @@ export default function ProjectsShow({
                     </label>
                     <textarea
                       value={devlogForm.data.content}
-                      onChange={(e) => devlogForm.setData('content', e.target.value)}
+                      onChange={(e) => {
+                        devlogForm.setData('content', e.target.value);
+                        const { errors } = validateDevlogContent(e.target.value);
+                        setDevlogValidationErrors(errors);
+                      }}
                       onPaste={(e) =>
-                        handleImagePaste(e, (v) => devlogForm.setData('content', v), devlogForm.data.content)
+                        handleImagePaste(e, (v) => {
+                          devlogForm.setData('content', v);
+                          const { errors } = validateDevlogContent(v);
+                          setDevlogValidationErrors(errors);
+                        }, devlogForm.data.content)
                       }
                       rows={8}
                       className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 text-sm resize-y font-mono"
                       placeholder="What did you work on? Paste images directly..."
                       required
                     />
+                    <div className="text-xs text-stone-400 mt-2 flex items-center justify-between">
+                      <span>{devlogValidationErrors.length === 0 ? '✓ Ready to post' : `${getContentWithoutLinks(devlogForm.data.content).length}/100 characters, ${hasImage(devlogForm.data.content) ? '✓' : '0'}/1 images`}</span>
+                    </div>
                   </div>
                   <div>
                     <label className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
@@ -806,8 +899,8 @@ export default function ProjectsShow({
                   </div>
                   <button
                     type="submit"
-                    disabled={devlogForm.processing}
-                    className="signature-smolder text-[#4c1a00] px-6 py-3 font-bold uppercase tracking-wider text-xs flex items-center gap-2 cursor-pointer"
+                    disabled={devlogForm.processing || devlogValidationErrors.length > 0}
+                    className={`px-6 py-3 font-bold uppercase tracking-wider text-xs flex items-center gap-2 cursor-pointer ${devlogValidationErrors.length > 0 ? 'bg-stone-700/50 text-stone-500' : 'signature-smolder text-[#4c1a00]'}`}
                   >
                     {devlogForm.processing ? (
                       <span className="material-symbols-outlined text-lg animate-spin">progress_activity</span>
@@ -832,6 +925,22 @@ export default function ProjectsShow({
                           </div>
                         </div>
                       )}
+                      {(can.update || is_admin_view) && !entry.meets_requirements && (
+                        <div className="bg-amber-900/40 border-2 border-amber-600 rounded-none p-4 mb-4 flex items-start gap-3">
+                          <span className="material-symbols-outlined text-amber-400 text-2xl shrink-0 mt-0.5">warning</span>
+                          <div className="text-sm text-amber-100">
+                            <p className="font-bold mb-2">⚠️ Entry doesn't meet requirements</p>
+                            <ul className="space-y-1 ml-4 list-disc text-amber-100/90">
+                              {!entry.validation.meets_length_requirement && (
+                                <li>{entry.validation.content_length}/100 characters of content (excluding links)</li>
+                              )}
+                              {!entry.validation.meets_image_requirement && (
+                                <li>{entry.validation.has_image ? '✓' : '0'}/1 images required</li>
+                              )}
+                            </ul>
+                          </div>
+                        </div>
+                      )}
                       {editingDevlogId === entry.id ? (
                         <form onSubmit={(e) => submitEditDevlog(e, entry.id)} className="space-y-4">
                           <div>
@@ -853,11 +962,19 @@ export default function ProjectsShow({
                             </label>
                             <textarea
                               value={editDevlogForm.data.content}
-                              onChange={(e) => editDevlogForm.setData('content', e.target.value)}
+                              onChange={(e) => {
+                                editDevlogForm.setData('content', e.target.value);
+                                const { errors } = validateDevlogContent(e.target.value);
+                                setEditDevlogValidationErrors(errors);
+                              }}
                               onPaste={(e) =>
                                 handleImagePaste(
                                   e,
-                                  (v) => editDevlogForm.setData('content', v),
+                                  (v) => {
+                                    editDevlogForm.setData('content', v);
+                                    const { errors } = validateDevlogContent(v);
+                                    setEditDevlogValidationErrors(errors);
+                                  },
                                   editDevlogForm.data.content,
                                 )
                               }
@@ -865,6 +982,9 @@ export default function ProjectsShow({
                               className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 text-sm resize-y font-mono"
                               required
                             />
+                          </div>
+                          <div className="text-xs text-stone-400 flex items-center justify-between">
+                            <span>{editDevlogValidationErrors.length === 0 ? '✓ Ready to post' : `${getContentWithoutLinks(editDevlogForm.data.content).length}/100 characters, ${hasImage(editDevlogForm.data.content) ? '✓' : '0'}/1 images`}</span>
                           </div>
                           <div>
                             <label className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
@@ -881,8 +1001,8 @@ export default function ProjectsShow({
                           <div className="flex gap-2">
                             <button
                               type="submit"
-                              disabled={editDevlogForm.processing}
-                              className="signature-smolder text-[#4c1a00] px-6 py-3 font-bold uppercase tracking-wider text-xs flex items-center gap-2 cursor-pointer"
+                              disabled={editDevlogForm.processing || editDevlogValidationErrors.length > 0}
+                              className={`px-6 py-3 font-bold uppercase tracking-wider text-xs flex items-center gap-2 cursor-pointer ${editDevlogValidationErrors.length > 0 ? 'bg-stone-700/50 text-stone-500' : 'signature-smolder text-[#4c1a00]'}`}
                             >
                               <span className="material-symbols-outlined text-lg">save</span>
                               Save
@@ -1157,6 +1277,50 @@ export default function ProjectsShow({
                 </h4>
               </div>
               <p className="text-stone-400 text-sm">Your project has been approved and is being processed.</p>
+            </div>
+          )}
+
+          {showSubmitWarning && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+              <div className="bg-[#1c1b1b] ghost-border max-w-md w-full p-8 space-y-6">
+                <div>
+                  <h3 className="text-xl font-headline font-bold text-[#e5e2e1] mb-2">Quality Issues Found</h3>
+                  <p className="text-stone-400 text-sm mb-4">
+                    Some of your devlogs don't meet our quality requirements. Submissions with issues are likely to be rejected and sent to the back of the queue when resubmitted.
+                  </p>
+                  <p className="text-stone-400 text-sm mb-4 font-semibold">
+                    Spending a couple of minutes to fix these issues could save everyone time!
+                  </p>
+                </div>
+                
+                <div className="bg-[#0e0e0e] p-4 rounded space-y-3 max-h-48 overflow-y-auto">
+                  {invalidDevlogs.map((devlog) => (
+                    <div key={devlog.id} className="text-sm">
+                      <p className="text-[#ffb595] font-semibold mb-1">{devlog.title}</p>
+                      <ul className="text-stone-400 text-xs space-y-1 ml-3">
+                        {devlog.errors.map((error, idx) => (
+                          <li key={idx}>• {error}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+                
+                <div className="flex gap-3 pt-4">
+                  <button
+                    onClick={() => setShowSubmitWarning(false)}
+                    className="flex-1 bg-stone-700/40 hover:bg-stone-700/60 text-stone-400 font-headline font-bold py-2 uppercase tracking-wider text-sm transition-colors"
+                  >
+                    Go Back & Fix
+                  </button>
+                  <button
+                    onClick={proceedWithSubmission}
+                    className="flex-1 signature-smolder text-[#4c1a00] font-headline font-bold py-2 uppercase tracking-wider text-sm active:scale-95 transition-transform"
+                  >
+                    Submit Anyway
+                  </button>
+                </div>
+              </div>
             </div>
           )}
 

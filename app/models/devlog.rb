@@ -52,4 +52,16 @@ class Devlog < ApplicationRecord
     minutes = unit.start_with?("m") && unit != "mo"
     minutes ? value / 60.0 : value
   end
+
+  def meets_submission_requirements?
+    DevlogValidator.valid_for_submission?(content)
+  end
+
+  def submission_requirement_errors
+    DevlogValidator.errors_for_submission(content)
+  end
+
+  def requirement_validation_details
+    DevlogValidator.validation_details(content)
+  end
 end

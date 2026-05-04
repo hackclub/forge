@@ -471,6 +471,22 @@ export default function AdminProjectsShow({
                             </div>
                           </div>
                         )}
+                        {!entry.meets_requirements && (
+                          <div className="bg-amber-900/40 border-2 border-amber-600 rounded-none p-4 mb-4 flex items-start gap-3">
+                            <span className="material-symbols-outlined text-amber-400 text-2xl shrink-0 mt-0.5">warning</span>
+                            <div className="text-sm text-amber-100">
+                              <p className="font-bold mb-2">⚠️ Entry doesn't meet requirements</p>
+                              <ul className="space-y-1 ml-4 list-disc text-amber-100/90">
+                                {!entry.validation.meets_length_requirement && (
+                                  <li>{entry.validation.content_length}/100 characters of content (excluding links)</li>
+                                )}
+                                {!entry.validation.meets_image_requirement && (
+                                  <li>{entry.validation.has_image ? '✓' : '0'}/1 images required</li>
+                                )}
+                              </ul>
+                            </div>
+                          </div>
+                        )}
                         <div className="flex items-start justify-between mb-2 gap-2">
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2 flex-wrap mb-1">
