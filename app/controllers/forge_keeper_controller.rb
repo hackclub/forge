@@ -22,7 +22,12 @@ class ForgeKeeperController < ApplicationController
       { "role" => "system", "content" => system_prompt },
       { "role" => "system", "content" => user_context },
       { "role" => "system", "content" => docs_context }
-    ] + history + [ { "role" => "user", "content" => user_message } ]
+    ]
+
+    focus = project_focus_context(user_message, history)
+    messages << { "role" => "system", "content" => focus } if focus
+
+    messages += history + [ { "role" => "user", "content" => user_message } ]
 
     response = Net::HTTP.post(
       URI("https://ai.hackclub.com/proxy/v1/chat/completions"),
@@ -55,13 +60,30 @@ class ForgeKeeperController < ApplicationController
       begin
         data = JSON.parse(json_match[0])
         reply = strip_dashes(data["reply"].to_s.strip)
-        emotion = data["emotion"].to_s.downcase.strip
-        emotion = "neutral" unless EMOTIONS.include?(emotion)
-        return [ reply.presence || cleaned, emotion ] if reply.present?
+        emotion = normalize_emotion(data["emotion"])
+        return [ reply, emotion ] if reply.present?
       rescue JSON::ParserError
       end
     end
-    [ strip_dashes(cleaned), "neutral" ]
+
+    emotion = "neutral"
+    cleaned = cleaned.gsub(/^["']?\s*reply["']?\s*:\s*["']?/i, "")
+    cleaned = cleaned.gsub(/^["']?\s*emotion["']?\s*:\s*["']?(\w+)["']?\s*[,;]?\s*$/i) {
+      emotion = normalize_emotion(Regexp.last_match(1))
+      ""
+    }
+    cleaned = cleaned.gsub(/(?:^|\n)\s*["']?emotion["']?\s*:\s*["']?(\w+)["']?\s*[,;]?/i) {
+      emotion = normalize_emotion(Regexp.last_match(1))
+      ""
+    }
+    cleaned = cleaned.gsub(/["']?\s*[,}]\s*$/, "").strip
+
+    [ strip_dashes(cleaned), emotion ]
+  end
+
+  def normalize_emotion(value)
+    candidate = value.to_s.downcase.strip
+    EMOTIONS.include?(candidate) ? candidate : "neutral"
   end
 
   def strip_dashes(text)
@@ -106,8 +128,9 @@ class ForgeKeeperController < ApplicationController
       - Don't dump bare paths or URLs. Always wrap them as markdown links so the UI can render them.
 
       OUTPUT FORMAT - mandatory:
-      Respond with ONLY valid JSON, no markdown fences, no extra text:
-      {"reply": "your message to the forger", "emotion": "one of: neutral, happy, sad, angry"}
+      Respond with ONLY a single valid JSON object. No markdown fences, no prose before or after, no "reply:" or "emotion:" labels outside the JSON. The entire response must start with { and end with }. Like this exactly:
+      {"reply": "your message to the forger", "emotion": "neutral"}
+      The "reply" value is what the forger sees. Do not put the word "emotion" inside the reply value.
 
       Pick the emotion based on YOUR mood reacting to what they said:
       - happy: they shipped something, hit a streak, asked a smart question, made you proud.
@@ -115,6 +138,54 @@ class ForgeKeeperController < ApplicationController
       - angry: they're being lazy, asked you to do their homework, ignored advice, asked something dumb after you already explained.
       - neutral: default. Most replies will be neutral.
     PROMPT
+  end
+
+  def project_focus_context(user_message, history)
+    haystack_parts = [ user_message ]
+    haystack_parts.concat(history.last(4).select { |m| m["role"] == "user" }.map { |m| m["content"] })
+    haystack = haystack_parts.join(" ").downcase
+
+    projects = current_user.projects.kept.includes(:devlogs)
+    matched = projects.select { |p|
+      name = p.name.to_s.downcase.strip
+      next false if name.length < 3
+
+      haystack.include?(name)
+    }.first(3)
+
+    return nil if matched.empty?
+
+    sections = matched.map { |p|
+      devlogs = p.devlogs.order(created_at: :desc).limit(8)
+      hours = p.devlogs.sum { |d| d.parsed_hours }.round(1)
+
+      lines = [
+        "### Project: #{p.name}",
+        "Status: #{p.status} | Tier: #{p.tier} | Total hours logged: #{hours}",
+        ("Subtitle: #{p.subtitle}" if p.subtitle.present?),
+        ("Repo: #{p.repo_link}" if p.repo_link.present?),
+        ("Tags: #{p.tags.join(', ')}" if p.tags.any?)
+      ].compact
+
+      if devlogs.any?
+        lines << "\nDevlogs (most recent first):"
+        devlogs.each do |d|
+          time = d.time_spent.presence || "no time logged"
+          excerpt = d.content.to_s.gsub(/\s+/, " ").strip.truncate(800)
+          lines << "- [#{d.created_at.to_date}] #{d.title} (#{time}, status: #{d.status})\n  #{excerpt}"
+        end
+      else
+        lines << "\nNo devlogs logged yet."
+      end
+
+      lines.join("\n")
+    }.join("\n\n")
+
+    <<~CONTEXT
+      The forger just mentioned a specific project. Here is the full devlog history for the project(s) referenced. Use this to give grounded, specific feedback. Quote devlog titles when relevant. Do not invent devlog content that is not listed here.
+
+      #{sections}
+    CONTEXT
   end
 
   def docs_context
