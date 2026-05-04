@@ -1,5 +1,6 @@
-import { useRef, useState } from 'react'
-import { Head, Link, router } from '@inertiajs/react'
+import { useEffect, useRef, useState } from 'react'
+import { Head, Link, router, usePage } from '@inertiajs/react'
+import type { SharedProps } from '../../types'
 
 type Kind = 'video' | 'image_carousel' | 'slideshow'
 
@@ -18,8 +19,16 @@ const KIND_OPTIONS: { kind: Kind; label: string; icon: string; subtitle: string 
   { kind: 'slideshow', label: 'Slideshow', icon: 'audiotrack', subtitle: 'Images that play with a music track.' },
 ]
 
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+}
+
 export default function ReelsNew(props: Props) {
   const { project, max_duration_seconds, max_video_mb, max_image_mb, max_audio_mb, max_images } = props
+  const page = usePage<SharedProps>()
+
   const [step, setStep] = useState<1 | 2 | 3>(1)
   const [kind, setKind] = useState<Kind>('video')
 
@@ -37,6 +46,24 @@ export default function ReelsNew(props: Props) {
   const [title, setTitle] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [progress, setProgress] = useState(0)
+
+  useEffect(() => {
+    const alert = page.props.flash?.alert
+    if (alert) {
+      setError(alert)
+      setSubmitting(false)
+      setProgress(0)
+    }
+  }, [page.props.flash])
+
+  useEffect(() => {
+    return () => {
+      if (videoPreview) URL.revokeObjectURL(videoPreview)
+      imagePreviews.forEach((u) => URL.revokeObjectURL(u))
+      if (audioPreview) URL.revokeObjectURL(audioPreview)
+    }
+  }, [videoPreview, imagePreviews, audioPreview])
 
   function pickKind(k: Kind) {
     setKind(k)
@@ -51,14 +78,31 @@ export default function ReelsNew(props: Props) {
     setStep(2)
   }
 
-  function onVideoChange(e: React.ChangeEvent<HTMLInputElement>) {
+  function acceptVideo(f: File) {
     setError(null)
-    const f = e.target.files?.[0] ?? null
-    if (!f) return
     if (!f.type.startsWith('video/')) return setError('Please choose a video file.')
     if (f.size / (1024 * 1024) > max_video_mb) return setError(`Max video size is ${max_video_mb} MB.`)
     setVideo(f)
     setVideoPreview(URL.createObjectURL(f))
+  }
+
+  function acceptImages(files: File[]) {
+    setError(null)
+    if (files.length === 0) return
+    const combined = [...images, ...files].slice(0, max_images)
+    if (combined.some((f) => !f.type.startsWith('image/'))) return setError('All files must be images.')
+    if (combined.some((f) => f.size / (1024 * 1024) > max_image_mb))
+      return setError(`Each image must be ≤ ${max_image_mb} MB.`)
+    setImages(combined)
+    setImagePreviews(combined.map((f) => URL.createObjectURL(f)))
+  }
+
+  function acceptAudio(f: File) {
+    setError(null)
+    if (!f.type.startsWith('audio/')) return setError('Please choose an audio file.')
+    if (f.size / (1024 * 1024) > max_audio_mb) return setError(`Max audio size is ${max_audio_mb} MB.`)
+    setAudio(f)
+    setAudioPreview(URL.createObjectURL(f))
   }
 
   function onVideoMeta() {
@@ -69,31 +113,9 @@ export default function ReelsNew(props: Props) {
     if (d > max_duration_seconds) setError(`Video is ${d}s. Max is ${max_duration_seconds}s.`)
   }
 
-  function onImagesChange(e: React.ChangeEvent<HTMLInputElement>) {
-    setError(null)
-    const files = Array.from(e.target.files ?? [])
-    if (files.length === 0) return
-    const combined = [...images, ...files].slice(0, max_images)
-    if (combined.some((f) => !f.type.startsWith('image/'))) return setError('All files must be images.')
-    if (combined.some((f) => f.size / (1024 * 1024) > max_image_mb))
-      return setError(`Each image must be ≤ ${max_image_mb} MB.`)
-    setImages(combined)
-    setImagePreviews(combined.map((f) => URL.createObjectURL(f)))
-  }
-
   function removeImage(idx: number) {
     setImages((prev) => prev.filter((_, i) => i !== idx))
     setImagePreviews((prev) => prev.filter((_, i) => i !== idx))
-  }
-
-  function onAudioChange(e: React.ChangeEvent<HTMLInputElement>) {
-    setError(null)
-    const f = e.target.files?.[0] ?? null
-    if (!f) return
-    if (!f.type.startsWith('audio/')) return setError('Please choose an audio file.')
-    if (f.size / (1024 * 1024) > max_audio_mb) return setError(`Max audio size is ${max_audio_mb} MB.`)
-    setAudio(f)
-    setAudioPreview(URL.createObjectURL(f))
   }
 
   function step2Ready(): boolean {
@@ -101,6 +123,13 @@ export default function ReelsNew(props: Props) {
     if (kind === 'image_carousel') return images.length > 0 && !error
     if (kind === 'slideshow') return images.length > 0 && !!audio && !error
     return false
+  }
+
+  function totalBytes(): number {
+    if (kind === 'video') return video?.size ?? 0
+    let n = images.reduce((sum, f) => sum + f.size, 0)
+    if (kind === 'slideshow' && audio) n += audio.size
+    return n
   }
 
   function submit(e: React.FormEvent) {
@@ -119,14 +148,25 @@ export default function ReelsNew(props: Props) {
       if (kind === 'slideshow' && audio) data.append('audio', audio)
     }
 
+    setError(null)
     setSubmitting(true)
+    setProgress(0)
     router.post(`/projects/${project.id}/reels`, data, {
       forceFormData: true,
+      preserveState: true,
+      preserveScroll: true,
+      onProgress: (p) => {
+        if (p?.percentage != null) setProgress(p.percentage)
+      },
       onError: (errs) => {
         setSubmitting(false)
-        setError(Object.values(errs).join(', ') || 'Upload failed.')
+        setProgress(0)
+        const msg = Object.values(errs).flat().join(', ')
+        if (msg) setError(msg)
       },
-      onFinish: () => setSubmitting(false),
+      onFinish: () => {
+        setSubmitting(false)
+      },
     })
   }
 
@@ -147,10 +187,7 @@ export default function ReelsNew(props: Props) {
           </h1>
           <div className="flex items-center gap-2 mt-4">
             {[1, 2, 3].map((s) => (
-              <div
-                key={s}
-                className={`h-1 flex-1 ${s <= step ? 'bg-[#ee671c]' : 'bg-stone-700'}`}
-              />
+              <div key={s} className={`h-1 flex-1 ${s <= step ? 'bg-[#ee671c]' : 'bg-stone-700'}`} />
             ))}
           </div>
           <p className="text-stone-500 text-xs mt-2">Step {step} of 3</p>
@@ -193,17 +230,14 @@ export default function ReelsNew(props: Props) {
                 <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-500 mb-3">
                   Choose video ({max_duration_seconds}s max, {max_video_mb} MB max)
                 </p>
-                <label className="block bg-[#0e0e0e] ghost-border p-6 text-center cursor-pointer hover:bg-[#161616] transition-colors">
-                  <input type="file" accept="video/*" onChange={onVideoChange} className="hidden" />
-                  {video ? (
-                    <span className="text-stone-300 text-sm break-all">{video.name}</span>
-                  ) : (
-                    <>
-                      <span className="material-symbols-outlined text-4xl text-[#ee671c] block mb-2">videocam</span>
-                      <span className="text-stone-400 text-sm font-headline font-medium">Tap to choose a video</span>
-                    </>
-                  )}
-                </label>
+                <DropZone
+                  accept="video/*"
+                  multiple={false}
+                  onFiles={(fs) => fs[0] && acceptVideo(fs[0])}
+                  icon="videocam"
+                  label={video ? video.name : 'Drop a video here, or tap to choose'}
+                  hint={video ? formatBytes(video.size) : `Up to ${max_video_mb} MB`}
+                />
                 {videoPreview && (
                   <video
                     ref={videoRef}
@@ -227,19 +261,14 @@ export default function ReelsNew(props: Props) {
                 <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-500 mb-3">
                   Images ({images.length} / {max_images}, {max_image_mb} MB each)
                 </p>
-                <label className="block bg-[#0e0e0e] ghost-border p-6 text-center cursor-pointer hover:bg-[#161616] transition-colors">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={onImagesChange}
-                    className="hidden"
-                  />
-                  <span className="material-symbols-outlined text-4xl text-[#ee671c] block mb-2">add_photo_alternate</span>
-                  <span className="text-stone-400 text-sm font-headline font-medium">
-                    {images.length === 0 ? 'Tap to choose images' : 'Add more images'}
-                  </span>
-                </label>
+                <DropZone
+                  accept="image/*"
+                  multiple
+                  onFiles={(fs) => acceptImages(fs)}
+                  icon="add_photo_alternate"
+                  label={images.length === 0 ? 'Drop images here, or tap to choose' : 'Add more images'}
+                  hint={`${images.length} / ${max_images}`}
+                />
                 {imagePreviews.length > 0 && (
                   <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 mt-4">
                     {imagePreviews.map((src, idx) => (
@@ -268,17 +297,14 @@ export default function ReelsNew(props: Props) {
                 <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-500 mb-3">
                   Audio track ({max_audio_mb} MB max)
                 </p>
-                <label className="block bg-[#0e0e0e] ghost-border p-6 text-center cursor-pointer hover:bg-[#161616] transition-colors">
-                  <input type="file" accept="audio/*" onChange={onAudioChange} className="hidden" />
-                  {audio ? (
-                    <span className="text-stone-300 text-sm break-all">{audio.name}</span>
-                  ) : (
-                    <>
-                      <span className="material-symbols-outlined text-4xl text-[#ee671c] block mb-2">audiotrack</span>
-                      <span className="text-stone-400 text-sm font-headline font-medium">Tap to choose audio</span>
-                    </>
-                  )}
-                </label>
+                <DropZone
+                  accept="audio/*"
+                  multiple={false}
+                  onFiles={(fs) => fs[0] && acceptAudio(fs[0])}
+                  icon="audiotrack"
+                  label={audio ? audio.name : 'Drop an audio file here, or tap to choose'}
+                  hint={audio ? formatBytes(audio.size) : `Up to ${max_audio_mb} MB`}
+                />
                 {audioPreview && <audio src={audioPreview} controls className="w-full mt-4" />}
               </div>
             )}
@@ -320,20 +346,64 @@ export default function ReelsNew(props: Props) {
                 placeholder="A short title for your reel..."
                 className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600"
                 autoFocus
+                disabled={submitting}
               />
               <p className="text-[10px] text-stone-600 text-right mt-1">{title.length} / 200</p>
             </div>
 
             <div className="bg-[#1c1b1b] ghost-border p-5">
-              <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-500 mb-2">You're publishing</p>
-              <p className="text-stone-300 text-sm">
-                {kind === 'video' && '1 video'}
-                {kind === 'image_carousel' && `${images.length} image${images.length === 1 ? '' : 's'} (carousel)`}
-                {kind === 'slideshow' && `${images.length} image${images.length === 1 ? '' : 's'} + audio (slideshow)`}
+              <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-500 mb-3">Preview</p>
+              {kind === 'video' && videoPreview && (
+                <video src={videoPreview} controls playsInline className="w-full max-h-[50vh] bg-black" />
+              )}
+              {kind === 'image_carousel' && imagePreviews.length > 0 && (
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                  {imagePreviews.map((src, idx) => (
+                    <div key={idx} className="relative">
+                      <img src={src} alt="" className="w-full aspect-square object-cover" />
+                      <span className="absolute top-1 left-1 text-[10px] bg-black/70 text-white px-1.5 py-0.5 font-bold">
+                        {idx + 1}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {kind === 'slideshow' && (
+                <>
+                  {imagePreviews.length > 0 && (
+                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 mb-3">
+                      {imagePreviews.map((src, idx) => (
+                        <img key={idx} src={src} alt="" className="w-full aspect-square object-cover" />
+                      ))}
+                    </div>
+                  )}
+                  {audioPreview && <audio src={audioPreview} controls className="w-full" />}
+                </>
+              )}
+              <p className="text-stone-500 text-xs mt-3">
+                Total upload size: <span className="text-[#e5e2e1] font-bold">{formatBytes(totalBytes())}</span>
               </p>
             </div>
 
-            {error && (
+            {submitting && (
+              <div className="bg-[#1c1b1b] ghost-border p-5">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#ffb595]">
+                    {progress < 100 ? 'Uploading' : 'Finishing up'}
+                  </span>
+                  <span className="text-[#e5e2e1] font-headline font-bold tabular-nums text-sm">{progress}%</span>
+                </div>
+                <div className="h-2 bg-[#0e0e0e] overflow-hidden">
+                  <div
+                    className="h-full signature-smolder transition-all duration-150"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+                <p className="text-stone-600 text-[10px] mt-2">Don't close this tab.</p>
+              </div>
+            )}
+
+            {error && !submitting && (
               <div className="bg-red-500/10 border border-red-500/30 px-4 py-3 text-red-300 text-sm">{error}</div>
             )}
 
@@ -341,7 +411,8 @@ export default function ReelsNew(props: Props) {
               <button
                 type="button"
                 onClick={() => setStep(2)}
-                className="ghost-border bg-[#1c1b1b] hover:bg-[#2a2a2a] text-stone-400 hover:text-[#ffb595] px-4 py-2.5 uppercase tracking-wider text-[10px] font-bold flex items-center gap-2 cursor-pointer"
+                disabled={submitting}
+                className="ghost-border bg-[#1c1b1b] hover:bg-[#2a2a2a] text-stone-400 hover:text-[#ffb595] px-4 py-2.5 uppercase tracking-wider text-[10px] font-bold flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
               >
                 Back
               </button>
@@ -350,13 +421,62 @@ export default function ReelsNew(props: Props) {
                 disabled={submitting}
                 className="signature-smolder text-[#4c1a00] px-6 py-2.5 font-bold uppercase tracking-wider text-xs flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
               >
-                <span className="material-symbols-outlined text-base">upload</span>
-                {submitting ? 'Uploading...' : 'Publish'}
+                <span className="material-symbols-outlined text-base">{submitting ? 'progress_activity' : 'upload'}</span>
+                {submitting ? `Uploading… ${progress}%` : 'Publish'}
               </button>
             </div>
           </form>
         )}
       </div>
     </>
+  )
+}
+
+interface DropZoneProps {
+  accept: string
+  multiple: boolean
+  onFiles: (files: File[]) => void
+  icon: string
+  label: string
+  hint: string
+}
+
+function DropZone({ accept, multiple, onFiles, icon, label, hint }: DropZoneProps) {
+  const [hover, setHover] = useState(false)
+
+  function onDrop(e: React.DragEvent) {
+    e.preventDefault()
+    setHover(false)
+    const fs = Array.from(e.dataTransfer.files)
+    if (fs.length > 0) onFiles(fs)
+  }
+
+  return (
+    <label
+      onDragOver={(e) => {
+        e.preventDefault()
+        setHover(true)
+      }}
+      onDragLeave={() => setHover(false)}
+      onDrop={onDrop}
+      className={`block ghost-border p-6 text-center cursor-pointer transition-colors ${
+        hover ? 'bg-[#2a2a2a] border-[#ee671c]' : 'bg-[#0e0e0e] hover:bg-[#161616]'
+      }`}
+    >
+      <input
+        type="file"
+        accept={accept}
+        multiple={multiple}
+        onChange={(e) => {
+          const fs = Array.from(e.target.files ?? [])
+          if (fs.length > 0) onFiles(fs)
+          e.target.value = ''
+        }}
+        className="hidden"
+      />
+      <span className="material-symbols-outlined text-4xl text-[#ee671c] block mb-2">{icon}</span>
+      <span className="text-stone-300 text-sm font-headline font-medium block break-all">{label}</span>
+      <span className="text-stone-600 text-[10px] uppercase tracking-widest mt-2 block">{hint}</span>
+    </label>
   )
 }
