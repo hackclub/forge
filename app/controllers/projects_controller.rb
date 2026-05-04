@@ -229,7 +229,7 @@ class ProjectsController < ApplicationController
   def export_devlogs
     authorize @project, :update?
 
-    entries = @project.devlogs.order(created_at: :asc)
+    entries = @project.devlogs.order(id: :asc)
     md = +"# #{@project.name}\n\n"
     md << "#{@project.subtitle}\n\n" if @project.subtitle.present?
 

@@ -61,7 +61,7 @@ class Api::V1::ProjectsController < Api::V1::BaseController
     }
 
     if full
-      data[:devlogs] = project.devlogs.order(created_at: :desc).map do |d|
+      data[:devlogs] = project.devlogs.order(id: :desc).map do |d|
         {
           id: d.id,
           title: d.title,

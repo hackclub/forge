@@ -353,11 +353,7 @@ export default function ProjectsShow({
 
   const sortedDevlogs = useMemo(() => {
     return [...devlogs].sort((a, b) => {
-      const aTime = Date.parse(a.created_at)
-      const bTime = Date.parse(b.created_at)
-      const aSort = Number.isNaN(aTime) ? a.id : aTime
-      const bSort = Number.isNaN(bTime) ? b.id : bTime
-      return devlogOrder === 'newest' ? bSort - aSort : aSort - bSort
+      return devlogOrder === 'newest' ? b.id - a.id : a.id - b.id
     })
   }, [devlogs, devlogOrder])
 

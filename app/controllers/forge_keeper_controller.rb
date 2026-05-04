@@ -140,7 +140,7 @@ class ForgeKeeperController < ApplicationController
     projects = current_user.projects.kept.includes(:devlogs).order(updated_at: :desc).limit(8)
 
     project_lines = projects.map { |p|
-      devlog_summary = p.devlogs.order(created_at: :desc).limit(3).map { |d|
+      devlog_summary = p.devlogs.order(id: :desc).limit(3).map { |d|
         "#{d.title} (#{d.time_spent.presence || 'no time logged'})"
       }.join("; ")
       hours = p.devlogs.sum { |d| d.parsed_hours }.round(1)

@@ -385,7 +385,7 @@ class Admin::ProjectsController < Admin::ApplicationController
       readme_fetched_at: project.readme_fetched_at&.strftime("%b %d, %Y %H:%M"),
       total_hours: project.total_hours,
       devlog_hours: project.devlog_hours,
-      devlogs: project.devlogs.order(created_at: :desc).map { |d| serialize_devlog(d) },
+      devlogs: project.devlogs.order(id: :desc).map { |d| serialize_devlog(d) },
       hidden: project.hidden,
       staff_pick: project.staff_pick?,
       user_id: project.user_id,

@@ -37,7 +37,7 @@ class Devlog < ApplicationRecord
   validates :title, presence: true
   validates :content, presence: true
 
-  default_scope { order(created_at: :desc) }
+  default_scope { order(id: :desc) }
 
   def parsed_hours
     # Use pre-parsed time_hours if available, otherwise parse time_spent
