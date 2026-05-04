@@ -63,8 +63,12 @@ class DevlogValidator
   def text_without_links
     # Remove markdown links: [text](url) -> text
     text = @content.gsub(/\[([^\]]+)\]\([^\)]+\)/, '\1')
-    # Remove HTML tags
-    text = text.gsub(/<[^>]+>/, "")
+    # Remove HTML tags (repeat until stable to avoid incomplete multi-character sanitization)
+    previous = nil
+    while text != previous
+      previous = text
+      text = text.gsub(/<[^>]+>/, "")
+    end
     text
   end
 end
