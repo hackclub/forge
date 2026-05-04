@@ -144,6 +144,7 @@ class Admin::OrdersController < Admin::ApplicationController
       user_id: order.user_id,
       user_display_name: order.user.display_name,
       user_avatar: order.user.avatar,
+      user_email: order.user.email,
       user_balance: order.user.coin_balance,
       project_id: order.project_id,
       project_name: order.project&.name,
