@@ -16,6 +16,7 @@ function findMarkdownContainer(el) {
 function handleClick(e) {
   const a = e.target.closest('a')
   if (!a) return
+  if (!findMarkdownContainer(a)) return
   const href = a.getAttribute('href')
   if (!href) return
   if (href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:')) return
@@ -29,6 +30,7 @@ function handleClick(e) {
 function handleMouseOver(e) {
   const a = e.target.closest('a')
   if (!a) return
+  if (!findMarkdownContainer(a)) return
   const href = a.getAttribute('href')
   if (!href) return
   if (isInternalLink(href) && typeof router.prefetch === 'function') {

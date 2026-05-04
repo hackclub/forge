@@ -1,7 +1,7 @@
 class SupportTicketJob < ApplicationJob
   queue_as :default
 
-  def perform(slack_user_id:, channel_id:, message_ts:, text:)
+  def perform(slack_user_id:, channel_id:, message_ts:, text:, files: nil)
     return if SupportTicket.exists?(thread_ts: message_ts)
 
     user_info = slack_client.users_info(user: slack_user_id)
@@ -18,7 +18,7 @@ class SupportTicketJob < ApplicationJob
       channel_id: channel_id,
       thread_ts: message_ts,
       bts_channel_id: bts_channel,
-      original_text: text.truncate(4000),
+      original_text: self.class.text_with_attachments(text, files).truncate(4000),
       status: :open
     )
 
@@ -50,6 +50,21 @@ class SupportTicketJob < ApplicationJob
     ticket.update!(bts_message_ts: result["ts"]) if result["ok"]
   rescue StandardError => e
     Rails.logger.error("SupportTicketJob failed: #{e.class}: #{e.message}\n#{e.backtrace&.first(10)&.join("\n")}")
+  end
+
+  def self.text_with_attachments(text, files)
+    base = text.to_s
+    return base if files.blank?
+
+    links = Array(files).filter_map do |f|
+      permalink = f.is_a?(Hash) ? (f["permalink"] || f[:permalink]) : nil
+      name = f.is_a?(Hash) ? (f["name"] || f[:name]) : nil
+      next nil if permalink.blank?
+      "<#{permalink}|#{name.presence || 'attachment'}>"
+    end
+    return base if links.empty?
+
+    "#{base}\n\n📎 *Attachments:*\n#{links.join("\n")}".strip
   end
 
   def self.bts_blocks(ticket)

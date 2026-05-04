@@ -38,8 +38,19 @@ class ApplicationController < ActionController::Base
   }
   inertia_share flash: -> { flash.to_hash }
   inertia_share maintenance_mode: -> { FeatureFlag.enabled?("maintenance_mode") }
+  inertia_share reels_enabled: -> { reels_enabled? }
   inertia_share sign_in_path: -> { signin_path }
   inertia_share sign_out_path: -> { signout_path }
+
+  helper_method :reels_enabled?
+
+  def reels_enabled?
+    FeatureFlag.enabled?("reels") || current_user&.admin?
+  end
+
+  def require_reels_enabled!
+    raise ActionController::RoutingError, "Not Found" unless reels_enabled?
+  end
 
   private
 

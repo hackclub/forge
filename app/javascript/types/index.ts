@@ -28,6 +28,7 @@ export interface SharedProps {
   sign_in_path: string
   sign_out_path: string
   maintenance_mode: boolean
+  reels_enabled: boolean
   errors: Record<string, string[]>
   [key: string]: unknown
 }

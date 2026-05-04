@@ -34,7 +34,12 @@ export default function ExploreIndex({
   return (
     <>
       <Head title="Explore - Forge" />
-      <div className="p-5 md:p-12 max-w-[1400px] mx-auto">
+      <div
+        className="fixed inset-0 pointer-events-none z-0 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: 'url(/explore_page_bg.png)' }}
+      />
+      <div className="fixed inset-0 pointer-events-none z-0 bg-[#0e0e0e]/30" />
+      <div className="p-5 md:p-12 max-w-[1400px] mx-auto relative z-10">
         <section className="mb-12">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
             <div className="max-w-2xl">

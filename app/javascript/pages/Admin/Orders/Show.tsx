@@ -17,6 +17,7 @@ interface OrderDetail {
   user_id: number
   user_display_name: string
   user_avatar: string
+  user_email: string
   user_balance: number
   project_id: number | null
   project_name: string | null
@@ -165,6 +166,12 @@ export default function AdminOrdersShow({
               {order.user_display_name}
             </span>
           </Link>
+          <p className="text-stone-500 text-sm mt-3">
+            HCB email:{' '}
+            <a href={`mailto:${order.user_email}`} className="text-[#ffb595] hover:text-[#ee671c] font-mono">
+              {order.user_email}
+            </a>
+          </p>
           {order.project_id && (
             <p className="text-stone-500 text-sm mt-3">
               For project:{' '}

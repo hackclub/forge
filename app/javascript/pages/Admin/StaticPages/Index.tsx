@@ -95,6 +95,7 @@ export default function AdminStaticPagesIndex({
             {can('audit_log') && <DashboardLink href="/admin/audit_log" label="Audit Log" />}
             {is_admin && <DashboardLink href="/admin/database" label="Database" />}
             {can('jobs') && <DashboardLink href="/admin/jobs" label="Jobs" external />}
+            {is_superadmin && <DashboardLink href="/admin/reel_payouts" label="Reel Payouts" />}
           </div>
         </div>
       )}

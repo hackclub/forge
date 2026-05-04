@@ -357,7 +357,9 @@ export default function ProjectsShow({
     })
   }, [devlogs, devlogOrder])
 
-  const isStaff = !!usePage<SharedProps>().props.auth.user?.is_staff
+  const sharedProps = usePage<SharedProps>().props
+  const isStaff = !!sharedProps.auth.user?.is_staff
+  const reelsEnabled = !!sharedProps.reels_enabled
 
   return (
     <div className="p-5 md:p-12 max-w-[1400px] mx-auto">
@@ -543,6 +545,15 @@ export default function ProjectsShow({
                   <span>Repository</span>
                   <span className="material-symbols-outlined text-xs">open_in_new</span>
                 </a>
+              )}
+              {can.update && reelsEnabled && (
+                <Link
+                  href={`/projects/${project.id}/reels`}
+                  className="ghost-border bg-[#1c1b1b] hover:bg-[#2a2a2a] text-stone-300 hover:text-[#ffb595] px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.15em] inline-flex items-center gap-2 transition-colors"
+                >
+                  <span className="material-symbols-outlined text-sm">play_circle</span>
+                  Reels
+                </Link>
               )}
             </div>
           </div>

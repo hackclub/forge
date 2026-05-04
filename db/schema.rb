@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_01_000309) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_04_020000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -272,6 +272,81 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_01_000309) do
     t.index ["status"], name: "index_projects_on_status"
     t.index ["tags"], name: "index_projects_on_tags", using: :gin
     t.index ["user_id"], name: "index_projects_on_user_id"
+  end
+
+  create_table "reel_comments", force: :cascade do |t|
+    t.text "body", null: false
+    t.datetime "created_at", null: false
+    t.bigint "reel_id", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["created_at"], name: "index_reel_comments_on_created_at"
+    t.index ["reel_id"], name: "index_reel_comments_on_reel_id"
+    t.index ["user_id"], name: "index_reel_comments_on_user_id"
+  end
+
+  create_table "reel_images", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "image_url", null: false
+    t.integer "position", default: 0, null: false
+    t.bigint "reel_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["reel_id", "position"], name: "index_reel_images_on_reel_id_and_position"
+    t.index ["reel_id"], name: "index_reel_images_on_reel_id"
+  end
+
+  create_table "reel_kudos", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "reel_id", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["reel_id", "user_id"], name: "index_reel_kudos_on_reel_id_and_user_id", unique: true
+    t.index ["reel_id"], name: "index_reel_kudos_on_reel_id"
+    t.index ["user_id"], name: "index_reel_kudos_on_user_id"
+  end
+
+  create_table "reel_payout_requests", force: :cascade do |t|
+    t.decimal "amount", precision: 10, scale: 2, null: false
+    t.datetime "created_at", null: false
+    t.text "reason"
+    t.bigint "reel_id", null: false
+    t.datetime "reviewed_at"
+    t.bigint "reviewer_id"
+    t.string "status", default: "pending", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_at"], name: "index_reel_payout_requests_on_created_at"
+    t.index ["reel_id"], name: "index_reel_payout_requests_on_reel_id"
+    t.index ["reviewer_id"], name: "index_reel_payout_requests_on_reviewer_id"
+    t.index ["status"], name: "index_reel_payout_requests_on_status"
+  end
+
+  create_table "reel_views", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "reel_id", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["reel_id", "user_id"], name: "index_reel_views_on_reel_id_and_user_id", unique: true
+    t.index ["reel_id"], name: "index_reel_views_on_reel_id"
+    t.index ["user_id"], name: "index_reel_views_on_user_id"
+  end
+
+  create_table "reels", force: :cascade do |t|
+    t.string "audio_url"
+    t.integer "comments_count", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.integer "duration_seconds"
+    t.string "kind", default: "video", null: false
+    t.integer "kudos_count", default: 0, null: false
+    t.decimal "lifetime_payout_coins", precision: 10, scale: 2, default: "0.0", null: false
+    t.bigint "project_id", null: false
+    t.text "title"
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.string "video_url"
+    t.integer "views_count", default: 0, null: false
+    t.index ["created_at"], name: "index_reels_on_created_at"
+    t.index ["project_id"], name: "index_reels_on_project_id"
+    t.index ["user_id"], name: "index_reels_on_user_id"
   end
 
   create_table "referral_prize_pools", force: :cascade do |t|
@@ -591,6 +666,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_01_000309) do
   add_foreign_key "project_notes", "users", column: "author_id"
   add_foreign_key "projects", "users"
   add_foreign_key "projects", "users", column: "reviewer_id"
+  add_foreign_key "reel_comments", "reels"
+  add_foreign_key "reel_comments", "users"
+  add_foreign_key "reel_images", "reels"
+  add_foreign_key "reel_kudos", "reels"
+  add_foreign_key "reel_kudos", "users"
+  add_foreign_key "reel_payout_requests", "reels"
+  add_foreign_key "reel_payout_requests", "users", column: "reviewer_id"
+  add_foreign_key "reel_views", "reels"
+  add_foreign_key "reel_views", "users"
+  add_foreign_key "reels", "projects"
+  add_foreign_key "reels", "users"
   add_foreign_key "referrals", "coin_adjustments", column: "payout_adjustment_id"
   add_foreign_key "referrals", "projects", column: "qualifying_project_id"
   add_foreign_key "referrals", "users", column: "approver_id"

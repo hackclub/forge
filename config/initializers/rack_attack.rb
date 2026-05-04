@@ -34,8 +34,8 @@ class Rack::Attack
   end
 
   # Custom throttle response
-  self.throttled_responder = lambda do |env|
-    match_data = env["rack.attack.match_data"] || {}
+  self.throttled_responder = lambda do |request|
+    match_data = request.env["rack.attack.match_data"] || {}
     retry_after = match_data[:period] || 60
     [
       429,
