@@ -50,7 +50,15 @@ class ReelsController < ApplicationController
 
     render inertia: "Reels/Edit", props: {
       project: { id: @reel.project_id, name: @reel.project.name },
-      reel: { id: @reel.id, title: @reel.title.to_s, kind: @reel.kind }
+      reel: {
+        id: @reel.id,
+        title: @reel.title.to_s,
+        kind: @reel.kind,
+        video_url: @reel.video_url,
+        audio_url: @reel.audio_url,
+        image_urls: @reel.reel_images.order(:position).pluck(:image_url),
+        created_at: @reel.created_at.strftime("%b %d, %Y")
+      }
     }
   end
 
