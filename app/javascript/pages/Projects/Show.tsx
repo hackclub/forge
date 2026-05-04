@@ -30,8 +30,8 @@ function parseTimeSpentToHours(value: string | null): number {
 function getContentWithoutLinks(content: string): string {
   // Remove markdown links: [text](url) -> text
   let text = content.replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1')
-  // Remove HTML tags
-  text = text.replace(/<[^>]+>/g, '')
+  // Remove HTML angle brackets to prevent tag-like content from surviving/re-forming
+  text = text.replace(/[<>]/g, '')
   return text
 }
 
