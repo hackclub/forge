@@ -229,7 +229,7 @@ class ProjectsController < ApplicationController
   def export_devlogs
     authorize @project, :update?
 
-    entries = @project.devlogs.order(created_at: :asc)
+    entries = @project.devlogs.order(id: :asc)
     md = +"# #{@project.name}\n\n"
     md << "#{@project.subtitle}\n\n" if @project.subtitle.present?
 
@@ -392,12 +392,22 @@ class ProjectsController < ApplicationController
   end
 
   def serialize_devlog(devlog)
+    details = devlog.requirement_validation_details
     {
       id: devlog.id,
       title: devlog.title,
       content: devlog.content,
       time_spent: devlog.time_spent,
-      created_at: devlog.created_at.strftime("%B %d, %Y")
+      time_hours: devlog.time_hours&.to_f,
+      created_at: devlog.created_at.strftime("%B %d, %Y"),
+      meets_requirements: devlog.meets_submission_requirements?,
+      validation: {
+        content_length: details[:content_length],
+        min_content_length: details[:min_content_length],
+        has_image: details[:has_image],
+        meets_length_requirement: details[:meets_length_requirement],
+        meets_image_requirement: details[:meets_image_requirement]
+      }
     }
   end
 

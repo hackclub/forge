@@ -21,6 +21,7 @@ class DevlogsController < ApplicationController
         title: @devlog.title,
         content: @devlog.content,
         time_spent: @devlog.time_spent,
+        time_hours: @devlog.time_hours&.to_f,
         created_at: @devlog.created_at.strftime("%B %d, %Y")
       },
       can_edit: can_edit
@@ -31,6 +32,13 @@ class DevlogsController < ApplicationController
     authorize @project, :update?
 
     @devlog = @project.devlogs.build(devlog_params)
+
+    # Validate submission requirements for web submissions
+    requirement_errors = @devlog.submission_requirement_errors
+    if requirement_errors.any?
+      redirect_to @project, alert: "Please fix these issues: #{requirement_errors.join(', ')}"
+      return
+    end
 
     if @devlog.save
       audit!("devlog.created", target: @devlog, label: @devlog.title, metadata: { project_id: @project.id, title: @devlog.title, time_spent: @devlog.time_spent })
@@ -43,6 +51,15 @@ class DevlogsController < ApplicationController
   def update
     authorize @project, :update?
     @devlog = @project.devlogs.find(params[:id])
+
+    # Validate submission requirements for web submissions
+    temp_devlog = @devlog.dup
+    temp_devlog.assign_attributes(devlog_params)
+    requirement_errors = temp_devlog.submission_requirement_errors
+    if requirement_errors.any?
+      redirect_to @project, alert: "Please fix these issues: #{requirement_errors.join(', ')}"
+      return
+    end
 
     if @devlog.update(devlog_params)
       audit!("devlog.updated", target: @devlog, label: @devlog.title, metadata: {
@@ -102,6 +119,7 @@ class DevlogsController < ApplicationController
   def devlog_params
     attrs = params.expect(devlog: [ :title, :content, :time_spent ])
     attrs[:time_spent] = normalize_time_spent(attrs[:time_spent])
+    attrs[:time_hours] = TimeSpentParser.parse(attrs[:time_spent])
     attrs
   end
 

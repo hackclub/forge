@@ -82,11 +82,7 @@ export default function AdminProjectsShow({
 
   const sortedDevlogs = useMemo(() => {
     return [...project.devlogs].sort((a, b) => {
-      const aTime = Date.parse(a.created_at)
-      const bTime = Date.parse(b.created_at)
-      const aSort = Number.isNaN(aTime) ? a.id : aTime
-      const bSort = Number.isNaN(bTime) ? b.id : bTime
-      return devlogOrder === 'newest' ? bSort - aSort : aSort - bSort
+      return devlogOrder === 'newest' ? b.id - a.id : a.id - b.id
     })
   }, [project.devlogs, devlogOrder])
 
@@ -462,6 +458,31 @@ export default function AdminProjectsShow({
                   <div className="space-y-4">
                     {sortedDevlogs.map((entry) => (
                       <div key={entry.id} className="bg-[#0e0e0e] p-5 ghost-border overflow-hidden">
+                        {entry.time_hours === null && entry.time_spent && (
+                          <div className="bg-amber-900/30 border border-amber-600/50 rounded-none p-3 mb-4 flex items-start gap-2">
+                            <span className="material-symbols-outlined text-amber-500 text-lg shrink-0 mt-0.5">warning</span>
+                            <div className="text-xs text-amber-100/90">
+                              <p className="font-semibold mb-1">Time entry couldn't be parsed</p>
+                              <p>The time spent (&quot;<span className="text-amber-300">{entry.time_spent}</span>&quot;) wasn't automatically parsed. Builder should edit to use a clearer format like &quot;3 hours&quot;, &quot;3h 15m&quot;, or &quot;3:15&quot;.</p>
+                            </div>
+                          </div>
+                        )}
+                        {!entry.meets_requirements && (
+                          <div className="bg-amber-900/40 border-2 border-amber-600 rounded-none p-4 mb-4 flex items-start gap-3">
+                            <span className="material-symbols-outlined text-amber-400 text-2xl shrink-0 mt-0.5">warning</span>
+                            <div className="text-sm text-amber-100">
+                              <p className="font-bold mb-2">⚠️ Entry doesn't meet requirements</p>
+                              <ul className="space-y-1 ml-4 list-disc text-amber-100/90">
+                                {!entry.validation.meets_length_requirement && (
+                                  <li>{entry.validation.content_length}/100 characters of content (excluding links)</li>
+                                )}
+                                {!entry.validation.meets_image_requirement && (
+                                  <li>{entry.validation.has_image ? '✓' : '0'}/1 images required</li>
+                                )}
+                              </ul>
+                            </div>
+                          </div>
+                        )}
                         <div className="flex items-start justify-between mb-2 gap-2">
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2 flex-wrap mb-1">
