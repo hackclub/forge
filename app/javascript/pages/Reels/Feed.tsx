@@ -891,7 +891,7 @@ function ReelCard({
         </button>
       )}
 
-      <div className="absolute right-3 bottom-32 md:bottom-1/2 md:translate-y-1/2 md:right-[max(1rem,calc(50%-300px))] flex flex-col gap-4 items-center z-10">
+      <div className="absolute right-3 bottom-32 md:bottom-16 flex flex-col gap-4 items-center z-10">
         <ActionButton
           icon="favorite"
           label={formatCount(kudosCount)}
@@ -1108,9 +1108,8 @@ export default function ReelsFeed({ reels }: { reels: FeedItem[] }) {
 
   useEffect(() => {
     if (!activeKey) return
-    if (activeKey.startsWith('a-')) return
-    const reelId = activeKey.replace('r-', '')
-    window.history.replaceState(null, '', `/reels/${reelId}`)
+    const id = activeKey.startsWith('a-') ? activeKey.replace('a-', '') : activeKey.replace('r-', '')
+    window.history.replaceState(null, '', `/reels/${id}`)
   }, [activeKey])
 
   const [commentsOpen, setCommentsOpen] = useState(false)
