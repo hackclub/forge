@@ -67,9 +67,25 @@ class ReelsController < ApplicationController
   def destroy
     authorize @reel
     project_id = @reel.project_id
-    @reel.destroy
-    audit!("reel.destroyed", target: nil, label: nil, metadata: { project_id: project_id, reel_id: @reel.id })
-    redirect_to project_reels_path(project_id), notice: "Reel removed."
+    reel_id = @reel.id
+    refunded = 0.0
+
+    Reel.transaction do
+      paid = @reel.lifetime_payout_coins.to_f
+      if paid.positive?
+        refunded = paid
+        @reel.user.coin_adjustments.create!(
+          actor: current_user,
+          amount: -paid,
+          reason: "Reel ##{reel_id} deleted, payout reversed"
+        )
+      end
+      @reel.destroy!
+    end
+
+    audit!("reel.destroyed", target: nil, label: nil, metadata: { project_id: project_id, reel_id: reel_id, refunded_coins: refunded })
+    notice = refunded.positive? ? "Reel removed and #{refunded.round(2)}c clawed back from the user." : "Reel removed."
+    redirect_to project_reels_path(project_id), notice: notice
   end
 
   private
