@@ -50,6 +50,22 @@ interface ReferralEconomy {
   total_coins: number
 }
 
+interface ReelEconomy {
+  count: number
+  views: number
+  kudos: number
+  total_coins: number
+}
+
+interface OverallEconomy {
+  devlog_coins: number
+  reel_coins: number
+  referral_coins: number
+  total_coins: number
+  total_hours: number
+  effective_rate: number
+}
+
 export default function AdminMetricsIndex({
   range_days,
   summary,
@@ -60,6 +76,8 @@ export default function AdminMetricsIndex({
   tier_breakdown,
   coin_economy,
   referral_economy,
+  reel_economy,
+  overall_economy,
 }: {
   range_days: number
   summary: Summary
@@ -70,6 +88,8 @@ export default function AdminMetricsIndex({
   tier_breakdown: TierRow[]
   coin_economy: CoinEconomy
   referral_economy: ReferralEconomy
+  reel_economy: ReelEconomy
+  overall_economy: OverallEconomy
 }) {
   const max = Math.max(1, ...daily.map((d) => d.count))
   const ranges = [7, 30, 60, 90, 180]
@@ -186,15 +206,33 @@ export default function AdminMetricsIndex({
               <td className="px-4 py-3 text-[#ffb595] font-bold">{referral_economy.total_coins}</td>
               <td className="px-4 py-3 text-stone-600">-</td>
             </tr>
+            <tr className="border-t border-white/5">
+              <td className="px-4 py-3 text-[#e5e2e1] font-headline font-bold">reels</td>
+              <td className="px-4 py-3 text-stone-600 text-xs">engagement</td>
+              <td className="px-4 py-3 text-stone-300">{reel_economy.count}</td>
+              <td className="px-4 py-3 text-stone-500 text-xs">{reel_economy.views.toLocaleString()} views / {reel_economy.kudos.toLocaleString()} kudos</td>
+              <td className="px-4 py-3 text-[#ffb595] font-bold">{reel_economy.total_coins}</td>
+              <td className="px-4 py-3 text-stone-600">-</td>
+            </tr>
             <tr className="border-t border-white/10 bg-[#0e0e0e]/50">
               <td className="px-4 py-3 text-[#e5e2e1] font-headline font-bold uppercase text-xs tracking-[0.15em]">
-                All tiers
+                Devlogs only
               </td>
               <td className="px-4 py-3 text-stone-600">-</td>
               <td className="px-4 py-3 text-stone-500">{tier_breakdown.reduce((n, t) => n + t.projects, 0)}</td>
               <td className="px-4 py-3 text-stone-500">{coin_economy.total_hours}</td>
-              <td className="px-4 py-3 text-[#ffb595] font-bold">{coin_economy.total_coins}</td>
-              <td className="px-4 py-3 text-[#ffb595] font-bold font-mono">{coin_economy.avg_coins_per_hour}</td>
+              <td className="px-4 py-3 text-stone-400">{coin_economy.total_coins}</td>
+              <td className="px-4 py-3 text-stone-400 font-mono">{coin_economy.avg_coins_per_hour}</td>
+            </tr>
+            <tr className="border-t border-white/10 bg-[#ee671c]/10">
+              <td className="px-4 py-3 text-[#e5e2e1] font-headline font-bold uppercase text-xs tracking-[0.15em]">
+                All spending
+              </td>
+              <td className="px-4 py-3 text-stone-600">-</td>
+              <td className="px-4 py-3 text-stone-500">-</td>
+              <td className="px-4 py-3 text-stone-500">{overall_economy.total_hours}</td>
+              <td className="px-4 py-3 text-[#ffb595] font-bold">{overall_economy.total_coins}</td>
+              <td className="px-4 py-3 text-[#ee671c] font-bold font-mono">{overall_economy.effective_rate}</td>
             </tr>
           </tbody>
         </table>

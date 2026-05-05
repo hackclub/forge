@@ -74,6 +74,28 @@ class Admin::MetricsController < Admin::ApplicationController
       total_coins: (approved_referrals_count * referral_per_unit).round(2)
     }
 
+    reel_total_count = Reel.count
+    reel_total_views = Reel.sum(:views_count)
+    reel_total_kudos = Reel.sum(:kudos_count)
+    reel_total_payouts = Reel.sum(:lifetime_payout_coins).to_f
+    reel_economy = {
+      count: reel_total_count,
+      views: reel_total_views,
+      kudos: reel_total_kudos,
+      total_coins: reel_total_payouts.round(2)
+    }
+
+    overall_coins = total_coins_all + reel_total_payouts + referral_economy[:total_coins]
+    overall_rate = total_hours_all.positive? ? (overall_coins / total_hours_all).round(2) : 0
+    overall_economy = {
+      devlog_coins: total_coins_all.round(2),
+      reel_coins: reel_total_payouts.round(2),
+      referral_coins: referral_economy[:total_coins],
+      total_coins: overall_coins.round(2),
+      total_hours: total_hours_all.round(1),
+      effective_rate: overall_rate
+    }
+
     render inertia: "Admin/Metrics/Index", props: {
       range_days: days,
       summary: {
@@ -104,7 +126,9 @@ class Admin::MetricsController < Admin::ApplicationController
         total_coins: total_coins_all.round(2),
         avg_coins_per_hour: avg_coins_per_hour
       },
-      referral_economy: referral_economy
+      referral_economy: referral_economy,
+      reel_economy: reel_economy,
+      overall_economy: overall_economy
     }
   end
 end
