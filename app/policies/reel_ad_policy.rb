@@ -2,19 +2,19 @@
 
 class ReelAdPolicy < ApplicationPolicy
   def index?
-    admin?
+    user&.has_permission?("reel_ads")
   end
 
   def create?
-    admin?
+    index?
   end
 
   def update?
-    admin?
+    index?
   end
 
   def destroy?
-    admin?
+    index?
   end
 
   class Scope < ApplicationPolicy::Scope

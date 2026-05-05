@@ -211,6 +211,7 @@ class User < ApplicationRecord
     news
     orders
     referrals
+    reel_ads
     superadmin
   ].freeze
 
