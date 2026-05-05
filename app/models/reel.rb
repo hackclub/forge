@@ -33,7 +33,7 @@ class Reel < ApplicationRecord
   MAX_DURATION_SECONDS = 60
   MAX_IMAGES = 10
 
-  COINS_PER_VIEW = 0.002
+  COINS_PER_VIEW = 0.004
   COINS_PER_KUDO = 0.1
 
   has_paper_trail
