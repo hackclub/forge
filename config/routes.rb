@@ -347,6 +347,7 @@ Rails.application.routes.draw do
   get "news/:id" => "news#show", as: :news_post
 
   get "reels" => "reels#index", as: :reels_feed
+  get "reels/a:id" => "reels#show_ad", as: :reel_ad
   post "reel_ads/:id/impression" => "reel_ads#impression", as: :reel_ad_impression
   post "reel_ads/:id/click" => "reel_ads#click", as: :reel_ad_click
   resources :reels, only: [ :show, :edit, :update, :destroy ] do
