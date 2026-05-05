@@ -4,16 +4,17 @@ class Reels::CommentsController < ApplicationController
 
   def index
     authorize ReelComment, :index?
-    comments = @reel.reel_comments.recent.includes(:user).limit(200)
-    render json: { comments: comments.map { |c| serialize(c) } }
+    top_level = @reel.reel_comments.top_level.recent.includes(:user, replies: :user).limit(200)
+    render json: { comments: top_level.map { |c| serialize(c, include_replies: true) } }
   end
 
   def create
-    comment = @reel.reel_comments.build(user: current_user, body: params[:body])
+    parent = @reel.reel_comments.find_by(id: params[:parent_id]) if params[:parent_id].present?
+    comment = @reel.reel_comments.build(user: current_user, body: params[:body], parent: parent)
     authorize comment
 
     if comment.save
-      render json: { comment: serialize(comment) }, status: :created
+      render json: { comment: serialize(comment, include_replies: false) }, status: :created
     else
       render json: { errors: comment.errors.full_messages }, status: :unprocessable_entity
     end
@@ -32,10 +33,11 @@ class Reels::CommentsController < ApplicationController
     @reel = Reel.find(params[:reel_id])
   end
 
-  def serialize(comment)
-    {
+  def serialize(comment, include_replies:)
+    payload = {
       id: comment.id,
       body: comment.body,
+      parent_id: comment.parent_id,
       created_at: comment.created_at.iso8601,
       can_destroy: ReelCommentPolicy.new(current_user, comment).destroy?,
       user: {
@@ -44,5 +46,7 @@ class Reels::CommentsController < ApplicationController
         avatar: comment.user.avatar
       }
     }
+    payload[:replies] = comment.replies.order(:created_at).map { |r| serialize(r, include_replies: false) } if include_replies
+    payload
   end
 end

@@ -47,9 +47,11 @@ const seenAdIds = new Set<number>()
 interface Comment {
   id: number
   body: string
+  parent_id: number | null
   created_at: string
   can_destroy: boolean
   user: { id: number; display_name: string; avatar: string }
+  replies?: Comment[]
 }
 
 function formatCount(n: number): string {
@@ -111,12 +113,16 @@ function CommentsPanel({
   const [body, setBody] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [replyingTo, setReplyingTo] = useState<number | null>(null)
+  const [expanded, setExpanded] = useState<Set<number>>(new Set())
   const currentUser = usePage<SharedProps>().props.auth.user
 
   useEffect(() => {
     let cancelled = false
     setComments(null)
     setError(null)
+    setReplyingTo(null)
+    setExpanded(new Set())
     fetch(`/reels/${reel.id}/comments`, {
       headers: { Accept: 'application/json' },
       credentials: 'same-origin',
@@ -139,12 +145,8 @@ function CommentsPanel({
     }
   }, [reel.id])
 
-  function submit(e: React.FormEvent) {
-    e.preventDefault()
-    if (!body.trim() || submitting) return
-    setSubmitting(true)
-    setError(null)
-    fetch(`/reels/${reel.id}/comments`, {
+  function postComment(text: string, parentId: number | null): Promise<Comment | null> {
+    return fetch(`/reels/${reel.id}/comments`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -152,15 +154,24 @@ function CommentsPanel({
         'X-CSRF-Token': csrfToken(),
       },
       credentials: 'same-origin',
-      body: JSON.stringify({ body }),
+      body: JSON.stringify({ body: text, parent_id: parentId }),
     })
       .then(async (r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`)
         return r.json()
       })
-      .then((data) => {
-        if (data.comment) {
-          setComments((prev) => (prev ? [data.comment, ...prev] : [data.comment]))
+      .then((data) => (data.comment ? (data.comment as Comment) : null))
+  }
+
+  function submit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!body.trim() || submitting) return
+    setSubmitting(true)
+    setError(null)
+    postComment(body, null)
+      .then((c) => {
+        if (c) {
+          setComments((prev) => (prev ? [{ ...c, replies: [] }, ...prev] : [{ ...c, replies: [] }]))
           setBody('')
           onCountChange(1)
         }
@@ -169,16 +180,53 @@ function CommentsPanel({
       .finally(() => setSubmitting(false))
   }
 
-  function destroy(commentId: number) {
+  function submitReply(parentId: number, text: string) {
+    return postComment(text, parentId).then((c) => {
+      if (!c) return
+      setComments((prev) =>
+        prev
+          ? prev.map((top) =>
+              top.id === parentId ? { ...top, replies: [...(top.replies ?? []), c] } : top,
+            )
+          : prev,
+      )
+      setExpanded((prev) => new Set(prev).add(parentId))
+      setReplyingTo(null)
+      onCountChange(1)
+    })
+  }
+
+  function destroy(commentId: number, parentId: number | null) {
     fetch(`/reels/${reel.id}/comments/${commentId}`, {
       method: 'DELETE',
       headers: { 'X-CSRF-Token': csrfToken() },
       credentials: 'same-origin',
     }).then((r) => {
-      if (r.ok) {
-        setComments((prev) => (prev ? prev.filter((c) => c.id !== commentId) : prev))
+      if (!r.ok) return
+      setComments((prev) => {
+        if (!prev) return prev
+        if (parentId == null) {
+          const removed = prev.find((c) => c.id === commentId)
+          const dropped = 1 + (removed?.replies?.length ?? 0)
+          onCountChange(-dropped)
+          return prev.filter((c) => c.id !== commentId)
+        }
         onCountChange(-1)
-      }
+        return prev.map((top) =>
+          top.id === parentId
+            ? { ...top, replies: (top.replies ?? []).filter((r) => r.id !== commentId) }
+            : top,
+        )
+      })
+    })
+  }
+
+  function toggleExpanded(id: number) {
+    setExpanded((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
     })
   }
 
@@ -207,33 +255,18 @@ function CommentsPanel({
           </p>
         ) : (
           comments.map((c) => (
-            <div key={c.id} className="flex gap-3">
-              <Link href={`/users/${c.user.id}`} className="shrink-0">
-                <img src={c.user.avatar} alt="" className="w-8 h-8 rounded-full border border-white/10" />
-              </Link>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-baseline gap-2">
-                  <Link
-                    href={`/users/${c.user.id}`}
-                    className="text-sm font-headline font-bold text-[#e5e2e1] hover:text-[#ffb595] truncate"
-                  >
-                    {c.user.display_name}
-                  </Link>
-                  <span className="text-[10px] text-stone-600">{new Date(c.created_at).toLocaleDateString()}</span>
-                </div>
-                <p className="text-stone-300 text-sm whitespace-pre-wrap break-words">{c.body}</p>
-              </div>
-              {c.can_destroy && (
-                <button
-                  type="button"
-                  onClick={() => destroy(c.id)}
-                  className="text-stone-600 hover:text-red-400 shrink-0 cursor-pointer"
-                  aria-label="Delete comment"
-                >
-                  <span className="material-symbols-outlined text-base">delete</span>
-                </button>
-              )}
-            </div>
+            <CommentRow
+              key={c.id}
+              comment={c}
+              currentUser={currentUser}
+              isReplying={replyingTo === c.id}
+              isExpanded={expanded.has(c.id)}
+              onReplyClick={() => setReplyingTo((prev) => (prev === c.id ? null : c.id))}
+              onCancelReply={() => setReplyingTo(null)}
+              onSubmitReply={(text) => submitReply(c.id, text)}
+              onToggleExpanded={() => toggleExpanded(c.id)}
+              onDestroy={destroy}
+            />
           ))
         )}
       </div>
@@ -265,6 +298,179 @@ function CommentsPanel({
         </div>
       )}
     </div>
+  )
+}
+
+function CommentRow({
+  comment,
+  currentUser,
+  isReplying,
+  isExpanded,
+  onReplyClick,
+  onCancelReply,
+  onSubmitReply,
+  onToggleExpanded,
+  onDestroy,
+}: {
+  comment: Comment
+  currentUser: SharedProps['auth']['user']
+  isReplying: boolean
+  isExpanded: boolean
+  onReplyClick: () => void
+  onCancelReply: () => void
+  onSubmitReply: (text: string) => Promise<void>
+  onToggleExpanded: () => void
+  onDestroy: (id: number, parentId: number | null) => void
+}) {
+  const replies = comment.replies ?? []
+  return (
+    <div>
+      <CommentBody
+        comment={comment}
+        canReply={!!currentUser}
+        canDestroy={comment.can_destroy}
+        onReplyClick={onReplyClick}
+        onDestroy={() => onDestroy(comment.id, null)}
+      />
+      {isReplying && currentUser && (
+        <div className="ml-11 mt-2">
+          <ReplyForm
+            placeholder={`Reply to ${comment.user.display_name}…`}
+            onCancel={onCancelReply}
+            onSubmit={onSubmitReply}
+          />
+        </div>
+      )}
+      {replies.length > 0 && (
+        <div className="ml-11 mt-2">
+          <button
+            type="button"
+            onClick={onToggleExpanded}
+            className="text-[10px] uppercase tracking-widest font-bold text-stone-500 hover:text-[#ffb595] inline-flex items-center gap-1 cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-sm">{isExpanded ? 'expand_less' : 'expand_more'}</span>
+            {isExpanded ? 'Hide' : 'View'} {replies.length} {replies.length === 1 ? 'reply' : 'replies'}
+          </button>
+          {isExpanded && (
+            <div className="mt-3 space-y-3 border-l border-white/10 pl-3">
+              {replies.map((r) => (
+                <CommentBody
+                  key={r.id}
+                  comment={r}
+                  canReply={false}
+                  canDestroy={r.can_destroy}
+                  onReplyClick={() => {}}
+                  onDestroy={() => onDestroy(r.id, comment.id)}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function CommentBody({
+  comment,
+  canReply,
+  canDestroy,
+  onReplyClick,
+  onDestroy,
+}: {
+  comment: Comment
+  canReply: boolean
+  canDestroy: boolean
+  onReplyClick: () => void
+  onDestroy: () => void
+}) {
+  return (
+    <div className="flex gap-3">
+      <Link href={`/users/${comment.user.id}`} className="shrink-0">
+        <img src={comment.user.avatar} alt="" className="w-8 h-8 rounded-full border border-white/10" />
+      </Link>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-baseline gap-2">
+          <Link
+            href={`/users/${comment.user.id}`}
+            className="text-sm font-headline font-bold text-[#e5e2e1] hover:text-[#ffb595] truncate"
+          >
+            {comment.user.display_name}
+          </Link>
+          <span className="text-[10px] text-stone-600">{new Date(comment.created_at).toLocaleDateString()}</span>
+        </div>
+        <p className="text-stone-300 text-sm whitespace-pre-wrap break-words">{comment.body}</p>
+        {canReply && (
+          <button
+            type="button"
+            onClick={onReplyClick}
+            className="text-[10px] uppercase tracking-widest font-bold text-stone-500 hover:text-[#ffb595] mt-1 cursor-pointer"
+          >
+            Reply
+          </button>
+        )}
+      </div>
+      {canDestroy && (
+        <button
+          type="button"
+          onClick={onDestroy}
+          className="text-stone-600 hover:text-red-400 shrink-0 cursor-pointer"
+          aria-label="Delete comment"
+        >
+          <span className="material-symbols-outlined text-base">delete</span>
+        </button>
+      )}
+    </div>
+  )
+}
+
+function ReplyForm({
+  placeholder,
+  onCancel,
+  onSubmit,
+}: {
+  placeholder: string
+  onCancel: () => void
+  onSubmit: (text: string) => Promise<void>
+}) {
+  const [text, setText] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+
+  function submit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!text.trim() || submitting) return
+    setSubmitting(true)
+    onSubmit(text)
+      .then(() => setText(''))
+      .finally(() => setSubmitting(false))
+  }
+
+  return (
+    <form onSubmit={submit} className="flex gap-2">
+      <input
+        type="text"
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        maxLength={1000}
+        placeholder={placeholder}
+        autoFocus
+        className="flex-1 bg-[#0e0e0e] border-none px-3 py-1.5 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600"
+      />
+      <button
+        type="button"
+        onClick={onCancel}
+        className="text-stone-500 hover:text-stone-300 text-[10px] uppercase tracking-widest font-bold cursor-pointer px-2"
+      >
+        Cancel
+      </button>
+      <button
+        type="submit"
+        disabled={!text.trim() || submitting}
+        className="signature-smolder text-[#4c1a00] px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest disabled:opacity-40 disabled:cursor-not-allowed"
+      >
+        Reply
+      </button>
+    </form>
   )
 }
 
