@@ -32,18 +32,6 @@ class ReelsController < ApplicationController
     }
   end
 
-  def show_ad
-    @ad = ReelAd.enabled.find(params[:id])
-    reels = Reel.includes(:user, :project, :reel_images).fair_feed.first(50)
-
-    items = reels.map { |reel| serialize_reel(reel) }
-    items = [ serialize_ad(@ad) ] + inject_ads(items)
-
-    render inertia: "Reels/Feed", props: {
-      reels: items
-    }
-  end
-
   def manage
     authorize @project, :update?
 
