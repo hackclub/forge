@@ -25,8 +25,24 @@ interface Reel {
   user: { id: number; display_name: string; avatar: string }
 }
 
+interface Ad {
+  is_ad: true
+  id: number
+  title: string
+  video_url: string
+  click_url: string | null
+  duration_seconds: number | null
+}
+
+type FeedItem = Reel | Ad
+
+function isAd(item: FeedItem): item is Ad {
+  return (item as Ad).is_ad === true
+}
+
 const VIEW_THRESHOLD_MS = 2000
 const viewedReelIds = new Set<number>()
+const seenAdIds = new Set<number>()
 
 interface Comment {
   id: number
@@ -557,12 +573,129 @@ function ReelCard({
   )
 }
 
-export default function FeedIndex({ reels }: { reels: Reel[] }) {
+function AdCard({ ad, isActive }: { ad: Ad; isActive: boolean }) {
+  const ref = useRef<HTMLVideoElement | null>(null)
+  const [muted, setMuted] = useState(true)
+  const [paused, setPaused] = useState(false)
+
+  useEffect(() => {
+    const v = ref.current
+    if (!v) return
+    if (isActive) {
+      v.currentTime = 0
+      v.play().catch(() => {})
+      setPaused(false)
+    } else {
+      v.pause()
+    }
+  }, [isActive])
+
+  useEffect(() => {
+    if (!isActive) return
+    if (seenAdIds.has(ad.id)) return
+    seenAdIds.add(ad.id)
+    fetch(`/reel_ads/${ad.id}/impression`, {
+      method: 'POST',
+      headers: { 'X-CSRF-Token': csrfToken() },
+      credentials: 'same-origin',
+    }).catch(() => {})
+  }, [isActive, ad.id])
+
+  function handleClick() {
+    const v = ref.current
+    if (!v) return
+    if (v.paused) {
+      v.play().catch(() => {})
+      setPaused(false)
+    } else {
+      v.pause()
+      setPaused(true)
+    }
+  }
+
+  function trackClick() {
+    fetch(`/reel_ads/${ad.id}/click`, {
+      method: 'POST',
+      headers: { 'X-CSRF-Token': csrfToken() },
+      credentials: 'same-origin',
+    }).catch(() => {})
+  }
+
+  return (
+    <section className="snap-start h-[calc(100dvh-3.5rem)] md:h-[100dvh] w-full relative flex items-center justify-center bg-black overflow-hidden">
+      <video
+        ref={ref}
+        src={ad.video_url}
+        muted={muted}
+        loop
+        playsInline
+        preload="metadata"
+        onClick={handleClick}
+        className="max-h-full max-w-full object-contain"
+      />
+      {paused && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <span className="material-symbols-outlined text-white/80" style={{ fontSize: 96 }}>
+            play_arrow
+          </span>
+        </div>
+      )}
+
+      <div className="absolute top-4 left-4 z-10 bg-white/15 backdrop-blur px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-white">
+        Sponsored
+      </div>
+
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation()
+          setMuted((m) => !m)
+        }}
+        aria-label={muted ? 'Unmute' : 'Mute'}
+        className="absolute top-4 right-4 w-10 h-10 rounded-full bg-black/50 backdrop-blur flex items-center justify-center text-white active:scale-90 transition-transform cursor-pointer z-10"
+      >
+        <span className="material-symbols-outlined text-xl">{muted ? 'volume_off' : 'volume_up'}</span>
+      </button>
+
+      <div className="absolute left-0 right-0 bottom-0 px-5 pb-8 pt-16 z-10 bg-gradient-to-t from-black/80 via-black/40 to-transparent pointer-events-none">
+        <div className="pointer-events-auto">
+          <p className="text-white text-base font-headline font-bold leading-snug drop-shadow break-words line-clamp-3 mb-3">
+            {ad.title}
+          </p>
+          {ad.click_url && (
+            <a
+              href={ad.click_url}
+              target="_blank"
+              rel="noopener noreferrer sponsored"
+              onClick={(e) => {
+                e.stopPropagation()
+                trackClick()
+              }}
+              className="inline-flex items-center gap-2 signature-smolder text-[#4c1a00] px-4 py-2 text-[10px] font-bold uppercase tracking-[0.15em]"
+            >
+              <span className="material-symbols-outlined text-sm">open_in_new</span>
+              Learn more
+            </a>
+          )}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function feedKey(item: FeedItem): string {
+  return isAd(item) ? `a-${item.id}` : `r-${item.id}`
+}
+
+export default function FeedIndex({ reels }: { reels: FeedItem[] }) {
   const containerRef = useRef<HTMLDivElement | null>(null)
-  const [activeId, setActiveId] = useState<number | null>(reels[0]?.id ?? null)
+  const [activeKey, setActiveKey] = useState<string | null>(reels[0] ? feedKey(reels[0]) : null)
   const [activeCommentsReel, setActiveCommentsReel] = useState<Reel | null>(null)
   const [commentsCounts, setCommentsCounts] = useState<Record<number, number>>(
-    () => Object.fromEntries(reels.map((r) => [r.id, r.comments_count ?? 0])),
+    () =>
+      Object.fromEntries(
+        reels.filter((r): r is Reel => !isAd(r)).map((r) => [r.id, r.comments_count ?? 0]),
+      ),
   )
 
   useEffect(() => {
@@ -573,15 +706,15 @@ export default function FeedIndex({ reels }: { reels: Reel[] }) {
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting && entry.intersectionRatio >= 0.6) {
-            const id = Number((entry.target as HTMLElement).dataset.reelId)
-            if (id) setActiveId(id)
+            const key = (entry.target as HTMLElement).dataset.feedKey
+            if (key) setActiveKey(key)
           }
         })
       },
       { root, threshold: [0, 0.6, 1] },
     )
 
-    root.querySelectorAll<HTMLElement>('[data-reel-id]').forEach((el) => observer.observe(el))
+    root.querySelectorAll<HTMLElement>('[data-feed-key]').forEach((el) => observer.observe(el))
 
     return () => observer.disconnect()
   }, [reels.length])
@@ -602,7 +735,9 @@ export default function FeedIndex({ reels }: { reels: Reel[] }) {
     setCommentsCounts((prev) => ({ ...prev, [reelId]: Math.max(0, (prev[reelId] ?? 0) + delta) }))
   }
 
-  const reelsWithCounts = reels.map((r) => ({ ...r, comments_count: commentsCounts[r.id] ?? r.comments_count ?? 0 }))
+  const itemsWithCounts: FeedItem[] = reels.map((item) =>
+    isAd(item) ? item : { ...item, comments_count: commentsCounts[item.id] ?? item.comments_count ?? 0 },
+  )
 
   return (
     <>
@@ -616,8 +751,8 @@ export default function FeedIndex({ reels }: { reels: Reel[] }) {
         >
           <style>{`
             [data-feed-scroller]::-webkit-scrollbar { display: none; }
-            [data-reel-id] { transition: transform 350ms cubic-bezier(0.32, 0.72, 0, 1), opacity 350ms cubic-bezier(0.32, 0.72, 0, 1); }
-            [data-reel-id]:not([data-active="true"]) { transform: scale(0.96); opacity: 0.55; }
+            [data-feed-key] { transition: transform 350ms cubic-bezier(0.32, 0.72, 0, 1), opacity 350ms cubic-bezier(0.32, 0.72, 0, 1); }
+            [data-feed-key]:not([data-active="true"]) { transform: scale(0.96); opacity: 0.55; }
           `}</style>
           {reels.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-center px-8 text-stone-400">
@@ -632,11 +767,19 @@ export default function FeedIndex({ reels }: { reels: Reel[] }) {
               </Link>
             </div>
           ) : (
-            reelsWithCounts.map((reel) => (
-              <div key={reel.id} data-reel-id={reel.id} data-active={activeId === reel.id ? 'true' : 'false'}>
-                <ReelCard reel={reel} isActive={activeId === reel.id} onOpenComments={openComments} />
-              </div>
-            ))
+            itemsWithCounts.map((item) => {
+              const key = feedKey(item)
+              const active = activeKey === key
+              return (
+                <div key={key} data-feed-key={key} data-active={active ? 'true' : 'false'}>
+                  {isAd(item) ? (
+                    <AdCard ad={item} isActive={active} />
+                  ) : (
+                    <ReelCard reel={item} isActive={active} onOpenComments={openComments} />
+                  )}
+                </div>
+              )
+            })
           )}
         </div>
 
