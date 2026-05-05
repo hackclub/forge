@@ -346,10 +346,10 @@ Rails.application.routes.draw do
   get "news" => "news#index", as: :news
   get "news/:id" => "news#show", as: :news_post
 
-  get "feed" => "feed#index", as: :feed
+  get "reels" => "reels#index", as: :reels_feed
   post "reel_ads/:id/impression" => "reel_ads#impression", as: :reel_ad_impression
   post "reel_ads/:id/click" => "reel_ads#click", as: :reel_ad_click
-  resources :reels, only: [ :edit, :update, :destroy ] do
+  resources :reels, only: [ :show, :edit, :update, :destroy ] do
     resource :kudo, only: [ :create, :destroy ], module: :reels, controller: "kudos"
     resource :view, only: [ :create ], module: :reels, controller: "views"
     resources :comments, only: [ :index, :create, :destroy ], module: :reels
@@ -373,7 +373,11 @@ Rails.application.routes.draw do
     end
     resources :devlogs, only: [ :show, :create, :update, :destroy ]
     post "devlog_image" => "devlogs#upload_image", as: :devlog_image
-    resources :reels, only: [ :index, :new, :create ]
+    resources :reels, only: [ :new, :create ] do
+      collection do
+        get "", action: :manage, as: ""
+      end
+    end
   end
 
   get "docs" => "markdown#show", as: :docs

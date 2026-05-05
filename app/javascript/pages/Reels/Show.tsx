@@ -25,25 +25,6 @@ interface Reel {
   user: { id: number; display_name: string; avatar: string }
 }
 
-interface Ad {
-  is_ad: true
-  id: number
-  title: string
-  video_url: string
-  click_url: string | null
-  duration_seconds: number | null
-}
-
-type FeedItem = Reel | Ad
-
-function isAd(item: FeedItem): item is Ad {
-  return (item as Ad).is_ad === true
-}
-
-const VIEW_THRESHOLD_MS = 2000
-const viewedReelIds = new Set<number>()
-const seenAdIds = new Set<number>()
-
 interface Comment {
   id: number
   body: string
@@ -53,6 +34,9 @@ interface Comment {
   user: { id: number; display_name: string; avatar: string }
   replies?: Comment[]
 }
+
+const VIEW_THRESHOLD_MS = 2000
+let viewRecorded = false
 
 function formatCount(n: number): string {
   if (!n) return '0'
@@ -121,8 +105,6 @@ function CommentsPanel({
     let cancelled = false
     setComments(null)
     setError(null)
-    setReplyingTo(null)
-    setExpanded(new Set())
     fetch(`/reels/${reel.id}/comments`, {
       headers: { Accept: 'application/json' },
       credentials: 'same-origin',
@@ -474,9 +456,8 @@ function ReplyForm({
   )
 }
 
-function VideoMedia({ reel, isActive, muted, onTogglePlay, paused }: {
+function VideoMedia({ reel, muted, onTogglePlay, paused }: {
   reel: Reel
-  isActive: boolean
   muted: boolean
   onTogglePlay: (paused: boolean) => void
   paused: boolean
@@ -486,14 +467,9 @@ function VideoMedia({ reel, isActive, muted, onTogglePlay, paused }: {
   useEffect(() => {
     const v = ref.current
     if (!v) return
-    if (isActive) {
-      v.currentTime = 0
-      v.play().catch(() => {})
-      onTogglePlay(false)
-    } else {
-      v.pause()
-    }
-  }, [isActive])
+    v.play().catch(() => {})
+    onTogglePlay(false)
+  }, [])
 
   function handleClick() {
     const v = ref.current
@@ -608,7 +584,7 @@ function CarouselMedia({ reel }: { reel: Reel }) {
   )
 }
 
-function SlideshowMedia({ reel, isActive, muted }: { reel: Reel; isActive: boolean; muted: boolean }) {
+function SlideshowMedia({ reel, muted }: { reel: Reel; muted: boolean }) {
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const [idx, setIdx] = useState(0)
   const total = reel.images.length
@@ -616,22 +592,18 @@ function SlideshowMedia({ reel, isActive, muted }: { reel: Reel; isActive: boole
   useEffect(() => {
     const a = audioRef.current
     if (!a) return
-    if (isActive) {
-      a.currentTime = 0
-      a.muted = muted
-      a.play().catch(() => {})
-    } else {
-      a.pause()
-    }
-  }, [isActive, muted])
+    a.currentTime = 0
+    a.muted = muted
+    a.play().catch(() => {})
+  }, [muted])
 
   useEffect(() => {
-    if (!isActive || total <= 1) return
+    if (total <= 1) return
     const a = audioRef.current
     const cycle = a && !isNaN(a.duration) && a.duration > 0 ? (a.duration / total) * 1000 : 3000
     const t = setInterval(() => setIdx((i) => (i + 1) % total), cycle)
     return () => clearInterval(t)
-  }, [isActive, total, reel.audio_url])
+  }, [total, reel.audio_url])
 
   if (total === 0) return null
 
@@ -658,25 +630,19 @@ function SlideshowMedia({ reel, isActive, muted }: { reel: Reel; isActive: boole
   )
 }
 
-function ReelCard({
-  reel,
-  isActive,
-  onOpenComments,
-}: {
-  reel: Reel
-  isActive: boolean
-  onOpenComments: (reel: Reel) => void
-}) {
-  const [muted, setMuted] = useState(true)
+export default function ReelsShow({ reel }: { reel: Reel }) {
+  const [muted, setMuted] = useState(false)
   const [paused, setPaused] = useState(false)
   const [kudoed, setKudoed] = useState(reel.kudoed)
+  const [kudosCount, setKudosCount] = useState(reel.kudos_count ?? 0)
   const [viewsCount, setViewsCount] = useState(reel.views_count ?? 0)
+  const [commentsCount, setCommentsCount] = useState(reel.comments_count ?? 0)
+  const [commentsOpen, setCommentsOpen] = useState(false)
 
   useEffect(() => {
-    if (!isActive) return
-    if (viewedReelIds.has(reel.id)) return
+    if (viewRecorded) return
     const t = window.setTimeout(() => {
-      viewedReelIds.add(reel.id)
+      viewRecorded = true
       setViewsCount((v) => v + 1)
       fetch(`/reels/${reel.id}/view`, {
         method: 'POST',
@@ -685,8 +651,7 @@ function ReelCard({
       }).catch(() => {})
     }, VIEW_THRESHOLD_MS)
     return () => window.clearTimeout(t)
-  }, [isActive, reel.id])
-  const [kudosCount, setKudosCount] = useState(reel.kudos_count ?? 0)
+  }, [reel.id])
 
   function toggleKudo(e: React.MouseEvent) {
     e.stopPropagation()
@@ -701,292 +666,101 @@ function ReelCard({
     }
   }
 
-  return (
-    <section className="snap-start h-[calc(100dvh-3.5rem)] md:h-[100dvh] w-full relative flex items-center justify-center bg-black overflow-hidden">
-      {reel.kind === 'video' && (
-        <VideoMedia reel={reel} isActive={isActive} muted={muted} paused={paused} onTogglePlay={setPaused} />
-      )}
-      {reel.kind === 'image_carousel' && <CarouselMedia reel={reel} />}
-      {reel.kind === 'slideshow' && <SlideshowMedia reel={reel} isActive={isActive} muted={muted} />}
-
-      {(reel.kind === 'video' || (reel.kind === 'slideshow' && reel.audio_url)) && (
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation()
-            setMuted((m) => !m)
-          }}
-          aria-label={muted ? 'Unmute' : 'Mute'}
-          className="absolute top-4 right-4 w-10 h-10 rounded-full bg-black/50 backdrop-blur flex items-center justify-center text-white active:scale-90 transition-transform cursor-pointer z-10"
-        >
-          <span className="material-symbols-outlined text-xl">{muted ? 'volume_off' : 'volume_up'}</span>
-        </button>
-      )}
-
-      <div className="absolute right-3 bottom-32 md:bottom-16 flex flex-col gap-4 items-center z-10">
-        <ActionButton
-          icon="favorite"
-          label={formatCount(kudosCount)}
-          active={kudoed}
-          onClick={toggleKudo}
-          ariaLabel={kudoed ? 'Remove kudos' : 'Give kudos'}
-        />
-        <ActionButton
-          icon="mode_comment"
-          label={formatCount(reel.comments_count ?? 0)}
-          onClick={(e) => {
-            e.stopPropagation()
-            onOpenComments(reel)
-          }}
-          ariaLabel="Open comments"
-        />
-      </div>
-
-      <div className="absolute left-0 right-16 bottom-0 px-5 pb-8 pt-16 z-10 bg-gradient-to-t from-black/80 via-black/40 to-transparent pointer-events-none">
-        <div className="pointer-events-auto">
-          <div className="flex items-center gap-3 mb-3">
-            <Link
-              href={`/users/${reel.user.id}`}
-              onClick={(e) => e.stopPropagation()}
-              className="flex items-center gap-2 w-fit"
-            >
-              <img src={reel.user.avatar} alt="" className="w-8 h-8 rounded-full border border-white/30" />
-              <span className="text-white font-headline font-bold text-sm tracking-tight drop-shadow">
-                @{reel.user.display_name}
-              </span>
-            </Link>
-            <span className="flex items-center gap-1 text-white/80 text-xs drop-shadow">
-              <span className="material-symbols-outlined text-sm">visibility</span>
-              {formatCount(viewsCount)}
-            </span>
-          </div>
-          {reel.title && (
-            <p className="text-white text-base font-headline font-bold leading-snug drop-shadow break-words line-clamp-3 mb-3">
-              {reel.title}
-            </p>
-          )}
-          <Link
-            href={`/projects/${reel.project.id}`}
-            onClick={(e) => e.stopPropagation()}
-            className="inline-flex items-center gap-2 bg-white/10 backdrop-blur hover:bg-white/20 text-white px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.15em] transition-colors"
-          >
-            <span className="material-symbols-outlined text-sm">visibility</span>
-            View project
-          </Link>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-function AdCard({ ad, isActive }: { ad: Ad; isActive: boolean }) {
-  const ref = useRef<HTMLVideoElement | null>(null)
-  const [muted, setMuted] = useState(true)
-  const [paused, setPaused] = useState(false)
-
-  useEffect(() => {
-    const v = ref.current
-    if (!v) return
-    if (isActive) {
-      v.currentTime = 0
-      v.play().catch(() => {})
-      setPaused(false)
-    } else {
-      v.pause()
-    }
-  }, [isActive])
-
-  useEffect(() => {
-    if (!isActive) return
-    if (seenAdIds.has(ad.id)) return
-    seenAdIds.add(ad.id)
-    fetch(`/reel_ads/${ad.id}/impression`, {
-      method: 'POST',
-      headers: { 'X-CSRF-Token': csrfToken() },
-      credentials: 'same-origin',
-    }).catch(() => {})
-  }, [isActive, ad.id])
-
-  function handleClick() {
-    const v = ref.current
-    if (!v) return
-    if (v.paused) {
-      v.play().catch(() => {})
-      setPaused(false)
-    } else {
-      v.pause()
-      setPaused(true)
-    }
-  }
-
-  function trackClick() {
-    fetch(`/reel_ads/${ad.id}/click`, {
-      method: 'POST',
-      headers: { 'X-CSRF-Token': csrfToken() },
-      credentials: 'same-origin',
-    }).catch(() => {})
-  }
-
-  return (
-    <section className="snap-start h-[calc(100dvh-3.5rem)] md:h-[100dvh] w-full relative flex items-center justify-center bg-black overflow-hidden">
-      <video
-        ref={ref}
-        src={ad.video_url}
-        muted={muted}
-        loop
-        playsInline
-        preload="metadata"
-        onClick={handleClick}
-        className="max-h-full max-w-full object-contain"
-      />
-      {paused && (
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <span className="material-symbols-outlined text-white/80" style={{ fontSize: 96 }}>
-            play_arrow
-          </span>
-        </div>
-      )}
-
-      <div className="absolute top-4 left-4 z-10 bg-white/15 backdrop-blur px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-white">
-        Sponsored
-      </div>
-
-      <button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation()
-          setMuted((m) => !m)
-        }}
-        aria-label={muted ? 'Unmute' : 'Mute'}
-        className="absolute top-4 right-4 w-10 h-10 rounded-full bg-black/50 backdrop-blur flex items-center justify-center text-white active:scale-90 transition-transform cursor-pointer z-10"
-      >
-        <span className="material-symbols-outlined text-xl">{muted ? 'volume_off' : 'volume_up'}</span>
-      </button>
-
-      <div className="absolute left-0 right-0 bottom-0 px-5 pb-8 pt-16 z-10 bg-gradient-to-t from-black/80 via-black/40 to-transparent pointer-events-none">
-        <div className="pointer-events-auto">
-          <p className="text-white text-base font-headline font-bold leading-snug drop-shadow break-words line-clamp-3 mb-3">
-            {ad.title}
-          </p>
-          {ad.click_url && (
-            <a
-              href={ad.click_url}
-              target="_blank"
-              rel="noopener noreferrer sponsored"
-              onClick={(e) => {
-                e.stopPropagation()
-                trackClick()
-              }}
-              className="inline-flex items-center gap-2 signature-smolder text-[#4c1a00] px-4 py-2 text-[10px] font-bold uppercase tracking-[0.15em]"
-            >
-              <span className="material-symbols-outlined text-sm">open_in_new</span>
-              Learn more
-            </a>
-          )}
-        </div>
-      </div>
-    </section>
-  )
-}
-
-function feedKey(item: FeedItem): string {
-  return isAd(item) ? `a-${item.id}` : `r-${item.id}`
-}
-
-export default function FeedIndex({ reels }: { reels: FeedItem[] }) {
-  const containerRef = useRef<HTMLDivElement | null>(null)
-  const [activeKey, setActiveKey] = useState<string | null>(reels[0] ? feedKey(reels[0]) : null)
-  const [activeCommentsReel, setActiveCommentsReel] = useState<Reel | null>(null)
-  const [commentsCounts, setCommentsCounts] = useState<Record<number, number>>(
-    () =>
-      Object.fromEntries(
-        reels.filter((r): r is Reel => !isAd(r)).map((r) => [r.id, r.comments_count ?? 0]),
-      ),
-  )
-
-  useEffect(() => {
-    const root = containerRef.current
-    if (!root) return
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting && entry.intersectionRatio >= 0.6) {
-            const key = (entry.target as HTMLElement).dataset.feedKey
-            if (key) setActiveKey(key)
-          }
-        })
-      },
-      { root, threshold: [0, 0.6, 1] },
-    )
-
-    root.querySelectorAll<HTMLElement>('[data-feed-key]').forEach((el) => observer.observe(el))
-
-    return () => observer.disconnect()
-  }, [reels.length])
-
-  const [commentsOpen, setCommentsOpen] = useState(false)
-
-  function openComments(reel: Reel) {
-    setActiveCommentsReel(reel)
-    requestAnimationFrame(() => setCommentsOpen(true))
-  }
-
   function closeComments() {
     setCommentsOpen(false)
-    window.setTimeout(() => setActiveCommentsReel(null), 320)
   }
 
-  function bumpCommentCount(reelId: number, delta: number) {
-    setCommentsCounts((prev) => ({ ...prev, [reelId]: Math.max(0, (prev[reelId] ?? 0) + delta) }))
+  function bumpCommentCount(delta: number) {
+    setCommentsCount((c) => Math.max(0, c + delta))
   }
 
-  const itemsWithCounts: FeedItem[] = reels.map((item) =>
-    isAd(item) ? item : { ...item, comments_count: commentsCounts[item.id] ?? item.comments_count ?? 0 },
-  )
+  const title = reel.title ? `${reel.title} - Forge` : `Reel by ${reel.user.display_name} - Forge`
 
   return (
     <>
-      <Head title="Feed - Forge" />
+      <Head title={title} />
       <div className="flex h-[calc(100dvh-3.5rem)] md:h-[100dvh] bg-black">
-        <div
-          ref={containerRef}
-          data-feed-scroller
-          className="flex-1 min-w-0 h-full overflow-y-auto snap-y snap-mandatory bg-black"
-          style={{ scrollbarWidth: 'none', scrollBehavior: 'smooth', overscrollBehavior: 'contain' }}
-        >
-          <style>{`
-            [data-feed-scroller]::-webkit-scrollbar { display: none; }
-            [data-feed-key] { transition: transform 350ms cubic-bezier(0.32, 0.72, 0, 1), opacity 350ms cubic-bezier(0.32, 0.72, 0, 1); }
-            [data-feed-key]:not([data-active="true"]) { transform: scale(0.96); opacity: 0.55; }
-          `}</style>
-          {reels.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center text-center px-8 text-stone-400">
-              <span className="material-symbols-outlined text-6xl text-[#ee671c] mb-4">play_circle</span>
-              <h2 className="text-2xl font-headline font-bold text-[#e5e2e1] mb-2">No reels yet</h2>
-              <p className="text-stone-500 text-sm mb-6">Open a project and tap "Reels" to post the first one.</p>
+        <div className="flex-1 min-w-0 h-full relative flex items-center justify-center bg-black overflow-hidden">
+          {reel.kind === 'video' && (
+            <VideoMedia reel={reel} muted={muted} paused={paused} onTogglePlay={setPaused} />
+          )}
+          {reel.kind === 'image_carousel' && <CarouselMedia reel={reel} />}
+          {reel.kind === 'slideshow' && <SlideshowMedia reel={reel} muted={muted} />}
+
+          <Link
+            href="/reels"
+            className="absolute top-4 left-4 w-10 h-10 rounded-full bg-black/50 backdrop-blur flex items-center justify-center text-white active:scale-90 transition-transform cursor-pointer z-10"
+            aria-label="Back to reels"
+          >
+            <span className="material-symbols-outlined">arrow_back</span>
+          </Link>
+
+          {(reel.kind === 'video' || (reel.kind === 'slideshow' && reel.audio_url)) && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation()
+                setMuted((m) => !m)
+              }}
+              aria-label={muted ? 'Unmute' : 'Mute'}
+              className="absolute top-4 right-4 w-10 h-10 rounded-full bg-black/50 backdrop-blur flex items-center justify-center text-white active:scale-90 transition-transform cursor-pointer z-10"
+            >
+              <span className="material-symbols-outlined text-xl">{muted ? 'volume_off' : 'volume_up'}</span>
+            </button>
+          )}
+
+          <div className="absolute right-3 bottom-32 md:bottom-16 flex flex-col gap-4 items-center z-10">
+            <ActionButton
+              icon="favorite"
+              label={formatCount(kudosCount)}
+              active={kudoed}
+              onClick={toggleKudo}
+              ariaLabel={kudoed ? 'Remove kudos' : 'Give kudos'}
+            />
+            <ActionButton
+              icon="mode_comment"
+              label={formatCount(commentsCount)}
+              onClick={(e) => {
+                e.stopPropagation()
+                setCommentsOpen(true)
+              }}
+              ariaLabel="Open comments"
+            />
+          </div>
+
+          <div className="absolute left-0 right-16 bottom-0 px-5 pb-8 pt-16 z-10 bg-gradient-to-t from-black/80 via-black/40 to-transparent pointer-events-none">
+            <div className="pointer-events-auto">
+              <div className="flex items-center gap-3 mb-3">
+                <Link
+                  href={`/users/${reel.user.id}`}
+                  onClick={(e) => e.stopPropagation()}
+                  className="flex items-center gap-2 w-fit"
+                >
+                  <img src={reel.user.avatar} alt="" className="w-8 h-8 rounded-full border border-white/30" />
+                  <span className="text-white font-headline font-bold text-sm tracking-tight drop-shadow">
+                    @{reel.user.display_name}
+                  </span>
+                </Link>
+                <span className="flex items-center gap-1 text-white/80 text-xs drop-shadow">
+                  <span className="material-symbols-outlined text-sm">visibility</span>
+                  {formatCount(viewsCount)}
+                </span>
+              </div>
+              {reel.title && (
+                <p className="text-white text-base font-headline font-bold leading-snug drop-shadow break-words line-clamp-3 mb-3">
+                  {reel.title}
+                </p>
+              )}
               <Link
-                href="/explore"
-                className="signature-smolder text-[#4c1a00] px-5 py-2.5 font-bold uppercase tracking-wider text-xs"
+                href={`/projects/${reel.project.id}`}
+                onClick={(e) => e.stopPropagation()}
+                className="inline-flex items-center gap-2 bg-white/10 backdrop-blur hover:bg-white/20 text-white px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.15em] transition-colors"
               >
-                Browse projects
+                <span className="material-symbols-outlined text-sm">visibility</span>
+                View project
               </Link>
             </div>
-          ) : (
-            itemsWithCounts.map((item) => {
-              const key = feedKey(item)
-              const active = activeKey === key
-              return (
-                <div key={key} data-feed-key={key} data-active={active ? 'true' : 'false'}>
-                  {isAd(item) ? (
-                    <AdCard ad={item} isActive={active} />
-                  ) : (
-                    <ReelCard reel={item} isActive={active} onOpenComments={openComments} />
-                  )}
-                </div>
-              )
-            })
-          )}
+          </div>
         </div>
 
         <div
@@ -994,11 +768,11 @@ export default function FeedIndex({ reels }: { reels: FeedItem[] }) {
           style={{ width: commentsOpen ? 400 : 0 }}
         >
           <div className="w-[400px] h-full">
-            {activeCommentsReel && (
+            {commentsOpen && (
               <CommentsPanel
-                reel={activeCommentsReel}
+                reel={{ ...reel, comments_count: commentsCount }}
                 onClose={closeComments}
-                onCountChange={(delta) => bumpCommentCount(activeCommentsReel.id, delta)}
+                onCountChange={bumpCommentCount}
               />
             )}
           </div>
@@ -1017,11 +791,11 @@ export default function FeedIndex({ reels }: { reels: FeedItem[] }) {
           }`}
           onClick={(e) => e.stopPropagation()}
         >
-          {activeCommentsReel && (
+          {commentsOpen && (
             <CommentsPanel
-              reel={activeCommentsReel}
+              reel={{ ...reel, comments_count: commentsCount }}
               onClose={closeComments}
-              onCountChange={(delta) => bumpCommentCount(activeCommentsReel.id, delta)}
+              onCountChange={bumpCommentCount}
             />
           )}
         </div>
