@@ -4,7 +4,7 @@ import type { SharedProps } from '@/types'
 
 const navItems = [
   { href: '/explore', label: 'Explore', icon: 'explore', authOnly: false, tour: 'nav-explore', flag: undefined },
-  { href: '/feed', label: 'Feed', icon: 'play_circle', authOnly: true, tour: undefined, flag: 'reels_enabled' },
+  { href: '/reels', label: 'Reels', icon: 'play_circle', authOnly: true, tour: undefined, flag: 'reels_enabled' },
   { href: '/home', label: 'Dashboard', icon: 'dashboard', authOnly: true, tour: 'nav-dashboard', flag: undefined },
   { href: '/shop', label: 'Shop', icon: 'storefront', authOnly: true, tour: 'nav-shop', flag: undefined },
   { href: '/leaderboard', label: 'Leaderboard', icon: 'emoji_events', authOnly: true, tour: undefined, flag: undefined },

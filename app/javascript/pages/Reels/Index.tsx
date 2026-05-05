@@ -8,7 +8,7 @@ interface ReelRow {
   first_image_url: string | null
   created_at: string
   stats: { views: number; kudos: number; comments: number }
-  payout: { lifetime: number; pending: number; target: number; max: number }
+  payout: { lifetime: number; pending: number; target: number }
 }
 
 interface Props {
@@ -128,7 +128,6 @@ export default function ReelsIndex({ project, reels }: Props) {
                         Current estimated payout:{' '}
                         <span className="text-[#e5e2e1] font-bold">{reel.payout.target.toFixed(2)}c</span>
                       </span>
-                      <span className="text-stone-600">Cap: {reel.payout.max}c</span>
                     </div>
 
                     <div className="flex gap-2 mt-3">

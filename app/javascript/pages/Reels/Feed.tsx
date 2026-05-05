@@ -893,7 +893,7 @@ function feedKey(item: FeedItem): string {
   return isAd(item) ? `a-${item.id}` : `r-${item.id}`
 }
 
-export default function FeedIndex({ reels }: { reels: FeedItem[] }) {
+export default function ReelsFeed({ reels }: { reels: FeedItem[] }) {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const [activeKey, setActiveKey] = useState<string | null>(reels[0] ? feedKey(reels[0]) : null)
   const [activeCommentsReel, setActiveCommentsReel] = useState<Reel | null>(null)
@@ -947,7 +947,7 @@ export default function FeedIndex({ reels }: { reels: FeedItem[] }) {
 
   return (
     <>
-      <Head title="Feed - Forge" />
+      <Head title="Reels - Forge" />
       <div className="flex h-[calc(100dvh-3.5rem)] md:h-[100dvh] bg-black">
         <div
           ref={containerRef}

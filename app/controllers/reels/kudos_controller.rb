@@ -7,7 +7,7 @@ class Reels::KudosController < ApplicationController
     authorize kudo, :create?
     kudo.save unless kudo.persisted?
 
-    redirect_back(fallback_location: feed_path)
+    redirect_back(fallback_location: reels_feed_path)
   end
 
   def destroy
@@ -17,7 +17,7 @@ class Reels::KudosController < ApplicationController
       kudo.destroy
     end
 
-    redirect_back(fallback_location: feed_path)
+    redirect_back(fallback_location: reels_feed_path)
   end
 
   private
