@@ -100,6 +100,174 @@ function ActionButton({
   )
 }
 
+interface CommentGroupData {
+  user: Comment['user']
+  comments: Comment[]
+}
+
+function groupConsecutiveComments(comments: Comment[]): CommentGroupData[] {
+  const groups: CommentGroupData[] = []
+  for (const c of comments) {
+    const last = groups[groups.length - 1]
+    if (last && last.user.id === c.user.id) {
+      last.comments.push(c)
+    } else {
+      groups.push({ user: c.user, comments: [c] })
+    }
+  }
+  return groups
+}
+
+function CommentGroup({
+  group,
+  currentUser,
+  replyingTo,
+  expanded,
+  onReplyClick,
+  onCancelReply,
+  onSubmitReply,
+  onToggleExpanded,
+  onDestroy,
+}: {
+  group: CommentGroupData
+  currentUser: SharedProps['auth']['user']
+  replyingTo: number | null
+  expanded: Set<number>
+  onReplyClick: (id: number) => void
+  onCancelReply: () => void
+  onSubmitReply: (parentId: number, text: string) => Promise<void>
+  onToggleExpanded: (id: number) => void
+  onDestroy: (id: number, parentId: number | null) => void
+}) {
+  return (
+    <div className="flex gap-3">
+      <Link href={`/users/${group.user.id}`} className="shrink-0">
+        <img src={group.user.avatar} alt="" className="w-8 h-8 rounded-full border border-white/10" />
+      </Link>
+      <div className="flex-1 min-w-0 space-y-2">
+        {group.comments.map((c, idx) => (
+          <GroupedCommentRow
+            key={c.id}
+            comment={c}
+            showName={idx === 0}
+            currentUser={currentUser}
+            isReplying={replyingTo === c.id}
+            isExpanded={expanded.has(c.id)}
+            onReplyClick={() => onReplyClick(c.id)}
+            onCancelReply={onCancelReply}
+            onSubmitReply={(text) => onSubmitReply(c.id, text)}
+            onToggleExpanded={() => onToggleExpanded(c.id)}
+            onDestroy={onDestroy}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function GroupedCommentRow({
+  comment,
+  showName,
+  currentUser,
+  isReplying,
+  isExpanded,
+  onReplyClick,
+  onCancelReply,
+  onSubmitReply,
+  onToggleExpanded,
+  onDestroy,
+}: {
+  comment: Comment
+  showName: boolean
+  currentUser: SharedProps['auth']['user']
+  isReplying: boolean
+  isExpanded: boolean
+  onReplyClick: () => void
+  onCancelReply: () => void
+  onSubmitReply: (text: string) => Promise<void>
+  onToggleExpanded: () => void
+  onDestroy: (id: number, parentId: number | null) => void
+}) {
+  const replies = comment.replies ?? []
+  return (
+    <div className="bg-[#0e0e0e] px-3 py-2">
+      <div className="flex items-start gap-2">
+        <div className="flex-1 min-w-0">
+          {showName && (
+            <div className="flex items-baseline gap-2 mb-0.5">
+              <Link
+                href={`/users/${comment.user.id}`}
+                className="text-sm font-headline font-bold text-[#e5e2e1] hover:text-[#ffb595] truncate"
+              >
+                {comment.user.display_name}
+              </Link>
+              <span className="text-[10px] text-stone-600">{new Date(comment.created_at).toLocaleDateString()}</span>
+            </div>
+          )}
+          {!showName && (
+            <span className="text-[10px] text-stone-600 block mb-0.5">{new Date(comment.created_at).toLocaleDateString()}</span>
+          )}
+          <p className="text-stone-300 text-sm whitespace-pre-wrap break-words">{comment.body}</p>
+          {currentUser && (
+            <button
+              type="button"
+              onClick={onReplyClick}
+              className="text-[10px] uppercase tracking-widest font-bold text-stone-500 hover:text-[#ffb595] mt-1 cursor-pointer"
+            >
+              Reply
+            </button>
+          )}
+        </div>
+        {comment.can_destroy && (
+          <button
+            type="button"
+            onClick={() => onDestroy(comment.id, null)}
+            className="text-stone-600 hover:text-red-400 shrink-0 cursor-pointer"
+            aria-label="Delete comment"
+          >
+            <span className="material-symbols-outlined text-base">delete</span>
+          </button>
+        )}
+      </div>
+      {isReplying && currentUser && (
+        <div className="mt-2">
+          <ReplyForm
+            placeholder={`Reply to ${comment.user.display_name}…`}
+            onCancel={onCancelReply}
+            onSubmit={onSubmitReply}
+          />
+        </div>
+      )}
+      {replies.length > 0 && (
+        <div className="mt-2">
+          <button
+            type="button"
+            onClick={onToggleExpanded}
+            className="text-[10px] uppercase tracking-widest font-bold text-stone-500 hover:text-[#ffb595] inline-flex items-center gap-1 cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-sm">{isExpanded ? 'expand_less' : 'expand_more'}</span>
+            {isExpanded ? 'Hide' : 'View'} {replies.length} {replies.length === 1 ? 'reply' : 'replies'}
+          </button>
+          {isExpanded && (
+            <div className="mt-2 space-y-2 border-l border-white/10 pl-3">
+              {replies.map((r) => (
+                <CommentBody
+                  key={r.id}
+                  comment={r}
+                  canReply={false}
+                  canDestroy={r.can_destroy}
+                  onReplyClick={() => {}}
+                  onDestroy={() => onDestroy(r.id, comment.id)}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function CommentsPanel({
   reel,
   onClose,
@@ -254,17 +422,17 @@ function CommentsPanel({
             {error || 'No comments yet. Be the first.'}
           </p>
         ) : (
-          comments.map((c) => (
-            <CommentRow
-              key={c.id}
-              comment={c}
+          groupConsecutiveComments(comments).map((group) => (
+            <CommentGroup
+              key={group.comments[0].id}
+              group={group}
               currentUser={currentUser}
-              isReplying={replyingTo === c.id}
-              isExpanded={expanded.has(c.id)}
-              onReplyClick={() => setReplyingTo((prev) => (prev === c.id ? null : c.id))}
+              replyingTo={replyingTo}
+              expanded={expanded}
+              onReplyClick={(id) => setReplyingTo((prev) => (prev === id ? null : id))}
               onCancelReply={() => setReplyingTo(null)}
-              onSubmitReply={(text) => submitReply(c.id, text)}
-              onToggleExpanded={() => toggleExpanded(c.id)}
+              onSubmitReply={submitReply}
+              onToggleExpanded={toggleExpanded}
               onDestroy={destroy}
             />
           ))
@@ -941,7 +1109,8 @@ export default function ReelsFeed({ reels }: { reels: FeedItem[] }) {
   useEffect(() => {
     if (!activeKey) return
     if (activeKey.startsWith('a-')) {
-      window.history.replaceState(null, '', '/reels')
+      const adId = activeKey.replace('a-', '')
+      window.history.replaceState(null, '', `/reels/ad/${adId}`)
     } else {
       const reelId = activeKey.replace('r-', '')
       window.history.replaceState(null, '', `/reels/${reelId}`)
