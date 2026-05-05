@@ -1,7 +1,7 @@
 class Admin::ReelAdsController < Admin::ApplicationController
   MAX_VIDEO_BYTES = 50.megabytes
 
-  before_action :require_admin!
+  before_action :require_reel_ads_permission!
 
   def index
     ads = ReelAd.recent
@@ -70,6 +70,10 @@ class Admin::ReelAdsController < Admin::ApplicationController
   end
 
   private
+
+  def require_reel_ads_permission!
+    require_permission!("reel_ads")
+  end
 
   def serialize_ad(ad)
     ctr = ad.impressions_count.positive? ? (ad.clicks_count.to_f / ad.impressions_count * 100).round(1) : 0.0

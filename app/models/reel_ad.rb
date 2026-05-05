@@ -20,9 +20,11 @@
 class ReelAd < ApplicationRecord
   has_paper_trail
 
+  URL_FORMAT = %r{\Ahttps?://}i
+
   validates :title, presence: true, length: { maximum: 200 }
-  validates :video_url, presence: true
-  validates :click_url, length: { maximum: 2000 }, allow_blank: true
+  validates :video_url, presence: true, format: { with: URL_FORMAT, message: "must be an http(s) URL" }
+  validates :click_url, length: { maximum: 2000 }, format: { with: URL_FORMAT, message: "must be an http(s) URL" }, allow_blank: true
 
   scope :enabled, -> { where(enabled: true) }
   scope :recent, -> { order(created_at: :desc) }
