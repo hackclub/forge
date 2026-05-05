@@ -21,8 +21,14 @@ class ReelsController < ApplicationController
   end
 
   def show
-    render inertia: "Reels/Show", props: {
-      reel: serialize_reel(@reel)
+    other_reels = Reel.where.not(id: @reel.id).includes(:user, :project, :reel_images).fair_feed.first(49)
+    reels = [ @reel ] + other_reels
+
+    items = reels.map { |reel| serialize_reel(reel) }
+    items = inject_ads(items)
+
+    render inertia: "Reels/Feed", props: {
+      reels: items
     }
   end
 

@@ -740,6 +740,19 @@ function ReelCard({
           }}
           ariaLabel="Open comments"
         />
+        <ActionButton
+          icon="share"
+          onClick={(e) => {
+            e.stopPropagation()
+            const url = `${window.location.origin}/reels/${reel.id}`
+            navigator.clipboard.writeText(url).then(() => {
+              alert('Link copied!')
+            }).catch(() => {
+              prompt('Copy this link:', url)
+            })
+          }}
+          ariaLabel="Share reel"
+        />
       </div>
 
       <div className="absolute left-0 right-16 bottom-0 px-5 pb-8 pt-16 z-10 bg-gradient-to-t from-black/80 via-black/40 to-transparent pointer-events-none">
@@ -924,6 +937,16 @@ export default function ReelsFeed({ reels }: { reels: FeedItem[] }) {
 
     return () => observer.disconnect()
   }, [reels.length])
+
+  useEffect(() => {
+    if (!activeKey) return
+    if (activeKey.startsWith('a-')) {
+      window.history.replaceState(null, '', '/reels')
+    } else {
+      const reelId = activeKey.replace('r-', '')
+      window.history.replaceState(null, '', `/reels/${reelId}`)
+    }
+  }, [activeKey])
 
   const [commentsOpen, setCommentsOpen] = useState(false)
 
