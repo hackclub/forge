@@ -7,7 +7,7 @@ class ReelsController < ApplicationController
 
   before_action :require_reels_enabled!
   before_action :set_project, only: [ :manage, :new, :create ]
-  before_action :set_reel,    only: [ :show, :edit, :update, :destroy ]
+  before_action :set_reel,    only: [ :edit, :update, :destroy ]
 
   def index
     reels = Reel.includes(:user, :project, :reel_images).fair_feed.first(50)
@@ -21,11 +21,20 @@ class ReelsController < ApplicationController
   end
 
   def show
-    other_reels = Reel.where.not(id: @reel.id).includes(:user, :project, :reel_images).fair_feed.first(49)
-    reels = [ @reel ] + other_reels
+    param = params[:id].to_s
+    lead_ad = nil
+
+    if param.start_with?("a-")
+      lead_ad = ReelAd.enabled.find(param.delete_prefix("a-").to_i)
+      reels = Reel.includes(:user, :project, :reel_images).fair_feed.first(49)
+    else
+      @reel = Reel.find(param)
+      reels = [ @reel ] + Reel.where.not(id: @reel.id).includes(:user, :project, :reel_images).fair_feed.first(49)
+    end
 
     items = reels.map { |reel| serialize_reel(reel) }
     items = inject_ads(items)
+    items.unshift(serialize_ad(lead_ad)) if lead_ad
 
     render inertia: "Reels/Feed", props: {
       reels: items

@@ -1108,8 +1108,8 @@ export default function ReelsFeed({ reels }: { reels: FeedItem[] }) {
 
   useEffect(() => {
     if (!activeKey) return
-    const id = activeKey.startsWith('a-') ? activeKey.replace('a-', '') : activeKey.replace('r-', '')
-    window.history.replaceState(null, '', `/reels/${id}`)
+    const path = activeKey.startsWith('a-') ? activeKey : activeKey.replace('r-', '')
+    window.history.replaceState(null, '', `/reels/${path}`)
   }, [activeKey])
 
   const [commentsOpen, setCommentsOpen] = useState(false)
