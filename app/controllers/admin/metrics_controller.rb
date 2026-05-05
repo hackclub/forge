@@ -74,6 +74,16 @@ class Admin::MetricsController < Admin::ApplicationController
       total_coins: (approved_referrals_count * referral_per_unit).round(2)
     }
 
+    reels_with_payouts = Reel.where("lifetime_payout_coins > 0")
+    reel_economy = {
+      count: reels_with_payouts.count,
+      total_views: Reel.sum(:views_count),
+      total_kudos: Reel.sum(:kudos_count),
+      coins_per_view: Reel::COINS_PER_VIEW,
+      coins_per_kudo: Reel::COINS_PER_KUDO,
+      total_coins: Reel.sum(:lifetime_payout_coins).to_f.round(2)
+    }
+
     render inertia: "Admin/Metrics/Index", props: {
       range_days: days,
       summary: {
@@ -102,9 +112,11 @@ class Admin::MetricsController < Admin::ApplicationController
       coin_economy: {
         total_hours: total_hours_all.round(1),
         total_coins: total_coins_all.round(2),
-        avg_coins_per_hour: avg_coins_per_hour
+        avg_coins_per_hour: avg_coins_per_hour,
+        grand_total: (total_coins_all + referral_economy[:total_coins] + reel_economy[:total_coins]).round(2)
       },
-      referral_economy: referral_economy
+      referral_economy: referral_economy,
+      reel_economy: reel_economy
     }
   end
 end
