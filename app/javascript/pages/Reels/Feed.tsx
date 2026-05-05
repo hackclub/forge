@@ -667,7 +667,7 @@ function ReelCard({
   isActive: boolean
   onOpenComments: (reel: Reel) => void
 }) {
-  const [muted, setMuted] = useState(true)
+  const [muted, setMuted] = useState(false)
   const [paused, setPaused] = useState(false)
   const [kudoed, setKudoed] = useState(reel.kudoed)
   const [viewsCount, setViewsCount] = useState(reel.views_count ?? 0)
@@ -781,7 +781,7 @@ function ReelCard({
 
 function AdCard({ ad, isActive }: { ad: Ad; isActive: boolean }) {
   const ref = useRef<HTMLVideoElement | null>(null)
-  const [muted, setMuted] = useState(true)
+  const [muted, setMuted] = useState(false)
   const [paused, setPaused] = useState(false)
 
   useEffect(() => {

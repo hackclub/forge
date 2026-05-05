@@ -10,15 +10,13 @@ class ReelsController < ApplicationController
   before_action :set_reel,    only: [ :edit, :update, :destroy ]
 
   def index
-    scope = Reel.recent.includes(:user, :project, :reel_images)
-    @pagy, @reels = pagy(scope, items: 10)
+    reels = Reel.includes(:user, :project, :reel_images).fair_feed.first(50)
 
-    items = @reels.map { |reel| serialize_reel(reel) }
+    items = reels.map { |reel| serialize_reel(reel) }
     items = inject_ads(items)
 
     render inertia: "Reels/Feed", props: {
-      reels: items,
-      pagy: pagy_props(@pagy)
+      reels: items
     }
   end
 

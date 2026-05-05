@@ -54,6 +54,25 @@ class Reel < ApplicationRecord
 
   scope :recent, -> { order(created_at: :desc) }
 
+  def self.fair_feed
+    all.sort_by { |r| -r.feed_score }
+  end
+
+  def feed_score
+    age_hours = [ (Time.current - created_at) / 1.hour, 0.1 ].max
+    engagement = views_count + (kudos_count * 10) + (comments_count * 5)
+    engagement_rate = engagement / age_hours
+
+    # New reels (< 24h) get up to 5x boost, decaying to 1x
+    freshness = age_hours < 24 ? (5.0 - (4.0 * age_hours / 24)) : 1.0
+
+    # Base score with freshness
+    base = engagement_rate * freshness
+
+    # Add 0-30% randomness so small reels get a chance
+    base * (1.0 + rand * 0.3)
+  end
+
   def kudoed_by?(user)
     return false unless user
     reel_kudos.exists?(user_id: user.id)
