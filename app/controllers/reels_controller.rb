@@ -7,7 +7,7 @@ class ReelsController < ApplicationController
 
   before_action :require_reels_enabled!
   before_action :set_project, only: [ :manage, :new, :create ]
-  before_action :set_reel,    only: [ :edit, :update, :destroy ]
+  before_action :set_reel,    only: [ :show, :edit, :update, :destroy ]
 
   def index
     reels = Reel.includes(:user, :project, :reel_images).fair_feed.first(50)
@@ -17,6 +17,12 @@ class ReelsController < ApplicationController
 
     render inertia: "Reels/Feed", props: {
       reels: items
+    }
+  end
+
+  def show
+    render inertia: "Reels/Show", props: {
+      reel: serialize_reel(@reel)
     }
   end
 
