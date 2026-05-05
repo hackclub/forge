@@ -248,6 +248,11 @@ Rails.application.routes.draw do
           post :reject
         end
       end
+      resources :reel_ads, only: [ :index, :create, :update, :destroy ] do
+        member do
+          post :toggle
+        end
+      end
       resources :news_posts, only: [ :index, :create, :update, :destroy ] do
         member do
           post :toggle
@@ -342,6 +347,8 @@ Rails.application.routes.draw do
   get "news/:id" => "news#show", as: :news_post
 
   get "feed" => "feed#index", as: :feed
+  post "reel_ads/:id/impression" => "reel_ads#impression", as: :reel_ad_impression
+  post "reel_ads/:id/click" => "reel_ads#click", as: :reel_ad_click
   resources :reels, only: [ :edit, :update, :destroy ] do
     resource :kudo, only: [ :create, :destroy ], module: :reels, controller: "kudos"
     resource :view, only: [ :create ], module: :reels, controller: "views"

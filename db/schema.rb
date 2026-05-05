@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_04_020000) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_05_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -274,13 +274,28 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_04_020000) do
     t.index ["user_id"], name: "index_projects_on_user_id"
   end
 
+  create_table "reel_ads", force: :cascade do |t|
+    t.string "click_url"
+    t.integer "clicks_count", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.integer "duration_seconds"
+    t.boolean "enabled", default: true, null: false
+    t.integer "impressions_count", default: 0, null: false
+    t.string "title", null: false
+    t.datetime "updated_at", null: false
+    t.string "video_url", null: false
+    t.index ["enabled"], name: "index_reel_ads_on_enabled"
+  end
+
   create_table "reel_comments", force: :cascade do |t|
     t.text "body", null: false
     t.datetime "created_at", null: false
+    t.bigint "parent_id"
     t.bigint "reel_id", null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.index ["created_at"], name: "index_reel_comments_on_created_at"
+    t.index ["parent_id"], name: "index_reel_comments_on_parent_id"
     t.index ["reel_id"], name: "index_reel_comments_on_reel_id"
     t.index ["user_id"], name: "index_reel_comments_on_user_id"
   end
@@ -666,6 +681,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_04_020000) do
   add_foreign_key "project_notes", "users", column: "author_id"
   add_foreign_key "projects", "users"
   add_foreign_key "projects", "users", column: "reviewer_id"
+  add_foreign_key "reel_comments", "reel_comments", column: "parent_id", on_delete: :cascade
   add_foreign_key "reel_comments", "reels"
   add_foreign_key "reel_comments", "users"
   add_foreign_key "reel_images", "reels"
