@@ -4,8 +4,8 @@
   "devDependencies": {
     "@types/node": "^25.6.0",
     "prettier": "^3.8.1",
-    "vite": "^7.3.2",
-    "vite-plugin-ruby": "^5.1.2"
+    "vite": "^8.0.10",
+    "vite-plugin-ruby": "^5.2.2"
   },
   "dependencies": {
     "@inertiajs/react": "^2.3.15",
