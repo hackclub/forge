@@ -140,7 +140,7 @@ export default function ForgeKeeper({ userName }: Props) {
   const [open, setOpen] = useState(false)
   const [neutralDino, setNeutralDino] = useState<string>(NEUTRAL_DINOS[0])
   const [messages, setMessages] = useState<Message[]>(
-    persisted?.messages ?? [{ role: 'assistant', content: GREETING, emotion: 'neutral' }]
+    persisted?.messages ?? [{ role: 'assistant', content: GREETING, emotion: 'neutral' }],
   )
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
@@ -300,15 +300,22 @@ export default function ForgeKeeper({ userName }: Props) {
               <div className="flex gap-2">
                 <img src={dinoSrc} alt="" className="w-6 h-6 object-contain shrink-0 mt-0.5" />
                 <div className="bg-[#0e0e0e] ghost-border px-3 py-2 text-stone-500 text-[13px] flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 bg-stone-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                  <span className="w-1.5 h-1.5 bg-stone-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                  <span className="w-1.5 h-1.5 bg-stone-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                  <span
+                    className="w-1.5 h-1.5 bg-stone-500 rounded-full animate-bounce"
+                    style={{ animationDelay: '0ms' }}
+                  />
+                  <span
+                    className="w-1.5 h-1.5 bg-stone-500 rounded-full animate-bounce"
+                    style={{ animationDelay: '150ms' }}
+                  />
+                  <span
+                    className="w-1.5 h-1.5 bg-stone-500 rounded-full animate-bounce"
+                    style={{ animationDelay: '300ms' }}
+                  />
                 </div>
               </div>
             )}
-            {error && (
-              <div className="text-[12px] text-red-400 bg-red-500/10 ghost-border px-3 py-2">{error}</div>
-            )}
+            {error && <div className="text-[12px] text-red-400 bg-red-500/10 ghost-border px-3 py-2">{error}</div>}
           </div>
 
           <form onSubmit={send} className="border-t border-white/5 p-2 flex items-center gap-2">

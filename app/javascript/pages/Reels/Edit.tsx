@@ -13,9 +13,13 @@ export default function ReelsEdit({ project, reel }: Props) {
   function submit(e: React.FormEvent) {
     e.preventDefault()
     setSubmitting(true)
-    router.patch(`/reels/${reel.id}`, { title }, {
-      onFinish: () => setSubmitting(false),
-    })
+    router.patch(
+      `/reels/${reel.id}`,
+      { title },
+      {
+        onFinish: () => setSubmitting(false),
+      },
+    )
   }
 
   return (
@@ -45,7 +49,8 @@ export default function ReelsEdit({ project, reel }: Props) {
             />
             <p className="text-[10px] text-stone-600 text-right mt-1">{title.length} / 200</p>
             <p className="text-[10px] text-stone-600 mt-3">
-              Media (video / images / audio) can't be swapped after publishing — delete and repost if you need to change it.
+              Media (video / images / audio) can't be swapped after publishing — delete and repost if you need to change
+              it.
             </p>
           </div>
 

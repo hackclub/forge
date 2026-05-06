@@ -77,8 +77,12 @@ export default function HomeIndex({ user, orph_motivation, projects, news_posts,
       <div className="p-5 md:p-12 max-w-6xl mx-auto space-y-10">
         <section className="flex items-start justify-between gap-3 sm:gap-4 relative">
           <div className="min-w-0 flex-1">
-            <h1 className="text-3xl sm:text-5xl font-headline font-bold tracking-tight text-[#e5e2e1] mb-2">Dashboard</h1>
-            <p className="text-stone-500 text-sm sm:text-base">Here's what the forge is forging today, {user.display_name.split(' ')[0]}.</p>
+            <h1 className="text-3xl sm:text-5xl font-headline font-bold tracking-tight text-[#e5e2e1] mb-2">
+              Dashboard
+            </h1>
+            <p className="text-stone-500 text-sm sm:text-base">
+              Here's what the forge is forging today, {user.display_name.split(' ')[0]}.
+            </p>
             <Link
               href="/referrals"
               className="mt-4 inline-flex items-center gap-2 ghost-border bg-[#1c1b1b] hover:bg-[#2a2a2a] text-stone-400 hover:text-[#ffb595] px-3 py-1.5 uppercase tracking-wider text-[10px] font-bold transition-colors"
@@ -113,7 +117,9 @@ export default function HomeIndex({ user, orph_motivation, projects, news_posts,
               {orphReached ? 'The forge did it — Orph is grinning again!' : 'Help cheer Orph back up'}
             </h2>
             <p className="text-stone-400 text-sm mb-4">
-              Orph was tinkering away in his workshop when his project crashed and shattered to pieces. Orph got very very sad. As a community our goal is to build 100 projects together and cheer him up and show him that he can make cool stuff too!
+              Orph was tinkering away in his workshop when his project crashed and shattered to pieces. Orph got very
+              very sad. As a community our goal is to build 100 projects together and cheer him up and show him that he
+              can make cool stuff too!
             </p>
             <div className="h-3 bg-[#0e0e0e] ghost-border overflow-hidden">
               <div

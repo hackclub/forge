@@ -121,9 +121,7 @@ export default function SettingsShow({
         </section>
 
         <section className="bg-[#1c1b1b] ghost-border p-6 md:p-8 mt-6">
-          <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">
-            Onboarding
-          </h2>
+          <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">Onboarding</h2>
           <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
             <p className="text-stone-400 text-sm">
               Want the welcome tour again? Replay Orph's walkthrough of the forge.

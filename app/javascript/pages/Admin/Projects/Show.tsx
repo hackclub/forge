@@ -460,16 +460,24 @@ export default function AdminProjectsShow({
                       <div key={entry.id} className="bg-[#0e0e0e] p-5 ghost-border overflow-hidden">
                         {entry.time_hours === null && entry.time_spent && (
                           <div className="bg-amber-900/30 border border-amber-600/50 rounded-none p-3 mb-4 flex items-start gap-2">
-                            <span className="material-symbols-outlined text-amber-500 text-lg shrink-0 mt-0.5">warning</span>
+                            <span className="material-symbols-outlined text-amber-500 text-lg shrink-0 mt-0.5">
+                              warning
+                            </span>
                             <div className="text-xs text-amber-100/90">
                               <p className="font-semibold mb-1">Time entry couldn't be parsed</p>
-                              <p>The time spent (&quot;<span className="text-amber-300">{entry.time_spent}</span>&quot;) wasn't automatically parsed. Builder should edit to use a clearer format like &quot;3 hours&quot;, &quot;3h 15m&quot;, or &quot;3:15&quot;.</p>
+                              <p>
+                                The time spent (&quot;<span className="text-amber-300">{entry.time_spent}</span>&quot;)
+                                wasn't automatically parsed. Builder should edit to use a clearer format like &quot;3
+                                hours&quot;, &quot;3h 15m&quot;, or &quot;3:15&quot;.
+                              </p>
                             </div>
                           </div>
                         )}
                         {!entry.meets_requirements && (
                           <div className="bg-amber-900/40 border-2 border-amber-600 rounded-none p-4 mb-4 flex items-start gap-3">
-                            <span className="material-symbols-outlined text-amber-400 text-2xl shrink-0 mt-0.5">warning</span>
+                            <span className="material-symbols-outlined text-amber-400 text-2xl shrink-0 mt-0.5">
+                              warning
+                            </span>
                             <div className="text-sm text-amber-100">
                               <p className="font-bold mb-2">⚠️ Entry doesn't meet requirements</p>
                               <ul className="space-y-1 ml-4 list-disc text-amber-100/90">
