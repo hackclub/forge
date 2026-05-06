@@ -25,6 +25,8 @@
 #                  destroy_note_admin_user DELETE /admin/users/:id/notes/:note_id(.:format)                                                         admin/users#destroy_note
 #                      add_kudo_admin_user POST   /admin/users/:id/add_kudo(.:format)                                                               admin/users#add_kudo
 #                  destroy_kudo_admin_user DELETE /admin/users/:id/kudos/:kudo_id(.:format)                                                         admin/users#destroy_kudo
+#                     add_badge_admin_user POST   /admin/users/:id/add_badge(.:format)                                                              admin/users#add_badge
+#                 destroy_badge_admin_user DELETE /admin/users/:id/badges/:badge_id(.:format)                                                       admin/users#destroy_badge
 #                  adjust_coins_admin_user POST   /admin/users/:id/adjust_coins(.:format)                                                           admin/users#adjust_coins
 #                  coin_history_admin_user GET    /admin/users/:id/coin_history(.:format)                                                           admin/users#coin_history
 #          toggle_shop_unlocked_admin_user POST   /admin/users/:id/toggle_shop_unlocked(.:format)                                                   admin/users#toggle_shop_unlocked
@@ -38,6 +40,15 @@
 #                      admin_feature_flags GET    /admin/feature_flags(.:format)                                                                    admin/feature_flags#index
 #                                          POST   /admin/feature_flags(.:format)                                                                    admin/feature_flags#create
 #                       admin_feature_flag DELETE /admin/feature_flags/:id(.:format)                                                                admin/feature_flags#destroy
+#                approve_admin_reel_payout POST   /admin/reel_payouts/:id/approve(.:format)                                                         admin/reel_payouts#approve
+#                 reject_admin_reel_payout POST   /admin/reel_payouts/:id/reject(.:format)                                                          admin/reel_payouts#reject
+#                       admin_reel_payouts GET    /admin/reel_payouts(.:format)                                                                     admin/reel_payouts#index
+#                     toggle_admin_reel_ad POST   /admin/reel_ads/:id/toggle(.:format)                                                              admin/reel_ads#toggle
+#                           admin_reel_ads GET    /admin/reel_ads(.:format)                                                                         admin/reel_ads#index
+#                                          POST   /admin/reel_ads(.:format)                                                                         admin/reel_ads#create
+#                            admin_reel_ad PATCH  /admin/reel_ads/:id(.:format)                                                                     admin/reel_ads#update
+#                                          PUT    /admin/reel_ads/:id(.:format)                                                                     admin/reel_ads#update
+#                                          DELETE /admin/reel_ads/:id(.:format)                                                                     admin/reel_ads#destroy
 #                   toggle_admin_news_post POST   /admin/news_posts/:id/toggle(.:format)                                                            admin/news_posts#toggle
 #                         admin_news_posts GET    /admin/news_posts(.:format)                                                                       admin/news_posts#index
 #                                          POST   /admin/news_posts(.:format)                                                                       admin/news_posts#create
@@ -67,6 +78,7 @@
 #                           admin_referral GET    /admin/referrals/:id(.:format)                                                                    admin/referrals#show
 #    send_to_airtable_admin_airtable_queue POST   /admin/airtable_queue/:id/send_to_airtable(.:format)                                              admin/airtable_queue#send_to_airtable
 #              cancel_admin_airtable_queue POST   /admin/airtable_queue/:id/cancel(.:format)                                                        admin/airtable_queue#cancel
+#               retry_admin_airtable_queue POST   /admin/airtable_queue/:id/retry(.:format)                                                         admin/airtable_queue#retry
 #               admin_airtable_queue_index GET    /admin/airtable_queue(.:format)                                                                   admin/airtable_queue#index
 #                     admin_airtable_queue GET    /admin/airtable_queue/:id(.:format)                                                               admin/airtable_queue#show
 #                            admin_metrics GET    /admin/metrics(.:format)                                                                          admin/metrics#index
@@ -92,6 +104,9 @@
 #                                    sorry GET    /sorry(.:format)                                                                                  bans#show
 #                                     home GET    /home(.:format)                                                                                   home#index
 #                                 settings GET    /settings(.:format)                                                                               settings#show
+#                      complete_onboarding POST   /onboarding/complete(.:format)                                                                    onboarding#complete
+#                       restart_onboarding POST   /onboarding/restart(.:format)                                                                     onboarding#restart
+#                        forge_keeper_chat POST   /forge_keeper/chat(.:format)                                                                      forge_keeper#chat
 #                             sync_address POST   /profile/sync_address(.:format)                                                                   profile#sync_address
 #                                     rsvp GET    /rsvp(.:format)                                                                                   rsvps#index
 #                                          POST   /rsvp(.:format)                                                                                   rsvps#create
@@ -108,6 +123,20 @@
 #                              user_github PATCH  /users/:id/github(.:format)                                                                       users#update_github
 #                                     news GET    /news(.:format)                                                                                   news#index
 #                                news_post GET    /news/:id(.:format)                                                                               news#show
+#                               reels_feed GET    /reels(.:format)                                                                                  reels#index
+#                       reel_ad_impression POST   /reel_ads/:id/impression(.:format)                                                                reel_ads#impression
+#                            reel_ad_click POST   /reel_ads/:id/click(.:format)                                                                     reel_ads#click
+#                                reel_kudo DELETE /reels/:reel_id/kudo(.:format)                                                                    reels/kudos#destroy
+#                                          POST   /reels/:reel_id/kudo(.:format)                                                                    reels/kudos#create
+#                                reel_view POST   /reels/:reel_id/view(.:format)                                                                    reels/views#create
+#                            reel_comments GET    /reels/:reel_id/comments(.:format)                                                                reels/comments#index
+#                                          POST   /reels/:reel_id/comments(.:format)                                                                reels/comments#create
+#                             reel_comment DELETE /reels/:reel_id/comments/:id(.:format)                                                            reels/comments#destroy
+#                                edit_reel GET    /reels/:id/edit(.:format)                                                                         reels#edit
+#                                     reel GET    /reels/:id(.:format)                                                                              reels#show
+#                                          PATCH  /reels/:id(.:format)                                                                              reels#update
+#                                          PUT    /reels/:id(.:format)                                                                              reels#update
+#                                          DELETE /reels/:id(.:format)                                                                              reels#destroy
 #              import_from_github_projects POST   /projects/import_from_github(.:format)                                                            projects#import_from_github
 #                submit_for_review_project POST   /projects/:id/submit_for_review(.:format)                                                         projects#submit_for_review
 #                     sync_journal_project POST   /projects/:id/sync_journal(.:format)                                                              projects#sync_journal
@@ -125,6 +154,9 @@
 #                                          PUT    /projects/:project_id/devlogs/:id(.:format)                                                       devlogs#update
 #                                          DELETE /projects/:project_id/devlogs/:id(.:format)                                                       devlogs#destroy
 #                     project_devlog_image POST   /projects/:project_id/devlog_image(.:format)                                                      devlogs#upload_image
+#                            project_reels GET    /projects/:project_id/reels(.:format)                                                             reels#manage
+#                                          POST   /projects/:project_id/reels(.:format)                                                             reels#create
+#                         new_project_reel GET    /projects/:project_id/reels/new(.:format)                                                         reels#new
 #                                 projects POST   /projects(.:format)                                                                               projects#create
 #                              new_project GET    /projects/new(.:format)                                                                           projects#new
 #                             edit_project GET    /projects/:id/edit(.:format)                                                                      projects#edit
