@@ -3,7 +3,9 @@ import { router } from '@inertiajs/react'
 function isInternalLink(url) {
   try {
     const u = new URL(url, window.location.href)
-    return u.origin === window.location.origin && (u.pathname.startsWith('/') || u.pathname === window.location.pathname)
+    return (
+      u.origin === window.location.origin && (u.pathname.startsWith('/') || u.pathname === window.location.pathname)
+    )
   } catch (e) {
     return false
   }
@@ -40,10 +42,18 @@ function handleMouseOver(e) {
 
 // Add delegated listeners
 document.addEventListener('click', (e) => {
-  try { handleClick(e) } catch (err) { /* swallow */ }
+  try {
+    handleClick(e)
+  } catch (err) {
+    /* swallow */
+  }
 })
 document.addEventListener('mouseover', (e) => {
-  try { handleMouseOver(e) } catch (err) { /* swallow */ }
+  try {
+    handleMouseOver(e)
+  } catch (err) {
+    /* swallow */
+  }
 })
 
 // On initial load, make sure anchor targets within markdown that point to same-page hashes still scroll

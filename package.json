@@ -3,9 +3,10 @@
   "type": "module",
   "devDependencies": {
     "@types/node": "^25.6.0",
+    "@vitejs/plugin-react": "^6.0.1",
     "prettier": "^3.8.1",
-    "vite": "^7.3.2",
-    "vite-plugin-ruby": "^5.1.2"
+    "vite": "^8.0.10",
+    "vite-plugin-ruby": "^5.2.2"
   },
   "dependencies": {
     "@inertiajs/react": "^2.3.15",
@@ -14,7 +15,6 @@
     "@tailwindcss/vite": "^4.2.4",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
-    "@vitejs/plugin-react-swc": "^4.2.3",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "react-markdown": "^10.1.0",

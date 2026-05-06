@@ -97,7 +97,7 @@ class ApplicationController < ActionController::Base
 
   def prompt_birthday_reauth!
     return unless user_signed_in?
-    return unless request.get?
+    return unless request.get? || request.head?
     return if request.xhr? || request.format.json?
     return if current_user.birthday.present?
     return if session[:birthday_reauth_attempted]

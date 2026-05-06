@@ -14,7 +14,12 @@ interface Props {
 
 const KIND_OPTIONS: { kind: Kind; label: string; icon: string; subtitle: string }[] = [
   { kind: 'video', label: 'Video', icon: 'videocam', subtitle: 'Upload a short clip — up to 60s.' },
-  { kind: 'image_carousel', label: 'Carousel', icon: 'collections', subtitle: 'Up to 10 images, swipe to flip through.' },
+  {
+    kind: 'image_carousel',
+    label: 'Carousel',
+    icon: 'collections',
+    subtitle: 'Up to 10 images, swipe to flip through.',
+  },
   { kind: 'slideshow', label: 'Slideshow', icon: 'audiotrack', subtitle: 'Images that play with a music track.' },
 ]
 
@@ -142,15 +147,10 @@ export default function ReelsNew(props: Props) {
             <span className="material-symbols-outlined text-sm">arrow_back</span>
             {project.name}
           </Link>
-          <h1 className="text-3xl sm:text-4xl font-headline font-bold tracking-tight text-[#e5e2e1] mt-3">
-            New Reel
-          </h1>
+          <h1 className="text-3xl sm:text-4xl font-headline font-bold tracking-tight text-[#e5e2e1] mt-3">New Reel</h1>
           <div className="flex items-center gap-2 mt-4">
             {[1, 2, 3].map((s) => (
-              <div
-                key={s}
-                className={`h-1 flex-1 ${s <= step ? 'bg-[#ee671c]' : 'bg-stone-700'}`}
-              />
+              <div key={s} className={`h-1 flex-1 ${s <= step ? 'bg-[#ee671c]' : 'bg-stone-700'}`} />
             ))}
           </div>
           <p className="text-stone-500 text-xs mt-2">Step {step} of 3</p>
@@ -228,14 +228,10 @@ export default function ReelsNew(props: Props) {
                   Images ({images.length} / {max_images}, {max_image_mb} MB each)
                 </p>
                 <label className="block bg-[#0e0e0e] ghost-border p-6 text-center cursor-pointer hover:bg-[#161616] transition-colors">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={onImagesChange}
-                    className="hidden"
-                  />
-                  <span className="material-symbols-outlined text-4xl text-[#ee671c] block mb-2">add_photo_alternate</span>
+                  <input type="file" accept="image/*" multiple onChange={onImagesChange} className="hidden" />
+                  <span className="material-symbols-outlined text-4xl text-[#ee671c] block mb-2">
+                    add_photo_alternate
+                  </span>
                   <span className="text-stone-400 text-sm font-headline font-medium">
                     {images.length === 0 ? 'Tap to choose images' : 'Add more images'}
                   </span>

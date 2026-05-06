@@ -258,7 +258,7 @@ export default function OnboardingModal() {
         preserveState: false,
         replace: true,
         onError: () => setSubmitting(false),
-      }
+      },
     )
   }
 
@@ -338,12 +338,12 @@ export default function OnboardingModal() {
               <p className="text-[9px] uppercase tracking-[0.2em] font-bold text-stone-500 mb-1.5">
                 Step {stepIndex + 1} of {steps.length}
               </p>
-              <h2 className="text-base font-headline font-bold text-[#e5e2e1] tracking-tight mb-1.5">
-                {step.title}
-              </h2>
+              <h2 className="text-base font-headline font-bold text-[#e5e2e1] tracking-tight mb-1.5">{step.title}</h2>
               <p className="text-stone-400 text-[13px] leading-snug h-[5.5em] overflow-hidden line-clamp-4">
                 {displayed}
-                {!done && <span className="inline-block w-[6px] h-[12px] -mb-[2px] ml-[1px] bg-[#ffb595] animate-[tour-blink_900ms_steps(2)_infinite]" />}
+                {!done && (
+                  <span className="inline-block w-[6px] h-[12px] -mb-[2px] ml-[1px] bg-[#ffb595] animate-[tour-blink_900ms_steps(2)_infinite]" />
+                )}
               </p>
             </div>
           </div>
@@ -373,11 +373,7 @@ export default function OnboardingModal() {
               <span
                 key={i}
                 className={`h-[3px] transition-all ${
-                  i === stepIndex
-                    ? 'w-5 bg-[#ee671c]'
-                    : i < stepIndex
-                      ? 'w-2.5 bg-[#ffb595]/60'
-                      : 'w-2.5 bg-stone-700'
+                  i === stepIndex ? 'w-5 bg-[#ee671c]' : i < stepIndex ? 'w-2.5 bg-[#ffb595]/60' : 'w-2.5 bg-stone-700'
                 }`}
               />
             ))}

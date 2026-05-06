@@ -7,7 +7,14 @@ const navItems = [
   { href: '/reels', label: 'Reels', icon: 'play_circle', authOnly: true, tour: undefined, flag: 'reels_enabled' },
   { href: '/home', label: 'Dashboard', icon: 'dashboard', authOnly: true, tour: 'nav-dashboard', flag: undefined },
   { href: '/shop', label: 'Shop', icon: 'storefront', authOnly: true, tour: 'nav-shop', flag: undefined },
-  { href: '/leaderboard', label: 'Leaderboard', icon: 'emoji_events', authOnly: true, tour: undefined, flag: undefined },
+  {
+    href: '/leaderboard',
+    label: 'Leaderboard',
+    icon: 'emoji_events',
+    authOnly: true,
+    tour: undefined,
+    flag: undefined,
+  },
   { href: '/news', label: 'News', icon: 'campaign', authOnly: true, tour: undefined, flag: undefined },
   { href: '/docs', label: 'Resources', icon: 'menu_book', authOnly: false, tour: 'nav-docs', flag: undefined },
 ]

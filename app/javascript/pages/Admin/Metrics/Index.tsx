@@ -200,11 +200,17 @@ export default function AdminMetricsIndex({
             </tr>
             <tr className="border-t border-white/5">
               <td className="px-4 py-3 text-[#e5e2e1] font-headline font-bold">reels</td>
-              <td className="px-4 py-3 text-stone-400 font-mono text-[10px]" title={`${reel_economy.coins_per_view}/view, ${reel_economy.coins_per_kudo}/kudo`}>
+              <td
+                className="px-4 py-3 text-stone-400 font-mono text-[10px]"
+                title={`${reel_economy.coins_per_view}/view, ${reel_economy.coins_per_kudo}/kudo`}
+              >
                 {reel_economy.coins_per_view}/v + {reel_economy.coins_per_kudo}/k
               </td>
               <td className="px-4 py-3 text-stone-300">{reel_economy.count}</td>
-              <td className="px-4 py-3 text-stone-400 text-[10px]" title={`${reel_economy.total_views} views, ${reel_economy.total_kudos} kudos`}>
+              <td
+                className="px-4 py-3 text-stone-400 text-[10px]"
+                title={`${reel_economy.total_views} views, ${reel_economy.total_kudos} kudos`}
+              >
                 {reel_economy.total_views}v / {reel_economy.total_kudos}k
               </td>
               <td className="px-4 py-3 text-[#ffb595] font-bold">{reel_economy.total_coins}</td>

@@ -59,36 +59,36 @@ export default function AdminReelPayoutsIndex({ pending, history }: Props) {
         </p>
 
         <section className="mb-12">
-          <h2 className="text-xl font-headline font-bold text-[#e5e2e1] mb-4">
-            Pending ({pending.length})
-          </h2>
+          <h2 className="text-xl font-headline font-bold text-[#e5e2e1] mb-4">Pending ({pending.length})</h2>
           {pending.length === 0 ? (
-            <div className="bg-[#1c1b1b] ghost-border p-8 text-center text-stone-500 text-sm">
-              No pending payouts.
-            </div>
+            <div className="bg-[#1c1b1b] ghost-border p-8 text-center text-stone-500 text-sm">No pending payouts.</div>
           ) : (
             <div className="space-y-3">
               {pending.map((req) => (
-                <PayoutRow key={req.id} req={req} actions={
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => approve(req.id)}
-                      className="bg-emerald-500/15 hover:bg-emerald-500/30 text-emerald-300 px-4 py-2 text-[10px] font-bold uppercase tracking-wider inline-flex items-center gap-1.5 cursor-pointer transition-colors"
-                    >
-                      <span className="material-symbols-outlined text-sm">check</span>
-                      Approve
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => reject(req.id)}
-                      className="bg-red-500/10 hover:bg-red-500/30 text-red-300 px-4 py-2 text-[10px] font-bold uppercase tracking-wider inline-flex items-center gap-1.5 cursor-pointer transition-colors"
-                    >
-                      <span className="material-symbols-outlined text-sm">close</span>
-                      Reject
-                    </button>
-                  </>
-                } />
+                <PayoutRow
+                  key={req.id}
+                  req={req}
+                  actions={
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => approve(req.id)}
+                        className="bg-emerald-500/15 hover:bg-emerald-500/30 text-emerald-300 px-4 py-2 text-[10px] font-bold uppercase tracking-wider inline-flex items-center gap-1.5 cursor-pointer transition-colors"
+                      >
+                        <span className="material-symbols-outlined text-sm">check</span>
+                        Approve
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => reject(req.id)}
+                        className="bg-red-500/10 hover:bg-red-500/30 text-red-300 px-4 py-2 text-[10px] font-bold uppercase tracking-wider inline-flex items-center gap-1.5 cursor-pointer transition-colors"
+                      >
+                        <span className="material-symbols-outlined text-sm">close</span>
+                        Reject
+                      </button>
+                    </>
+                  }
+                />
               ))}
             </div>
           )}
@@ -97,9 +97,7 @@ export default function AdminReelPayoutsIndex({ pending, history }: Props) {
         <section>
           <h2 className="text-xl font-headline font-bold text-[#e5e2e1] mb-4">Recent history</h2>
           {history.length === 0 ? (
-            <div className="bg-[#1c1b1b] ghost-border p-8 text-center text-stone-500 text-sm">
-              No history yet.
-            </div>
+            <div className="bg-[#1c1b1b] ghost-border p-8 text-center text-stone-500 text-sm">No history yet.</div>
           ) : (
             <div className="space-y-3">
               {history.map((req) => (
@@ -127,7 +125,8 @@ function PayoutRow({ req, actions }: { req: PayoutRequest; actions?: React.React
       <div className="flex-1 min-w-0">
         <p className="text-stone-300 text-sm truncate">{req.reel.title || `${req.reel.kind} reel`}</p>
         <p className="text-[10px] text-stone-600 uppercase tracking-widest mt-0.5">
-          {req.reel.views} views · {req.reel.kudos} kudos · {req.reel.comments} comments · paid {req.reel.lifetime_paid.toFixed(2)}c lifetime
+          {req.reel.views} views · {req.reel.kudos} kudos · {req.reel.comments} comments · paid{' '}
+          {req.reel.lifetime_paid.toFixed(2)}c lifetime
         </p>
         {req.reason && <p className="text-[10px] text-stone-500 mt-1 italic">"{req.reason}"</p>}
         <p className="text-[10px] text-stone-700 mt-1">
@@ -139,7 +138,9 @@ function PayoutRow({ req, actions }: { req: PayoutRequest; actions?: React.React
       <div className="flex items-center gap-3 shrink-0">
         <div className="text-right">
           <p className="text-[#ffb595] font-headline font-bold text-2xl tabular-nums">{req.amount.toFixed(2)}c</p>
-          <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 ${STATUS_COLOR[req.status] || 'bg-stone-500/15 text-stone-400'}`}>
+          <span
+            className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 ${STATUS_COLOR[req.status] || 'bg-stone-500/15 text-stone-400'}`}
+          >
             {req.status}
           </span>
         </div>

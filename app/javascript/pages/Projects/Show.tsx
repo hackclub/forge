@@ -139,7 +139,7 @@ export default function ProjectsShow({
   const [devlogValidationErrors, setDevlogValidationErrors] = useState<string[]>([])
   const [editDevlogValidationErrors, setEditDevlogValidationErrors] = useState<string[]>([])
   const [showSubmitWarning, setShowSubmitWarning] = useState(false)
-  const [invalidDevlogs, setInvalidDevlogs] = useState<{id: number; title: string; errors: string[]}[]>([])
+  const [invalidDevlogs, setInvalidDevlogs] = useState<{ id: number; title: string; errors: string[] }[]>([])
 
   const devlogForm = useForm({
     title: '',
@@ -205,8 +205,8 @@ export default function ProjectsShow({
   }
 
   function submitForReview() {
-    const invalid: {id: number; title: string; errors: string[]}[] = []
-    
+    const invalid: { id: number; title: string; errors: string[] }[] = []
+
     devlogs.forEach((entry) => {
       if (!entry.validation.meets_length_requirement || !entry.validation.meets_image_requirement) {
         const errors: string[] = []
@@ -219,7 +219,7 @@ export default function ProjectsShow({
         invalid.push({ id: entry.id, title: entry.title, errors })
       }
     })
-    
+
     if (invalid.length > 0) {
       setInvalidDevlogs(invalid)
       setShowSubmitWarning(true)
@@ -227,7 +227,7 @@ export default function ProjectsShow({
       proceedWithSubmission()
     }
   }
-  
+
   function proceedWithSubmission() {
     setShowSubmitWarning(false)
     router.post(`/projects/${project.id}/submit_for_review`)
@@ -348,8 +348,7 @@ export default function ProjectsShow({
   const showCoverUpload = can.update && canLog
   const isPitchReturn = isReturned && !isNormalTier && project.from_slack && devlogs.length === 0
 
-  const totalHours =
-    Math.round(devlogs.reduce((sum, entry) => sum + (entry.time_hours ?? 0), 0) * 10) / 10
+  const totalHours = Math.round(devlogs.reduce((sum, entry) => sum + (entry.time_hours ?? 0), 0) * 10) / 10
 
   const sortedDevlogs = useMemo(() => {
     return [...devlogs].sort((a, b) => {
@@ -728,16 +727,24 @@ export default function ProjectsShow({
                     <div key={entry.id} className="ghost-border bg-[#1c1b1b] p-6 overflow-hidden">
                       {can.update && entry.time_hours === null && entry.time_spent && (
                         <div className="bg-amber-900/30 border border-amber-600/50 rounded-none p-3 mb-4 flex items-start gap-2">
-                          <span className="material-symbols-outlined text-amber-500 text-lg shrink-0 mt-0.5">warning</span>
+                          <span className="material-symbols-outlined text-amber-500 text-lg shrink-0 mt-0.5">
+                            warning
+                          </span>
                           <div className="text-xs text-amber-100/90">
                             <p className="font-semibold mb-1">Time entry needs review</p>
-                            <p>We couldn't automatically parse the time spent (&quot;<span className="text-amber-300">{entry.time_spent}</span>&quot;). Please edit this entry to use a clearer format like &quot;3 hours&quot;, &quot;3h 15m&quot;, or &quot;3:15&quot;.</p>
+                            <p>
+                              We couldn't automatically parse the time spent (&quot;
+                              <span className="text-amber-300">{entry.time_spent}</span>&quot;). Please edit this entry
+                              to use a clearer format like &quot;3 hours&quot;, &quot;3h 15m&quot;, or &quot;3:15&quot;.
+                            </p>
                           </div>
                         </div>
                       )}
                       {(can.update || is_admin_view) && !entry.meets_requirements && (
                         <div className="bg-amber-900/40 border-2 border-amber-600 rounded-none p-4 mb-4 flex items-start gap-3">
-                          <span className="material-symbols-outlined text-amber-400 text-2xl shrink-0 mt-0.5">warning</span>
+                          <span className="material-symbols-outlined text-amber-400 text-2xl shrink-0 mt-0.5">
+                            warning
+                          </span>
                           <div className="text-sm text-amber-100">
                             <p className="font-bold mb-2">⚠️ Entry doesn't meet requirements</p>
                             <ul className="space-y-1 ml-4 list-disc text-amber-100/90">
@@ -872,16 +879,20 @@ export default function ProjectsShow({
                     <textarea
                       value={devlogForm.data.content}
                       onChange={(e) => {
-                        devlogForm.setData('content', e.target.value);
-                        const { errors } = validateDevlogContent(e.target.value);
-                        setDevlogValidationErrors(errors);
+                        devlogForm.setData('content', e.target.value)
+                        const { errors } = validateDevlogContent(e.target.value)
+                        setDevlogValidationErrors(errors)
                       }}
                       onPaste={(e) =>
-                        handleImagePaste(e, (v) => {
-                          devlogForm.setData('content', v);
-                          const { errors } = validateDevlogContent(v);
-                          setDevlogValidationErrors(errors);
-                        }, devlogForm.data.content)
+                        handleImagePaste(
+                          e,
+                          (v) => {
+                            devlogForm.setData('content', v)
+                            const { errors } = validateDevlogContent(v)
+                            setDevlogValidationErrors(errors)
+                          },
+                          devlogForm.data.content,
+                        )
                       }
                       rows={8}
                       className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 text-sm resize-y font-mono"
@@ -889,7 +900,11 @@ export default function ProjectsShow({
                       required
                     />
                     <div className="text-xs text-stone-400 mt-2 flex items-center justify-between">
-                      <span>{devlogValidationErrors.length === 0 ? '✓ Ready to post' : `${getContentWithoutLinks(devlogForm.data.content).length}/100 characters, ${hasImage(devlogForm.data.content) ? '✓' : '0'}/1 images`}</span>
+                      <span>
+                        {devlogValidationErrors.length === 0
+                          ? '✓ Ready to post'
+                          : `${getContentWithoutLinks(devlogForm.data.content).length}/100 characters, ${hasImage(devlogForm.data.content) ? '✓' : '0'}/1 images`}
+                      </span>
                     </div>
                   </div>
                   <div>
@@ -925,16 +940,24 @@ export default function ProjectsShow({
                     <div key={entry.id} className="ghost-border bg-[#1c1b1b] p-6 overflow-hidden">
                       {can.update && entry.time_hours === null && entry.time_spent && (
                         <div className="bg-amber-900/30 border border-amber-600/50 rounded-none p-3 mb-4 flex items-start gap-2">
-                          <span className="material-symbols-outlined text-amber-500 text-lg shrink-0 mt-0.5">warning</span>
+                          <span className="material-symbols-outlined text-amber-500 text-lg shrink-0 mt-0.5">
+                            warning
+                          </span>
                           <div className="text-xs text-amber-100/90">
                             <p className="font-semibold mb-1">Time entry needs review</p>
-                            <p>We couldn't automatically parse the time spent (&quot;<span className="text-amber-300">{entry.time_spent}</span>&quot;). Please edit this entry to use a clearer format like &quot;3 hours&quot;, &quot;3h 15m&quot;, or &quot;3:15&quot;.</p>
+                            <p>
+                              We couldn't automatically parse the time spent (&quot;
+                              <span className="text-amber-300">{entry.time_spent}</span>&quot;). Please edit this entry
+                              to use a clearer format like &quot;3 hours&quot;, &quot;3h 15m&quot;, or &quot;3:15&quot;.
+                            </p>
                           </div>
                         </div>
                       )}
                       {(can.update || is_admin_view) && !entry.meets_requirements && (
                         <div className="bg-amber-900/40 border-2 border-amber-600 rounded-none p-4 mb-4 flex items-start gap-3">
-                          <span className="material-symbols-outlined text-amber-400 text-2xl shrink-0 mt-0.5">warning</span>
+                          <span className="material-symbols-outlined text-amber-400 text-2xl shrink-0 mt-0.5">
+                            warning
+                          </span>
                           <div className="text-sm text-amber-100">
                             <p className="font-bold mb-2">⚠️ Entry doesn't meet requirements</p>
                             <ul className="space-y-1 ml-4 list-disc text-amber-100/90">
@@ -970,17 +993,17 @@ export default function ProjectsShow({
                             <textarea
                               value={editDevlogForm.data.content}
                               onChange={(e) => {
-                                editDevlogForm.setData('content', e.target.value);
-                                const { errors } = validateDevlogContent(e.target.value);
-                                setEditDevlogValidationErrors(errors);
+                                editDevlogForm.setData('content', e.target.value)
+                                const { errors } = validateDevlogContent(e.target.value)
+                                setEditDevlogValidationErrors(errors)
                               }}
                               onPaste={(e) =>
                                 handleImagePaste(
                                   e,
                                   (v) => {
-                                    editDevlogForm.setData('content', v);
-                                    const { errors } = validateDevlogContent(v);
-                                    setEditDevlogValidationErrors(errors);
+                                    editDevlogForm.setData('content', v)
+                                    const { errors } = validateDevlogContent(v)
+                                    setEditDevlogValidationErrors(errors)
                                   },
                                   editDevlogForm.data.content,
                                 )
@@ -991,7 +1014,11 @@ export default function ProjectsShow({
                             />
                           </div>
                           <div className="text-xs text-stone-400 flex items-center justify-between">
-                            <span>{editDevlogValidationErrors.length === 0 ? '✓ Ready to post' : `${getContentWithoutLinks(editDevlogForm.data.content).length}/100 characters, ${hasImage(editDevlogForm.data.content) ? '✓' : '0'}/1 images`}</span>
+                            <span>
+                              {editDevlogValidationErrors.length === 0
+                                ? '✓ Ready to post'
+                                : `${getContentWithoutLinks(editDevlogForm.data.content).length}/100 characters, ${hasImage(editDevlogForm.data.content) ? '✓' : '0'}/1 images`}
+                            </span>
                           </div>
                           <div>
                             <label className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
@@ -1154,7 +1181,7 @@ export default function ProjectsShow({
             </div>
           )}
 
-            {(showWebDevlog || showGitDevlog) && devlogs.length > 0 && (
+          {(showWebDevlog || showGitDevlog) && devlogs.length > 0 && (
             <div className="ghost-border bg-[#1c1b1b] p-6">
               <div className="flex items-center gap-2 mb-4">
                 <span className="material-symbols-outlined text-[#ffb595] text-lg">schedule</span>
@@ -1293,13 +1320,14 @@ export default function ProjectsShow({
                 <div>
                   <h3 className="text-xl font-headline font-bold text-[#e5e2e1] mb-2">Quality Issues Found</h3>
                   <p className="text-stone-400 text-sm mb-4">
-                    Some of your devlogs don't meet our quality requirements. Submissions with issues are likely to be rejected and sent to the back of the queue when resubmitted.
+                    Some of your devlogs don't meet our quality requirements. Submissions with issues are likely to be
+                    rejected and sent to the back of the queue when resubmitted.
                   </p>
                   <p className="text-stone-400 text-sm mb-4 font-semibold">
                     Spending a couple of minutes to fix these issues could save everyone time!
                   </p>
                 </div>
-                
+
                 <div className="bg-[#0e0e0e] p-4 rounded space-y-3 max-h-48 overflow-y-auto">
                   {invalidDevlogs.map((devlog) => (
                     <div key={devlog.id} className="text-sm">
@@ -1312,7 +1340,7 @@ export default function ProjectsShow({
                     </div>
                   ))}
                 </div>
-                
+
                 <div className="flex gap-3 pt-4">
                   <button
                     onClick={() => setShowSubmitWarning(false)}

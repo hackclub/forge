@@ -114,9 +114,7 @@ export default function AdminReelAdsIndex({ ads, max_video_mb }: Props) {
             {showForm ? 'Cancel' : 'New Ad'}
           </button>
         </div>
-        <p className="text-stone-500 text-sm mb-8">
-          Video ads are randomly mixed into the reels feed every few items.
-        </p>
+        <p className="text-stone-500 text-sm mb-8">Video ads are randomly mixed into the reels feed every few items.</p>
 
         {showForm && (
           <form onSubmit={submit} className="ghost-border bg-[#1c1b1b] p-6 mb-8 space-y-4">
@@ -133,7 +131,9 @@ export default function AdminReelAdsIndex({ ads, max_video_mb }: Props) {
               />
             </div>
             <div>
-              <label className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">Click URL (optional)</label>
+              <label className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
+                Click URL (optional)
+              </label>
               <input
                 type="url"
                 value={clickUrl}

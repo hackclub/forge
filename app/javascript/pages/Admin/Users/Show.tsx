@@ -771,10 +771,7 @@ export default function AdminUsersShow({
         {badges.length > 0 ? (
           <div className="space-y-2">
             {badges.map((badge) => (
-              <div
-                key={badge.id}
-                className="bg-[#1c1b1b] ghost-border px-5 py-4 flex items-center gap-4"
-              >
+              <div key={badge.id} className="bg-[#1c1b1b] ghost-border px-5 py-4 flex items-center gap-4">
                 <div
                   className={`shrink-0 w-12 h-12 flex items-center justify-center ${BADGE_COLOR_SWATCH[badge.color] || BADGE_COLOR_SWATCH.orange}`}
                 >
@@ -789,9 +786,7 @@ export default function AdminUsersShow({
                       </span>
                     )}
                   </div>
-                  {badge.description && (
-                    <p className="text-stone-400 text-xs mt-1 break-words">{badge.description}</p>
-                  )}
+                  {badge.description && <p className="text-stone-400 text-xs mt-1 break-words">{badge.description}</p>}
                   <p className="text-stone-600 text-[10px] mt-1 uppercase tracking-[0.15em]">
                     {badge.awarded_at}
                     {badge.awarder_name ? ` · awarded by ${badge.awarder_name}` : ' · auto-awarded'}

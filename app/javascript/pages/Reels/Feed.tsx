@@ -205,7 +205,9 @@ function GroupedCommentRow({
             </div>
           )}
           {!showName && (
-            <span className="text-[10px] text-stone-600 block mb-0.5">{new Date(comment.created_at).toLocaleDateString()}</span>
+            <span className="text-[10px] text-stone-600 block mb-0.5">
+              {new Date(comment.created_at).toLocaleDateString()}
+            </span>
           )}
           <p className="text-stone-300 text-sm whitespace-pre-wrap break-words">{comment.body}</p>
           {currentUser && (
@@ -352,11 +354,7 @@ function CommentsPanel({
     return postComment(text, parentId).then((c) => {
       if (!c) return
       setComments((prev) =>
-        prev
-          ? prev.map((top) =>
-              top.id === parentId ? { ...top, replies: [...(top.replies ?? []), c] } : top,
-            )
-          : prev,
+        prev ? prev.map((top) => (top.id === parentId ? { ...top, replies: [...(top.replies ?? []), c] } : top)) : prev,
       )
       setExpanded((prev) => new Set(prev).add(parentId))
       setReplyingTo(null)
@@ -381,9 +379,7 @@ function CommentsPanel({
         }
         onCountChange(-1)
         return prev.map((top) =>
-          top.id === parentId
-            ? { ...top, replies: (top.replies ?? []).filter((r) => r.id !== commentId) }
-            : top,
+          top.id === parentId ? { ...top, replies: (top.replies ?? []).filter((r) => r.id !== commentId) } : top,
         )
       })
     })
@@ -418,9 +414,7 @@ function CommentsPanel({
         {comments === null ? (
           <p className="text-stone-500 text-sm text-center py-8">Loading...</p>
         ) : comments.length === 0 ? (
-          <p className="text-stone-500 text-sm text-center py-8">
-            {error || 'No comments yet. Be the first.'}
-          </p>
+          <p className="text-stone-500 text-sm text-center py-8">{error || 'No comments yet. Be the first.'}</p>
         ) : (
           groupConsecutiveComments(comments).map((group) => (
             <CommentGroup
@@ -642,7 +636,13 @@ function ReplyForm({
   )
 }
 
-function VideoMedia({ reel, isActive, muted, onTogglePlay, paused }: {
+function VideoMedia({
+  reel,
+  isActive,
+  muted,
+  onTogglePlay,
+  paused,
+}: {
   reel: Reel
   isActive: boolean
   muted: boolean
@@ -746,7 +746,10 @@ function CarouselMedia({ reel }: { reel: Reel }) {
       {idx > 0 && (
         <button
           type="button"
-          onClick={(e) => { e.stopPropagation(); go(-1) }}
+          onClick={(e) => {
+            e.stopPropagation()
+            go(-1)
+          }}
           className="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/50 backdrop-blur items-center justify-center text-white active:scale-90 transition-transform cursor-pointer z-10"
           aria-label="Previous image"
         >
@@ -756,7 +759,10 @@ function CarouselMedia({ reel }: { reel: Reel }) {
       {idx < total - 1 && (
         <button
           type="button"
-          onClick={(e) => { e.stopPropagation(); go(1) }}
+          onClick={(e) => {
+            e.stopPropagation()
+            go(1)
+          }}
           className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/50 backdrop-blur items-center justify-center text-white active:scale-90 transition-transform cursor-pointer z-10"
           aria-label="Next image"
         >
@@ -819,7 +825,10 @@ function SlideshowMedia({ reel, isActive, muted }: { reel: Reel; isActive: boole
       {reel.audio_url && <audio ref={audioRef} src={reel.audio_url} loop preload="auto" />}
       <div className="absolute top-4 left-1/2 -translate-x-1/2 flex gap-1 z-10">
         {reel.images.map((_, i) => (
-          <span key={i} className={`h-1 rounded-full transition-all ${i === idx ? 'w-6 bg-white' : 'w-3 bg-white/40'}`} />
+          <span
+            key={i}
+            className={`h-1 rounded-full transition-all ${i === idx ? 'w-6 bg-white' : 'w-3 bg-white/40'}`}
+          />
         ))}
       </div>
     </div>
@@ -913,11 +922,14 @@ function ReelCard({
           onClick={(e) => {
             e.stopPropagation()
             const url = `${window.location.origin}/reels/${reel.id}`
-            navigator.clipboard.writeText(url).then(() => {
-              alert('Link copied!')
-            }).catch(() => {
-              prompt('Copy this link:', url)
-            })
+            navigator.clipboard
+              .writeText(url)
+              .then(() => {
+                alert('Link copied!')
+              })
+              .catch(() => {
+                prompt('Copy this link:', url)
+              })
           }}
           ariaLabel="Share reel"
         />
@@ -1078,11 +1090,8 @@ export default function ReelsFeed({ reels }: { reels: FeedItem[] }) {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const [activeKey, setActiveKey] = useState<string | null>(reels[0] ? feedKey(reels[0]) : null)
   const [activeCommentsReel, setActiveCommentsReel] = useState<Reel | null>(null)
-  const [commentsCounts, setCommentsCounts] = useState<Record<number, number>>(
-    () =>
-      Object.fromEntries(
-        reels.filter((r): r is Reel => !isAd(r)).map((r) => [r.id, r.comments_count ?? 0]),
-      ),
+  const [commentsCounts, setCommentsCounts] = useState<Record<number, number>>(() =>
+    Object.fromEntries(reels.filter((r): r is Reel => !isAd(r)).map((r) => [r.id, r.comments_count ?? 0])),
   )
 
   useEffect(() => {
