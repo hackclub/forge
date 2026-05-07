@@ -48,6 +48,7 @@ class Admin::OrdersController < Admin::ApplicationController
     if @order.pending?
       @order.update!(status: :approved, reviewer: current_user, reviewed_at: Time.current, review_notes: params[:review_notes].to_s.strip.presence)
       audit!("order.approved", target: @order, label: @order.kind_label, metadata: { amount_usd: @order.amount_usd.to_f, coin_cost: @order.coin_cost.to_f })
+      FulfillmentNotifyJob.perform_later(@order.id)
     end
     redirect_to admin_order_path(@order), notice: "Order approved."
   end
@@ -61,6 +62,7 @@ class Admin::OrdersController < Admin::ApplicationController
 
     @order.update!(status: :rejected, reviewer: current_user, reviewed_at: Time.current, review_notes: notes)
     audit!("order.rejected", target: @order, label: @order.kind_label, metadata: { reason: notes, coin_cost: @order.coin_cost.to_f })
+    FulfillmentNotifyJob.perform_later(@order.id)
     redirect_to admin_order_path(@order), notice: "Order rejected. Coins refunded to user."
   end
 
@@ -78,6 +80,7 @@ class Admin::OrdersController < Admin::ApplicationController
       reviewer: @order.reviewer || current_user
     )
     audit!("order.fulfilled", target: @order, label: @order.kind_label, metadata: { hcb_grant_link: grant_link })
+    FulfillmentNotifyJob.perform_later(@order.id)
     redirect_to admin_order_path(@order), notice: "Order marked fulfilled."
   end
 
@@ -87,10 +90,12 @@ class Admin::OrdersController < Admin::ApplicationController
       assignee = User.find(assignee_id)
       @order.update!(assigned_to: assignee)
       audit!("order.reassigned", target: @order, metadata: { assigned_to_id: assignee.id, assigned_to_name: assignee.display_name })
+      FulfillmentNotifyJob.perform_later(@order.id)
       redirect_to admin_order_path(@order), notice: "Order reassigned to #{assignee.display_name}."
     else
       @order.update!(assigned_to: nil)
       audit!("order.unassigned", target: @order)
+      FulfillmentNotifyJob.perform_later(@order.id)
       redirect_to admin_order_path(@order), notice: "Order unassigned."
     end
   end
