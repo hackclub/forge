@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_05_000000) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_07_233157) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -213,6 +213,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_05_000000) do
     t.datetime "reviewed_at"
     t.bigint "reviewer_id"
     t.bigint "shop_item_id"
+    t.string "slack_message_ts"
     t.integer "status", default: 0, null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
@@ -222,6 +223,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_05_000000) do
     t.index ["region"], name: "index_orders_on_region"
     t.index ["reviewer_id"], name: "index_orders_on_reviewer_id"
     t.index ["shop_item_id"], name: "index_orders_on_shop_item_id"
+    t.index ["slack_message_ts"], name: "index_orders_on_slack_message_ts"
     t.index ["status"], name: "index_orders_on_status"
     t.index ["user_id"], name: "index_orders_on_user_id"
   end

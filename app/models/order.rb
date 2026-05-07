@@ -13,6 +13,7 @@
 #  region         :string
 #  review_notes   :text
 #  reviewed_at    :datetime
+#  slack_message_ts :string
 #  status         :integer          default("pending"), not null
 #  created_at     :datetime         not null
 #  updated_at     :datetime         not null
@@ -30,6 +31,7 @@
 #  index_orders_on_region          (region)
 #  index_orders_on_reviewer_id     (reviewer_id)
 #  index_orders_on_shop_item_id    (shop_item_id)
+#  index_orders_on_slack_message_ts  (slack_message_ts)
 #  index_orders_on_status          (status)
 #  index_orders_on_user_id         (user_id)
 #
