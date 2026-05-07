@@ -103,7 +103,7 @@ class Admin::SupportTicketsController < Admin::ApplicationController
       timestamp: @ticket.thread_ts,
       name: "white_check_mark"
     )
-    update_bts_message(@ticket)
+    SupportTicketJob.delete_bts_message(@ticket)
     audit!("support_ticket.resolved", target: @ticket, label: @ticket.slack_display_name)
     redirect_to admin_support_ticket_path(@ticket), notice: "Ticket resolved."
   rescue StandardError => e

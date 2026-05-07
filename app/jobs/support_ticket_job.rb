@@ -124,6 +124,16 @@ class SupportTicketJob < ApplicationJob
     blocks
   end
 
+  def self.delete_bts_message(ticket)
+    return unless ticket.bts_message_ts.present?
+
+    client = Slack::Web::Client.new(token: ENV.fetch("SLACK_BOT_TOKEN", nil))
+    client.chat_delete(channel: ticket.bts_channel_id, ts: ticket.bts_message_ts)
+    ticket.update!(bts_message_ts: nil)
+  rescue StandardError => e
+    Rails.logger.error("Failed to delete BTS message: #{e.message}")
+  end
+
   private
 
   def slack_client

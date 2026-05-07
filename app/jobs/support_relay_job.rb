@@ -57,13 +57,7 @@ class SupportRelayJob < ApplicationJob
       text: ":white_check_mark: <@#{ticket.slack_user_id}> This question has been marked as resolved by <@#{slack_user_id}>!"
     )
     slack_client.reactions_add(channel: ticket.channel_id, timestamp: ticket.thread_ts, name: "white_check_mark")
-    update_bts_message(ticket)
-
-    slack_client.chat_postMessage(
-      channel: ticket.bts_channel_id,
-      thread_ts: ticket.bts_message_ts,
-      text: ":white_check_mark: Ticket resolved by <@#{slack_user_id}>"
-    )
+    SupportTicketJob.delete_bts_message(ticket)
   end
 
   def handle_reopen(ticket, slack_user_id)
