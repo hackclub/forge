@@ -94,7 +94,11 @@ class User < ApplicationRecord
     [ 100, 1.25 ]
   ].freeze
 
-  def record_activity!(date = Date.current)
+  def today_in_zone
+    Time.current.in_time_zone(timezone.presence || "UTC").to_date
+  end
+
+  def record_activity!(date = today_in_zone)
     activity_days.find_or_create_by!(active_on: date)
   rescue ActiveRecord::RecordNotUnique
     nil
@@ -116,7 +120,7 @@ class User < ApplicationRecord
     pair&.last
   end
 
-  def current_streak(today: Date.current)
+  def current_streak(today: today_in_zone)
     dates = activity_days.where(active_on: (today - 365)..today).order(active_on: :desc).pluck(:active_on).to_set
     return 0 if dates.empty?
 

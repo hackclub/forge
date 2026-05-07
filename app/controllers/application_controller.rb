@@ -65,7 +65,7 @@ class ApplicationController < ActionController::Base
     return unless user_signed_in?
 
     now = Time.current
-    today = now.to_date
+    today = current_user.today_in_zone
     if session[:activity_tracked_on] != today.iso8601
       current_user.record_activity!(today)
       session[:activity_tracked_on] = today.iso8601
