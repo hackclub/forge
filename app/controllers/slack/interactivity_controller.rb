@@ -60,7 +60,7 @@ class Slack::InteractivityController < ApplicationController
     )
 
     notify_public_resolved(ticket, slack_user_id)
-    update_bts_message(ticket)
+    SupportTicketJob.delete_bts_message(ticket)
   end
 
 
