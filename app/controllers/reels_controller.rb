@@ -30,6 +30,7 @@ class ReelsController < ApplicationController
     else
       @reel = Reel.find(param)
       reels = [ @reel ] + Reel.where.not(id: @reel.id).includes(:user, :project, :reel_images).fair_feed.first(49)
+      set_reel_og_tags(@reel)
     end
 
     items = reels.map { |reel| serialize_reel(reel) }
@@ -298,5 +299,15 @@ class ReelsController < ApplicationController
         avatar: reel.user.avatar
       }
     }
+  end
+
+  def set_reel_og_tags(reel)
+    @og_title = reel.title.presence || "Reel by #{reel.user.display_name}"
+    @og_description = "A reel from #{reel.project.name} on Hack Club Forge."
+    @og_image = if reel.kind == "video"
+      reel.project.cover_image_url
+    else
+      reel.reel_images.first&.image_url || reel.project.cover_image_url
+    end
   end
 end
