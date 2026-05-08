@@ -5,6 +5,10 @@ class ProjectsController < ApplicationController
   def show
     authorize @project
 
+    @og_title = @project.name
+    @og_description = @project.subtitle.presence || "A project on Hack Club Forge by #{@project.user.display_name}."
+    @og_image = @project.cover_image_url
+
     render inertia: "Projects/Show", props: {
       project: serialize_project_detail(@project),
       devlogs: @project.devlogs.map { |d| serialize_devlog(d) },
