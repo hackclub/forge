@@ -848,6 +848,21 @@ function ReelCard({
   const [paused, setPaused] = useState(false)
   const [kudoed, setKudoed] = useState(reel.kudoed)
   const [viewsCount, setViewsCount] = useState(reel.views_count ?? 0)
+  const [copied, setCopied] = useState(false)
+
+  function shareReel(e: React.MouseEvent) {
+    e.stopPropagation()
+    const url = `${window.location.origin}/reels/${reel.id}`
+    const show = () => {
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 1600)
+    }
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(url).then(show).catch(() => prompt('Copy this link:', url))
+    } else {
+      prompt('Copy this link:', url)
+    }
+  }
 
   useEffect(() => {
     if (!isActive) return
@@ -917,22 +932,18 @@ function ReelCard({
           }}
           ariaLabel="Open comments"
         />
-        <ActionButton
-          icon="share"
-          onClick={(e) => {
-            e.stopPropagation()
-            const url = `${window.location.origin}/reels/${reel.id}`
-            navigator.clipboard
-              .writeText(url)
-              .then(() => {
-                alert('Link copied!')
-              })
-              .catch(() => {
-                prompt('Copy this link:', url)
-              })
-          }}
-          ariaLabel="Share reel"
-        />
+        <ActionButton icon="ios_share" onClick={shareReel} ariaLabel="Share reel" />
+      </div>
+
+      <div
+        className={`absolute left-1/2 -translate-x-1/2 bottom-24 md:bottom-12 z-20 pointer-events-none transition-all duration-200 ${
+          copied ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
+        }`}
+      >
+        <div className="bg-black/80 backdrop-blur ghost-border px-4 py-2 flex items-center gap-2 text-white text-xs font-bold uppercase tracking-[0.15em]">
+          <span className="material-symbols-outlined text-base text-[#ffb595]">check</span>
+          Link copied
+        </div>
       </div>
 
       <div className="absolute left-0 right-16 bottom-0 px-5 pb-8 pt-16 z-10 bg-gradient-to-t from-black/80 via-black/40 to-transparent pointer-events-none">
@@ -1113,6 +1124,66 @@ export default function ReelsFeed({ reels }: { reels: FeedItem[] }) {
     root.querySelectorAll<HTMLElement>('[data-feed-key]').forEach((el) => observer.observe(el))
 
     return () => observer.disconnect()
+  }, [reels.length])
+
+  useEffect(() => {
+    const root = containerRef.current
+    if (!root) return
+
+    let locked = false
+    let unlockTimer: number | null = null
+
+    function step(direction: 1 | -1) {
+      if (locked || !root) return
+      const sections = Array.from(root.querySelectorAll<HTMLElement>('[data-feed-key]'))
+      if (sections.length === 0) return
+      const scrollMid = root.scrollTop + root.clientHeight / 2
+      const currentIdx = sections.findIndex((el) => el.offsetTop + el.offsetHeight > scrollMid)
+      const safeIdx = currentIdx === -1 ? sections.length - 1 : currentIdx
+      const nextIdx = Math.max(0, Math.min(sections.length - 1, safeIdx + direction))
+      if (nextIdx === safeIdx) return
+      locked = true
+      sections[nextIdx].scrollIntoView({ behavior: 'smooth', block: 'start' })
+      if (unlockTimer) window.clearTimeout(unlockTimer)
+      unlockTimer = window.setTimeout(() => {
+        locked = false
+      }, 450)
+    }
+
+    function onWheel(e: WheelEvent) {
+      if (Math.abs(e.deltaY) < 4) return
+      e.preventDefault()
+      step(e.deltaY > 0 ? 1 : -1)
+    }
+
+    let touchStartY: number | null = null
+    function onTouchStart(e: TouchEvent) {
+      touchStartY = e.touches[0]?.clientY ?? null
+    }
+    function onTouchMove(e: TouchEvent) {
+      if (locked) e.preventDefault()
+    }
+    function onTouchEnd(e: TouchEvent) {
+      if (touchStartY === null) return
+      const endY = e.changedTouches[0]?.clientY ?? touchStartY
+      const dy = touchStartY - endY
+      touchStartY = null
+      if (Math.abs(dy) < 30) return
+      step(dy > 0 ? 1 : -1)
+    }
+
+    root.addEventListener('wheel', onWheel, { passive: false })
+    root.addEventListener('touchstart', onTouchStart, { passive: true })
+    root.addEventListener('touchmove', onTouchMove, { passive: false })
+    root.addEventListener('touchend', onTouchEnd, { passive: true })
+
+    return () => {
+      root.removeEventListener('wheel', onWheel)
+      root.removeEventListener('touchstart', onTouchStart)
+      root.removeEventListener('touchmove', onTouchMove)
+      root.removeEventListener('touchend', onTouchEnd)
+      if (unlockTimer) window.clearTimeout(unlockTimer)
+    }
   }, [reels.length])
 
   useEffect(() => {

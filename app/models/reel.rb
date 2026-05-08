@@ -33,8 +33,9 @@ class Reel < ApplicationRecord
   MAX_DURATION_SECONDS = 60
   MAX_IMAGES = 10
 
-  COINS_PER_VIEW = 0.004
-  COINS_PER_KUDO = 0.1
+  COINS_PER_VIEW = 0.01
+  COINS_PER_KUDO = 0.05
+  MAX_PAYOUT_COINS = 25.0
 
   has_paper_trail
 
@@ -79,7 +80,8 @@ class Reel < ApplicationRecord
   end
 
   def payout_target
-    ((views_count * COINS_PER_VIEW) + (kudos_count * COINS_PER_KUDO)).round(2)
+    raw = (views_count * COINS_PER_VIEW) + (kudos_count * COINS_PER_KUDO)
+    [ raw, MAX_PAYOUT_COINS ].min.round(2)
   end
 
   def payout_owed
