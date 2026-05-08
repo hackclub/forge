@@ -12,6 +12,20 @@
     <link rel="icon" href="/icon-192.png?v=4" type="image/png" sizes="192x192">
     <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=4">
 
+    <% og_title = @og_title || "Forge" %>
+    <% og_description = @og_description || "Hack Club Forge — get funded for your hardware projects." %>
+    <% og_image = @og_image.presence || "#{request.base_url}/explore_page_bg.png" %>
+    <meta property="og:title" content="<%= og_title %>">
+    <meta property="og:description" content="<%= og_description %>">
+    <meta property="og:image" content="<%= og_image %>">
+    <meta property="og:url" content="<%= request.original_url %>">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="<%= og_title %>">
+    <meta name="twitter:description" content="<%= og_description %>">
+    <meta name="twitter:image" content="<%= og_image %>">
+    <meta name="description" content="<%= og_description %>">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
