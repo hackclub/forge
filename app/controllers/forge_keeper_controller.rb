@@ -27,14 +27,26 @@ class ForgeKeeperController < ApplicationController
     focus = project_focus_context(user_message, history)
     messages << { "role" => "system", "content" => focus } if focus
 
-    messages += history + [ { "role" => "user", "content" => user_message } ]
+    messages += history + [ { "role" => "user", "content" => "#{user_message} /no_think" } ]
 
-    response = Net::HTTP.post(
-      URI("https://ai.hackclub.com/proxy/v1/chat/completions"),
-      { model: "qwen/qwen3-32b", messages: messages }.to_json,
-      "Content-Type" => "application/json",
-      "Authorization" => "Bearer #{ENV['HACKCLUB_AI_API_KEY']}"
-    )
+    uri = URI("https://ai.hackclub.com/proxy/v1/chat/completions")
+    http = Net::HTTP.new(uri.host, uri.port)
+    http.use_ssl = true
+    http.read_timeout = 90
+    http.open_timeout = 10
+
+    request = Net::HTTP::Post.new(uri)
+    request["Content-Type"] = "application/json"
+    request["Authorization"] = "Bearer #{ENV['HACKCLUB_AI_API_KEY']}"
+    request.body = {
+      model: "qwen/qwen3-32b",
+      messages: messages,
+      max_tokens: 400,
+      temperature: 0.7,
+      chat_template_kwargs: { enable_thinking: false }
+    }.to_json
+
+    response = http.request(request)
 
     unless response.is_a?(Net::HTTPSuccess)
       render json: { error: "the forge keeper is busy hammering, try again in a sec" }, status: :service_unavailable
@@ -44,6 +56,11 @@ class ForgeKeeperController < ApplicationController
     raw = JSON.parse(response.body).dig("choices", 0, "message", "content").to_s
     cleaned = raw.gsub(/<think>[\s\S]*?<\/think>/i, "").strip
     reply, emotion = parse_reply(cleaned)
+
+    if reply.blank?
+      render json: { error: "the forge keeper grunts and turns away, try again" }, status: :service_unavailable
+      return
+    end
 
     render json: { reply: reply, emotion: emotion }
   rescue StandardError => e
