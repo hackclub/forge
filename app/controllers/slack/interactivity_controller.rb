@@ -72,6 +72,15 @@ class Slack::InteractivityController < ApplicationController
       thread_ts: ticket.thread_ts,
       text: ":white_check_mark: <@#{ticket.slack_user_id}> This question has been marked as resolved by #{resolver_mention}!"
     )
+    begin
+      slack_client.reactions_remove(
+        channel: ticket.channel_id,
+        timestamp: ticket.thread_ts,
+        name: "thinking_face"
+      )
+    rescue Slack::Web::Api::Errors::NoReaction
+      # not present, ignore
+    end
     slack_client.reactions_add(
       channel: ticket.channel_id,
       timestamp: ticket.thread_ts,
