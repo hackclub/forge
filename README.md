@@ -4,9 +4,6 @@ Welcome to Forge! Forge is a [Hack Club](https://hackclub.com) YSWS program for 
 
 [Start forgin' it](https://forge.hackclub.com/?utm_source=github_readme)
 
-## Security
-
-Security vulnerabilities should never be reported on slack or via github issues! Please report all security issues to [https://security.hackclub.com](https://security.hackclub.com)
 
 ## Contributing
 Please see [the contributing tab](https://github.com/hackclub/forge?tab=contributing-ov-file#)
