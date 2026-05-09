@@ -130,6 +130,11 @@ export default function AdminProjectsShow({
     router.delete(`/admin/projects/${project.id}/notes/${noteId}`, { preserveScroll: true })
   }
 
+  function markUnbuilt() {
+    if (!confirm(`Mark "${project.name}" as unbuilt? This clears the build proof and built date.`)) return
+    router.post(`/admin/projects/${project.id}/mark_unbuilt`, {}, { preserveScroll: true })
+  }
+
   return (
     <div className="p-5 md:p-12 max-w-[1400px] mx-auto">
       <Link
@@ -761,6 +766,35 @@ export default function AdminProjectsShow({
               <p className="text-stone-600 text-xs">Featured under Staff Picks on the dashboard.</p>
             )}
           </div>
+
+          {can.review && project.built_at && (
+            <div className="bg-[#1c1b1b] ghost-border p-8 rounded-xl">
+              <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-3">
+                Build Status
+              </h4>
+              <p className="text-stone-400 text-sm mb-4">
+                Marked as built on <span className="text-[#e5e2e1]">{project.built_at}</span>.
+              </p>
+              {project.build_proof_url && (
+                <a
+                  href={project.build_proof_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#ffb595] hover:underline text-sm break-all flex items-center gap-1 mb-4"
+                >
+                  View build proof
+                  <span className="material-symbols-outlined text-sm">open_in_new</span>
+                </a>
+              )}
+              <button
+                onClick={markUnbuilt}
+                className="ghost-border bg-[#0e0e0e] hover:bg-[#2a2a2a] text-stone-400 hover:text-orange-400 px-4 py-2 text-xs font-bold uppercase tracking-[0.15em] cursor-pointer transition-colors flex items-center gap-2"
+              >
+                <span className="material-symbols-outlined text-sm">undo</span>
+                Mark Unbuilt
+              </button>
+            </div>
+          )}
 
           <div className="bg-[#1c1b1b] ghost-border p-8 rounded-xl">
             <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-6">Details</h4>

@@ -1,6 +1,6 @@
 class Admin::ProjectsController < Admin::ApplicationController
   before_action :require_projects_permission!
-  before_action :set_project, only: [ :show, :review, :destroy, :restore, :toggle_hidden, :toggle_staff_pick, :change_tier, :add_note, :destroy_note ]
+  before_action :set_project, only: [ :show, :review, :destroy, :restore, :toggle_hidden, :toggle_staff_pick, :change_tier, :add_note, :destroy_note, :mark_unbuilt ]
 
   def index
     scope = policy_scope(Project).includes(:user, :ships)
@@ -151,6 +151,20 @@ class Admin::ProjectsController < Admin::ApplicationController
     end
 
     redirect_to admin_project_path(@project), notice: "Tier changed from #{old_tier.tr('_', ' ')} to #{new_tier.tr('_', ' ')}."
+  end
+
+  def mark_unbuilt
+    authorize @project, :review?
+
+    unless @project.built?
+      redirect_to admin_project_path(@project), alert: "Project is not currently marked as built."
+      return
+    end
+
+    previous_proof = @project.build_proof_url
+    @project.update!(built_at: nil, build_proof_url: nil)
+    audit!("project.marked_unbuilt", target: @project, metadata: { previous_build_proof_url: previous_proof })
+    redirect_to admin_project_path(@project), notice: "Project marked as unbuilt."
   end
 
   def add_note
@@ -388,6 +402,8 @@ class Admin::ProjectsController < Admin::ApplicationController
       devlogs: project.devlogs.order(id: :desc).map { |d| serialize_devlog(d) },
       hidden: project.hidden,
       staff_pick: project.staff_pick?,
+      built_at: project.built_at&.strftime("%b %d, %Y"),
+      build_proof_url: project.build_proof_url,
       user_id: project.user_id,
       user_display_name: project.user.display_name,
       user_email: project.user.email,

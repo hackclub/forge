@@ -228,6 +228,8 @@ export interface AdminProjectDetail {
   notes: ProjectNote[]
   hidden: boolean
   staff_pick: boolean
+  built_at: string | null
+  build_proof_url: string | null
   is_discarded: boolean
   discarded_at: string | null
   user_id: number

@@ -245,6 +245,7 @@ Rails.application.routes.draw do
           post :toggle_staff_pick
           post :change_tier
           post :add_note
+          post :mark_unbuilt
           delete "notes/:note_id" => "projects#destroy_note", as: :destroy_note
         end
       end
@@ -320,6 +321,7 @@ Rails.application.routes.draw do
           post :send_to_airtable
           post :cancel
           post :retry
+          post :revert_project
         end
       end
       get "metrics" => "metrics#index", as: :metrics

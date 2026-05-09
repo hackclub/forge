@@ -9,6 +9,8 @@ interface QueueItemDetail {
   forge_id: string
   project_id: number | null
   project_name: string | null
+  project_status: string | null
+  project_inconsistent: boolean
   enqueued_by: string | null
   sent_by: string | null
   sent_at: string | null
@@ -63,6 +65,16 @@ export default function AdminAirtableQueueShow({
     router.post(`/admin/airtable_queue/${item.id}/retry`)
   }
 
+  function revertProject() {
+    if (
+      !confirm(
+        'Revert the project approval to "returned"? Use this when the project was approved but no Airtable record exists.',
+      )
+    )
+      return
+    router.post(`/admin/airtable_queue/${item.id}/revert_project`)
+  }
+
   return (
     <div className="p-5 md:p-12 max-w-5xl mx-auto">
       <Link
@@ -106,6 +118,25 @@ export default function AdminAirtableQueueShow({
         <div className="ghost-border bg-red-500/5 border-red-500/20 p-4 mb-8">
           <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-red-400 mb-2">Last error</p>
           <p className="text-red-300 text-sm font-mono break-words [overflow-wrap:anywhere]">{item.error}</p>
+        </div>
+      )}
+
+      {item.project_inconsistent && (
+        <div className="ghost-border bg-amber-500/5 border-amber-500/20 p-4 mb-8 flex flex-col md:flex-row gap-3 items-start md:items-center justify-between">
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-amber-400 mb-1">Inconsistent state</p>
+            <p className="text-amber-200/90 text-sm">
+              Project is approved but has no pending or sent Airtable record. Revert the approval to keep things in
+              sync.
+            </p>
+          </div>
+          <button
+            onClick={revertProject}
+            className="ghost-border bg-[#0e0e0e] hover:bg-[#2a2a2a] text-amber-400 hover:text-amber-300 px-4 py-2 text-xs font-bold uppercase tracking-[0.15em] cursor-pointer transition-colors flex items-center gap-2 shrink-0"
+          >
+            <span className="material-symbols-outlined text-sm">undo</span>
+            Revert Approval
+          </button>
         </div>
       )}
 
