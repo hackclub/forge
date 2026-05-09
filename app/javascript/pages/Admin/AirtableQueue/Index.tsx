@@ -11,6 +11,8 @@ interface QueueItem {
   forge_id: string
   project_id: number | null
   project_name: string | null
+  project_status: string | null
+  project_inconsistent: boolean
   enqueued_by: string | null
   sent_by: string | null
   sent_at: string | null
@@ -107,6 +109,15 @@ export default function AdminAirtableQueueIndex({
                         <span className="material-symbols-outlined text-xs">{st.icon}</span>
                         {st.label}
                       </span>
+                      {item.project_inconsistent && (
+                        <span
+                          title="Project is approved but has no active Airtable record"
+                          className="bg-amber-500/10 text-amber-400 px-2 py-1 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1 shrink-0"
+                        >
+                          <span className="material-symbols-outlined text-xs">warning</span>
+                          Out of sync
+                        </span>
+                      )}
                       <div className="min-w-0">
                         <p className="text-[#e5e2e1] text-sm truncate">
                           {item.project_name || `Forge #${item.forge_id}`}

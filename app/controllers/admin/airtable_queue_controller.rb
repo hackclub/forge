@@ -55,7 +55,33 @@ class Admin::AirtableQueueController < Admin::ApplicationController
 
     item.update!(status: :cancelled)
     audit!("airtable.cancelled", target: item.project, metadata: { queue_item_id: item.id })
-    redirect_to admin_airtable_queue_index_path, notice: "Item cancelled."
+
+    notice = "Item cancelled."
+    if revert_inconsistent_project!(item.project, queue_item_id: item.id)
+      notice = "Item cancelled and project approval reverted to returned."
+    end
+
+    redirect_to admin_airtable_queue_index_path, notice: notice
+  end
+
+  def revert_project
+    item = AirtableQueueItem.find(params[:id])
+
+    unless item.cancelled? || item.failed?
+      redirect_to admin_airtable_queue_path(item), alert: "Only cancelled or failed items can revert their project."
+      return
+    end
+
+    if item.project.blank?
+      redirect_to admin_airtable_queue_path(item), alert: "Original project is no longer available."
+      return
+    end
+
+    if revert_inconsistent_project!(item.project, queue_item_id: item.id)
+      redirect_to admin_project_path(item.project), notice: "Project approval reverted to returned."
+    else
+      redirect_to admin_airtable_queue_path(item), alert: "Project is not in an inconsistent approved state."
+    end
   end
 
   def retry
@@ -83,14 +109,28 @@ class Admin::AirtableQueueController < Admin::ApplicationController
     raise ActionController::RoutingError, "Not Found" unless current_user&.superadmin?
   end
 
+  def revert_inconsistent_project!(project, queue_item_id:)
+    return false if project.blank?
+    return false unless project.approved?
+    return false if project.airtable_queue_items.where(status: [ :pending, :sent ]).exists?
+
+    feedback = "Removed from Airtable queue — please address override hours justification or other concerns and resubmit."
+    project.update!(status: :returned, review_feedback: feedback, reviewed_at: Time.current, reviewer: current_user)
+    audit!("project.returned", target: project, metadata: { reason: "airtable_cancelled", queue_item_id: queue_item_id, feedback: feedback })
+    true
+  end
+
   def serialize(item, full: false)
+    project = item.project
     data = {
       id: item.id,
       status: item.status,
       table_name: item.table_name,
       forge_id: item.forge_id,
       project_id: item.project_id,
-      project_name: item.project&.name,
+      project_name: project&.name,
+      project_status: project&.status,
+      project_inconsistent: project&.approved? && !project.airtable_queue_items.where(status: [ :pending, :sent ]).exists? || false,
       enqueued_by: item.enqueued_by&.display_name,
       sent_by: item.sent_by&.display_name,
       sent_at: item.sent_at&.strftime("%b %d, %Y %H:%M"),
