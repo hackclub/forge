@@ -571,7 +571,7 @@ export default function AdminProjectsShow({
                 {isPitchReview ? 'Review Pitch' : isProjectReview ? 'Review Project' : 'Change Status'}
               </h4>
 
-              {isProjectReview && (
+              {!isPitchReview && (
                 <>
                   <div className="mb-4">
                     <label className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
@@ -653,24 +653,15 @@ export default function AdminProjectsShow({
               </div>
 
               <div className="flex flex-col gap-3">
-                {(isPitchReview || isProjectReview) && (
+                {isPitchReview && (
                   <>
                     <button
-                      onClick={() =>
-                        submitReview(
-                          'approve',
-                          isProjectReview
-                            ? { override_hours: overrideHours, override_hours_justification: overrideJustification }
-                            : {},
-                        )
-                      }
+                      onClick={() => submitReview('approve')}
                       disabled={reviewing}
                       className="w-full py-3 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 font-headline font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <span className="material-symbols-outlined text-lg">
-                        {isProjectReview ? 'verified' : 'check_circle'}
-                      </span>
-                      {isProjectReview ? 'Approve Project' : 'Approve Pitch'}
+                      <span className="material-symbols-outlined text-lg">check_circle</span>
+                      Approve Pitch
                     </button>
                     <button
                       onClick={() => submitReview('return')}
@@ -690,14 +681,54 @@ export default function AdminProjectsShow({
                     </button>
                   </>
                 )}
-                {!isPitchReview && !isProjectReview && (
-                  <button
-                    onClick={() => submitReview('draft')}
-                    className="w-full py-3 bg-stone-500/20 hover:bg-stone-500/30 text-stone-400 font-headline font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-2 cursor-pointer"
-                  >
-                    <span className="material-symbols-outlined text-lg">edit_note</span>
-                    Revert to Draft
-                  </button>
+                {!isPitchReview && (
+                  <>
+                    {project.status !== 'approved' && (
+                      <button
+                        onClick={() =>
+                          submitReview('approve', {
+                            override_hours: overrideHours,
+                            override_hours_justification: overrideJustification,
+                          })
+                        }
+                        disabled={reviewing}
+                        className="w-full py-3 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 font-headline font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <span className="material-symbols-outlined text-lg">verified</span>
+                        Approve Project
+                      </button>
+                    )}
+                    {project.status !== 'returned' && (
+                      <button
+                        onClick={() => submitReview('return')}
+                        disabled={reviewing}
+                        className="w-full py-3 bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 font-headline font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <span className="material-symbols-outlined text-lg">undo</span>
+                        Return for Changes
+                      </button>
+                    )}
+                    {project.status !== 'rejected' && (
+                      <button
+                        onClick={() => submitReview('reject')}
+                        disabled={reviewing}
+                        className="w-full py-3 bg-red-500/20 hover:bg-red-500/30 text-red-400 font-headline font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <span className="material-symbols-outlined text-lg">cancel</span>
+                        Reject
+                      </button>
+                    )}
+                    {project.status !== 'draft' && (
+                      <button
+                        onClick={() => submitReview('draft')}
+                        disabled={reviewing}
+                        className="w-full py-3 bg-stone-500/20 hover:bg-stone-500/30 text-stone-400 font-headline font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <span className="material-symbols-outlined text-lg">edit_note</span>
+                        Revert to Draft
+                      </button>
+                    )}
+                  </>
                 )}
               </div>
             </div>
