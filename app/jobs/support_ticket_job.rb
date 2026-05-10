@@ -39,6 +39,12 @@ class SupportTicketJob < ApplicationJob
       text: "heyo! this message is to confirm that we've recieved your query! one of our team members will be with you soon to try and getcha sorted"
     )
 
+    begin
+      slack_client.reactions_add(channel: channel_id, timestamp: message_ts, name: "thinking_face")
+    rescue Slack::Web::Api::Errors::AlreadyReacted
+      # already there, ignore
+    end
+
     bts_blocks = self.class.bts_blocks(ticket)
 
     result = slack_client.chat_postMessage(
