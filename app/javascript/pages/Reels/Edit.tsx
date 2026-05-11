@@ -44,7 +44,7 @@ export default function ReelsEdit({ project, reel }: Props) {
               onChange={(e) => setTitle(e.target.value)}
               maxLength={200}
               placeholder="A short title for your reel..."
-              className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600"
+              className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600"
               autoFocus
             />
             <p className="text-[10px] text-stone-600 text-right mt-1">{title.length} / 200</p>

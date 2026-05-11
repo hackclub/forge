@@ -52,7 +52,7 @@ export default function AdminFeatureFlagsIndex({ flags }: { flags: Flag[] }) {
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 text-sm"
+              className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 text-sm"
               placeholder="e.g. new_feature_enabled"
               required
             />
@@ -65,7 +65,7 @@ export default function AdminFeatureFlagsIndex({ flags }: { flags: Flag[] }) {
               type="text"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 text-sm"
+              className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 text-sm"
               placeholder="What does this flag control?"
             />
           </div>

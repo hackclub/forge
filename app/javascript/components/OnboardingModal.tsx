@@ -310,7 +310,7 @@ export default function OnboardingModal() {
               left: rect.left - highlightPad,
               width: rect.width + highlightPad * 2,
               height: rect.height + highlightPad * 2,
-              boxShadow: '0 0 0 2px #ee671c, 0 0 0 6px rgba(238,103,28,0.25), 0 0 30px rgba(238,103,28,0.45)',
+              boxShadow: '0 0 0 2px #ca5924, 0 0 0 6px rgba(238,103,28,0.25), 0 0 30px rgba(238,103,28,0.45)',
               animation: 'tour-pulse 1.6s ease-in-out infinite',
               transition: 'all 250ms ease',
             }}
@@ -373,7 +373,7 @@ export default function OnboardingModal() {
               <span
                 key={i}
                 className={`h-[3px] transition-all ${
-                  i === stepIndex ? 'w-5 bg-[#ee671c]' : i < stepIndex ? 'w-2.5 bg-[#ffb595]/60' : 'w-2.5 bg-stone-700'
+                  i === stepIndex ? 'w-5 bg-[#ca5924]' : i < stepIndex ? 'w-2.5 bg-[#ffb595]/60' : 'w-2.5 bg-stone-700'
                 }`}
               />
             ))}
@@ -394,8 +394,8 @@ export default function OnboardingModal() {
 
       <style>{`
         @keyframes tour-pulse {
-          0%, 100% { box-shadow: 0 0 0 2px #ee671c, 0 0 0 6px rgba(238,103,28,0.25), 0 0 30px rgba(238,103,28,0.45); }
-          50% { box-shadow: 0 0 0 2px #ee671c, 0 0 0 10px rgba(238,103,28,0.15), 0 0 50px rgba(238,103,28,0.65); }
+          0%, 100% { box-shadow: 0 0 0 2px #ca5924, 0 0 0 6px rgba(238,103,28,0.25), 0 0 30px rgba(238,103,28,0.45); }
+          50% { box-shadow: 0 0 0 2px #ca5924, 0 0 0 10px rgba(238,103,28,0.15), 0 0 50px rgba(238,103,28,0.65); }
         }
         @keyframes tour-blink {
           0%, 100% { opacity: 1; }

@@ -54,7 +54,7 @@ export default function ReferralsIndex({
       <Head title="Referrals - Forge" />
       <div className="p-5 md:p-12 max-w-[1100px] mx-auto">
         <div className="mb-8">
-          <h1 className="text-4xl font-headline font-bold text-[#ee671c] tracking-tight">Referrals</h1>
+          <h1 className="text-4xl font-headline font-bold text-[#ca5924] tracking-tight">Referrals</h1>
           <p className="text-stone-500 text-sm mt-1">
             Share your code. When they ship their first project, you earn 0.25 coins + a prize pool ticket.
           </p>
@@ -156,7 +156,7 @@ export default function ReferralsIndex({
 
 function Stat({ label, value, accent }: { label: string; value: string | number; accent?: boolean }) {
   return (
-    <div className={`ghost-border bg-[#1c1b1b] p-4 ${accent ? 'border border-[#ee671c]/30' : ''}`}>
+    <div className={`ghost-border bg-[#1c1b1b] p-4 ${accent ? 'border border-[#ca5924]/30' : ''}`}>
       <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-500 mb-2">{label}</p>
       <p className={`font-headline font-bold text-2xl ${accent ? 'text-[#ffb595]' : 'text-[#e5e2e1]'}`}>{value}</p>
     </div>

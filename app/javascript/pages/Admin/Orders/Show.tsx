@@ -149,7 +149,7 @@ export default function AdminOrdersShow({
             </div>
             <div className="bg-[#0e0e0e] p-4">
               <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-1">Coin cost</p>
-              <p className="text-2xl font-headline font-bold text-[#ee671c]">{order.coin_cost}c</p>
+              <p className="text-2xl font-headline font-bold text-[#ca5924]">{order.coin_cost}c</p>
             </div>
             <div className="bg-[#0e0e0e] p-4">
               <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-1">User balance</p>
@@ -168,14 +168,14 @@ export default function AdminOrdersShow({
           </Link>
           <p className="text-stone-500 text-sm mt-3">
             HCB email:{' '}
-            <a href={`mailto:${order.user_email}`} className="text-[#ffb595] hover:text-[#ee671c] font-mono">
+            <a href={`mailto:${order.user_email}`} className="text-[#ffb595] hover:text-[#ca5924] font-mono">
               {order.user_email}
             </a>
           </p>
           {order.project_id && (
             <p className="text-stone-500 text-sm mt-3">
               For project:{' '}
-              <Link href={`/admin/projects/${order.project_id}`} className="text-[#ffb595] hover:text-[#ee671c]">
+              <Link href={`/admin/projects/${order.project_id}`} className="text-[#ffb595] hover:text-[#ca5924]">
                 {order.project_name}
               </Link>
             </p>
@@ -195,7 +195,7 @@ export default function AdminOrdersShow({
               <select
                 value={order.assigned_to_id?.toString() || ''}
                 onChange={(e) => router.post(`/admin/orders/${order.id}/reassign`, { assigned_to_id: e.target.value })}
-                className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ee671c]/30 cursor-pointer"
+                className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ca5924]/30 cursor-pointer"
               >
                 <option value="">Unassigned</option>
                 {fulfillment_users.map((u) => (
@@ -240,7 +240,7 @@ export default function AdminOrdersShow({
                     href={order.internal_order_link}
                     target="_blank"
                     rel="noopener"
-                    className="text-[#ffb595] hover:text-[#ee671c] truncate"
+                    className="text-[#ffb595] hover:text-[#ca5924] truncate"
                   >
                     {order.internal_order_link}
                   </a>
@@ -264,7 +264,7 @@ export default function AdminOrdersShow({
               onChange={(e) => setReviewNotes(e.target.value)}
               rows={3}
               placeholder="Notes for the user (required when rejecting)..."
-              className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 resize-y"
+              className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 resize-y"
             />
             <div className="flex gap-3">
               <button
@@ -294,7 +294,7 @@ export default function AdminOrdersShow({
               value={grantLink}
               onChange={(e) => setGrantLink(e.target.value)}
               placeholder="https://hcb.hackclub.com/..."
-              className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600"
+              className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600"
             />
             <button
               onClick={fulfill}
@@ -313,7 +313,7 @@ export default function AdminOrdersShow({
               href={order.hcb_grant_link}
               target="_blank"
               rel="noopener"
-              className="text-[#ffb595] hover:text-[#ee671c] text-sm break-all"
+              className="text-[#ffb595] hover:text-[#ca5924] text-sm break-all"
             >
               {order.hcb_grant_link}
             </a>

@@ -66,7 +66,7 @@ export default function ReelsIndex({ project, reels }: Props) {
 
         {reels.length === 0 ? (
           <div className="bg-[#1c1b1b] ghost-border p-16 text-center">
-            <span className="material-symbols-outlined text-5xl text-[#ee671c] mb-4 block">play_circle</span>
+            <span className="material-symbols-outlined text-5xl text-[#ca5924] mb-4 block">play_circle</span>
             <p className="text-stone-300 text-lg font-headline font-medium mb-2">No reels yet</p>
             <p className="text-stone-500 text-sm mb-6">Post a reel to share progress on this project.</p>
             <Link
@@ -161,7 +161,7 @@ export default function ReelsIndex({ project, reels }: Props) {
 function Stat({ icon, label, value }: { icon: string; label: string; value: number }) {
   return (
     <div className="bg-[#0e0e0e] ghost-border px-3 py-2 flex items-center gap-2">
-      <span className="material-symbols-outlined text-base text-[#ee671c]">{icon}</span>
+      <span className="material-symbols-outlined text-base text-[#ca5924]">{icon}</span>
       <div className="min-w-0">
         <p className="text-[9px] uppercase tracking-widest font-bold text-stone-500">{label}</p>
         <p className="text-[#e5e2e1] font-headline font-bold tabular-nums">{value}</p>

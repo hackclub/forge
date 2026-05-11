@@ -56,7 +56,7 @@ export default function OnboardingCelebration({ onDone }: Props) {
                   left: `${left}%`,
                   width: size,
                   height: size,
-                  background: 'radial-gradient(circle, #ffe2c8 0%, #ee671c 55%, rgba(238,103,28,0) 100%)',
+                  background: 'radial-gradient(circle, #ffe2c8 0%, #ca5924 55%, rgba(238,103,28,0) 100%)',
                   animation: `forge-spark ${duration}ms ease-out ${delay}ms forwards`,
                   ['--drift' as string]: `${drift}px`,
                 } as React.CSSProperties
@@ -80,7 +80,7 @@ export default function OnboardingCelebration({ onDone }: Props) {
           } as React.CSSProperties
         }
       >
-        <span className="forge-celebration-coin w-[180px] h-[180px] bg-[#0e0e0e] shadow-[0_0_40px_rgba(238,103,28,0.7)] flex items-center justify-center border border-[#ee671c]/40">
+        <span className="forge-celebration-coin w-[180px] h-[180px] bg-[#0e0e0e] shadow-[0_0_40px_rgba(238,103,28,0.7)] flex items-center justify-center border border-[#ca5924]/40">
           <span
             className="material-symbols-outlined text-[#ffb595] leading-none"
             style={{

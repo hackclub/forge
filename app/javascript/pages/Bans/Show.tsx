@@ -25,7 +25,7 @@ export default function BansShow({ ban_reason }: { ban_reason: string | null }) 
         )}
         <button
           onClick={signOut}
-          className="text-[#ffb595] hover:text-[#ee671c] text-sm font-bold uppercase tracking-widest transition-colors"
+          className="text-[#ffb595] hover:text-[#ca5924] text-sm font-bold uppercase tracking-widest transition-colors"
         >
           Sign Out
         </button>

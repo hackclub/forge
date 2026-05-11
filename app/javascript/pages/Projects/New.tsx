@@ -54,11 +54,11 @@ export default function ProjectsNew() {
           <Link
             key={t.tier}
             href={`/projects/new?tier=${t.tier}`}
-            className={`group bg-[#1c1b1b] ghost-border p-7 hover:bg-[#2a2a2a] transition-colors flex flex-col gap-3 ${t.pitch ? 'border border-[#ee671c]/20' : ''}`}
+            className={`group bg-[#1c1b1b] ghost-border p-7 hover:bg-[#2a2a2a] transition-colors flex flex-col gap-3 ${t.pitch ? 'border border-[#ca5924]/20' : ''}`}
           >
             <div className="flex items-center justify-between gap-3">
               <h2 className="text-xl font-headline font-bold text-[#e5e2e1]">{t.label}</h2>
-              <span className="text-xs font-bold uppercase tracking-[0.15em] text-[#ee671c]">{t.rate}</span>
+              <span className="text-xs font-bold uppercase tracking-[0.15em] text-[#ca5924]">{t.rate}</span>
             </div>
             <p className="text-stone-400 text-sm leading-relaxed">{t.description}</p>
             <div className="mt-auto pt-3">

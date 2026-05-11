@@ -111,7 +111,7 @@ function prettyExternalLabel(url: string): string {
 function renderLink(href: string, label: string, key: number): React.ReactNode {
   const isInternal = INTERNAL_LINK.test(href)
   const chipClass =
-    'inline-flex items-center gap-1 bg-[#ee671c]/15 text-[#ffb595] hover:bg-[#ee671c]/25 hover:text-[#ffb595] px-1.5 py-0.5 ghost-border text-[12px] font-bold align-baseline no-underline'
+    'inline-flex items-center gap-1 bg-[#ca5924]/15 text-[#ffb595] hover:bg-[#ca5924]/25 hover:text-[#ffb595] px-1.5 py-0.5 ghost-border text-[12px] font-bold align-baseline no-underline'
   const icon = isInternal ? 'arrow_forward' : 'open_in_new'
 
   const inner = (
@@ -248,7 +248,7 @@ export default function ForgeKeeper({ userName }: Props) {
           />
           {unread && (
             <span
-              className="absolute -top-1 -right-1 w-3 h-3 sm:w-4 sm:h-4 bg-[#ee671c] border-2 border-[#0e0e0e]"
+              className="absolute -top-1 -right-1 w-3 h-3 sm:w-4 sm:h-4 bg-[#ca5924] border-2 border-[#0e0e0e]"
               aria-label="Unread message from the Forge Keeper"
             />
           )}
@@ -289,7 +289,7 @@ export default function ForgeKeeper({ userName }: Props) {
                   className={`text-[13px] leading-relaxed px-3 py-2 max-w-[85%] whitespace-pre-wrap break-words ${
                     m.role === 'assistant'
                       ? 'bg-[#0e0e0e] ghost-border text-stone-300'
-                      : 'bg-[#ee671c]/15 text-[#ffb595] ghost-border'
+                      : 'bg-[#ca5924]/15 text-[#ffb595] ghost-border'
                   }`}
                 >
                   {m.role === 'assistant' ? renderInline(m.content) : m.content}
@@ -327,7 +327,7 @@ export default function ForgeKeeper({ userName }: Props) {
               placeholder="Ask the Forge Keeper..."
               disabled={loading}
               maxLength={500}
-              className="flex-1 bg-[#0e0e0e] ghost-border text-stone-200 text-[13px] px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#ee671c]/30 disabled:opacity-50"
+              className="flex-1 bg-[#0e0e0e] ghost-border text-stone-200 text-[13px] px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#ca5924]/30 disabled:opacity-50"
             />
             <button
               type="submit"

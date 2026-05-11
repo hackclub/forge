@@ -17,7 +17,7 @@ export default function AuthSignIn() {
       <div className="min-h-screen bg-[#0e0e0e] text-[#e5e2e1] relative overflow-hidden flex flex-col items-center justify-center px-6 py-12">
         <div
           className="fixed inset-0 pointer-events-none z-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: 'url(/login_page_bg.png)' }}
+          style={{ backgroundImage: 'url(/landing/landing.png)' }}
         />
         <div className="fixed inset-0 pointer-events-none z-0 bg-[#0e0e0e]/20" />
 
@@ -51,7 +51,7 @@ export default function AuthSignIn() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="your@email.com"
                 required
-                className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600"
+                className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600"
               />
               <button
                 type="submit"

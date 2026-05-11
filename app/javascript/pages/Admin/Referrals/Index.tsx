@@ -96,7 +96,7 @@ export default function AdminReferralsIndex({
       </div>
 
       {winner && (
-        <div className="ghost-border bg-[#1c1b1b] p-6 mb-8 border border-[#ee671c]/30">
+        <div className="ghost-border bg-[#1c1b1b] p-6 mb-8 border border-[#ca5924]/30">
           <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#ffb595] mb-3">Winner Drawn</p>
           <div className="flex items-center gap-4">
             <img src={winner.avatar} alt="" className="w-12 h-12 object-cover" />
@@ -156,7 +156,7 @@ export default function AdminReferralsIndex({
 
 function StatCard({ label, value, accent }: { label: string; value: string | number; accent?: boolean }) {
   return (
-    <div className={`ghost-border bg-[#1c1b1b] p-4 ${accent ? 'border border-[#ee671c]/30' : ''}`}>
+    <div className={`ghost-border bg-[#1c1b1b] p-4 ${accent ? 'border border-[#ca5924]/30' : ''}`}>
       <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-500 mb-2">{label}</p>
       <p className={`font-headline font-bold text-2xl ${accent ? 'text-[#ffb595]' : 'text-[#e5e2e1]'}`}>{value}</p>
     </div>

@@ -119,7 +119,7 @@ export default function ProjectsForm({
               value={importUrl}
               onChange={(e) => setImportUrl(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleImport())}
-              className="flex-1 bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 text-sm min-w-0"
+              className="flex-1 bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 text-sm min-w-0"
               placeholder="https://github.com/username/repo"
             />
             <button
@@ -169,7 +169,7 @@ export default function ProjectsForm({
             id="name"
             value={form.data.name}
             onChange={(e) => form.setData('name', e.target.value)}
-            className="w-full bg-[#0e0e0e] border-none rounded-lg px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600"
+            className="w-full bg-[#0e0e0e] border-none rounded-lg px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600"
             placeholder="My Hardware Project"
             required
           />
@@ -184,7 +184,7 @@ export default function ProjectsForm({
             id="subtitle"
             value={form.data.subtitle}
             onChange={(e) => form.setData('subtitle', e.target.value)}
-            className="w-full bg-[#0e0e0e] border-none rounded-lg px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600"
+            className="w-full bg-[#0e0e0e] border-none rounded-lg px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600"
             placeholder="A short description of your project"
           />
         </div>
@@ -198,7 +198,7 @@ export default function ProjectsForm({
             id="repo_link"
             value={form.data.repo_link}
             onChange={(e) => form.setData('repo_link', e.target.value)}
-            className="w-full bg-[#0e0e0e] border-none rounded-lg px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600"
+            className="w-full bg-[#0e0e0e] border-none rounded-lg px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600"
             placeholder="https://github.com/..."
           />
         </div>
@@ -212,7 +212,7 @@ export default function ProjectsForm({
               id="tier"
               value={form.data.tier}
               onChange={(e) => form.setData('tier', e.target.value as ProjectTier)}
-              className="w-full bg-[#0e0e0e] border-none rounded-lg px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30"
+              className="w-full bg-[#0e0e0e] border-none rounded-lg px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30"
             >
               <option value="tier_4">Tier 4 - 4c/hr (Basic, $0–50)</option>
               <option value="tier_3">Tier 3 - 4.5c/hr (Standard, $0–100)</option>
@@ -236,7 +236,7 @@ export default function ProjectsForm({
               id="devlog_mode"
               value={form.data.devlog_mode}
               onChange={(e) => form.setData('devlog_mode', e.target.value)}
-              className="w-full bg-[#0e0e0e] border-none rounded-lg px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30"
+              className="w-full bg-[#0e0e0e] border-none rounded-lg px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30"
             >
               <option value="">Not chosen</option>
               <option value="git">Git Journal</option>

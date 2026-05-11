@@ -32,7 +32,7 @@ const ACTION_ICONS: Record<string, { icon: string; color: string }> = {
   beta_approval_toggled: { icon: 'verified', color: 'text-amber-400' },
   note_added: { icon: 'sticky_note_2', color: 'text-stone-400' },
   note_destroyed: { icon: 'sticky_note_2', color: 'text-red-400' },
-  kudo_added: { icon: 'favorite', color: 'text-[#ee671c]' },
+  kudo_added: { icon: 'favorite', color: 'text-[#ca5924]' },
   kudo_destroyed: { icon: 'heart_broken', color: 'text-red-400' },
   signed_in: { icon: 'login', color: 'text-stone-400' },
   signed_out: { icon: 'logout', color: 'text-stone-400' },
@@ -87,7 +87,7 @@ export default function AdminAuditLogIndex({
           <select
             value={filters.action}
             onChange={(e) => applyFilter('action', e.target.value)}
-            className="bg-[#0e0e0e] border-none px-4 py-2 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ee671c]/30"
+            className="bg-[#0e0e0e] border-none px-4 py-2 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ca5924]/30"
           >
             <option value="">All actions</option>
             {actions.map((a) => (
@@ -104,7 +104,7 @@ export default function AdminAuditLogIndex({
           <select
             value={filters.target_type}
             onChange={(e) => applyFilter('target_type', e.target.value)}
-            className="bg-[#0e0e0e] border-none px-4 py-2 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ee671c]/30"
+            className="bg-[#0e0e0e] border-none px-4 py-2 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ca5924]/30"
           >
             <option value="">All targets</option>
             {target_types.map((t) => (

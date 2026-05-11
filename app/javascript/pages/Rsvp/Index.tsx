@@ -217,46 +217,36 @@ export default function RsvpIndex() {
       <div className="min-h-screen bg-[#0e0e0e] text-[#e5e2e1] relative overflow-hidden flex flex-col">
         <div
           className="fixed inset-0 pointer-events-none z-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: 'url(/login_page_bg.png)' }}
+          style={{ backgroundImage: 'url(/landing/landing.png)' }}
         />
-        <div className="fixed inset-0 pointer-events-none z-0 bg-[#0e0e0e]/70" />
 
-        <nav className="relative z-10 flex justify-between items-center px-8 md:px-16 py-8">
-          <span className="text-2xl font-bold tracking-tighter text-[#ffb595] uppercase font-headline">Forge</span>
-        </nav>
+        <main className="relative z-10 flex-1 flex">
+          <div className="w-full md:w-1/2 md:ml-16 lg:ml-32 flex flex-col items-center justify-center text-center px-8 md:px-12 pt-48 pb-24">
+            <div className="mb-12 max-w-md">
+              <h1 className="text-5xl md:text-7xl font-headline font-bold tracking-tighter leading-[0.95] mb-6">
+                Build hardware.
+                <br />
+                <span className="text-[#ca5924]">Get funded.</span>
+              </h1>
+              <p className="text-stone-400 text-base md:text-lg leading-relaxed">
+                Got a hardware idea? We'll help you build it. Unlimited funding for teen makers, ages 13–18. Sign in to
+                get started making!
+              </p>
+            </div>
 
-        <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 pt-16 pb-48">
-          <div className="text-center mb-12 max-w-2xl">
-            <h1 className="text-5xl md:text-7xl font-headline font-bold tracking-tighter leading-[0.95] mb-6">
-              Build hardware.
-              <br />
-              <span className="text-[#ee671c]">Get funded.</span>
-            </h1>
-            <p className="text-stone-400 text-base md:text-lg leading-relaxed max-w-lg mx-auto">
-              Got a hardware idea? We'll help you build it. Unlimited funding for teen makers, ages 13–18. Sign in to
-              get started making!
-            </p>
-            <p className="text-stone-600 text-xs leading-relaxed max-w-lg mx-auto mt-6 flex items-start gap-2">
-              <span className="material-symbols-outlined text-sm text-stone-600 mt-0.5 shrink-0">info</span>
-              <span>
-                The Forge team reserves the right to revoke, change, or cancel funding at any time. Funding is only
-                granted when a project is approved, at the sole discretion of the Forge team.
-              </span>
-            </p>
+            <a
+              href="/signin"
+              className="signature-smolder text-[#4c1a00] font-headline font-bold py-4 px-10 uppercase tracking-[0.2em] text-sm inline-flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
+            >
+              <span className="material-symbols-outlined text-lg">local_fire_department</span>
+              Get Started
+            </a>
           </div>
-
-          <a
-            href="/signin"
-            className="signature-smolder text-[#4c1a00] font-headline font-bold py-4 px-10 uppercase tracking-[0.2em] text-sm inline-flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
-          >
-            <span className="material-symbols-outlined text-lg">local_fire_department</span>
-            Get Started
-          </a>
         </main>
 
         <section className="relative z-10 px-6 md:px-16 pt-24 pb-32 max-w-[1200px] mx-auto w-full">
           <div className="text-center mb-10">
-            <p className="text-[10px] uppercase tracking-[0.3em] text-[#ee671c] font-bold mb-3">
+            <p className="text-[10px] uppercase tracking-[0.3em] text-[#ca5924] font-bold mb-3">
               Previously, from Hack Club
             </p>
             <h2 className="text-3xl md:text-4xl font-headline font-bold tracking-tight text-[#e5e2e1]">
@@ -320,7 +310,7 @@ export default function RsvpIndex() {
         <section className="relative z-10 px-6 md:px-16 pt-8 pb-32 max-w-[1200px] mx-auto w-full">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
             <div>
-              <p className="text-[10px] uppercase tracking-[0.3em] text-[#ee671c] font-bold mb-3">Learn with us</p>
+              <p className="text-[10px] uppercase tracking-[0.3em] text-[#ca5924] font-bold mb-3">Learn with us</p>
               <h2 className="text-3xl md:text-4xl font-headline font-bold tracking-tight text-[#e5e2e1] mb-4">
                 Never made a circuit board before? No problem!
               </h2>
@@ -349,6 +339,14 @@ export default function RsvpIndex() {
               />
             </div>
           </div>
+
+          <p className="text-stone-600 text-xs leading-relaxed max-w-2xl mx-auto mt-16 flex items-start gap-2">
+            <span className="material-symbols-outlined text-sm text-stone-600 mt-0.5 shrink-0">info</span>
+            <span>
+              The Forge team reserves the right to revoke, change, or cancel funding at any time. Funding is only
+              granted when a project is approved, at the sole discretion of the Forge team.
+            </span>
+          </p>
         </section>
 
         <Footer />

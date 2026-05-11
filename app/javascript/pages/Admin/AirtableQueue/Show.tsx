@@ -92,7 +92,7 @@ export default function AdminAirtableQueueShow({
           <span className="material-symbols-outlined text-sm">{st.icon}</span>
           {st.label}
         </span>
-        <span className="text-[#ee671c] text-xs font-bold uppercase tracking-wider font-mono">{item.table_name}</span>
+        <span className="text-[#ca5924] text-xs font-bold uppercase tracking-wider font-mono">{item.table_name}</span>
       </div>
 
       <h1 className="text-3xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-2 break-words">
@@ -147,7 +147,7 @@ export default function AdminAirtableQueueShow({
             <p className="mt-1">
               <Link
                 href={`/admin/projects/${item.project_id}`}
-                className="text-[#ffb595] hover:text-[#ee671c] transition-colors"
+                className="text-[#ffb595] hover:text-[#ca5924] transition-colors"
               >
                 {item.project_name}
               </Link>

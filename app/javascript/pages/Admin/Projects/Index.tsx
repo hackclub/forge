@@ -69,7 +69,7 @@ export default function AdminProjectsIndex({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search by ID, title, or author"
-            className="bg-[#0e0e0e] border-none px-4 py-2 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 w-80"
+            className="bg-[#0e0e0e] border-none px-4 py-2 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 w-80"
           />
           <button
             type="submit"
@@ -146,7 +146,7 @@ export default function AdminProjectsIndex({
                       <td className="px-5 py-3">
                         <Link
                           href={`/admin/users/${project.user_id}`}
-                          className="text-[#ffb595] hover:text-[#ee671c] transition-colors text-sm"
+                          className="text-[#ffb595] hover:text-[#ca5924] transition-colors text-sm"
                         >
                           {project.user_display_name}
                         </Link>

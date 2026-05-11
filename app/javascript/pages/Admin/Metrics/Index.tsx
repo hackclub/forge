@@ -130,7 +130,7 @@ export default function AdminMetricsIndex({
                   {d.count}
                 </span>
                 <div
-                  className="w-full bg-[#ee671c]/80 group-hover:bg-[#ee671c] transition-colors min-h-[1px]"
+                  className="w-full bg-[#ca5924]/80 group-hover:bg-[#ca5924] transition-colors min-h-[1px]"
                   style={{ height: `${pct}%` }}
                 />
               </div>

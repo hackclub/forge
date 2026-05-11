@@ -126,7 +126,7 @@ export default function AdminReelAdsIndex({ ads, max_video_mb }: Props) {
                 onChange={(e) => setTitle(e.target.value)}
                 required
                 maxLength={200}
-                className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 text-sm"
+                className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 text-sm"
                 placeholder="Sponsor Co. — buy our soldering iron"
               />
             </div>
@@ -138,7 +138,7 @@ export default function AdminReelAdsIndex({ ads, max_video_mb }: Props) {
                 type="url"
                 value={clickUrl}
                 onChange={(e) => setClickUrl(e.target.value)}
-                className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 text-sm"
+                className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 text-sm"
                 placeholder="https://example.com"
               />
             </div>
@@ -159,7 +159,7 @@ export default function AdminReelAdsIndex({ ads, max_video_mb }: Props) {
                 type="checkbox"
                 checked={enabled}
                 onChange={(e) => setEnabled(e.target.checked)}
-                className="accent-[#ee671c]"
+                className="accent-[#ca5924]"
               />
               Enable immediately
             </label>
@@ -234,14 +234,14 @@ function AdRow({
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full bg-[#0e0e0e] border-none px-3 py-2 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ee671c]/30"
+              className="w-full bg-[#0e0e0e] border-none px-3 py-2 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ca5924]/30"
             />
             <input
               type="url"
               value={clickUrl}
               onChange={(e) => setClickUrl(e.target.value)}
               placeholder="https://..."
-              className="w-full bg-[#0e0e0e] border-none px-3 py-2 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ee671c]/30"
+              className="w-full bg-[#0e0e0e] border-none px-3 py-2 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ca5924]/30"
             />
             <div className="flex gap-2">
               <button
@@ -275,7 +275,7 @@ function AdRow({
                 href={ad.click_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[#ffb595] hover:text-[#ee671c] text-xs break-all"
+                className="text-[#ffb595] hover:text-[#ca5924] text-xs break-all"
               >
                 {ad.click_url}
               </a>

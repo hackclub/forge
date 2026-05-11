@@ -52,13 +52,13 @@ export default function LandingIndex() {
 
         <main className="pt-16">
           <section className="relative min-h-[85vh] flex flex-col justify-center px-8 md:px-24 overflow-hidden">
-            <div className="absolute top-1/4 -right-20 w-96 h-96 bg-[#ee671c]/10 blur-[120px] rounded-full" />
+            <div className="absolute top-1/4 -right-20 w-96 h-96 bg-[#ca5924]/10 blur-[120px] rounded-full" />
             <div className="absolute bottom-1/4 -left-20 w-64 h-64 bg-[#7a2e25]/10 blur-[100px] rounded-full" />
 
             <div className="relative z-10 max-w-5xl">
               <h1 className="text-6xl md:text-8xl font-headline font-medium tracking-tighter leading-[0.9] mb-8">
                 Build hardware, <br />
-                <span className="text-[#ee671c]">get funded.</span>
+                <span className="text-[#ca5924]">get funded.</span>
               </h1>
 
               <p className="text-lg md:text-xl text-stone-400 max-w-xl font-light leading-relaxed mb-12">
@@ -173,7 +173,7 @@ export default function LandingIndex() {
               <div className="flex flex-col sm:flex-row justify-center gap-4">
                 <a
                   href={cta}
-                  className="signature-smolder text-[#4c1a00] px-12 py-5 text-sm font-bold uppercase tracking-[0.2em] rounded-lg shadow-xl shadow-[#ee671c]/20"
+                  className="signature-smolder text-[#4c1a00] px-12 py-5 text-sm font-bold uppercase tracking-[0.2em] rounded-lg shadow-xl shadow-[#ca5924]/20"
                 >
                   {shared.auth.user ? 'Go to Dashboard' : 'Get Started'}
                 </a>
