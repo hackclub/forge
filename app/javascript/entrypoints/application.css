@@ -11,9 +11,17 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: 'ForgeNumerals';
+  src: local('ui-monospace'), local('SFMono-Regular'), local('SF Mono'),
+       local('Menlo'), local('Monaco'), local('Consolas'),
+       local('Liberation Mono'), local('Courier New');
+  unicode-range: U+0030-0039;
+}
+
 html, body {
   background-color: #0e0e0e;
-  font-family: 'IM Fell English', serif;
+  font-family: 'ForgeNumerals', 'IM Fell English', serif;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -22,7 +30,7 @@ html, body {
 }
 
 h1, h2, h3, .font-headline {
-  font-family: 'IM Fell English', serif;
+  font-family: 'ForgeNumerals', 'IM Fell English', serif;
 }
 
 .material-symbols-outlined {
@@ -182,7 +190,7 @@ h1, h2, h3, .font-headline {
 .markdown-content h1 {
   font-size: 2.25rem;
   font-weight: 700;
-  font-family: 'IM Fell English', serif;
+  font-family: 'ForgeNumerals', 'IM Fell English', serif;
   margin-top: 0;
   margin-bottom: 1rem;
   line-height: 1.2;
@@ -193,7 +201,7 @@ h1, h2, h3, .font-headline {
 .markdown-content h2 {
   font-size: 1.5rem;
   font-weight: 700;
-  font-family: 'IM Fell English', serif;
+  font-family: 'ForgeNumerals', 'IM Fell English', serif;
   margin-top: 2rem;
   margin-bottom: 0.75rem;
   line-height: 1.3;
@@ -206,7 +214,7 @@ h1, h2, h3, .font-headline {
 .markdown-content h3 {
   font-size: 1.25rem;
   font-weight: 700;
-  font-family: 'IM Fell English', serif;
+  font-family: 'ForgeNumerals', 'IM Fell English', serif;
   margin-top: 1.5rem;
   margin-bottom: 0.5rem;
   color: rgba(229, 226, 225, 0.8);
