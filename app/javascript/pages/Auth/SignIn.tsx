@@ -17,7 +17,7 @@ export default function AuthSignIn() {
       <div className="min-h-screen bg-[#0e0e0e] text-[#e5e2e1] relative overflow-hidden flex flex-col items-center justify-center px-6 py-12">
         <div
           className="fixed inset-0 pointer-events-none z-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: 'url(/login_page_bg.png)' }}
+          style={{ backgroundImage: 'url(/landing/landing.png)' }}
         />
         <div className="fixed inset-0 pointer-events-none z-0 bg-[#0e0e0e]/20" />
 
