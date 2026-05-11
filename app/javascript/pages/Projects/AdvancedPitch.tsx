@@ -13,7 +13,7 @@ export default function ProjectsAdvancedPitch() {
 
       <div className="flex items-center gap-3 mb-4">
         <span
-          className="material-symbols-outlined text-4xl text-[#ee671c]"
+          className="material-symbols-outlined text-4xl text-[#ca5924]"
           style={{ fontVariationSettings: "'FILL' 1" }}
         >
           precision_manufacturing

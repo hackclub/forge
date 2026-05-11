@@ -88,7 +88,7 @@ function ActionButton({
         <span
           className="material-symbols-outlined text-2xl"
           style={{
-            color: active ? '#ee671c' : '#ffffff',
+            color: active ? '#ca5924' : '#ffffff',
             fontVariationSettings: active ? "'FILL' 1" : "'FILL' 0",
           }}
         >
@@ -441,7 +441,7 @@ function CommentsPanel({
             onChange={(e) => setBody(e.target.value)}
             maxLength={1000}
             placeholder="Add a comment..."
-            className="flex-1 bg-[#0e0e0e] border-none px-4 py-2 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600"
+            className="flex-1 bg-[#0e0e0e] border-none px-4 py-2 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600"
           />
           <button
             type="submit"
@@ -453,7 +453,7 @@ function CommentsPanel({
         </form>
       ) : (
         <div className="px-5 py-4 border-t border-white/5 text-stone-500 text-xs text-center">
-          <Link href="/signin" className="text-[#ffb595] hover:text-[#ee671c] font-bold">
+          <Link href="/signin" className="text-[#ffb595] hover:text-[#ca5924] font-bold">
             Sign in
           </Link>{' '}
           to comment.
@@ -616,7 +616,7 @@ function ReplyForm({
         maxLength={1000}
         placeholder={placeholder}
         autoFocus
-        className="flex-1 bg-[#0e0e0e] border-none px-3 py-1.5 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600"
+        className="flex-1 bg-[#0e0e0e] border-none px-3 py-1.5 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600"
       />
       <button
         type="button"
@@ -1229,7 +1229,7 @@ export default function ReelsFeed({ reels }: { reels: FeedItem[] }) {
           `}</style>
           {reels.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-center px-8 text-stone-400">
-              <span className="material-symbols-outlined text-6xl text-[#ee671c] mb-4">play_circle</span>
+              <span className="material-symbols-outlined text-6xl text-[#ca5924] mb-4">play_circle</span>
               <h2 className="text-2xl font-headline font-bold text-[#e5e2e1] mb-2">No reels yet</h2>
               <p className="text-stone-500 text-sm mb-6">Open a project and tap "Reels" to post the first one.</p>
               <Link

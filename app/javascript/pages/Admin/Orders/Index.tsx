@@ -59,7 +59,7 @@ export default function AdminOrdersIndex({ orders, pagy, filters, counts, region
               <button
                 key={key}
                 onClick={() => applyFilter('status', key === 'all' ? '' : key)}
-                className={`p-4 ghost-border text-left transition-colors ${active ? 'bg-[#ee671c]/15' : 'bg-[#1c1b1b] hover:bg-[#2a2a2a]'}`}
+                className={`p-4 ghost-border text-left transition-colors ${active ? 'bg-[#ca5924]/15' : 'bg-[#1c1b1b] hover:bg-[#2a2a2a]'}`}
               >
                 <p className="text-2xl font-headline font-bold text-[#e5e2e1]">{counts[key]}</p>
                 <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-500">{key}</p>
@@ -83,7 +83,7 @@ export default function AdminOrdersIndex({ orders, pagy, filters, counts, region
           <select
             value={filters.region}
             onChange={(e) => applyFilter('region', e.target.value)}
-            className="bg-[#0e0e0e] border-none px-4 py-2 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 cursor-pointer"
+            className="bg-[#0e0e0e] border-none px-4 py-2 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 cursor-pointer"
           >
             <option value="">All Regions</option>
             {Object.entries(regions).map(([key, label]) => (
@@ -159,7 +159,7 @@ export default function AdminOrdersIndex({ orders, pagy, filters, counts, region
                       </td>
                       <td className="px-5 py-4 text-stone-400 text-xs">{order.assigned_to_name || '-'}</td>
                       <td className="px-5 py-4 text-sm">
-                        <span className="text-[#ee671c] font-bold">{order.coin_cost}c</span>
+                        <span className="text-[#ca5924] font-bold">{order.coin_cost}c</span>
                         {order.amount_usd != null && <span className="text-stone-600 ml-2">${order.amount_usd}</span>}
                       </td>
                       <td className="px-5 py-4">

@@ -37,7 +37,7 @@ h1, h2, h3, .font-headline {
 }
 
 .signature-smolder {
-  background: #ee671c;
+  background: #ca5924;
   position: relative;
 }
 
@@ -54,15 +54,15 @@ h1, h2, h3, .font-headline {
 .signature-smolder::before {
   top: -4px;
   left: -4px;
-  border-top: 2px solid #ee671c;
-  border-left: 2px solid #ee671c;
+  border-top: 2px solid #ca5924;
+  border-left: 2px solid #ca5924;
 }
 
 .signature-smolder::after {
   bottom: -4px;
   right: -4px;
-  border-bottom: 2px solid #ee671c;
-  border-right: 2px solid #ee671c;
+  border-bottom: 2px solid #ca5924;
+  border-right: 2px solid #ca5924;
 }
 
 .signature-smolder:hover::before,
@@ -222,7 +222,7 @@ h1, h2, h3, .font-headline {
 }
 
 .markdown-content a:hover {
-  color: #ee671c;
+  color: #ca5924;
 }
 
 .markdown-content ul,

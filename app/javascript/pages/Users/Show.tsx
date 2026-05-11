@@ -70,7 +70,7 @@ interface Props {
 }
 
 const BADGE_COLOR_CLASSES: Record<string, string> = {
-  orange: 'bg-[#ee671c]/15 text-[#ffb595]',
+  orange: 'bg-[#ca5924]/15 text-[#ffb595]',
   emerald: 'bg-emerald-500/15 text-emerald-400',
   amber: 'bg-amber-500/15 text-amber-400',
   red: 'bg-red-500/15 text-red-400',
@@ -106,7 +106,7 @@ const STATUS_COLORS: Record<ProjectStatus, string> = {
 function StatTile({ label, value, icon }: { label: string; value: string | number; icon: string }) {
   return (
     <div className="bg-[#1c1b1b] ghost-border p-5 flex items-center gap-4">
-      <span className="material-symbols-outlined text-[#ee671c] text-3xl">{icon}</span>
+      <span className="material-symbols-outlined text-[#ca5924] text-3xl">{icon}</span>
       <div>
         <p className="text-2xl font-headline font-bold text-[#e5e2e1] tracking-tight">{value}</p>
         <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500">{label}</p>
@@ -206,7 +206,7 @@ export default function UsersShow({ user, stats, projects, kudos, badges, can_gi
             )}
           </div>
           <div
-            className={`flex items-center gap-3 px-5 py-3 ghost-border shrink-0 ${stats.current_streak > 0 ? 'bg-[#ee671c]/10' : 'bg-[#0e0e0e]'}`}
+            className={`flex items-center gap-3 px-5 py-3 ghost-border shrink-0 ${stats.current_streak > 0 ? 'bg-[#ca5924]/10' : 'bg-[#0e0e0e]'}`}
             title={
               stats.current_streak > 0
                 ? `Active ${stats.current_streak} ${stats.current_streak === 1 ? 'day' : 'days'} in a row`
@@ -214,7 +214,7 @@ export default function UsersShow({ user, stats, projects, kudos, badges, can_gi
             }
           >
             <span
-              className={`material-symbols-outlined text-3xl ${stats.current_streak > 0 ? 'text-[#ee671c]' : 'text-stone-600'}`}
+              className={`material-symbols-outlined text-3xl ${stats.current_streak > 0 ? 'text-[#ca5924]' : 'text-stone-600'}`}
             >
               local_fire_department
             </span>
@@ -237,10 +237,10 @@ export default function UsersShow({ user, stats, projects, kudos, badges, can_gi
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
               <div className="flex items-center gap-4">
                 <div
-                  className={`w-14 h-14 flex items-center justify-center ${stats.current_streak > 0 ? 'bg-[#ee671c]/15' : 'bg-stone-500/10'}`}
+                  className={`w-14 h-14 flex items-center justify-center ${stats.current_streak > 0 ? 'bg-[#ca5924]/15' : 'bg-stone-500/10'}`}
                 >
                   <span
-                    className={`material-symbols-outlined text-3xl ${stats.current_streak > 0 ? 'text-[#ee671c]' : 'text-stone-600'}`}
+                    className={`material-symbols-outlined text-3xl ${stats.current_streak > 0 ? 'text-[#ca5924]' : 'text-stone-600'}`}
                   >
                     local_fire_department
                   </span>
@@ -327,7 +327,7 @@ export default function UsersShow({ user, stats, projects, kudos, badges, can_gi
                     <select
                       value={providerInput}
                       onChange={(e) => setProviderInput(e.target.value)}
-                      className="bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ee671c]/30 cursor-pointer"
+                      className="bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ca5924]/30 cursor-pointer"
                     >
                       {Object.entries(GIT_PROVIDERS).map(([key, { label }]) => (
                         <option key={key} value={key}>
@@ -341,7 +341,7 @@ export default function UsersShow({ user, stats, projects, kudos, badges, can_gi
                       onChange={(e) => setGithubInput(e.target.value)}
                       placeholder="username"
                       autoFocus
-                      className="flex-1 bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm font-mono focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-700 min-w-0"
+                      className="flex-1 bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm font-mono focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-700 min-w-0"
                     />
                   </div>
                   {providerInput === 'gitea' && (
@@ -350,7 +350,7 @@ export default function UsersShow({ user, stats, projects, kudos, badges, can_gi
                       value={instanceUrlInput}
                       onChange={(e) => setInstanceUrlInput(e.target.value)}
                       placeholder="https://gitea.example.com"
-                      className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm font-mono focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-700"
+                      className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm font-mono focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-700"
                     />
                   )}
                   <div className="flex gap-2">
@@ -432,7 +432,7 @@ export default function UsersShow({ user, stats, projects, kudos, badges, can_gi
           {projects.length === 0 ? (
             <div className="p-12 text-center">
               <span
-                className="material-symbols-outlined text-6xl text-[#ee671c] mb-4 block"
+                className="material-symbols-outlined text-6xl text-[#ca5924] mb-4 block"
                 style={{ fontVariationSettings: "'FILL' 1" }}
               >
                 precision_manufacturing
@@ -480,7 +480,7 @@ export default function UsersShow({ user, stats, projects, kudos, badges, can_gi
 
         <section className="bg-[#1c1b1b] ghost-border p-8">
           <div className="flex items-center gap-2 mb-6">
-            <span className="material-symbols-outlined text-[#ee671c]">favorite</span>
+            <span className="material-symbols-outlined text-[#ca5924]">favorite</span>
             <h2 className="text-2xl font-headline font-bold text-[#e5e2e1] tracking-tight">Kudos</h2>
           </div>
 
@@ -491,7 +491,7 @@ export default function UsersShow({ user, stats, projects, kudos, badges, can_gi
                 onChange={(e) => setKudoContent(e.target.value)}
                 placeholder={`Give ${user.display_name} some kudos...`}
                 rows={3}
-                className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 resize-y mb-2"
+                className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 resize-y mb-2"
               />
               <button
                 type="submit"
@@ -525,7 +525,7 @@ export default function UsersShow({ user, stats, projects, kudos, badges, can_gi
                           {kudo.author_name}
                         </Link>
                         {kudo.author_is_staff && (
-                          <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 bg-[#ee671c]/15 text-[#ee671c]">
+                          <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 bg-[#ca5924]/15 text-[#ca5924]">
                             Staff
                           </span>
                         )}
@@ -534,7 +534,7 @@ export default function UsersShow({ user, stats, projects, kudos, badges, can_gi
                             <span className="text-stone-600 text-xs">on</span>
                             <Link
                               href={`/projects/${kudo.project_id}`}
-                              className="text-[#ffb595] hover:text-[#ee671c] transition-colors text-sm font-headline font-bold"
+                              className="text-[#ffb595] hover:text-[#ca5924] transition-colors text-sm font-headline font-bold"
                             >
                               {kudo.project_name}
                             </Link>

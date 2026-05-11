@@ -150,7 +150,7 @@ export default function ReelsNew(props: Props) {
           <h1 className="text-3xl sm:text-4xl font-headline font-bold tracking-tight text-[#e5e2e1] mt-3">New Reel</h1>
           <div className="flex items-center gap-2 mt-4">
             {[1, 2, 3].map((s) => (
-              <div key={s} className={`h-1 flex-1 ${s <= step ? 'bg-[#ee671c]' : 'bg-stone-700'}`} />
+              <div key={s} className={`h-1 flex-1 ${s <= step ? 'bg-[#ca5924]' : 'bg-stone-700'}`} />
             ))}
           </div>
           <p className="text-stone-500 text-xs mt-2">Step {step} of 3</p>
@@ -166,7 +166,7 @@ export default function ReelsNew(props: Props) {
                 onClick={() => pickKind(opt.kind)}
                 className="w-full bg-[#1c1b1b] ghost-border hover:bg-[#2a2a2a] p-5 flex items-center gap-4 text-left transition-colors cursor-pointer"
               >
-                <span className="material-symbols-outlined text-3xl text-[#ee671c] shrink-0">{opt.icon}</span>
+                <span className="material-symbols-outlined text-3xl text-[#ca5924] shrink-0">{opt.icon}</span>
                 <div className="flex-1 min-w-0">
                   <p className="font-headline font-bold text-[#e5e2e1] text-base">{opt.label}</p>
                   <p className="text-stone-500 text-xs mt-0.5">{opt.subtitle}</p>
@@ -199,7 +199,7 @@ export default function ReelsNew(props: Props) {
                     <span className="text-stone-300 text-sm break-all">{video.name}</span>
                   ) : (
                     <>
-                      <span className="material-symbols-outlined text-4xl text-[#ee671c] block mb-2">videocam</span>
+                      <span className="material-symbols-outlined text-4xl text-[#ca5924] block mb-2">videocam</span>
                       <span className="text-stone-400 text-sm font-headline font-medium">Tap to choose a video</span>
                     </>
                   )}
@@ -229,7 +229,7 @@ export default function ReelsNew(props: Props) {
                 </p>
                 <label className="block bg-[#0e0e0e] ghost-border p-6 text-center cursor-pointer hover:bg-[#161616] transition-colors">
                   <input type="file" accept="image/*" multiple onChange={onImagesChange} className="hidden" />
-                  <span className="material-symbols-outlined text-4xl text-[#ee671c] block mb-2">
+                  <span className="material-symbols-outlined text-4xl text-[#ca5924] block mb-2">
                     add_photo_alternate
                   </span>
                   <span className="text-stone-400 text-sm font-headline font-medium">
@@ -270,7 +270,7 @@ export default function ReelsNew(props: Props) {
                     <span className="text-stone-300 text-sm break-all">{audio.name}</span>
                   ) : (
                     <>
-                      <span className="material-symbols-outlined text-4xl text-[#ee671c] block mb-2">audiotrack</span>
+                      <span className="material-symbols-outlined text-4xl text-[#ca5924] block mb-2">audiotrack</span>
                       <span className="text-stone-400 text-sm font-headline font-medium">Tap to choose audio</span>
                     </>
                   )}
@@ -314,7 +314,7 @@ export default function ReelsNew(props: Props) {
                 onChange={(e) => setTitle(e.target.value)}
                 maxLength={200}
                 placeholder="A short title for your reel..."
-                className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600"
+                className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600"
                 autoFocus
               />
               <p className="text-[10px] text-stone-600 text-right mt-1">{title.length} / 200</p>

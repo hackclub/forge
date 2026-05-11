@@ -108,7 +108,7 @@ export default function HomeIndex({ user, orph_motivation, projects, news_posts,
           <div className="flex-1 w-full min-w-0">
             <div className="flex items-center gap-2 mb-2">
               <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-500">Orph's motivation</p>
-              <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 bg-[#ee671c]/15 text-[#ffb595]">
+              <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 bg-[#ca5924]/15 text-[#ffb595]">
                 <span className="material-symbols-outlined text-[11px]">flag</span>
                 Quest
               </span>
@@ -154,7 +154,7 @@ export default function HomeIndex({ user, orph_motivation, projects, news_posts,
           {projects.length === 0 ? (
             <div className="p-16 text-center">
               <span
-                className="material-symbols-outlined text-6xl text-[#ee671c] mb-4 block"
+                className="material-symbols-outlined text-6xl text-[#ca5924] mb-4 block"
                 style={{ fontVariationSettings: "'FILL' 1" }}
               >
                 precision_manufacturing

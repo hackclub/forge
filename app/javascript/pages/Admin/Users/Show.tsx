@@ -54,7 +54,7 @@ interface BadgeEntry {
 }
 
 const BADGE_COLOR_SWATCH: Record<string, string> = {
-  orange: 'bg-[#ee671c]/15 text-[#ffb595]',
+  orange: 'bg-[#ca5924]/15 text-[#ffb595]',
   emerald: 'bg-emerald-500/15 text-emerald-400',
   amber: 'bg-amber-500/15 text-amber-400',
   red: 'bg-red-500/15 text-red-400',
@@ -356,7 +356,7 @@ export default function AdminUsersShow({
                     className={`px-4 py-3 text-left text-sm font-medium transition-colors cursor-pointer flex items-center gap-3 ${
                       active
                         ? isSuper
-                          ? 'bg-[#ee671c]/15 text-[#ffb595] ghost-border'
+                          ? 'bg-[#ca5924]/15 text-[#ffb595] ghost-border'
                           : 'bg-emerald-500/10 text-emerald-400 ghost-border'
                         : 'bg-[#1c1b1b] text-stone-500 ghost-border hover:bg-[#2a2a2a] hover:text-stone-300'
                     }`}
@@ -407,7 +407,7 @@ export default function AdminUsersShow({
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
           <div className="bg-[#1c1b1b] ghost-border p-4">
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-1">Balance</p>
-            <p className="text-2xl font-headline font-bold text-[#ee671c]">{coins.balance}c</p>
+            <p className="text-2xl font-headline font-bold text-[#ca5924]">{coins.balance}c</p>
           </div>
           <div className="bg-[#1c1b1b] ghost-border p-4">
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-1">Earned</p>
@@ -431,14 +431,14 @@ export default function AdminUsersShow({
               value={coinAmount}
               onChange={(e) => setCoinAmount(e.target.value)}
               placeholder="Amount (+ or -)"
-              className="bg-[#0e0e0e] border-none px-4 py-3 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600"
+              className="bg-[#0e0e0e] border-none px-4 py-3 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600"
             />
             <input
               type="text"
               value={coinReason}
               onChange={(e) => setCoinReason(e.target.value)}
               placeholder="Reason"
-              className="md:col-span-2 bg-[#0e0e0e] border-none px-4 py-3 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600"
+              className="md:col-span-2 bg-[#0e0e0e] border-none px-4 py-3 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600"
             />
           </div>
           <button
@@ -472,7 +472,7 @@ export default function AdminUsersShow({
           </div>
           <button
             onClick={() => router.post(`/admin/users/${user.id}/toggle_shop_unlocked`)}
-            className={`relative inline-flex h-6 w-11 items-center transition-colors cursor-pointer shrink-0 ${user.shop_unlocked ? 'bg-[#ee671c]' : 'bg-stone-700'}`}
+            className={`relative inline-flex h-6 w-11 items-center transition-colors cursor-pointer shrink-0 ${user.shop_unlocked ? 'bg-[#ca5924]' : 'bg-stone-700'}`}
           >
             <span
               className={`inline-block h-4 w-4 transform bg-white transition-transform ${user.shop_unlocked ? 'translate-x-6' : 'translate-x-1'}`}
@@ -487,7 +487,7 @@ export default function AdminUsersShow({
           </div>
           <button
             onClick={() => router.post(`/admin/users/${user.id}/toggle_maintenance_bypass`)}
-            className={`relative inline-flex h-6 w-11 items-center transition-colors cursor-pointer shrink-0 ${user.maintenance_bypass ? 'bg-[#ee671c]' : 'bg-stone-700'}`}
+            className={`relative inline-flex h-6 w-11 items-center transition-colors cursor-pointer shrink-0 ${user.maintenance_bypass ? 'bg-[#ca5924]' : 'bg-stone-700'}`}
           >
             <span
               className={`inline-block h-4 w-4 transform bg-white transition-transform ${user.maintenance_bypass ? 'translate-x-6' : 'translate-x-1'}`}
@@ -589,7 +589,7 @@ export default function AdminUsersShow({
             onChange={(e) => setNoteContent(e.target.value)}
             placeholder="Add a note..."
             rows={3}
-            className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 resize-y mb-2"
+            className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 resize-y mb-2"
           />
           <button
             onClick={() => {
@@ -646,7 +646,7 @@ export default function AdminUsersShow({
             onChange={(e) => setKudoContent(e.target.value)}
             placeholder="Give them some kudos..."
             rows={3}
-            className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 resize-y mb-2"
+            className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 resize-y mb-2"
           />
           <button
             onClick={() => {
@@ -706,14 +706,14 @@ export default function AdminUsersShow({
               value={badgeName}
               onChange={(e) => setBadgeName(e.target.value)}
               placeholder="Badge name"
-              className="bg-[#0e0e0e] border-none px-4 py-3 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600"
+              className="bg-[#0e0e0e] border-none px-4 py-3 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600"
             />
             <input
               type="text"
               value={badgeIcon}
               onChange={(e) => setBadgeIcon(e.target.value)}
               placeholder="Icon (material symbol name)"
-              className="bg-[#0e0e0e] border-none px-4 py-3 text-sm font-mono text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600"
+              className="bg-[#0e0e0e] border-none px-4 py-3 text-sm font-mono text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600"
             />
           </div>
           <textarea
@@ -721,7 +721,7 @@ export default function AdminUsersShow({
             onChange={(e) => setBadgeDescription(e.target.value)}
             placeholder="Description (optional, shown on hover)"
             rows={2}
-            className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 resize-y mb-3"
+            className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 resize-y mb-3"
           />
           <div className="flex flex-wrap gap-2 mb-3">
             {badge_colors.map((color) => {
@@ -732,7 +732,7 @@ export default function AdminUsersShow({
                   onClick={() => setBadgeColor(color)}
                   className={`px-3 py-2 text-[10px] font-bold uppercase tracking-[0.15em] transition-all cursor-pointer flex items-center gap-2 ${
                     BADGE_COLOR_SWATCH[color] || BADGE_COLOR_SWATCH.orange
-                  } ${active ? 'ring-1 ring-[#ee671c]' : 'opacity-60 hover:opacity-100'}`}
+                  } ${active ? 'ring-1 ring-[#ca5924]' : 'opacity-60 hover:opacity-100'}`}
                 >
                   <span className="material-symbols-outlined text-sm">{badgeIcon || 'military_tech'}</span>
                   {color}
@@ -781,7 +781,7 @@ export default function AdminUsersShow({
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-headline font-bold text-[#e5e2e1] text-sm">{badge.name}</span>
                     {badge.key && (
-                      <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 bg-[#ee671c]/15 text-[#ffb595]">
+                      <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 bg-[#ca5924]/15 text-[#ffb595]">
                         Auto
                       </span>
                     )}
@@ -852,7 +852,7 @@ export default function AdminUsersShow({
                       value={banReason}
                       onChange={(e) => setBanReason(e.target.value)}
                       rows={3}
-                      className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 resize-y"
+                      className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 resize-y"
                       placeholder="Why is this user being banned?"
                       required
                     />

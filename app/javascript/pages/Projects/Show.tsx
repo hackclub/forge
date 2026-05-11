@@ -449,7 +449,7 @@ export default function ProjectsShow({
                 value={subtitleDraft}
                 onChange={(e) => setSubtitleDraft(e.target.value)}
                 rows={2}
-                className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 text-sm"
+                className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 text-sm"
                 placeholder="A short description of your project"
                 autoFocus
               />
@@ -529,7 +529,7 @@ export default function ProjectsShow({
               )}
               {kudos.length > 0 && (
                 <div className="flex items-center gap-2 text-stone-400">
-                  <span className="material-symbols-outlined text-base text-[#ee671c]">favorite</span>
+                  <span className="material-symbols-outlined text-base text-[#ca5924]">favorite</span>
                   <span className="font-headline font-bold text-base">{kudos.length}</span>
                 </div>
               )}
@@ -575,7 +575,7 @@ export default function ProjectsShow({
                     type="url"
                     value={repoUrl}
                     onChange={(e) => setRepoUrl(e.target.value)}
-                    className="flex-1 bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 text-sm"
+                    className="flex-1 bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 text-sm"
                     placeholder="https://github.com/username/repo"
                     required
                   />
@@ -867,7 +867,7 @@ export default function ProjectsShow({
                       type="text"
                       value={devlogForm.data.title}
                       onChange={(e) => devlogForm.setData('title', e.target.value)}
-                      className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 text-sm"
+                      className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 text-sm"
                       placeholder="e.g. Designed the PCB layout"
                       required
                     />
@@ -895,7 +895,7 @@ export default function ProjectsShow({
                         )
                       }
                       rows={8}
-                      className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 text-sm resize-y font-mono"
+                      className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 text-sm resize-y font-mono"
                       placeholder="What did you work on? Paste images directly..."
                       required
                     />
@@ -915,7 +915,7 @@ export default function ProjectsShow({
                       type="text"
                       value={devlogForm.data.time_spent}
                       onChange={(e) => devlogForm.setData('time_spent', e.target.value)}
-                      className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 text-sm"
+                      className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 text-sm"
                       placeholder="e.g. 3 hours"
                     />
                   </div>
@@ -981,7 +981,7 @@ export default function ProjectsShow({
                               type="text"
                               value={editDevlogForm.data.title}
                               onChange={(e) => editDevlogForm.setData('title', e.target.value)}
-                              className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 text-sm"
+                              className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 text-sm"
                               required
                             />
                           </div>
@@ -1009,7 +1009,7 @@ export default function ProjectsShow({
                                 )
                               }
                               rows={8}
-                              className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 text-sm resize-y font-mono"
+                              className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 text-sm resize-y font-mono"
                               required
                             />
                           </div>
@@ -1028,7 +1028,7 @@ export default function ProjectsShow({
                               type="text"
                               value={editDevlogForm.data.time_spent}
                               onChange={(e) => editDevlogForm.setData('time_spent', e.target.value)}
-                              className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 text-sm"
+                              className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 text-sm"
                               placeholder="e.g. 3 or 3 hours"
                             />
                           </div>
@@ -1173,7 +1173,7 @@ export default function ProjectsShow({
                 href={project.build_proof_url}
                 target="_blank"
                 rel="noopener"
-                className="text-[#ffb595] hover:text-[#ee671c] text-xs flex items-center gap-1 break-all"
+                className="text-[#ffb595] hover:text-[#ca5924] text-xs flex items-center gap-1 break-all"
               >
                 View build proof
                 <span className="material-symbols-outlined text-xs">open_in_new</span>
@@ -1394,7 +1394,7 @@ export default function ProjectsShow({
                       href={project.build_proof_url}
                       target="_blank"
                       rel="noopener"
-                      className="text-[#ffb595] hover:text-[#ee671c] text-xs flex items-center gap-1 break-all"
+                      className="text-[#ffb595] hover:text-[#ca5924] text-xs flex items-center gap-1 break-all"
                     >
                       View proof
                       <span className="material-symbols-outlined text-xs">open_in_new</span>
@@ -1420,7 +1420,7 @@ export default function ProjectsShow({
                     name="build_proof_url"
                     placeholder="https://..."
                     required
-                    className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600"
+                    className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600"
                   />
                   <button
                     type="submit"
@@ -1436,7 +1436,7 @@ export default function ProjectsShow({
 
           <div className="bg-[#1c1b1b] ghost-border p-6">
             <div className="flex items-center gap-2 mb-4">
-              <span className="material-symbols-outlined text-[#ee671c] text-base">favorite</span>
+              <span className="material-symbols-outlined text-[#ca5924] text-base">favorite</span>
               <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline">
                 Kudos ({kudos.length})
               </h4>
@@ -1449,7 +1449,7 @@ export default function ProjectsShow({
                   onChange={(e) => setKudoContent(e.target.value)}
                   rows={2}
                   placeholder={`Drop ${project.user_display_name.split(' ')[0]} some kudos...`}
-                  className="w-full bg-[#0e0e0e] border-none px-3 py-2 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 resize-y mb-2"
+                  className="w-full bg-[#0e0e0e] border-none px-3 py-2 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 resize-y mb-2"
                 />
                 <button
                   type="submit"
@@ -1483,7 +1483,7 @@ export default function ProjectsShow({
                             {kudo.author_name}
                           </Link>
                           {kudo.author_is_staff && (
-                            <span className="text-[8px] font-bold uppercase tracking-wider px-1 py-0.5 bg-[#ee671c]/15 text-[#ee671c]">
+                            <span className="text-[8px] font-bold uppercase tracking-wider px-1 py-0.5 bg-[#ca5924]/15 text-[#ca5924]">
                               staff
                             </span>
                           )}

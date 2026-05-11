@@ -55,10 +55,10 @@ export default function Nav() {
       <header className="md:hidden fixed top-0 left-0 right-0 h-14 bg-[#1C1B1B] border-b border-white/5 flex items-center justify-between px-4 z-50">
         <Link
           href={shared.auth.user ? '/home' : '/'}
-          className="flex items-center gap-2 text-xl font-bold tracking-tighter uppercase font-headline text-[#ee671c]"
+          className="flex items-center gap-2 text-xl font-bold tracking-tighter uppercase font-headline text-[#ca5924]"
         >
           <span
-            className="material-symbols-outlined text-2xl text-[#ee671c]"
+            className="material-symbols-outlined text-2xl text-[#ca5924]"
             style={{ fontVariationSettings: "'FILL' 1" }}
           >
             precision_manufacturing
@@ -69,7 +69,7 @@ export default function Nav() {
           type="button"
           aria-label="Toggle navigation"
           onClick={() => setMobileOpen((v) => !v)}
-          className="p-2 text-stone-300 hover:text-[#ee671c] transition-colors"
+          className="p-2 text-stone-300 hover:text-[#ca5924] transition-colors"
         >
           <span className="material-symbols-outlined text-3xl">{mobileOpen ? 'close' : 'menu'}</span>
         </button>
@@ -86,10 +86,10 @@ export default function Nav() {
           <div className="hidden md:flex justify-center">
             <Link
               href={shared.auth.user ? '/home' : '/'}
-              className="flex items-center gap-2 text-3xl font-bold tracking-tighter uppercase font-headline text-[#ee671c] hover:brightness-110 transition-all"
+              className="flex items-center gap-2 text-3xl font-bold tracking-tighter uppercase font-headline text-[#ca5924] hover:brightness-110 transition-all"
             >
               <span
-                className="material-symbols-outlined text-4xl text-[#ee671c]"
+                className="material-symbols-outlined text-4xl text-[#ca5924]"
                 style={{ fontVariationSettings: "'FILL' 1" }}
               >
                 precision_manufacturing
@@ -107,7 +107,7 @@ export default function Nav() {
                   href={item.href}
                   data-tour={item.tour}
                   className={`px-4 py-3 flex items-center gap-3 transition-all duration-150 font-headline font-medium tracking-tight corner-accents ${
-                    isActive ? 'text-[#ee671c] bg-[#353534]' : 'text-stone-500 hover:text-stone-200 hover:bg-[#353534]'
+                    isActive ? 'text-[#ca5924] bg-[#353534]' : 'text-stone-500 hover:text-stone-200 hover:bg-[#353534]'
                   }`}
                 >
                   <span
@@ -126,7 +126,7 @@ export default function Nav() {
                 href="/admin"
                 className={`px-4 py-3 flex items-center gap-3 transition-all duration-150 font-headline font-medium tracking-tight corner-accents ${
                   currentPath.startsWith('/admin')
-                    ? 'text-[#ee671c] bg-[#353534]'
+                    ? 'text-[#ca5924] bg-[#353534]'
                     : 'text-stone-500 hover:text-stone-200 hover:bg-[#353534]'
                 }`}
               >
@@ -170,7 +170,7 @@ export default function Nav() {
                 {shared.auth.user.current_streak > 0 && (
                   <span
                     data-tour="streak-target"
-                    className="flex items-center gap-1 bg-[#ee671c]/10 text-[#ffb595] px-2 py-1 shrink-0"
+                    className="flex items-center gap-1 bg-[#ca5924]/10 text-[#ffb595] px-2 py-1 shrink-0"
                     title={`${shared.auth.user.current_streak} day streak`}
                   >
                     <span className="material-symbols-outlined text-base">local_fire_department</span>

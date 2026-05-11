@@ -76,7 +76,7 @@ export default function AdminNewsPostsIndex({ posts }: { posts: NewsPost[] }) {
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 text-sm"
+                className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 text-sm"
                 placeholder="Forge is extended!"
                 required
               />
@@ -87,7 +87,7 @@ export default function AdminNewsPostsIndex({ posts }: { posts: NewsPost[] }) {
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
                 rows={5}
-                className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 text-sm resize-y"
+                className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 text-sm resize-y"
                 placeholder="What's new?"
                 required
               />
@@ -97,7 +97,7 @@ export default function AdminNewsPostsIndex({ posts }: { posts: NewsPost[] }) {
                 type="checkbox"
                 checked={published}
                 onChange={(e) => setPublished(e.target.checked)}
-                className="accent-[#ee671c]"
+                className="accent-[#ca5924]"
               />
               Publish immediately
             </label>

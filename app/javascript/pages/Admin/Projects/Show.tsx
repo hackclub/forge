@@ -336,7 +336,7 @@ export default function AdminProjectsShow({
                 value={noteContent}
                 onChange={(e) => setNoteContent(e.target.value)}
                 rows={3}
-                className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 resize-y"
+                className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 resize-y"
                 placeholder="Add an internal note..."
               />
               <button
@@ -591,7 +591,7 @@ export default function AdminProjectsShow({
                           setOverrideHours(e.target.value)
                         }
                       }}
-                      className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600"
+                      className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600"
                       placeholder={`Claimed: ${project.devlog_hours}h`}
                     />
                     <p className="text-stone-600 text-[10px] uppercase tracking-[0.15em] mt-1">
@@ -607,7 +607,7 @@ export default function AdminProjectsShow({
                       value={overrideJustification}
                       onChange={(e) => setOverrideJustification(e.target.value)}
                       rows={3}
-                      className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 resize-y"
+                      className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 resize-y"
                       placeholder="Why was the hour count adjusted?"
                     />
                   </div>
@@ -647,7 +647,7 @@ export default function AdminProjectsShow({
                   value={feedback}
                   onChange={(e) => setFeedback(e.target.value)}
                   rows={4}
-                  className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 resize-y"
+                  className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 resize-y"
                   placeholder="Provide feedback to the builder..."
                 />
               </div>
@@ -746,7 +746,7 @@ export default function AdminProjectsShow({
                   router.post(`/admin/projects/${project.id}/change_tier`, { tier: e.target.value })
                 }
               }}
-              className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ee671c]/30 cursor-pointer"
+              className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ca5924]/30 cursor-pointer"
             >
               <option value="tier_4">Tier 4 - 4c/hr</option>
               <option value="tier_3">Tier 3 - 4.5c/hr</option>
@@ -769,7 +769,7 @@ export default function AdminProjectsShow({
               <span className="text-stone-400 text-sm">Hidden from explore</span>
               <button
                 onClick={() => router.post(`/admin/projects/${project.id}/toggle_hidden`)}
-                className={`relative inline-flex h-6 w-11 items-center transition-colors cursor-pointer ${project.hidden ? 'bg-[#ee671c]' : 'bg-stone-700'}`}
+                className={`relative inline-flex h-6 w-11 items-center transition-colors cursor-pointer ${project.hidden ? 'bg-[#ca5924]' : 'bg-stone-700'}`}
               >
                 <span
                   className={`inline-block h-4 w-4 transform bg-white transition-transform ${project.hidden ? 'translate-x-6' : 'translate-x-1'}`}
@@ -786,7 +786,7 @@ export default function AdminProjectsShow({
               <span className="text-stone-400 text-sm">Staff pick</span>
               <button
                 onClick={() => router.post(`/admin/projects/${project.id}/toggle_staff_pick`)}
-                className={`relative inline-flex h-6 w-11 items-center transition-colors cursor-pointer ${project.staff_pick ? 'bg-[#ee671c]' : 'bg-stone-700'}`}
+                className={`relative inline-flex h-6 w-11 items-center transition-colors cursor-pointer ${project.staff_pick ? 'bg-[#ca5924]' : 'bg-stone-700'}`}
               >
                 <span
                   className={`inline-block h-4 w-4 transform bg-white transition-transform ${project.staff_pick ? 'translate-x-6' : 'translate-x-1'}`}

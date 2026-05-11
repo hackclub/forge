@@ -104,7 +104,7 @@ export default function AdminAuditLogShow({ entry }: { entry: AuditEntryDetail }
       </Link>
 
       <div className="flex items-center gap-3 mb-4">
-        <span className="text-[#ee671c] text-xs font-bold uppercase tracking-wider font-mono">{entry.action}</span>
+        <span className="text-[#ca5924] text-xs font-bold uppercase tracking-wider font-mono">{entry.action}</span>
       </div>
 
       <h1 className="text-3xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-2 break-words">
@@ -115,7 +115,7 @@ export default function AdminAuditLogShow({ entry }: { entry: AuditEntryDetail }
         {entry.actor_id ? (
           <Link
             href={`/admin/users/${entry.actor_id}`}
-            className="text-[#ffb595] hover:text-[#ee671c] transition-colors"
+            className="text-[#ffb595] hover:text-[#ca5924] transition-colors"
           >
             {entry.actor_name}
           </Link>
@@ -138,7 +138,7 @@ export default function AdminAuditLogShow({ entry }: { entry: AuditEntryDetail }
               <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">Target</span>
               <p className="text-[#e5e2e1] mt-1 truncate">
                 {entry.target_url ? (
-                  <Link href={entry.target_url} className="text-[#ffb595] hover:text-[#ee671c] transition-colors">
+                  <Link href={entry.target_url} className="text-[#ffb595] hover:text-[#ca5924] transition-colors">
                     {entry.target_label || `${entry.target_type} #${entry.target_id}`}
                   </Link>
                 ) : (
@@ -156,7 +156,7 @@ export default function AdminAuditLogShow({ entry }: { entry: AuditEntryDetail }
               <p className="text-[#e5e2e1] mt-1">
                 <Link
                   href={`/admin/users/${entry.actor_id}`}
-                  className="text-[#ffb595] hover:text-[#ee671c] transition-colors"
+                  className="text-[#ffb595] hover:text-[#ca5924] transition-colors"
                 >
                   {entry.actor_name}
                 </Link>

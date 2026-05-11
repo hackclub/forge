@@ -147,7 +147,7 @@ export default function AdminShopItemsIndex({
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                   required
-                  className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ee671c]/30"
+                  className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ca5924]/30"
                   placeholder="Solder"
                 />
               </div>
@@ -162,7 +162,7 @@ export default function AdminShopItemsIndex({
                   value={form.coin_cost}
                   onChange={(e) => setForm({ ...form, coin_cost: e.target.value })}
                   required
-                  className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ee671c]/30"
+                  className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ca5924]/30"
                   placeholder="20"
                 />
               </div>
@@ -177,7 +177,7 @@ export default function AdminShopItemsIndex({
                 step="1"
                 value={form.max_quantity}
                 onChange={(e) => setForm({ ...form, max_quantity: e.target.value })}
-                className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ee671c]/30"
+                className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ca5924]/30"
                 placeholder="Leave blank for no cap"
               />
               <p className="text-stone-600 text-[10px] mt-1">
@@ -192,7 +192,7 @@ export default function AdminShopItemsIndex({
                 type="url"
                 value={form.image_url}
                 onChange={(e) => setForm({ ...form, image_url: e.target.value })}
-                className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ee671c]/30"
+                className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ca5924]/30"
                 placeholder="https://..."
               />
             </div>
@@ -204,7 +204,7 @@ export default function AdminShopItemsIndex({
                 value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
                 rows={3}
-                className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ee671c]/30 resize-y"
+                className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ca5924]/30 resize-y"
                 placeholder="What is it?"
               />
             </div>
@@ -221,7 +221,7 @@ export default function AdminShopItemsIndex({
                     value={form.internal_order_link}
                     onChange={(e) => setForm({ ...form, internal_order_link: e.target.value })}
                     placeholder="https://amazon.com/..."
-                    className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ee671c]/30"
+                    className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ca5924]/30"
                   />
                 </div>
                 <div>
@@ -235,7 +235,7 @@ export default function AdminShopItemsIndex({
                     value={form.internal_price_usd}
                     onChange={(e) => setForm({ ...form, internal_price_usd: e.target.value })}
                     placeholder="0.00"
-                    className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ee671c]/30"
+                    className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ca5924]/30"
                   />
                 </div>
               </div>
@@ -248,7 +248,7 @@ export default function AdminShopItemsIndex({
                   <button
                     type="button"
                     onClick={() => setRegionPricing(defaultRegionPricing())}
-                    className="text-[#ffb595] text-xs hover:text-[#ee671c] cursor-pointer"
+                    className="text-[#ffb595] text-xs hover:text-[#ca5924] cursor-pointer"
                   >
                     Set up regions
                   </button>
@@ -273,7 +273,7 @@ export default function AdminShopItemsIndex({
                           setRegionPricing(updated)
                         }}
                         placeholder={form.coin_cost || 'default'}
-                        className="bg-[#0e0e0e] border-none px-3 py-2 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ee671c]/30"
+                        className="bg-[#0e0e0e] border-none px-3 py-2 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ca5924]/30"
                       />
                       <label className="flex items-center gap-2 text-xs text-stone-400 cursor-pointer">
                         <input
@@ -284,7 +284,7 @@ export default function AdminShopItemsIndex({
                             updated[idx] = { ...rp, enabled: e.target.checked }
                             setRegionPricing(updated)
                           }}
-                          className="accent-[#ee671c]"
+                          className="accent-[#ca5924]"
                         />
                         On
                       </label>
@@ -299,7 +299,7 @@ export default function AdminShopItemsIndex({
                 type="checkbox"
                 checked={form.enabled}
                 onChange={(e) => setForm({ ...form, enabled: e.target.checked })}
-                className="accent-[#ee671c]"
+                className="accent-[#ca5924]"
               />
               Enabled (global)
             </label>
@@ -347,7 +347,7 @@ export default function AdminShopItemsIndex({
                   {item.description && (
                     <p className="text-stone-500 text-xs mb-3 line-clamp-2 break-words">{item.description}</p>
                   )}
-                  <p className="text-[#ee671c] font-headline font-bold text-sm mb-4">{item.coin_cost}c</p>
+                  <p className="text-[#ca5924] font-headline font-bold text-sm mb-4">{item.coin_cost}c</p>
                   <div className="flex gap-2">
                     <button
                       onClick={() => startEdit(item)}

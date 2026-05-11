@@ -7,7 +7,7 @@ export default function Maintenance() {
       <div className="min-h-screen bg-[#0e0e0e] flex items-center justify-center px-6">
         <div className="max-w-md text-center">
           <span
-            className="material-symbols-outlined text-7xl text-[#ee671c] mb-6 block"
+            className="material-symbols-outlined text-7xl text-[#ca5924] mb-6 block"
             style={{ fontVariationSettings: "'FILL' 1" }}
           >
             precision_manufacturing

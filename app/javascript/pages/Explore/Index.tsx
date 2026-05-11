@@ -44,7 +44,7 @@ export default function ExploreIndex({
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
             <div className="max-w-2xl">
               <h1 className="text-5xl font-headline font-medium tracking-tight mb-4">
-                <span className="text-[#ee671c]">Explore</span>
+                <span className="text-[#ca5924]">Explore</span>
               </h1>
               <p className="text-stone-400 text-lg leading-relaxed">
                 Discover what other forgers are workin on! (feel free to steal some ideas)
@@ -56,7 +56,7 @@ export default function ExploreIndex({
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search projects..."
-                className="bg-[#0e0e0e] border-none rounded-lg px-4 py-2 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 w-full md:w-64"
+                className="bg-[#0e0e0e] border-none rounded-lg px-4 py-2 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 w-full md:w-64"
               />
               <button
                 type="submit"

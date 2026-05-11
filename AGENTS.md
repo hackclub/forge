@@ -120,7 +120,7 @@ The UI uses a dark theme with warm orange/stone accents. NOT the gold/medieval t
 - **Background:** `#0e0e0e` (near-black)
 - **Card/surface:** `#1c1b1b` with `ghost-border` (1px solid rgba(168,138,126,0.15))
 - **Primary accent:** `#ffb595` (warm peach/orange) for links and highlights
-- **Active accent:** `#ee671c` (deep orange) for buttons (`signature-smolder` class)
+- **Active accent:** `#ca5924` (deep orange) for buttons (`signature-smolder` class)
 - **Button text:** `#4c1a00` (dark brown) on `signature-smolder` backgrounds
 - **Heading text:** `#e5e2e1`
 - **Body text:** `text-stone-400`
@@ -137,6 +137,6 @@ The UI uses a dark theme with warm orange/stone accents. NOT the gold/medieval t
 - **Cards:** `bg-[#1c1b1b] ghost-border` with hover `bg-[#2a2a2a]`
 - **Primary buttons:** `signature-smolder text-[#4c1a00]` class (orange gradient background)
 - **Secondary buttons:** `ghost-border bg-[#1c1b1b] text-stone-400 hover:bg-[#2a2a2a]`
-- **Inputs:** `bg-[#0e0e0e] border-none focus:ring-1 focus:ring-[#ee671c]/30`
+- **Inputs:** `bg-[#0e0e0e] border-none focus:ring-1 focus:ring-[#ca5924]/30`
 - **Status colors:** emerald for approved, amber for pending, orange for returned, red for rejected, stone for draft
 - **Danger zones:** `border border-red-500/20` with red-tinted buttons

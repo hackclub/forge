@@ -153,7 +153,7 @@ export default function ShopIndex({
             <div className="bg-[#1c1b1b] ghost-border px-6 py-4 flex items-center gap-4">
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500">Balance</p>
-                <p className="text-3xl font-headline font-bold text-[#ee671c]">{balance.balance}c</p>
+                <p className="text-3xl font-headline font-bold text-[#ca5924]">{balance.balance}c</p>
               </div>
               <div className="text-stone-600 text-xs">
                 <p>Earned {balance.earned}c</p>
@@ -180,7 +180,7 @@ export default function ShopIndex({
             <select
               value={user_region}
               onChange={(e) => router.patch('/shop/region', { region: e.target.value }, { preserveState: false })}
-              className="bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ee671c]/30 cursor-pointer"
+              className="bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ca5924]/30 cursor-pointer"
             >
               {Object.entries(regions).map(([key, label]) => (
                 <option key={key} value={key}>
@@ -221,7 +221,7 @@ export default function ShopIndex({
                 <select
                   value={projectId}
                   onChange={(e) => setProjectId(e.target.value)}
-                  className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ee671c]/30"
+                  className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ca5924]/30"
                 >
                   {eligible_projects.map((p) => (
                     <option key={p.id} value={p.id}>
@@ -243,7 +243,7 @@ export default function ShopIndex({
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
                   placeholder="50.00"
-                  className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600"
+                  className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600"
                   required
                 />
               </div>
@@ -263,7 +263,7 @@ export default function ShopIndex({
                 onChange={(e) => setDescription(e.target.value)}
                 rows={2}
                 placeholder="Anything staff should know..."
-                className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 resize-y"
+                className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 resize-y"
               />
             </div>
             <button
@@ -312,7 +312,7 @@ export default function ShopIndex({
                       </h3>
                       <ItemDescription description={item.description} />
                       <div className="mt-auto space-y-2">
-                        <p className="text-[#ee671c] font-headline font-bold text-sm">
+                        <p className="text-[#ca5924] font-headline font-bold text-sm">
                           {item.coin_cost}c{qty > 1 ? ` × ${qty} = ${totalCost}c` : ''}
                         </p>
                         {showQuantity && (
@@ -447,7 +447,7 @@ export default function ShopIndex({
                         {order.project_name && <p className="text-stone-500 text-xs">For {order.project_name}</p>}
                         <div className="flex items-center justify-between gap-4 mt-1 text-xs flex-wrap">
                           <div className="text-stone-500">
-                            <span className="text-[#ee671c] font-bold">{order.coin_cost}c</span>
+                            <span className="text-[#ca5924] font-bold">{order.coin_cost}c</span>
                             {order.amount_usd != null && (
                               <span className="text-stone-600 ml-2">${order.amount_usd}</span>
                             )}
@@ -480,7 +480,7 @@ function ItemDescription({ description }: { description: string | null }) {
       </p>
       <button
         onClick={() => setExpanded((v) => !v)}
-        className="text-[#ffb595] hover:text-[#ee671c] text-xs mt-1 cursor-pointer"
+        className="text-[#ffb595] hover:text-[#ca5924] text-xs mt-1 cursor-pointer"
       >
         {expanded ? 'Show less' : 'See more'}
       </button>

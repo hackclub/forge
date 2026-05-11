@@ -76,7 +76,7 @@ export default function AdminDatabaseIndex({ tables }: { tables: string[] }) {
                 onClick={() => selectTable(table)}
                 className={`w-full text-left px-4 py-2.5 text-sm transition-colors cursor-pointer border-b border-white/5 last:border-b-0 ${
                   selectedTable === table
-                    ? 'bg-[#ee671c]/10 text-[#ffb595]'
+                    ? 'bg-[#ca5924]/10 text-[#ffb595]'
                     : 'text-stone-400 hover:bg-[#2a2a2a] hover:text-[#e5e2e1]'
                 }`}
               >
@@ -92,7 +92,7 @@ export default function AdminDatabaseIndex({ tables }: { tables: string[] }) {
               value={sql}
               onChange={(e) => setSql(e.target.value)}
               onKeyDown={handleKeyDown}
-              className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ee671c]/30 placeholder:text-stone-600 text-sm font-mono resize-y min-h-[100px]"
+              className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 text-sm font-mono resize-y min-h-[100px]"
               placeholder="SELECT * FROM users LIMIT 10"
               rows={4}
             />

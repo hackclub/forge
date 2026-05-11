@@ -62,7 +62,7 @@ export default function AdminAirtableQueueIndex({
         {(['pending', 'sent', 'failed', 'cancelled'] as Status[]).map((s) => (
           <div
             key={s}
-            className={`bg-[#1c1b1b] ghost-border p-4 ${filters.status === s ? 'ring-1 ring-[#ee671c]/30' : ''}`}
+            className={`bg-[#1c1b1b] ghost-border p-4 ${filters.status === s ? 'ring-1 ring-[#ca5924]/30' : ''}`}
           >
             <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-500 mb-1">
               {statusStyles[s].label}
