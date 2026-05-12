@@ -3,6 +3,7 @@
 # Table name: projects
 #
 #  id                           :bigint           not null, primary key
+#  approval_justification       :text
 #  budget                       :text
 #  build_proof_url              :string
 #  built_at                     :datetime
@@ -63,6 +64,7 @@ class Project < ApplicationRecord
   has_many :kudos, dependent: :destroy
   has_many :project_notes, dependent: :destroy
   has_many :reels, dependent: :destroy
+  has_many :review_sessions, dependent: :destroy
   has_one_attached :cover_image
 
   after_commit :sync_to_airtable, on: [ :create, :update ], if: -> { approved? }
@@ -141,6 +143,7 @@ class Project < ApplicationRecord
   REVIEW_EVENT_ACTIONS = %w[
     project.pitch_approved project.approved project.returned project.rejected project.reverted_to_draft
     project.build_approved project.build_returned project.build_rejected
+    project.submitted_for_review project.review_reversed
     devlog.approved devlog.returned
   ].freeze
 

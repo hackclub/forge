@@ -1,6 +1,13 @@
 import { useState } from 'react'
 import { router, Link } from '@inertiajs/react'
-import Pagination from '@/components/Pagination'
+import { Search } from 'lucide-react'
+import { Badge } from '@/components/admin/ui/badge'
+import { Button } from '@/components/admin/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/admin/ui/card'
+import { Input } from '@/components/admin/ui/input'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/admin/ui/table'
+import AdminPagination from '@/components/admin/AdminPagination'
+import { cn } from '@/components/admin/lib/cn'
 import type { AdminUserRow, PagyProps } from '@/types'
 
 export default function AdminUsersIndex({
@@ -29,75 +36,91 @@ export default function AdminUsersIndex({
   }
 
   return (
-    <div className="p-5 md:p-12 max-w-[1400px] mx-auto">
-      <h1 className="text-4xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-8">Users</h1>
-
-      <form onSubmit={search} className="mb-4">
-        <div className="flex gap-2">
-          <input
-            type="search"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search users..."
-            className="bg-[#0e0e0e] border-none px-4 py-2 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 flex-1"
-          />
-          <button
-            type="submit"
-            className="bg-[#2a2a2a] text-[#e5e2e1] px-4 py-2 text-sm font-medium hover:bg-[#3a3939] transition-colors ghost-border cursor-pointer"
-          >
+    <div className="max-w-7xl mx-auto space-y-6">
+      <div className="flex items-center justify-between gap-3">
+        <h1 className="text-2xl font-semibold tracking-tight">Users</h1>
+        <form onSubmit={search} className="flex gap-2 items-center">
+          <div className="relative">
+            <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+            <Input
+              type="search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search users…"
+              className="pl-9 w-72"
+            />
+          </div>
+          <Button type="submit" variant="outline" size="sm">
             Search
-          </button>
-        </div>
-      </form>
+          </Button>
+        </form>
+      </div>
 
-      <div className="flex gap-2 flex-wrap mb-8">
+      <div className="flex gap-2 flex-wrap">
         {available_roles.map((role) => (
           <button
             key={role}
             onClick={() => filterByRole(role)}
-            className={`px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.15em] transition-colors cursor-pointer ${
+            className={cn(
+              'px-3 py-1.5 text-xs font-medium rounded-md border transition-colors cursor-pointer capitalize',
               role === role_filter
-                ? 'signature-smolder text-[#4c1a00]'
-                : 'ghost-border bg-[#1c1b1b] text-stone-500 hover:text-stone-300 hover:bg-[#2a2a2a]'
-            }`}
+                ? 'bg-primary text-primary-foreground border-primary'
+                : 'border-border bg-background text-muted-foreground hover:bg-accent hover:text-foreground',
+            )}
           >
             {role}
           </button>
         ))}
       </div>
 
-      <div className="space-y-2 overflow-x-auto">
-        <div className="hidden md:grid grid-cols-[1fr_1fr_auto_auto_auto] gap-4 px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600 min-w-[720px]">
-          <span>Name</span>
-          <span>Email</span>
-          <span>Roles</span>
-          <span>Projects</span>
-          <span>Joined</span>
-        </div>
-        {users.map((user) => (
-          <Link
-            key={user.id}
-            href={`/admin/users/${user.id}`}
-            className={`flex flex-col gap-1 md:grid md:grid-cols-[1fr_1fr_auto_auto_auto] md:gap-4 bg-[#1c1b1b] px-5 py-4 ghost-border hover:bg-[#2a2a2a] transition-all group md:min-w-[720px] ${user.is_discarded ? 'opacity-50' : ''}`}
-          >
-            <span className="font-headline font-bold text-[#e5e2e1] group-hover:text-[#ffb595] transition-colors truncate flex items-center gap-2">
-              {user.display_name}
-              {user.is_banned && (
-                <span className="bg-red-500/20 text-red-400 px-2 py-0.5 text-[9px] uppercase font-bold tracking-widest shrink-0">
-                  Banned
-                </span>
-              )}
-              {user.is_discarded && <span className="text-red-400 text-xs font-normal">Deleted</span>}
-            </span>
-            <span className="text-stone-400 text-sm truncate">{user.email}</span>
-            <span className="text-stone-500 text-xs">{user.roles.join(', ')}</span>
-            <span className="text-stone-500 text-xs">{user.projects_count}</span>
-            <span className="text-stone-500 text-xs">{user.created_at}</span>
-          </Link>
-        ))}
-      </div>
-
-      <Pagination pagy={pagy} />
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            {users.length} user{users.length === 1 ? '' : 's'}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {users.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-10 text-center">No users match.</p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Roles</TableHead>
+                  <TableHead>Projects</TableHead>
+                  <TableHead>Joined</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {users.map((user) => (
+                  <TableRow
+                    key={user.id}
+                    className={cn('cursor-pointer', user.is_discarded && 'opacity-50')}
+                    onClick={() => router.visit(`/admin/users/${user.id}`)}
+                  >
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-2">
+                        <Link href={`/admin/users/${user.id}`} className="hover:underline" onClick={(e) => e.stopPropagation()}>
+                          {user.display_name}
+                        </Link>
+                        {user.is_banned && <Badge variant="destructive">Banned</Badge>}
+                        {user.is_discarded && <Badge variant="outline">Deleted</Badge>}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-sm truncate max-w-xs">{user.email}</TableCell>
+                    <TableCell className="text-muted-foreground text-xs">{user.roles.join(', ') || '—'}</TableCell>
+                    <TableCell className="font-mono text-sm">{user.projects_count}</TableCell>
+                    <TableCell className="text-muted-foreground text-sm">{user.created_at}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+          {pagy && pagy.pages > 1 && <AdminPagination pagy={pagy} />}
+        </CardContent>
+      </Card>
     </div>
   )
 }

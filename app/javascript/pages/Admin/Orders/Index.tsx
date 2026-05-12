@@ -1,6 +1,12 @@
-import { Head, Link, router, usePage } from '@inertiajs/react'
-import Pagination from '@/components/Pagination'
-import type { PagyProps, SharedProps } from '@/types'
+import { Head, Link, router } from '@inertiajs/react'
+import { User, AlertTriangle } from 'lucide-react'
+import { Badge } from '@/components/admin/ui/badge'
+import { Button } from '@/components/admin/ui/button'
+import { Card, CardContent } from '@/components/admin/ui/card'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/admin/ui/table'
+import AdminPagination from '@/components/admin/AdminPagination'
+import { cn } from '@/components/admin/lib/cn'
+import type { PagyProps } from '@/types'
 
 interface OrderRow {
   id: number
@@ -31,16 +37,20 @@ interface Props {
   fulfillment_users: { id: number; display_name: string }[]
 }
 
-const STATUS_STYLES: Record<OrderRow['status'], string> = {
-  pending: 'bg-amber-500/15 text-amber-400',
-  approved: 'bg-emerald-500/15 text-emerald-400',
-  fulfilled: 'bg-emerald-500/25 text-emerald-300',
-  rejected: 'bg-red-500/15 text-red-400',
+function statusBadge(status: OrderRow['status']) {
+  switch (status) {
+    case 'approved':
+      return <Badge variant="success">Approved</Badge>
+    case 'fulfilled':
+      return <Badge variant="success">Fulfilled</Badge>
+    case 'rejected':
+      return <Badge variant="destructive">Rejected</Badge>
+    default:
+      return <Badge variant="warning">Pending</Badge>
+  }
 }
 
 export default function AdminOrdersIndex({ orders, pagy, filters, counts, regions }: Props) {
-  const currentUser = usePage<SharedProps>().props.auth.user
-
   function applyFilter(key: string, value: string) {
     router.get('/admin/orders', { ...filters, [key]: value }, { preserveState: true })
   }
@@ -48,42 +58,44 @@ export default function AdminOrdersIndex({ orders, pagy, filters, counts, region
   return (
     <>
       <Head title="Orders - Admin" />
-      <div className="p-5 md:p-12 max-w-[1400px] mx-auto">
-        <h1 className="text-4xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-2">Orders</h1>
-        <p className="text-stone-500 text-sm mb-8">Steel coin orders awaiting review and fulfillment.</p>
+      <div className="max-w-7xl mx-auto space-y-6">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Orders</h1>
+          <p className="text-sm text-muted-foreground mt-1">Steel coin orders awaiting review and fulfillment.</p>
+        </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
           {(['all', 'pending', 'approved', 'fulfilled', 'rejected'] as const).map((key) => {
             const active = key === 'all' ? !filters.status : filters.status === key
             return (
               <button
                 key={key}
                 onClick={() => applyFilter('status', key === 'all' ? '' : key)}
-                className={`p-4 ghost-border text-left transition-colors ${active ? 'bg-[#ca5924]/15' : 'bg-[#1c1b1b] hover:bg-[#2a2a2a]'}`}
+                className={cn(
+                  'rounded-md border border-border p-4 text-left transition-colors cursor-pointer',
+                  active ? 'bg-accent' : 'bg-card hover:bg-accent',
+                )}
               >
-                <p className="text-2xl font-headline font-bold text-[#e5e2e1]">{counts[key]}</p>
-                <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-500">{key}</p>
+                <p className="text-2xl font-semibold">{counts[key]}</p>
+                <p className="text-xs text-muted-foreground uppercase tracking-wide">{key}</p>
               </button>
             )
           })}
         </div>
 
-        <div className="flex gap-3 mb-8 flex-wrap">
-          <button
+        <div className="flex gap-2 flex-wrap items-center">
+          <Button
+            size="sm"
+            variant={filters.assigned_to === 'me' ? 'default' : 'outline'}
             onClick={() => applyFilter('assigned_to', filters.assigned_to === 'me' ? '' : 'me')}
-            className={`px-4 py-2 text-xs font-bold uppercase tracking-[0.15em] transition-colors cursor-pointer flex items-center gap-2 ${
-              filters.assigned_to === 'me'
-                ? 'signature-smolder text-[#4c1a00]'
-                : 'ghost-border bg-[#1c1b1b] text-stone-400 hover:text-[#e5e2e1] hover:bg-[#2a2a2a]'
-            }`}
           >
-            <span className="material-symbols-outlined text-sm">person</span>
+            <User className="size-4" />
             My Orders
-          </button>
+          </Button>
           <select
             value={filters.region}
             onChange={(e) => applyFilter('region', e.target.value)}
-            className="bg-[#0e0e0e] border-none px-4 py-2 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 cursor-pointer"
+            className="h-9 rounded-md border border-border bg-background px-3 text-sm cursor-pointer"
           >
             <option value="">All Regions</option>
             {Object.entries(regions).map(([key, label]) => (
@@ -94,94 +106,86 @@ export default function AdminOrdersIndex({ orders, pagy, filters, counts, region
           </select>
         </div>
 
-        {orders.length > 0 ? (
-          <>
-            <div className="ghost-border overflow-x-auto">
-              <table className="w-full min-w-[720px]">
-                <thead>
-                  <tr className="border-b border-white/5">
-                    <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">
-                      Order
-                    </th>
-                    <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">
-                      User
-                    </th>
-                    <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">
-                      Region
-                    </th>
-                    <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">
-                      Assigned To
-                    </th>
-                    <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">
-                      Cost
-                    </th>
-                    <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">
-                      Status
-                    </th>
-                    <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">
-                      Created
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
+        {orders.length === 0 ? (
+          <Card>
+            <CardContent className="p-12 text-center text-sm text-muted-foreground">
+              No orders match these filters.
+            </CardContent>
+          </Card>
+        ) : (
+          <Card>
+            <CardContent className="pt-6 space-y-4">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Order</TableHead>
+                    <TableHead>User</TableHead>
+                    <TableHead>Region</TableHead>
+                    <TableHead>Assigned To</TableHead>
+                    <TableHead>Cost</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Created</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {orders.map((order) => (
-                    <tr key={order.id} className="border-b border-white/5 hover:bg-[#1c1b1b] transition-colors">
-                      <td className="px-5 py-4">
+                    <TableRow
+                      key={order.id}
+                      className="cursor-pointer"
+                      onClick={() => router.visit(`/admin/orders/${order.id}`)}
+                    >
+                      <TableCell>
                         <div className="flex items-center gap-3 min-w-0">
                           {order.shop_item_image && (
-                            <img src={order.shop_item_image} alt="" className="w-10 h-10 object-cover shrink-0" />
+                            <img
+                              src={order.shop_item_image}
+                              alt=""
+                              className="size-10 object-cover rounded-md border border-border shrink-0"
+                            />
                           )}
                           <div className="min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
                               <Link
                                 href={`/admin/orders/${order.id}`}
-                                className="font-headline font-bold text-[#e5e2e1] hover:text-[#ffb595] transition-colors text-sm"
+                                className="font-medium hover:underline text-sm"
+                                onClick={(e) => e.stopPropagation()}
                               >
                                 {order.quantity > 1 ? `${order.quantity}× ` : ''}
                                 {order.kind_label}
                               </Link>
                               {order.needs_attention && (
-                                <span className="bg-amber-500/15 text-amber-400 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider flex items-center gap-1">
-                                  <span className="material-symbols-outlined text-[12px]">warning</span>
+                                <Badge variant="warning" className="text-[10px]">
+                                  <AlertTriangle className="size-3" />
                                   Check funding
-                                </span>
+                                </Badge>
                               )}
                             </div>
                             {order.project_name && (
-                              <p className="text-stone-500 text-xs mt-0.5">{order.project_name}</p>
+                              <p className="text-xs text-muted-foreground mt-0.5">{order.project_name}</p>
                             )}
                           </div>
                         </div>
-                      </td>
-                      <td className="px-5 py-4 text-stone-400 text-sm">{order.user_display_name}</td>
-                      <td className="px-5 py-4 text-stone-500 text-xs">
-                        {order.region ? regions[order.region] || order.region : '-'}
-                      </td>
-                      <td className="px-5 py-4 text-stone-400 text-xs">{order.assigned_to_name || '-'}</td>
-                      <td className="px-5 py-4 text-sm">
-                        <span className="text-[#ca5924] font-bold">{order.coin_cost}c</span>
-                        {order.amount_usd != null && <span className="text-stone-600 ml-2">${order.amount_usd}</span>}
-                      </td>
-                      <td className="px-5 py-4">
-                        <span
-                          className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 ${STATUS_STYLES[order.status]}`}
-                        >
-                          {order.status}
-                        </span>
-                      </td>
-                      <td className="px-5 py-4 text-stone-500 text-xs">{order.created_at}</td>
-                    </tr>
+                      </TableCell>
+                      <TableCell className="text-sm">{order.user_display_name}</TableCell>
+                      <TableCell className="text-xs text-muted-foreground">
+                        {order.region ? regions[order.region] || order.region : '—'}
+                      </TableCell>
+                      <TableCell className="text-xs text-muted-foreground">{order.assigned_to_name || '—'}</TableCell>
+                      <TableCell className="text-sm">
+                        <span className="font-mono font-medium">{order.coin_cost}c</span>
+                        {order.amount_usd != null && (
+                          <span className="text-muted-foreground ml-2">${order.amount_usd}</span>
+                        )}
+                      </TableCell>
+                      <TableCell>{statusBadge(order.status)}</TableCell>
+                      <TableCell className="text-xs text-muted-foreground">{order.created_at}</TableCell>
+                    </TableRow>
                   ))}
-                </tbody>
-              </table>
-            </div>
-            <Pagination pagy={pagy} />
-          </>
-        ) : (
-          <div className="ghost-border bg-[#1c1b1b] p-16 text-center">
-            <p className="text-stone-300 text-lg font-headline font-medium mb-2">No orders</p>
-            <p className="text-stone-500 text-sm">Nothing to review yet.</p>
-          </div>
+                </TableBody>
+              </Table>
+              {pagy && pagy.pages > 1 && <AdminPagination pagy={pagy} />}
+            </CardContent>
+          </Card>
         )}
       </div>
     </>

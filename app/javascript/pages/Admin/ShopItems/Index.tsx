@@ -1,5 +1,11 @@
 import { useState } from 'react'
 import { Head, router } from '@inertiajs/react'
+import { Plus, X, Trash2, Package } from 'lucide-react'
+import { Badge } from '@/components/admin/ui/badge'
+import { Button } from '@/components/admin/ui/button'
+import { Card, CardContent } from '@/components/admin/ui/card'
+import { Input } from '@/components/admin/ui/input'
+import { Textarea } from '@/components/admin/ui/textarea'
 
 interface RegionPricing {
   id: number | null
@@ -123,253 +129,206 @@ export default function AdminShopItemsIndex({
   return (
     <>
       <Head title="Shop Items - Admin" />
-      <div className="p-5 md:p-12 max-w-[1400px] mx-auto">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
-          <h1 className="text-4xl font-headline font-bold text-[#e5e2e1] tracking-tight">Shop Items</h1>
-          <button
-            onClick={() => (showForm ? reset() : setShowForm(true))}
-            className="signature-smolder text-[#4c1a00] px-6 py-3 font-bold uppercase tracking-wider text-xs flex items-center gap-2 cursor-pointer"
-          >
-            <span className="material-symbols-outlined text-lg">{showForm ? 'close' : 'add'}</span>
+      <div className="max-w-7xl mx-auto space-y-6">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+          <h1 className="text-2xl font-semibold tracking-tight">Shop Items</h1>
+          <Button onClick={() => (showForm ? reset() : setShowForm(true))}>
+            {showForm ? <X className="size-4" /> : <Plus className="size-4" />}
             {showForm ? 'Cancel' : 'New Item'}
-          </button>
+          </Button>
         </div>
 
         {showForm && (
-          <form onSubmit={submit} className="ghost-border bg-[#1c1b1b] p-6 mb-8 space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
-                  Name
-                </label>
-                <input
-                  type="text"
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  required
-                  className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ca5924]/30"
-                  placeholder="Solder"
-                />
-              </div>
-              <div>
-                <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
-                  Coin cost
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0.01"
-                  value={form.coin_cost}
-                  onChange={(e) => setForm({ ...form, coin_cost: e.target.value })}
-                  required
-                  className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ca5924]/30"
-                  placeholder="20"
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
-                Max purchase quantity
-              </label>
-              <input
-                type="number"
-                min="1"
-                step="1"
-                value={form.max_quantity}
-                onChange={(e) => setForm({ ...form, max_quantity: e.target.value })}
-                className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ca5924]/30"
-                placeholder="Leave blank for no cap"
-              />
-              <p className="text-stone-600 text-[10px] mt-1">
-                Maximum a user can buy in a single order. Leave blank for unlimited.
-              </p>
-            </div>
-            <div>
-              <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
-                Image URL
-              </label>
-              <input
-                type="url"
-                value={form.image_url}
-                onChange={(e) => setForm({ ...form, image_url: e.target.value })}
-                className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ca5924]/30"
-                placeholder="https://..."
-              />
-            </div>
-            <div>
-              <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
-                Description
-              </label>
-              <textarea
-                value={form.description}
-                onChange={(e) => setForm({ ...form, description: e.target.value })}
-                rows={3}
-                className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ca5924]/30 resize-y"
-                placeholder="What is it?"
-              />
-            </div>
-
-            <div className="border-t border-white/5 pt-4 space-y-4">
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500">Internal (staff only)</p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
-                    Order link
-                  </label>
-                  <input
-                    type="url"
-                    value={form.internal_order_link}
-                    onChange={(e) => setForm({ ...form, internal_order_link: e.target.value })}
-                    placeholder="https://amazon.com/..."
-                    className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ca5924]/30"
-                  />
+          <Card>
+            <CardContent className="pt-6">
+              <form onSubmit={submit} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-muted-foreground">Name</label>
+                    <Input
+                      value={form.name}
+                      onChange={(e) => setForm({ ...form, name: e.target.value })}
+                      required
+                      placeholder="Solder"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-muted-foreground">Coin cost</label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      min="0.01"
+                      value={form.coin_cost}
+                      onChange={(e) => setForm({ ...form, coin_cost: e.target.value })}
+                      required
+                      placeholder="20"
+                    />
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
-                    Internal price (USD, incl. shipping)
-                  </label>
-                  <input
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-muted-foreground">Max purchase quantity</label>
+                  <Input
                     type="number"
-                    step="0.01"
-                    min="0"
-                    value={form.internal_price_usd}
-                    onChange={(e) => setForm({ ...form, internal_price_usd: e.target.value })}
-                    placeholder="0.00"
-                    className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ca5924]/30"
+                    min="1"
+                    step="1"
+                    value={form.max_quantity}
+                    onChange={(e) => setForm({ ...form, max_quantity: e.target.value })}
+                    placeholder="Leave blank for no cap"
+                  />
+                  <p className="text-[11px] text-muted-foreground">
+                    Maximum a user can buy in a single order. Leave blank for unlimited.
+                  </p>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-muted-foreground">Image URL</label>
+                  <Input
+                    type="url"
+                    value={form.image_url}
+                    onChange={(e) => setForm({ ...form, image_url: e.target.value })}
+                    placeholder="https://..."
                   />
                 </div>
-              </div>
-            </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-muted-foreground">Description</label>
+                  <Textarea
+                    value={form.description}
+                    onChange={(e) => setForm({ ...form, description: e.target.value })}
+                    placeholder="What is it?"
+                  />
+                </div>
 
-            <div className="border-t border-white/5 pt-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500">Region Pricing</p>
-                {regionPricing.length === 0 && (
-                  <button
-                    type="button"
-                    onClick={() => setRegionPricing(defaultRegionPricing())}
-                    className="text-[#ffb595] text-xs hover:text-[#ca5924] cursor-pointer"
-                  >
-                    Set up regions
-                  </button>
-                )}
-              </div>
-              <p className="text-stone-600 text-[10px]">
-                Leave cost blank to use the default price above. Clear a filled cost to remove that region's override.
-              </p>
-              {regionPricing.length > 0 && (
-                <div className="space-y-2">
-                  {regionPricing.map((rp, idx) => (
-                    <div key={rp.region} className="grid grid-cols-[1fr_120px_auto] gap-3 items-center">
-                      <span className="text-stone-300 text-sm">{regions[rp.region]}</span>
-                      <input
+                <div className="border-t border-border pt-4 space-y-3">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Internal (staff only)</p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <label className="text-xs text-muted-foreground">Order link</label>
+                      <Input
+                        type="url"
+                        value={form.internal_order_link}
+                        onChange={(e) => setForm({ ...form, internal_order_link: e.target.value })}
+                        placeholder="https://amazon.com/..."
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs text-muted-foreground">Internal price (USD, incl. shipping)</label>
+                      <Input
                         type="number"
                         step="0.01"
-                        min="0.01"
-                        value={rp.coin_cost}
-                        onChange={(e) => {
-                          const updated = [...regionPricing]
-                          updated[idx] = { ...rp, coin_cost: e.target.value }
-                          setRegionPricing(updated)
-                        }}
-                        placeholder={form.coin_cost || 'default'}
-                        className="bg-[#0e0e0e] border-none px-3 py-2 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ca5924]/30"
+                        min="0"
+                        value={form.internal_price_usd}
+                        onChange={(e) => setForm({ ...form, internal_price_usd: e.target.value })}
+                        placeholder="0.00"
                       />
-                      <label className="flex items-center gap-2 text-xs text-stone-400 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={rp.enabled}
-                          onChange={(e) => {
-                            const updated = [...regionPricing]
-                            updated[idx] = { ...rp, enabled: e.target.checked }
-                            setRegionPricing(updated)
-                          }}
-                          className="accent-[#ca5924]"
-                        />
-                        On
-                      </label>
                     </div>
-                  ))}
+                  </div>
                 </div>
-              )}
-            </div>
 
-            <label className="flex items-center gap-3 text-sm text-stone-400 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={form.enabled}
-                onChange={(e) => setForm({ ...form, enabled: e.target.checked })}
-                className="accent-[#ca5924]"
-              />
-              Enabled (global)
-            </label>
-            <div className="flex gap-3">
-              <button
-                type="submit"
-                className="signature-smolder text-[#4c1a00] px-6 py-3 font-bold uppercase tracking-wider text-xs cursor-pointer"
-              >
-                {editingId ? 'Save Changes' : 'Create'}
-              </button>
-              <button
-                type="button"
-                onClick={reset}
-                className="ghost-border text-stone-400 px-6 py-3 text-xs font-bold uppercase tracking-wider cursor-pointer"
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
+                <div className="border-t border-border pt-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Region Pricing</p>
+                    {regionPricing.length === 0 && (
+                      <Button type="button" variant="link" size="sm" onClick={() => setRegionPricing(defaultRegionPricing())}>
+                        Set up regions
+                      </Button>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">
+                    Leave cost blank to use the default price above.
+                  </p>
+                  {regionPricing.length > 0 && (
+                    <div className="space-y-2">
+                      {regionPricing.map((rp, idx) => (
+                        <div key={rp.region} className="grid grid-cols-[1fr_120px_auto] gap-3 items-center">
+                          <span className="text-sm">{regions[rp.region]}</span>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            min="0.01"
+                            value={rp.coin_cost}
+                            onChange={(e) => {
+                              const updated = [...regionPricing]
+                              updated[idx] = { ...rp, coin_cost: e.target.value }
+                              setRegionPricing(updated)
+                            }}
+                            placeholder={form.coin_cost || 'default'}
+                            className="h-8"
+                          />
+                          <label className="flex items-center gap-2 text-xs cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={rp.enabled}
+                              onChange={(e) => {
+                                const updated = [...regionPricing]
+                                updated[idx] = { ...rp, enabled: e.target.checked }
+                                setRegionPricing(updated)
+                              }}
+                            />
+                            On
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <label className="flex items-center gap-2 text-sm cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={form.enabled}
+                    onChange={(e) => setForm({ ...form, enabled: e.target.checked })}
+                  />
+                  Enabled (global)
+                </label>
+                <div className="flex gap-2">
+                  <Button type="submit">{editingId ? 'Save Changes' : 'Create'}</Button>
+                  <Button type="button" variant="outline" onClick={reset}>
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
         )}
 
-        {items.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        {items.length === 0 ? (
+          <Card>
+            <CardContent className="p-12 text-center space-y-2">
+              <Package className="size-12 text-muted-foreground mx-auto" />
+              <p className="text-base font-medium">No shop items yet</p>
+              <p className="text-sm text-muted-foreground">Add one to get the shop going.</p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {items.map((item) => (
-              <div
-                key={item.id}
-                className={`bg-[#1c1b1b] ghost-border min-w-0 overflow-hidden ${item.enabled ? '' : 'opacity-50'}`}
-              >
-                <div className="aspect-[4/3] bg-[#0e0e0e] flex items-center justify-center">
+              <Card key={item.id} className={item.enabled ? '' : 'opacity-60'}>
+                <div className="aspect-[4/3] bg-muted flex items-center justify-center overflow-hidden rounded-t-lg">
                   {item.image_url ? (
                     <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
                   ) : (
-                    <span className="text-5xl">📦</span>
+                    <Package className="size-12 text-muted-foreground" />
                   )}
                 </div>
-                <div className="p-5">
-                  <div className="flex items-start justify-between mb-2 gap-2">
-                    <h3 className="font-headline font-bold text-[#e5e2e1] tracking-tight break-words">{item.name}</h3>
-                    {!item.enabled && (
-                      <span className="text-[9px] font-bold uppercase tracking-wider bg-stone-500/15 text-stone-400 px-2 py-0.5">
-                        disabled
-                      </span>
-                    )}
+                <CardContent className="p-4 space-y-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className="font-semibold break-words">{item.name}</h3>
+                    {!item.enabled && <Badge variant="secondary">disabled</Badge>}
                   </div>
                   {item.description && (
-                    <p className="text-stone-500 text-xs mb-3 line-clamp-2 break-words">{item.description}</p>
+                    <p className="text-xs text-muted-foreground line-clamp-2 break-words">{item.description}</p>
                   )}
-                  <p className="text-[#ca5924] font-headline font-bold text-sm mb-4">{item.coin_cost}c</p>
+                  <p className="font-semibold">{item.coin_cost}c</p>
                   <div className="flex gap-2">
-                    <button
-                      onClick={() => startEdit(item)}
-                      className="flex-1 ghost-border bg-[#0e0e0e] text-stone-400 hover:text-[#e5e2e1] py-2 text-xs font-bold uppercase tracking-wider cursor-pointer"
-                    >
+                    <Button variant="outline" size="sm" className="flex-1" onClick={() => startEdit(item)}>
                       Edit
-                    </button>
-                    <button
-                      onClick={() => destroy(item.id, item.name)}
-                      className="ghost-border bg-red-500/10 text-red-400 hover:bg-red-500/20 px-3 py-2 cursor-pointer"
-                    >
-                      <span className="material-symbols-outlined text-base">delete</span>
-                    </button>
+                    </Button>
+                    <Button variant="destructive" size="icon" onClick={() => destroy(item.id, item.name)}>
+                      <Trash2 className="size-4" />
+                    </Button>
                   </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             ))}
-          </div>
-        ) : (
-          <div className="ghost-border bg-[#1c1b1b] p-16 text-center">
-            <p className="text-stone-300 text-lg font-headline font-medium mb-2">No shop items yet</p>
-            <p className="text-stone-500 text-sm">Add one to get the shop going.</p>
           </div>
         )}
       </div>

@@ -1,4 +1,31 @@
 import { Link } from '@inertiajs/react'
+import {
+  ArrowLeft,
+  Hammer,
+  Lightbulb,
+  ClipboardCheck,
+  FolderOpen,
+  Users,
+  LifeBuoy,
+  Sparkles,
+  Newspaper,
+  ShoppingCart,
+  Store,
+  Users2,
+  Flag,
+  ScrollText,
+  BarChart3,
+  Database,
+  Briefcase,
+  PlayCircle,
+  DollarSign,
+  TableProperties,
+  Activity,
+} from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
+import { Card, CardContent } from '@/components/admin/ui/card'
+import { Badge } from '@/components/admin/ui/badge'
+import { Button } from '@/components/admin/ui/button'
 
 interface AdminDashboardProps {
   user_name: string
@@ -15,21 +42,59 @@ interface AdminDashboardProps {
   is_superadmin: boolean
 }
 
-function DashboardLink({ href, label, external }: { href: string; label: string; external?: boolean }) {
-  const cls =
-    'ghost-border bg-[#1c1b1b] hover:bg-[#2a2a2a] px-6 py-4 text-sm font-headline font-bold uppercase tracking-[0.15em] text-stone-400 hover:text-[#e5e2e1] transition-colors text-center'
+function Tile({
+  href,
+  label,
+  icon: Icon,
+  badge,
+  external,
+}: {
+  href: string
+  label: string
+  icon: LucideIcon
+  badge?: number | string
+  external?: boolean
+}) {
+  const inner = (
+    <>
+      <div className="flex items-center gap-3">
+        <div className="rounded-md bg-muted p-2 text-foreground inline-flex items-center justify-center">
+          <Icon className="size-5" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="text-sm font-medium truncate">{label}</div>
+        </div>
+        {badge != null && (
+          <Badge variant="secondary" className="ml-2">
+            {badge}
+          </Badge>
+        )}
+      </div>
+    </>
+  )
+
+  const card = (
+    <Card className="hover:bg-accent transition-colors cursor-pointer">
+      <CardContent className="p-4">{inner}</CardContent>
+    </Card>
+  )
 
   if (external) {
     return (
-      <a href={href} target="_blank" rel="noopener noreferrer" className={cls}>
-        {label}
+      <a href={href} target="_blank" rel="noopener noreferrer">
+        {card}
       </a>
     )
   }
+  return <Link href={href}>{card}</Link>
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <Link href={href} className={cls}>
-      {label}
-    </Link>
+    <section className="space-y-3">
+      <h2 className="text-xs font-semibold tracking-wide uppercase text-muted-foreground">{title}</h2>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">{children}</div>
+    </section>
   )
 }
 
@@ -43,80 +108,81 @@ export default function AdminStaticPagesIndex({
   const can = (perm: string) => permissions[perm]
 
   return (
-    <div className="p-5 md:p-12 max-w-5xl mx-auto space-y-12">
-      <div>
-        <Link
-          href="/home"
-          className="ghost-border inline-block px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-stone-500 hover:text-[#e5e2e1] transition-colors mb-6"
-        >
-          Leave the mines
-        </Link>
-        <h1 className="text-4xl font-headline font-bold text-[#e5e2e1] tracking-tight">Admin Dashboard</h1>
-        <p className="text-stone-500 mt-2">What are we forging today {user_name}?</p>
+    <div className="max-w-6xl mx-auto space-y-8">
+      <div className="space-y-1">
+        <Button variant="ghost" size="sm" asChild>
+          <Link href="/home">
+            <ArrowLeft className="size-4" />
+            Leave Admin
+          </Link>
+        </Button>
+        <h1 className="text-2xl font-semibold tracking-tight">Welcome back, {user_name}.</h1>
+        <p className="text-sm text-muted-foreground">Pick where to begin — the queue first, the rest second.</p>
       </div>
 
       {(can('pending_reviews') || can('projects')) && (
-        <div>
-          <h2 className="text-xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-4">Tasks</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            {can('projects') && (
-              <DashboardLink href="/admin/projects?status=pending" label={`All Pending (${counts.pending_reviews})`} />
-            )}
-            {can('pending_reviews') && <DashboardLink href="/admin/pitches" label="Pitch Reviews" />}
-            {can('pending_reviews') && <DashboardLink href="/admin/reviews" label="Project Reviews" />}
-          </div>
-        </div>
+        <Section title="Queue">
+          {can('pending_reviews') && (
+            <Tile href="/admin/ships" label="Ship Reviews" icon={Hammer} />
+          )}
+          {can('pending_reviews') && (
+            <Tile href="/admin/pitches" label="Pitch Reviews" icon={Lightbulb} />
+          )}
+          {can('pending_reviews') && (
+            <Tile
+              href="/admin/reviews"
+              label="Project Reviews"
+              icon={ClipboardCheck}
+              badge={counts.pending_reviews || undefined}
+            />
+          )}
+        </Section>
       )}
 
       {(can('projects') || can('users') || can('support') || can('news') || can('orders') || can('referrals')) && (
-        <div>
-          <h2 className="text-xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-4">Dashboards</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            {can('projects') && <DashboardLink href="/admin/projects" label={`Projects (${counts.projects})`} />}
-            {can('users') && <DashboardLink href="/admin/users" label={`Users (${counts.users})`} />}
-            {can('support') && <DashboardLink href="/admin/support" label="Support Tickets" />}
-            {is_admin && <DashboardLink href="/admin/rsvps" label="RSVPs" />}
-            {can('news') && <DashboardLink href="/admin/news_posts" label="News" />}
-            {can('orders') && <DashboardLink href="/admin/orders" label={`Shop Orders (${counts.pending_orders})`} />}
-            {can('orders') && <DashboardLink href="/admin/shop_items" label="Shop Items" />}
-            {can('referrals') && <DashboardLink href="/admin/referrals" label="Referrals" />}
-          </div>
-        </div>
+        <Section title="Operations">
+          {can('projects') && <Tile href="/admin/projects" label="Projects" icon={FolderOpen} badge={counts.projects} />}
+          {can('users') && <Tile href="/admin/users" label="Users" icon={Users} badge={counts.users} />}
+          {can('support') && <Tile href="/admin/support" label="Support Tickets" icon={LifeBuoy} />}
+          {is_admin && <Tile href="/admin/rsvps" label="RSVPs" icon={Sparkles} />}
+          {can('news') && <Tile href="/admin/news_posts" label="News Posts" icon={Newspaper} />}
+          {can('orders') && (
+            <Tile
+              href="/admin/orders"
+              label="Shop Orders"
+              icon={ShoppingCart}
+              badge={counts.pending_orders || undefined}
+            />
+          )}
+          {can('orders') && <Tile href="/admin/shop_items" label="Shop Items" icon={Store} />}
+          {can('referrals') && <Tile href="/admin/referrals" label="Referrals" icon={Users2} />}
+        </Section>
       )}
 
-      {(can('feature_flags') || can('audit_log') || can('jobs') || is_admin) && (
-        <div>
-          <h2 className="text-xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-4">Dev</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            {can('feature_flags') && (
-              <DashboardLink href="/admin/feature_flags" label={`Feature Flags (${counts.feature_flags})`} />
-            )}
-            {can('audit_log') && <DashboardLink href="/admin/metrics" label="Metrics" />}
-            {can('audit_log') && <DashboardLink href="/admin/audit_log" label="Audit Log" />}
-            {is_admin && <DashboardLink href="/admin/database" label="Database" />}
-            {can('jobs') && <DashboardLink href="/admin/jobs" label="Jobs" external />}
-            {is_superadmin && <DashboardLink href="/admin/reel_payouts" label="Reel Payouts" />}
-            {is_admin && <DashboardLink href="/admin/reel_ads" label="Reel Ads" />}
-          </div>
-        </div>
+      {(can('feature_flags') || can('audit_log') || can('jobs') || is_admin || is_superadmin) && (
+        <Section title="Engineering">
+          {can('feature_flags') && (
+            <Tile href="/admin/feature_flags" label="Feature Flags" icon={Flag} badge={counts.feature_flags} />
+          )}
+          {can('audit_log') && <Tile href="/admin/metrics" label="Metrics" icon={BarChart3} />}
+          {can('audit_log') && <Tile href="/admin/audit_log" label="Audit Log" icon={ScrollText} />}
+          {is_admin && <Tile href="/admin/database" label="Database" icon={Database} />}
+          {can('jobs') && <Tile href="/admin/jobs" label="Background Jobs" icon={Briefcase} external />}
+          {is_superadmin && <Tile href="/admin/reel_payouts" label="Reel Payouts" icon={DollarSign} />}
+          {is_admin && <Tile href="/admin/reel_ads" label="Reel Ads" icon={PlayCircle} />}
+        </Section>
       )}
 
       {can('third_party') && (
-        <div>
-          <h2 className="text-xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-4">3rd Party</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <DashboardLink href="https://sentry.io" label="Sentry" external />
-          </div>
-        </div>
+        <Section title="Third party">
+          <Tile href="https://sentry.io" label="Sentry" icon={Activity} external />
+        </Section>
       )}
 
       {is_superadmin && (
-        <div>
-          <h2 className="text-xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-4">Superadmin</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <DashboardLink href="/admin/airtable_queue" label="Airtable Queue" />
-          </div>
-        </div>
+        <Section title="Superadmin">
+          <Tile href="/admin/airtable_queue" label="Airtable Queue" icon={TableProperties} />
+        </Section>
       )}
     </div>
   )

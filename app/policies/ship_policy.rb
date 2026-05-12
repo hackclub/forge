@@ -17,6 +17,10 @@ class ShipPolicy < ApplicationPolicy
     admin? || staff_reviewer? || assigned_reviewer?
   end
 
+  def review?
+    user&.has_permission?("pending_reviews")
+  end
+
   def destroy?
     admin?
   end

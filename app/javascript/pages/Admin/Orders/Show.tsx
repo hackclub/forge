@@ -1,5 +1,11 @@
 import { useState } from 'react'
 import { Head, Link, router } from '@inertiajs/react'
+import { ArrowLeft, AlertTriangle, Info, Check, X, CheckCircle2 } from 'lucide-react'
+import { Badge } from '@/components/admin/ui/badge'
+import { Button } from '@/components/admin/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/admin/ui/card'
+import { Textarea } from '@/components/admin/ui/textarea'
+import { Input } from '@/components/admin/ui/input'
 
 interface OrderDetail {
   id: number
@@ -38,11 +44,17 @@ interface Warning {
   message: string
 }
 
-const STATUS_STYLES: Record<OrderDetail['status'], string> = {
-  pending: 'bg-amber-500/15 text-amber-400',
-  approved: 'bg-emerald-500/15 text-emerald-400',
-  fulfilled: 'bg-emerald-500/25 text-emerald-300',
-  rejected: 'bg-red-500/15 text-red-400',
+function statusBadge(status: OrderDetail['status']) {
+  switch (status) {
+    case 'approved':
+      return <Badge variant="success">Approved</Badge>
+    case 'fulfilled':
+      return <Badge variant="success">Fulfilled</Badge>
+    case 'rejected':
+      return <Badge variant="destructive">Rejected</Badge>
+    default:
+      return <Badge variant="warning">Pending</Badge>
+  }
 }
 
 export default function AdminOrdersShow({
@@ -83,164 +95,176 @@ export default function AdminOrdersShow({
   return (
     <>
       <Head title={`Order #${order.id} - Admin`} />
-      <div className="p-5 md:p-12 max-w-4xl mx-auto space-y-8">
-        <Link
-          href="/admin/orders"
-          className="text-stone-500 text-sm hover:text-[#ffb595] transition-colors flex items-center gap-1"
-        >
-          <span className="material-symbols-outlined text-sm">arrow_back</span>
-          All orders
-        </Link>
+      <div className="max-w-4xl mx-auto space-y-4">
+        <Button variant="ghost" size="sm" asChild>
+          <Link href="/admin/orders">
+            <ArrowLeft className="size-4" />
+            All orders
+          </Link>
+        </Button>
 
         {warnings.length > 0 && (
           <div className="space-y-2">
-            {warnings.map((w, idx) => (
-              <div
-                key={idx}
-                className={`p-4 border flex items-start gap-3 ${
-                  w.severity === 'warning'
-                    ? 'bg-amber-500/10 border-amber-500/30 text-amber-200'
-                    : 'bg-stone-500/10 border-stone-500/20 text-stone-300'
-                }`}
-              >
-                <span className="material-symbols-outlined text-base shrink-0">
-                  {w.severity === 'warning' ? 'warning' : 'info'}
-                </span>
-                <p className="text-sm leading-relaxed">{w.message}</p>
-              </div>
-            ))}
+            {warnings.map((w, idx) => {
+              const Icon = w.severity === 'warning' ? AlertTriangle : Info
+              return (
+                <Card
+                  key={idx}
+                  className={
+                    w.severity === 'warning'
+                      ? 'border-amber-500/40 bg-amber-500/5'
+                      : 'border-border bg-muted/40'
+                  }
+                >
+                  <CardContent className="p-3 flex items-start gap-2 text-sm">
+                    <Icon className="size-4 shrink-0 mt-0.5" />
+                    <p>{w.message}</p>
+                  </CardContent>
+                </Card>
+              )
+            })}
           </div>
         )}
 
         {order.shop_item_image && (
-          <div className="bg-[#1c1b1b] ghost-border p-6 flex items-center gap-5">
-            <img
-              src={order.shop_item_image}
-              alt={order.shop_item_name || ''}
-              className="w-24 h-24 object-cover shrink-0"
-            />
-            <div className="min-w-0">
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-1">Shop item</p>
-              <p className="font-headline font-bold text-[#e5e2e1] text-lg break-words">{order.shop_item_name}</p>
-            </div>
-          </div>
+          <Card>
+            <CardContent className="p-6 flex items-center gap-4">
+              <img
+                src={order.shop_item_image}
+                alt={order.shop_item_name || ''}
+                className="size-24 object-cover rounded-md border border-border shrink-0"
+              />
+              <div className="min-w-0">
+                <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Shop item</p>
+                <p className="text-lg font-semibold break-words">{order.shop_item_name}</p>
+              </div>
+            </CardContent>
+          </Card>
         )}
 
-        <div className="bg-[#1c1b1b] ghost-border p-8">
-          <div className="flex items-start justify-between gap-4 mb-4 flex-wrap">
-            <div className="min-w-0">
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-1">{order.created_at}</p>
-              <h1 className="text-3xl font-headline font-bold text-[#e5e2e1] tracking-tight break-words">
-                {order.quantity > 1 ? `${order.quantity}× ` : ''}
-                {order.kind_label}
-              </h1>
+        <Card>
+          <CardContent className="p-6 space-y-4">
+            <div className="flex items-start justify-between gap-3 flex-wrap">
+              <div className="min-w-0">
+                <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">{order.created_at}</p>
+                <h1 className="text-2xl font-semibold tracking-tight break-words">
+                  {order.quantity > 1 ? `${order.quantity}× ` : ''}
+                  {order.kind_label}
+                </h1>
+              </div>
+              {statusBadge(order.status)}
             </div>
-            <span className={`text-[10px] font-bold uppercase tracking-wider px-3 py-1 ${STATUS_STYLES[order.status]}`}>
-              {order.status}
-            </span>
-          </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-6">
-            <div className="bg-[#0e0e0e] p-4">
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-1">Amount</p>
-              <p className="text-2xl font-headline font-bold text-[#e5e2e1]">
-                {order.amount_usd != null ? `$${order.amount_usd}` : '-'}
-              </p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <div className="rounded-md bg-muted p-3">
+                <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Amount</p>
+                <p className="text-xl font-semibold">{order.amount_usd != null ? `$${order.amount_usd}` : '—'}</p>
+              </div>
+              <div className="rounded-md bg-muted p-3">
+                <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Coin cost</p>
+                <p className="text-xl font-semibold">{order.coin_cost}c</p>
+              </div>
+              <div className="rounded-md bg-muted p-3">
+                <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">User balance</p>
+                <p className="text-xl font-semibold">{order.user_balance}c</p>
+              </div>
             </div>
-            <div className="bg-[#0e0e0e] p-4">
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-1">Coin cost</p>
-              <p className="text-2xl font-headline font-bold text-[#ca5924]">{order.coin_cost}c</p>
-            </div>
-            <div className="bg-[#0e0e0e] p-4">
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-1">User balance</p>
-              <p className="text-2xl font-headline font-bold text-[#e5e2e1]">{order.user_balance}c</p>
-            </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        <div className="bg-[#1c1b1b] ghost-border p-6">
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-3">Requested by</p>
-          <Link href={`/users/${order.user_id}`} className="flex items-center gap-3 group">
-            <img src={order.user_avatar} alt={order.user_display_name} className="w-10 h-10 border border-white/10" />
-            <span className="text-[#e5e2e1] group-hover:text-[#ffb595] transition-colors font-headline font-bold">
-              {order.user_display_name}
-            </span>
-          </Link>
-          <p className="text-stone-500 text-sm mt-3">
-            HCB email:{' '}
-            <a href={`mailto:${order.user_email}`} className="text-[#ffb595] hover:text-[#ca5924] font-mono">
-              {order.user_email}
-            </a>
-          </p>
-          {order.project_id && (
-            <p className="text-stone-500 text-sm mt-3">
-              For project:{' '}
-              <Link href={`/admin/projects/${order.project_id}`} className="text-[#ffb595] hover:text-[#ca5924]">
-                {order.project_name}
-              </Link>
+        <Card>
+          <CardHeader>
+            <CardTitle>Requested by</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <Link href={`/users/${order.user_id}`} className="flex items-center gap-3 hover:underline">
+              <img src={order.user_avatar} alt={order.user_display_name} className="size-10 rounded-full border border-border" />
+              <span className="font-medium">{order.user_display_name}</span>
+            </Link>
+            <p className="text-sm text-muted-foreground">
+              HCB email:{' '}
+              <a href={`mailto:${order.user_email}`} className="font-mono hover:underline">
+                {order.user_email}
+              </a>
             </p>
-          )}
-        </div>
+            {order.project_id && (
+              <p className="text-sm text-muted-foreground">
+                For project:{' '}
+                <Link href={`/admin/projects/${order.project_id}`} className="hover:underline text-foreground">
+                  {order.project_name}
+                </Link>
+              </p>
+            )}
+          </CardContent>
+        </Card>
 
         {order.kind === 'shop_item' && (
-          <div className="bg-[#1c1b1b] ghost-border p-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-3">Region</p>
-              <p className="text-[#e5e2e1] text-sm">
-                {order.region ? regions[order.region] || order.region : 'Not set'}
-              </p>
-            </div>
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-3">Assigned to</p>
-              <select
-                value={order.assigned_to_id?.toString() || ''}
-                onChange={(e) => router.post(`/admin/orders/${order.id}/reassign`, { assigned_to_id: e.target.value })}
-                className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ca5924]/30 cursor-pointer"
-              >
-                <option value="">Unassigned</option>
-                {fulfillment_users.map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {u.display_name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
+          <Card>
+            <CardContent className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <p className="text-xs text-muted-foreground uppercase tracking-wide mb-2">Region</p>
+                <p>{order.region ? regions[order.region] || order.region : 'Not set'}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground uppercase tracking-wide mb-2">Assigned to</p>
+                <select
+                  value={order.assigned_to_id?.toString() || ''}
+                  onChange={(e) => router.post(`/admin/orders/${order.id}/reassign`, { assigned_to_id: e.target.value })}
+                  className="w-full h-9 rounded-md border border-border bg-background px-3 text-sm cursor-pointer"
+                >
+                  <option value="">Unassigned</option>
+                  {fulfillment_users.map((u) => (
+                    <option key={u.id} value={u.id}>
+                      {u.display_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </CardContent>
+          </Card>
         )}
 
         {order.description && (
-          <div className="bg-[#1c1b1b] ghost-border p-6">
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-3">Notes from user</p>
-            <p className="text-stone-300 text-sm whitespace-pre-wrap break-words">{order.description}</p>
-          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Notes from user</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm whitespace-pre-wrap break-words">{order.description}</p>
+            </CardContent>
+          </Card>
         )}
 
         {order.review_notes && (
-          <div className="bg-[#1c1b1b] ghost-border p-6">
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-3">Staff review notes</p>
-            <p className="text-stone-300 text-sm whitespace-pre-wrap break-words">{order.review_notes}</p>
-            {order.reviewer_name && (
-              <p className="text-stone-600 text-xs mt-2">
-                - {order.reviewer_name} on {order.reviewed_at}
-              </p>
-            )}
-          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Staff review notes</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm whitespace-pre-wrap break-words">{order.review_notes}</p>
+              {order.reviewer_name && (
+                <p className="text-xs text-muted-foreground mt-2">
+                  — {order.reviewer_name} on {order.reviewed_at}
+                </p>
+              )}
+            </CardContent>
+          </Card>
         )}
 
         {(order.internal_order_link || order.internal_price_usd != null) && (
-          <div className="bg-[#1c1b1b] ghost-border p-6">
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-3">
-              Internal (from shop item)
-            </p>
-            <div className="space-y-2 text-sm">
+          <Card>
+            <CardHeader>
+              <CardTitle>Internal (from shop item)</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2 text-sm">
               {order.internal_order_link && (
                 <div className="flex items-center gap-2 min-w-0">
-                  <span className="text-stone-500 text-xs shrink-0">Order link:</span>
+                  <span className="text-muted-foreground text-xs shrink-0">Order link:</span>
                   <a
                     href={order.internal_order_link}
                     target="_blank"
                     rel="noopener"
-                    className="text-[#ffb595] hover:text-[#ca5924] truncate"
+                    className="truncate hover:underline"
                   >
                     {order.internal_order_link}
                   </a>
@@ -248,77 +272,72 @@ export default function AdminOrdersShow({
               )}
               {order.internal_price_usd != null && (
                 <div className="flex items-center gap-2">
-                  <span className="text-stone-500 text-xs">Cost incl. shipping:</span>
-                  <span className="text-[#e5e2e1] font-headline font-bold">${order.internal_price_usd}</span>
+                  <span className="text-muted-foreground text-xs">Cost incl. shipping:</span>
+                  <span className="font-semibold">${order.internal_price_usd}</span>
                 </div>
               )}
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         )}
 
         {order.status === 'pending' && (
-          <div className="bg-[#1c1b1b] ghost-border p-6 space-y-4">
-            <h2 className="text-xl font-headline font-bold text-[#e5e2e1] tracking-tight">Review</h2>
-            <textarea
-              value={reviewNotes}
-              onChange={(e) => setReviewNotes(e.target.value)}
-              rows={3}
-              placeholder="Notes for the user (required when rejecting)..."
-              className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 resize-y"
-            />
-            <div className="flex gap-3">
-              <button
-                onClick={approve}
-                className="flex-1 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 font-headline font-bold py-3 uppercase tracking-wider text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-base">check</span>
-                Approve
-              </button>
-              <button
-                onClick={reject}
-                className="flex-1 bg-red-500/20 hover:bg-red-500/30 text-red-400 font-headline font-bold py-3 uppercase tracking-wider text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-base">close</span>
-                Reject
-              </button>
-            </div>
-          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Review</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Textarea
+                value={reviewNotes}
+                onChange={(e) => setReviewNotes(e.target.value)}
+                placeholder="Notes for the user (required when rejecting)..."
+              />
+              <div className="flex gap-2">
+                <Button onClick={approve} className="flex-1">
+                  <Check className="size-4" />
+                  Approve
+                </Button>
+                <Button onClick={reject} variant="destructive" className="flex-1">
+                  <X className="size-4" />
+                  Reject
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         )}
 
         {order.status === 'approved' && (
-          <div className="bg-[#1c1b1b] ghost-border p-6 space-y-4">
-            <h2 className="text-xl font-headline font-bold text-[#e5e2e1] tracking-tight">Mark fulfilled</h2>
-            <p className="text-stone-500 text-sm">Issue the HCB grant manually or paste the tracking link!</p>
-            <input
-              type="url"
-              value={grantLink}
-              onChange={(e) => setGrantLink(e.target.value)}
-              placeholder="https://hcb.hackclub.com/..."
-              className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600"
-            />
-            <button
-              onClick={fulfill}
-              className="signature-smolder text-[#4c1a00] px-5 py-3 font-bold uppercase tracking-wider text-xs cursor-pointer flex items-center gap-2"
-            >
-              <span className="material-symbols-outlined text-base">check_circle</span>
-              Mark Fulfilled
-            </button>
-          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Mark fulfilled</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <p className="text-sm text-muted-foreground">Issue the HCB grant manually or paste the tracking link!</p>
+              <Input
+                type="url"
+                value={grantLink}
+                onChange={(e) => setGrantLink(e.target.value)}
+                placeholder="https://hcb.hackclub.com/..."
+              />
+              <Button onClick={fulfill}>
+                <CheckCircle2 className="size-4" />
+                Mark Fulfilled
+              </Button>
+            </CardContent>
+          </Card>
         )}
 
         {order.status === 'fulfilled' && order.hcb_grant_link && (
-          <div className="bg-[#1c1b1b] ghost-border p-6">
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-3">Grant link</p>
-            <a
-              href={order.hcb_grant_link}
-              target="_blank"
-              rel="noopener"
-              className="text-[#ffb595] hover:text-[#ca5924] text-sm break-all"
-            >
-              {order.hcb_grant_link}
-            </a>
-            {order.fulfilled_at && <p className="text-stone-600 text-xs mt-2">Fulfilled on {order.fulfilled_at}</p>}
-          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Grant link</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <a href={order.hcb_grant_link} target="_blank" rel="noopener" className="text-sm break-all hover:underline">
+                {order.hcb_grant_link}
+              </a>
+              {order.fulfilled_at && <p className="text-xs text-muted-foreground">Fulfilled on {order.fulfilled_at}</p>}
+            </CardContent>
+          </Card>
         )}
       </div>
     </>

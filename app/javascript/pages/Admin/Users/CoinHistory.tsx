@@ -1,4 +1,15 @@
 import { Head, Link } from '@inertiajs/react'
+import {
+  ArrowLeft,
+  Sliders,
+  ShoppingCart,
+  Undo2,
+  CheckCircle2,
+  TrendingUp,
+  type LucideIcon,
+} from 'lucide-react'
+import { Card, CardContent } from '@/components/admin/ui/card'
+import { Button } from '@/components/admin/ui/button'
 
 interface ProfileUser {
   id: number
@@ -22,20 +33,22 @@ interface Entry {
   details: Record<string, string | number | null>
 }
 
-const TYPE_STYLES: Record<Entry['type'], { color: string; icon: string; label: string }> = {
-  adjustment: { color: 'text-amber-400', icon: 'tune', label: 'Manual adjustment' },
-  order_placed: { color: 'text-red-400', icon: 'shopping_cart', label: 'Order placed' },
-  order_refunded: { color: 'text-emerald-400', icon: 'undo', label: 'Refund' },
-  order_fulfilled: { color: 'text-stone-400', icon: 'check_circle', label: 'Fulfilled' },
-  earned: { color: 'text-emerald-400', icon: 'trending_up', label: 'Earned' },
+const TYPE_STYLES: Record<Entry['type'], { color: string; icon: LucideIcon; label: string }> = {
+  adjustment: { color: 'text-amber-600 dark:text-amber-400', icon: Sliders, label: 'Manual adjustment' },
+  order_placed: { color: 'text-red-600 dark:text-red-400', icon: ShoppingCart, label: 'Order placed' },
+  order_refunded: { color: 'text-emerald-600 dark:text-emerald-400', icon: Undo2, label: 'Refund' },
+  order_fulfilled: { color: 'text-muted-foreground', icon: CheckCircle2, label: 'Fulfilled' },
+  earned: { color: 'text-emerald-600 dark:text-emerald-400', icon: TrendingUp, label: 'Earned' },
 }
 
 function StatTile({ label, value }: { label: string; value: string }) {
   return (
-    <div className="bg-[#1c1b1b] ghost-border p-4">
-      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-1">{label}</p>
-      <p className="text-2xl font-headline font-bold text-[#e5e2e1]">{value}</p>
-    </div>
+    <Card>
+      <CardContent className="p-4">
+        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">{label}</p>
+        <p className="text-2xl font-semibold">{value}</p>
+      </CardContent>
+    </Card>
   )
 }
 
@@ -43,8 +56,8 @@ function renderDetailRow(key: string, value: unknown) {
   if (value === null || value === undefined || value === '') return null
   return (
     <div key={key} className="flex items-start justify-between gap-3 text-xs">
-      <span className="text-stone-600 font-mono">{key}</span>
-      <span className="text-stone-300 text-right break-all [overflow-wrap:anywhere] min-w-0">
+      <span className="text-muted-foreground font-mono">{key}</span>
+      <span className="text-right break-all min-w-0">
         {typeof value === 'string' || typeof value === 'number' ? String(value) : JSON.stringify(value)}
       </span>
     </div>
@@ -63,20 +76,19 @@ export default function AdminUsersCoinHistory({
   return (
     <>
       <Head title={`Coin history - ${user.display_name}`} />
-      <div className="p-5 md:p-12 max-w-4xl mx-auto space-y-8">
-        <Link
-          href={`/admin/users/${user.id}`}
-          className="text-stone-500 text-sm hover:text-[#ffb595] transition-colors flex items-center gap-1"
-        >
-          <span className="material-symbols-outlined text-sm">arrow_back</span>
-          Back to {user.display_name}
-        </Link>
+      <div className="max-w-4xl mx-auto space-y-6">
+        <Button variant="ghost" size="sm" asChild>
+          <Link href={`/admin/users/${user.id}`}>
+            <ArrowLeft className="size-4" />
+            Back to {user.display_name}
+          </Link>
+        </Button>
 
         <div className="flex items-center gap-4">
-          <img src={user.avatar} alt={user.display_name} className="w-14 h-14 border border-white/10" />
+          <img src={user.avatar} alt={user.display_name} className="size-12 rounded-full" />
           <div>
-            <h1 className="text-3xl font-headline font-bold text-[#e5e2e1] tracking-tight">Coin history</h1>
-            <p className="text-stone-500 text-sm">Every steel coin movement for {user.display_name}.</p>
+            <h1 className="text-2xl font-semibold tracking-tight">Coin history</h1>
+            <p className="text-sm text-muted-foreground">Every steel coin movement for {user.display_name}.</p>
           </div>
         </div>
 
@@ -88,41 +100,46 @@ export default function AdminUsersCoinHistory({
         </div>
 
         {entries.length === 0 ? (
-          <div className="bg-[#1c1b1b] ghost-border p-12 text-center">
-            <p className="text-stone-500 text-sm">No coin activity yet.</p>
-          </div>
+          <Card>
+            <CardContent className="p-12 text-center text-sm text-muted-foreground">No coin activity yet.</CardContent>
+          </Card>
         ) : (
           <div className="space-y-3">
             {entries.map((entry, idx) => {
               const style = TYPE_STYLES[entry.type]
+              const Icon = style.icon
               const detailKeys = Object.keys(entry.details)
               return (
-                <div key={idx} className="bg-[#1c1b1b] ghost-border p-5 min-w-0 overflow-hidden">
-                  <div className="flex items-start justify-between gap-4 mb-3 flex-wrap">
-                    <div className="flex items-start gap-3 min-w-0">
-                      <span className={`material-symbols-outlined text-xl shrink-0 ${style.color}`}>{style.icon}</span>
-                      <div className="min-w-0">
-                        <p className="text-[#e5e2e1] text-sm break-words">{entry.label}</p>
-                        <p className="text-[10px] uppercase tracking-[0.2em] text-stone-600 mt-0.5">
-                          {style.label} · {entry.date}
-                        </p>
+                <Card key={idx}>
+                  <CardContent className="p-4 space-y-2">
+                    <div className="flex items-start justify-between gap-3 flex-wrap">
+                      <div className="flex items-start gap-3 min-w-0">
+                        <Icon className={`size-5 shrink-0 ${style.color}`} />
+                        <div className="min-w-0">
+                          <p className="text-sm break-words">{entry.label}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5 uppercase tracking-wide">
+                            {style.label} · {entry.date}
+                          </p>
+                        </div>
                       </div>
+                      {entry.amount !== 0 && (
+                        <span
+                          className={`text-lg font-semibold shrink-0 ${
+                            entry.amount >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
+                          }`}
+                        >
+                          {entry.amount >= 0 ? '+' : ''}
+                          {entry.amount}c
+                        </span>
+                      )}
                     </div>
-                    {entry.amount !== 0 && (
-                      <span
-                        className={`text-xl font-headline font-bold shrink-0 ${entry.amount >= 0 ? 'text-emerald-400' : 'text-red-400'}`}
-                      >
-                        {entry.amount >= 0 ? '+' : ''}
-                        {entry.amount}c
-                      </span>
+                    {detailKeys.length > 0 && (
+                      <div className="space-y-1 pl-8 pt-2 border-t border-border">
+                        {detailKeys.map((key) => renderDetailRow(key, entry.details[key]))}
+                      </div>
                     )}
-                  </div>
-                  {detailKeys.length > 0 && (
-                    <div className="space-y-1 pl-8 pt-2 border-t border-white/5">
-                      {detailKeys.map((key) => renderDetailRow(key, entry.details[key]))}
-                    </div>
-                  )}
-                </div>
+                  </CardContent>
+                </Card>
               )
             })}
           </div>

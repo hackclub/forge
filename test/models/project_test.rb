@@ -3,6 +3,7 @@
 # Table name: projects
 #
 #  id                           :bigint           not null, primary key
+#  approval_justification       :text
 #  budget                       :text
 #  build_proof_url              :string
 #  built_at                     :datetime

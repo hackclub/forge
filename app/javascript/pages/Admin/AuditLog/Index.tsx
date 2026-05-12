@@ -1,5 +1,40 @@
 import { router, Link } from '@inertiajs/react'
-import Pagination from '@/components/Pagination'
+import {
+  CheckCircle2,
+  Undo2,
+  XCircle,
+  Trash2,
+  Trash,
+  RotateCcw,
+  PlusCircle,
+  Pencil,
+  ToggleRight,
+  Gavel,
+  ShieldCheck,
+  KeyRound,
+  BadgeCheck,
+  StickyNote,
+  Heart,
+  HeartCrack,
+  LogIn,
+  LogOut,
+  Database,
+  Download,
+  Reply,
+  Hand,
+  CheckCheck,
+  Eye,
+  Star,
+  Megaphone,
+  FileEdit,
+  RefreshCw,
+  Info,
+  ArrowRight,
+  type LucideIcon,
+} from 'lucide-react'
+import { Card, CardContent } from '@/components/admin/ui/card'
+import { Button } from '@/components/admin/ui/button'
+import AdminPagination from '@/components/admin/AdminPagination'
 import type { PagyProps } from '@/types'
 
 interface AuditEntry {
@@ -15,44 +50,44 @@ interface AuditEntry {
   created_at: string
 }
 
-const ACTION_ICONS: Record<string, { icon: string; color: string }> = {
-  approved: { icon: 'check_circle', color: 'text-emerald-400' },
-  returned: { icon: 'undo', color: 'text-amber-400' },
-  rejected: { icon: 'cancel', color: 'text-red-400' },
-  destroyed: { icon: 'delete', color: 'text-red-400' },
-  soft_deleted: { icon: 'delete_sweep', color: 'text-red-400' },
-  restored: { icon: 'restore', color: 'text-emerald-400' },
-  created: { icon: 'add_circle', color: 'text-emerald-400' },
-  updated: { icon: 'edit', color: 'text-amber-400' },
-  toggled: { icon: 'toggle_on', color: 'text-amber-400' },
-  banned: { icon: 'gavel', color: 'text-red-400' },
-  unbanned: { icon: 'verified_user', color: 'text-emerald-400' },
-  permissions_updated: { icon: 'key', color: 'text-amber-400' },
-  roles_updated: { icon: 'badge', color: 'text-amber-400' },
-  beta_approval_toggled: { icon: 'verified', color: 'text-amber-400' },
-  note_added: { icon: 'sticky_note_2', color: 'text-stone-400' },
-  note_destroyed: { icon: 'sticky_note_2', color: 'text-red-400' },
-  kudo_added: { icon: 'favorite', color: 'text-[#ca5924]' },
-  kudo_destroyed: { icon: 'heart_broken', color: 'text-red-400' },
-  signed_in: { icon: 'login', color: 'text-stone-400' },
-  signed_out: { icon: 'logout', color: 'text-stone-400' },
-  queried: { icon: 'database', color: 'text-amber-400' },
-  exported: { icon: 'download', color: 'text-stone-400' },
-  replied: { icon: 'reply', color: 'text-stone-400' },
-  claimed: { icon: 'pan_tool', color: 'text-amber-400' },
-  resolved: { icon: 'task_alt', color: 'text-emerald-400' },
-  visibility_toggled: { icon: 'visibility', color: 'text-amber-400' },
-  staff_pick_toggled: { icon: 'star', color: 'text-amber-400' },
-  publish_toggled: { icon: 'campaign', color: 'text-amber-400' },
-  reverted_to_draft: { icon: 'undo', color: 'text-amber-400' },
-  pitch_approved: { icon: 'check_circle', color: 'text-emerald-400' },
-  review_notes_saved: { icon: 'edit_note', color: 'text-amber-400' },
-  readme_refreshed: { icon: 'refresh', color: 'text-stone-400' },
+const ACTION_ICONS: Record<string, { icon: LucideIcon; color: string }> = {
+  approved: { icon: CheckCircle2, color: 'text-emerald-600 dark:text-emerald-400' },
+  returned: { icon: Undo2, color: 'text-amber-600 dark:text-amber-400' },
+  rejected: { icon: XCircle, color: 'text-red-600 dark:text-red-400' },
+  destroyed: { icon: Trash2, color: 'text-red-600 dark:text-red-400' },
+  soft_deleted: { icon: Trash, color: 'text-red-600 dark:text-red-400' },
+  restored: { icon: RotateCcw, color: 'text-emerald-600 dark:text-emerald-400' },
+  created: { icon: PlusCircle, color: 'text-emerald-600 dark:text-emerald-400' },
+  updated: { icon: Pencil, color: 'text-amber-600 dark:text-amber-400' },
+  toggled: { icon: ToggleRight, color: 'text-amber-600 dark:text-amber-400' },
+  banned: { icon: Gavel, color: 'text-red-600 dark:text-red-400' },
+  unbanned: { icon: ShieldCheck, color: 'text-emerald-600 dark:text-emerald-400' },
+  permissions_updated: { icon: KeyRound, color: 'text-amber-600 dark:text-amber-400' },
+  roles_updated: { icon: BadgeCheck, color: 'text-amber-600 dark:text-amber-400' },
+  beta_approval_toggled: { icon: ShieldCheck, color: 'text-amber-600 dark:text-amber-400' },
+  note_added: { icon: StickyNote, color: 'text-muted-foreground' },
+  note_destroyed: { icon: StickyNote, color: 'text-red-600 dark:text-red-400' },
+  kudo_added: { icon: Heart, color: 'text-pink-600 dark:text-pink-400' },
+  kudo_destroyed: { icon: HeartCrack, color: 'text-red-600 dark:text-red-400' },
+  signed_in: { icon: LogIn, color: 'text-muted-foreground' },
+  signed_out: { icon: LogOut, color: 'text-muted-foreground' },
+  queried: { icon: Database, color: 'text-amber-600 dark:text-amber-400' },
+  exported: { icon: Download, color: 'text-muted-foreground' },
+  replied: { icon: Reply, color: 'text-muted-foreground' },
+  claimed: { icon: Hand, color: 'text-amber-600 dark:text-amber-400' },
+  resolved: { icon: CheckCheck, color: 'text-emerald-600 dark:text-emerald-400' },
+  visibility_toggled: { icon: Eye, color: 'text-amber-600 dark:text-amber-400' },
+  staff_pick_toggled: { icon: Star, color: 'text-amber-600 dark:text-amber-400' },
+  publish_toggled: { icon: Megaphone, color: 'text-amber-600 dark:text-amber-400' },
+  reverted_to_draft: { icon: FileEdit, color: 'text-amber-600 dark:text-amber-400' },
+  pitch_approved: { icon: CheckCircle2, color: 'text-emerald-600 dark:text-emerald-400' },
+  review_notes_saved: { icon: FileEdit, color: 'text-amber-600 dark:text-amber-400' },
+  readme_refreshed: { icon: RefreshCw, color: 'text-muted-foreground' },
 }
 
 function iconFor(action: string) {
   const verb = action.split('.').pop() || ''
-  return ACTION_ICONS[verb] || { icon: 'info', color: 'text-stone-400' }
+  return ACTION_ICONS[verb] || { icon: Info, color: 'text-muted-foreground' }
 }
 
 export default function AdminAuditLogIndex({
@@ -77,18 +112,17 @@ export default function AdminAuditLogIndex({
     )
   }
 
-  return (
-    <div className="p-5 md:p-12 max-w-[1400px] mx-auto">
-      <h1 className="text-4xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-2">Audit Log</h1>
+  const selectCls =
+    'h-9 rounded-md border border-border bg-background px-3 text-sm text-foreground cursor-pointer'
 
-      <div className="flex flex-wrap gap-4 mb-8">
-        <div>
-          <label className="block text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600 mb-2">Action</label>
-          <select
-            value={filters.action}
-            onChange={(e) => applyFilter('action', e.target.value)}
-            className="bg-[#0e0e0e] border-none px-4 py-2 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ca5924]/30"
-          >
+  return (
+    <div className="max-w-6xl mx-auto space-y-6">
+      <h1 className="text-2xl font-semibold tracking-tight">Audit Log</h1>
+
+      <div className="flex flex-wrap gap-3 items-end">
+        <div className="space-y-1">
+          <label className="text-xs font-medium text-muted-foreground">Action</label>
+          <select value={filters.action} onChange={(e) => applyFilter('action', e.target.value)} className={selectCls}>
             <option value="">All actions</option>
             {actions.map((a) => (
               <option key={a} value={a}>
@@ -97,14 +131,12 @@ export default function AdminAuditLogIndex({
             ))}
           </select>
         </div>
-        <div>
-          <label className="block text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600 mb-2">
-            Target Type
-          </label>
+        <div className="space-y-1">
+          <label className="text-xs font-medium text-muted-foreground">Target Type</label>
           <select
             value={filters.target_type}
             onChange={(e) => applyFilter('target_type', e.target.value)}
-            className="bg-[#0e0e0e] border-none px-4 py-2 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ca5924]/30"
+            className={selectCls}
           >
             <option value="">All targets</option>
             {target_types.map((t) => (
@@ -115,57 +147,49 @@ export default function AdminAuditLogIndex({
           </select>
         </div>
         {(filters.action || filters.target_type || filters.actor_id) && (
-          <div className="flex items-end">
-            <button
-              onClick={() => router.get('/admin/audit_log')}
-              className="ghost-border text-stone-400 hover:text-[#e5e2e1] px-4 py-2 text-xs font-bold uppercase tracking-wider cursor-pointer transition-colors"
-            >
-              Clear
-            </button>
-          </div>
+          <Button variant="outline" size="sm" onClick={() => router.get('/admin/audit_log')}>
+            Clear
+          </Button>
         )}
       </div>
 
-      {entries.length > 0 ? (
-        <>
-          <div className="space-y-2">
-            {entries.map((entry) => {
-              const ic = iconFor(entry.action)
-              return (
-                <Link
-                  key={entry.id}
-                  href={`/admin/audit_log/${entry.id}`}
-                  className="block bg-[#1c1b1b] ghost-border px-5 py-4 hover:bg-[#2a2a2a] transition-all group"
-                >
-                  <div className="flex items-center justify-between gap-4">
+      {entries.length === 0 ? (
+        <Card>
+          <CardContent className="p-12 text-center">
+            <p className="text-base font-medium mb-1">No audit entries</p>
+            <p className="text-sm text-muted-foreground">Nothing has been logged yet.</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-2">
+          {entries.map((entry) => {
+            const ic = iconFor(entry.action)
+            const Icon = ic.icon
+            return (
+              <Link key={entry.id} href={`/admin/audit_log/${entry.id}`} className="block group">
+                <Card className="group-hover:bg-accent transition-colors">
+                  <CardContent className="p-4 flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3 min-w-0">
-                      <span className={`material-symbols-outlined text-lg ${ic.color} shrink-0`}>{ic.icon}</span>
+                      <Icon className={`size-4 shrink-0 ${ic.color}`} />
                       <div className="min-w-0">
-                        <p className="text-[#e5e2e1] text-sm truncate">{entry.description}</p>
-                        <p className="text-stone-600 text-xs mt-0.5">
-                          by <span className="text-stone-500">{entry.actor_name}</span>
-                          <span className="text-stone-700 mx-2">·</span>
-                          <span className="text-stone-600 font-mono">{entry.action}</span>
+                        <p className="text-sm truncate">{entry.description}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          by <span className="text-foreground">{entry.actor_name}</span>
+                          <span className="mx-2">·</span>
+                          <span className="font-mono">{entry.action}</span>
                         </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
-                      <span className="text-stone-600 text-xs">{entry.created_at}</span>
-                      <span className="material-symbols-outlined text-stone-600 group-hover:text-[#ffb595] transition-colors text-sm">
-                        arrow_forward
-                      </span>
+                      <span className="text-xs text-muted-foreground">{entry.created_at}</span>
+                      <ArrowRight className="size-4 text-muted-foreground" />
                     </div>
-                  </div>
-                </Link>
-              )
-            })}
-          </div>
-          <Pagination pagy={pagy} />
-        </>
-      ) : (
-        <div className="ghost-border bg-[#1c1b1b] p-16 text-center">
-          <p className="text-stone-300 text-lg font-headline font-medium mb-2">No audit entries</p>
-          <p className="text-stone-500 text-sm">Nothing has been logged yet.</p>
+                  </CardContent>
+                </Card>
+              </Link>
+            )
+          })}
+          {pagy && pagy.pages > 1 && <AdminPagination pagy={pagy} />}
         </div>
       )}
     </div>

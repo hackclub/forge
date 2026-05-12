@@ -3,6 +3,127 @@
 @plugin '@tailwindcss/typography';
 @plugin '@tailwindcss/forms';
 
+@theme {
+  --color-background: oklch(1 0 0);
+  --color-foreground: oklch(0.145 0 0);
+  --color-card: oklch(1 0 0);
+  --color-card-foreground: oklch(0.145 0 0);
+  --color-popover: oklch(1 0 0);
+  --color-popover-foreground: oklch(0.145 0 0);
+  --color-primary: oklch(0.205 0 0);
+  --color-primary-foreground: oklch(0.985 0 0);
+  --color-secondary: oklch(0.97 0 0);
+  --color-secondary-foreground: oklch(0.205 0 0);
+  --color-muted: oklch(0.97 0 0);
+  --color-muted-foreground: oklch(0.556 0 0);
+  --color-accent: oklch(0.97 0 0);
+  --color-accent-foreground: oklch(0.205 0 0);
+  --color-destructive: oklch(0.577 0.245 27.325);
+  --color-destructive-foreground: oklch(0.985 0 0);
+  --color-border: oklch(0.885 0 0);
+  --color-input: oklch(0.885 0 0);
+  --color-ring: oklch(0.708 0 0);
+  --color-sidebar: oklch(0.96 0 0);
+  --color-sidebar-foreground: oklch(0.145 0 0);
+  --color-sidebar-primary: oklch(0.205 0 0);
+  --color-sidebar-primary-foreground: oklch(0.985 0 0);
+  --color-sidebar-accent: oklch(0.94 0 0);
+  --color-sidebar-accent-foreground: oklch(0.205 0 0);
+  --color-sidebar-border: oklch(0.88 0 0);
+  --color-sidebar-ring: oklch(0.708 0 0);
+}
+
+.admin {
+  --radius: 0.5rem;
+  color-scheme: light;
+  font-family:
+    'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+}
+
+.admin.dark {
+  --color-background: oklch(0.145 0 0);
+  --color-foreground: oklch(0.985 0 0);
+  --color-card: oklch(0.205 0 0);
+  --color-card-foreground: oklch(0.985 0 0);
+  --color-popover: oklch(0.205 0 0);
+  --color-popover-foreground: oklch(0.985 0 0);
+  --color-primary: oklch(0.985 0 0);
+  --color-primary-foreground: oklch(0.205 0 0);
+  --color-secondary: oklch(0.269 0 0);
+  --color-secondary-foreground: oklch(0.985 0 0);
+  --color-muted: oklch(0.269 0 0);
+  --color-muted-foreground: oklch(0.708 0 0);
+  --color-accent: oklch(0.269 0 0);
+  --color-accent-foreground: oklch(0.985 0 0);
+  --color-destructive: oklch(0.55 0.22 27);
+  --color-destructive-foreground: oklch(0.985 0 0);
+  --color-border: oklch(0.3 0 0);
+  --color-input: oklch(0.3 0 0);
+  --color-ring: oklch(0.439 0 0);
+  --color-sidebar: oklch(0.115 0 0);
+  --color-sidebar-foreground: oklch(0.985 0 0);
+  --color-sidebar-primary: oklch(0.985 0 0);
+  --color-sidebar-primary-foreground: oklch(0.205 0 0);
+  --color-sidebar-accent: oklch(0.22 0 0);
+  --color-sidebar-accent-foreground: oklch(0.985 0 0);
+  --color-sidebar-border: oklch(0.3 0 0);
+  --color-sidebar-ring: oklch(0.439 0 0);
+
+  color-scheme: dark;
+}
+
+.admin * {
+  border-radius: revert;
+}
+
+.admin .markdown-content {
+  color: var(--color-foreground);
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
+.admin .markdown-content a {
+  color: oklch(0.55 0.18 240);
+}
+
+.admin.dark .markdown-content a {
+  color: oklch(0.75 0.15 240);
+}
+
+.admin .markdown-content code {
+  background: var(--color-muted);
+  color: var(--color-foreground);
+}
+
+.admin .markdown-content pre {
+  background: var(--color-muted);
+  color: var(--color-foreground);
+}
+
+.admin .markdown-content blockquote {
+  background: var(--color-muted);
+  border-left-color: var(--color-border);
+}
+
+.admin .markdown-content h1,
+.admin .markdown-content h2,
+.admin .markdown-content h3,
+.admin .markdown-content h4 {
+  color: var(--color-foreground);
+  font-family: inherit;
+}
+
+.admin .markdown-content th {
+  background: var(--color-muted);
+  color: var(--color-foreground);
+  border-color: var(--color-border);
+}
+
+.admin .markdown-content td {
+  border-color: var(--color-border);
+}
+
 @font-face {
   font-family: 'IM Fell English';
   src: url('/IMFellEnglish-Regular.ttf') format('truetype');
@@ -26,7 +147,7 @@ html, body {
   -webkit-font-smoothing: antialiased;
 }
 
-* {
+:where(*):not(.admin):not(.admin *) {
   border-radius: 0 !important;
 }
 
