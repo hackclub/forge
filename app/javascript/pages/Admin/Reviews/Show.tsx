@@ -285,6 +285,15 @@ export default function AdminReviewsShow({
     [project, reviewer, claimedHours, approvedHours, reasoning],
   )
 
+  const changeTier = useCallback(
+    (newTier: string) => {
+      if (newTier === project.tier) return
+      if (!confirm(`Change tier from ${project.tier.replace('_', ' ')} to ${newTier.replace('_', ' ')}?`)) return
+      router.post(`/admin/projects/${project.id}/change_tier`, { tier: newTier }, { preserveScroll: true })
+    },
+    [project.id, project.tier],
+  )
+
   const submit = useCallback(
     (decision: 'approve' | 'return' | 'reject' | 'draft') => {
       const payload: Record<string, string | number | null> = { decision }
@@ -696,6 +705,27 @@ export default function AdminReviewsShow({
                   placeholder="What does the builder need to know?"
                   className="h-20 text-sm"
                 />
+              </div>
+
+              <Separator />
+
+              <div className="space-y-2">
+                <label className="text-xs text-muted-foreground">Override tier</label>
+                <select
+                  value={project.tier}
+                  onChange={(e) => changeTier(e.target.value)}
+                  className="w-full h-9 rounded-md border border-border bg-background px-3 text-sm text-foreground cursor-pointer"
+                >
+                  <option value="tier_4">Tier 4 — 4c/hr</option>
+                  <option value="tier_3">Tier 3 — 4.5c/hr</option>
+                  <option value="tier_2">Tier 2 — 5.5c/hr</option>
+                  <option value="tier_1">Tier 1 — 7c/hr</option>
+                </select>
+                {project.from_slack && project.tier !== 'tier_1' && (
+                  <p className="text-amber-600 dark:text-amber-400 text-[11px]">
+                    Originally a Slack pitch — tier was changed by staff.
+                  </p>
+                )}
               </div>
 
               <Separator />

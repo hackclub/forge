@@ -110,7 +110,6 @@ function buildSections(): { items: NavItem[] }[] {
         { label: 'Review Audits', href: '/admin/review_audits', icon: Activity, permission: 'is_superadmin' },
         { label: 'Metrics', href: '/admin/metrics', icon: BarChart3, permission: 'audit_log' },
         { label: 'Database', href: '/admin/database', icon: Database, permission: 'is_admin' },
-        { label: 'Static Pages', href: '/admin/static_pages', icon: FileText, permission: 'is_admin' },
         { label: 'Airtable Queue', href: '/admin/airtable_queue', icon: TableProperties, permission: 'is_superadmin' },
         { label: 'Jobs', href: '/admin/jobs', icon: Briefcase, external: true, permission: 'jobs' },
         { label: 'Sentry', href: 'https://sentry.io', icon: Activity, external: true, permission: 'third_party' },
