@@ -20,6 +20,20 @@ class Admin::MetricsController < Admin::ApplicationController
     active_now = User.kept.where("last_seen_at > ?", 5.minutes.ago).count
     avg_dau = totals.size.positive? ? (totals.sum.to_f / totals.size).round(1) : 0
 
+    hours_by_day = Devlog
+      .unscope(:order)
+      .where(created_at: start_date.beginning_of_day..today.end_of_day)
+      .group(Arel.sql("DATE(created_at)"))
+      .sum(:time_hours)
+      .transform_keys { |k| k.is_a?(String) ? Date.parse(k) : k }
+
+    daily_hours = (start_date..today).map do |d|
+      { date: d.strftime("%Y-%m-%d"), label: d.strftime("%b %d"), hours: (hours_by_day[d] || 0).to_f.round(1) }
+    end
+    hours_today = (hours_by_day[today] || 0).to_f.round(1)
+    hours_range_total = daily_hours.sum { |d| d[:hours] }
+    avg_hours_per_day = daily_hours.size.positive? ? (hours_range_total / daily_hours.size).round(1) : 0
+
     streaks = UserActivityDay.joins(:user).where(active_on: (today - 1)..today).distinct.pluck(:user_id).map do |uid|
       User.find(uid).current_streak
     end
@@ -91,9 +105,13 @@ class Admin::MetricsController < Admin::ApplicationController
         active_in_range: active_any,
         active_today: active_today,
         active_now: active_now,
-        average_dau: avg_dau
+        average_dau: avg_dau,
+        hours_today: hours_today,
+        hours_range_total: hours_range_total.round(1),
+        avg_hours_per_day: avg_hours_per_day
       },
       daily: daily,
+      daily_hours: daily_hours,
       streak_buckets: streak_buckets,
       referrals: {
         total: referrals_total,

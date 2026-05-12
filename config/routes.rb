@@ -236,6 +236,13 @@ Rails.application.routes.draw do
       get "/" => "static_pages#index", as: :root
       get "pitches" => "projects#pitches", as: :pitches
       get "reviews" => "projects#reviews", as: :reviews
+      get "reviews/:id" => "reviews#show", as: :review
+      post "reviews/:id/skip" => "reviews#skip", as: :skip_review
+      resources :review_sessions, only: [] do
+        member do
+          patch :heartbeat
+        end
+      end
 
       resources :projects, only: [ :index, :show, :destroy ] do
         member do
@@ -246,6 +253,7 @@ Rails.application.routes.draw do
           post :change_tier
           post :add_note
           post :mark_unbuilt
+          post :reverse_review
           delete "notes/:note_id" => "projects#destroy_note", as: :destroy_note
         end
       end
@@ -325,6 +333,10 @@ Rails.application.routes.draw do
         end
       end
       get "metrics" => "metrics#index", as: :metrics
+      get "airtable_sync" => "airtable_sync#index", as: :airtable_sync
+      post "airtable_sync/recheck" => "airtable_sync#recheck", as: :airtable_sync_recheck
+      post "airtable_sync/requeue/:project_id" => "airtable_sync#requeue", as: :airtable_sync_requeue
+      resources :review_audits, only: [ :index, :show ]
       get "audit_log" => "audit_log#index", as: :audit_log
       get "audit_log/:id" => "audit_log#show", as: :audit_log_entry
       get "database" => "database#index", as: :database
@@ -334,6 +346,12 @@ Rails.application.routes.draw do
           post :reply
           post :claim
           post :resolve
+        end
+      end
+      resources :ships, only: [ :index, :show ] do
+        member do
+          post :review
+          post :skip
         end
       end
     end

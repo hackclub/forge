@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_07_233157) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_12_115706) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -239,6 +239,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_07_233157) do
   end
 
   create_table "projects", force: :cascade do |t|
+    t.text "approval_justification"
     t.text "budget"
     t.string "build_proof_url"
     t.datetime "built_at"
@@ -390,6 +391,23 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_07_233157) do
     t.index ["referred_id"], name: "index_referrals_on_referred_id", unique: true
     t.index ["referrer_id"], name: "index_referrals_on_referrer_id"
     t.index ["status"], name: "index_referrals_on_status"
+  end
+
+  create_table "review_sessions", force: :cascade do |t|
+    t.integer "active_seconds", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.string "decision"
+    t.datetime "ended_at"
+    t.integer "heartbeats_count", default: 0, null: false
+    t.datetime "last_heartbeat_at"
+    t.bigint "project_id", null: false
+    t.bigint "reviewer_id", null: false
+    t.datetime "started_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["ended_at"], name: "index_review_sessions_on_ended_at"
+    t.index ["project_id", "reviewer_id"], name: "index_review_sessions_on_project_id_and_reviewer_id"
+    t.index ["project_id"], name: "index_review_sessions_on_project_id"
+    t.index ["reviewer_id"], name: "index_review_sessions_on_reviewer_id"
   end
 
   create_table "rsvps", force: :cascade do |t|
@@ -700,6 +718,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_07_233157) do
   add_foreign_key "referrals", "users", column: "approver_id"
   add_foreign_key "referrals", "users", column: "referred_id"
   add_foreign_key "referrals", "users", column: "referrer_id"
+  add_foreign_key "review_sessions", "projects"
+  add_foreign_key "review_sessions", "users", column: "reviewer_id"
   add_foreign_key "ships", "projects"
   add_foreign_key "ships", "users", column: "reviewer_id"
   add_foreign_key "shop_item_regions", "shop_items"

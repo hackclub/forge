@@ -1,5 +1,11 @@
 import { useState } from 'react'
 import { router } from '@inertiajs/react'
+import { Plus, Trash2 } from 'lucide-react'
+import { Button } from '@/components/admin/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/admin/ui/card'
+import { Input } from '@/components/admin/ui/input'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/admin/ui/table'
+import { Badge } from '@/components/admin/ui/badge'
 
 interface Flag {
   id: number
@@ -32,120 +38,88 @@ export default function AdminFeatureFlagsIndex({ flags }: { flags: Flag[] }) {
   }
 
   return (
-    <div className="p-5 md:p-12 max-w-[1400px] mx-auto">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
-        <h1 className="text-4xl font-headline font-bold text-[#e5e2e1] tracking-tight">Feature Flags</h1>
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="signature-smolder text-[#4c1a00] px-6 py-3 font-bold uppercase tracking-wider text-xs flex items-center gap-2 cursor-pointer"
-        >
-          <span className="material-symbols-outlined text-lg">add</span>
+    <div className="max-w-6xl mx-auto space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold tracking-tight">Feature Flags</h1>
+        <Button onClick={() => setShowForm((v) => !v)}>
+          <Plus className="size-4" />
           New Flag
-        </button>
+        </Button>
       </div>
 
       {showForm && (
-        <form onSubmit={createFlag} className="ghost-border bg-[#1c1b1b] p-6 mb-8 space-y-4">
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">Name</label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 text-sm"
-              placeholder="e.g. new_feature_enabled"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
-              Description
-            </label>
-            <input
-              type="text"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 text-sm"
-              placeholder="What does this flag control?"
-            />
-          </div>
-          <div className="flex gap-3">
-            <button
-              type="submit"
-              className="signature-smolder text-[#4c1a00] px-6 py-3 font-bold uppercase tracking-wider text-xs cursor-pointer"
-            >
-              Create
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowForm(false)}
-              className="ghost-border text-stone-400 px-6 py-3 text-xs font-bold uppercase tracking-wider cursor-pointer"
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
+        <Card>
+          <CardHeader>
+            <CardTitle>New Feature Flag</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={createFlag} className="space-y-3">
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">Name</label>
+                <Input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="e.g. new_feature_enabled"
+                  required
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">Description</label>
+                <Input
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="What does this flag control?"
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button type="submit">Create</Button>
+                <Button type="button" variant="outline" onClick={() => setShowForm(false)}>
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
       )}
 
-      {flags.length > 0 ? (
-        <div className="ghost-border overflow-x-auto">
-          <table className="w-full min-w-[640px]">
-            <thead>
-              <tr className="border-b border-white/5">
-                <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">
-                  Flag
-                </th>
-                <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">
-                  Description
-                </th>
-                <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">
-                  Status
-                </th>
-                <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">
-                  Updated
-                </th>
-                <th className="text-right px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {flags.map((flag) => (
-                <tr key={flag.id} className="border-b border-white/5 hover:bg-[#1c1b1b] transition-colors">
-                  <td className="px-5 py-4 font-headline font-bold text-[#e5e2e1] text-sm">{flag.name}</td>
-                  <td className="px-5 py-4 text-stone-500 text-sm">{flag.description || '-'}</td>
-                  <td className="px-5 py-4">
-                    <button
-                      onClick={() => toggle(flag.id)}
-                      className={`px-3 py-1 text-xs font-bold uppercase tracking-wider cursor-pointer transition-colors ${
-                        flag.enabled
-                          ? 'bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30'
-                          : 'bg-stone-500/20 text-stone-500 hover:bg-stone-500/30'
-                      }`}
-                    >
-                      {flag.enabled ? 'Enabled' : 'Disabled'}
-                    </button>
-                  </td>
-                  <td className="px-5 py-4 text-stone-500 text-xs">{flag.updated_at}</td>
-                  <td className="px-5 py-4 text-right">
-                    <button
-                      onClick={() => destroy(flag.id, flag.name)}
-                      className="text-red-400/50 hover:text-red-400 transition-colors cursor-pointer"
-                    >
-                      <span className="material-symbols-outlined text-lg">delete</span>
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      ) : (
-        <div className="ghost-border bg-[#1c1b1b] p-16 text-center">
-          <p className="text-stone-300 text-lg font-headline font-medium mb-2">No feature flags</p>
-          <p className="text-stone-500 text-sm">Create one to get started.</p>
-        </div>
-      )}
+      <Card>
+        <CardContent className="pt-6">
+          {flags.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-12 text-center">No feature flags. Create one above.</p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Flag</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Updated</TableHead>
+                  <TableHead className="w-12 text-right"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {flags.map((flag) => (
+                  <TableRow key={flag.id}>
+                    <TableCell className="font-mono text-sm">{flag.name}</TableCell>
+                    <TableCell className="text-muted-foreground text-sm">{flag.description || '—'}</TableCell>
+                    <TableCell>
+                      <button onClick={() => toggle(flag.id)} className="cursor-pointer">
+                        {flag.enabled ? <Badge variant="success">Enabled</Badge> : <Badge variant="secondary">Disabled</Badge>}
+                      </button>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-xs">{flag.updated_at}</TableCell>
+                    <TableCell className="text-right">
+                      <Button variant="ghost" size="icon" onClick={() => destroy(flag.id, flag.name)} title="Delete">
+                        <Trash2 className="size-4 text-destructive" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }

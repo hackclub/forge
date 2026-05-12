@@ -241,24 +241,73 @@ export interface AdminProjectDetail {
 
 export interface AdminShipRow {
   id: number
+  status: 'pending' | 'approved' | 'returned' | 'rejected'
+  project_id: number
   project_name: string
+  user_id: number
   user_display_name: string
-  status: string
+  user_avatar: string
   reviewer_display_name: string | null
+  approved_seconds: number | null
+  claimed_hours: number
   created_at: string
+  created_at_iso: string
 }
 
 export interface AdminShipDetail {
   id: number
-  status: string
+  status: 'pending' | 'approved' | 'returned' | 'rejected'
   reviewer_display_name: string | null
+  reviewer_email: string | null
   approved_seconds: number | null
   feedback: string | null
   justification: string | null
   frozen_demo_link: string | null
   frozen_repo_link: string | null
-  project_name: string
+  frozen_screenshot: string | null
+  created_at: string
+  created_at_iso: string
+}
+
+export interface AdminShipProjectContext {
+  id: number
+  name: string
+  subtitle: string | null
+  description: string | null
+  status: ProjectStatus
+  tier: ProjectTier
+  tags: string[]
+  repo_link: string | null
+  cover_image_url: string | null
+  user_id: number
   user_display_name: string
+  user_avatar: string
+  user_email: string
+  total_hours: number
+  devlog_hours: number
+  override_hours: number | null
+  override_hours_justification: string | null
+  reviewed_at: string | null
+  reviewer_display_name: string | null
+  created_at: string
+  coin_rate: number
+}
+
+export interface AdminShipDevlog {
+  id: number
+  title: string
+  content: string
+  time_spent: string | null
+  time_hours: number | null
+  created_at: string
+  meets_requirements: boolean
+}
+
+export interface AdminShipSibling {
+  id: number
+  status: 'pending' | 'approved' | 'returned' | 'rejected'
+  approved_seconds: number | null
+  reviewer_display_name: string | null
   created_at: string
 }
 

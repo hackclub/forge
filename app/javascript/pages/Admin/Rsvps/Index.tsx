@@ -1,6 +1,11 @@
 import { useState } from 'react'
 import { router } from '@inertiajs/react'
-import Pagination from '@/components/Pagination'
+import { Download, Trash2, Search, MailQuestion } from 'lucide-react'
+import { Button } from '@/components/admin/ui/button'
+import { Card, CardContent } from '@/components/admin/ui/card'
+import { Input } from '@/components/admin/ui/input'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/admin/ui/table'
+import AdminPagination from '@/components/admin/AdminPagination'
 import type { PagyProps } from '@/types'
 
 interface RsvpRow {
@@ -33,87 +38,77 @@ export default function AdminRsvpsIndex({
   }
 
   return (
-    <div className="p-5 md:p-12 max-w-[1400px] mx-auto">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
+    <div className="max-w-6xl mx-auto space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-headline font-bold text-[#e5e2e1] tracking-tight">RSVPs</h1>
-          <p className="text-stone-500 text-sm mt-1">
+          <h1 className="text-2xl font-semibold tracking-tight">RSVPs</h1>
+          <p className="text-sm text-muted-foreground mt-1">
             {total} email{total === 1 ? '' : 's'} on the waitlist
           </p>
         </div>
-        <div className="flex gap-3 items-center">
+        <div className="flex gap-2 items-center">
           <form onSubmit={search} className="flex gap-2">
-            <input
-              type="search"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by email"
-              className="bg-[#0e0e0e] border-none px-4 py-2 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 w-64"
-            />
-            <button
-              type="submit"
-              className="ghost-border bg-[#1c1b1b] text-stone-400 hover:bg-[#2a2a2a] hover:text-[#e5e2e1] px-4 py-2 text-xs font-bold uppercase tracking-wider cursor-pointer transition-colors"
-            >
+            <div className="relative">
+              <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+              <Input
+                type="search"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search by email"
+                className="pl-9 w-64"
+              />
+            </div>
+            <Button type="submit" variant="outline" size="sm">
               Search
-            </button>
+            </Button>
           </form>
-          <a
-            href="/admin/rsvps/export"
-            className="signature-smolder text-[#4c1a00] px-5 py-2 text-xs font-bold uppercase tracking-wider flex items-center gap-2"
-          >
-            <span className="material-symbols-outlined text-sm">download</span>
-            Export CSV
-          </a>
+          <Button asChild size="sm">
+            <a href="/admin/rsvps/export">
+              <Download className="size-4" />
+              Export CSV
+            </a>
+          </Button>
         </div>
       </div>
 
-      {rsvps.length > 0 ? (
-        <>
-          <div className="ghost-border overflow-x-auto">
-            <table className="w-full min-w-[560px]">
-              <thead>
-                <tr className="border-b border-white/5 bg-[#1c1b1b]">
-                  <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">
-                    Email
-                  </th>
-                  <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">
-                    Submitted
-                  </th>
-                  <th className="text-right px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {rsvps.map((rsvp) => (
-                  <tr key={rsvp.id} className="border-b border-white/5 hover:bg-[#1c1b1b] transition-colors">
-                    <td className="px-5 py-3 text-[#e5e2e1] text-sm font-mono">{rsvp.email}</td>
-                    <td className="px-5 py-3 text-stone-500 text-sm">{rsvp.created_at}</td>
-                    <td className="px-5 py-3 text-right">
-                      <button
-                        onClick={() => remove(rsvp.id, rsvp.email)}
-                        className="text-stone-600 hover:text-red-400 transition-colors cursor-pointer"
-                      >
-                        <span className="material-symbols-outlined text-lg">delete</span>
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <Pagination pagy={pagy} />
-        </>
+      {rsvps.length === 0 ? (
+        <Card>
+          <CardContent className="p-12 text-center space-y-2">
+            <MailQuestion className="size-12 text-muted-foreground mx-auto" />
+            <p className="text-base font-medium">{query ? 'No matches' : 'No RSVPs yet'}</p>
+            <p className="text-sm text-muted-foreground">
+              {query ? 'Try a different search.' : 'Emails will appear here as people sign up on the landing page.'}
+            </p>
+          </CardContent>
+        </Card>
       ) : (
-        <div className="bg-[#1c1b1b] ghost-border p-16 text-center">
-          <span className="material-symbols-outlined text-5xl text-stone-700 mb-4">mark_email_unread</span>
-          <p className="text-stone-300 text-lg font-headline font-medium mb-2">
-            {query ? 'No matches' : 'No RSVPs yet'}
-          </p>
-          <p className="text-stone-500 text-sm">
-            {query ? 'Try a different search.' : 'Emails will appear here as people sign up on the landing page.'}
-          </p>
-        </div>
+        <Card>
+          <CardContent className="pt-6 space-y-4">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Submitted</TableHead>
+                  <TableHead className="text-right w-12"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {rsvps.map((rsvp) => (
+                  <TableRow key={rsvp.id}>
+                    <TableCell className="font-mono text-sm">{rsvp.email}</TableCell>
+                    <TableCell className="text-muted-foreground text-sm">{rsvp.created_at}</TableCell>
+                    <TableCell className="text-right">
+                      <Button variant="ghost" size="icon" onClick={() => remove(rsvp.id, rsvp.email)}>
+                        <Trash2 className="size-4 text-destructive" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            {pagy && pagy.pages > 1 && <AdminPagination pagy={pagy} />}
+          </CardContent>
+        </Card>
       )}
     </div>
   )

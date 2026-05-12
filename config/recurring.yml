@@ -23,3 +23,8 @@ production:
     class: ReelPayoutJob
     queue: background
     schedule: every day at 3am
+
+  airtable_sync_check:
+    class: AirtableSyncCheckJob
+    queue: background
+    schedule: every 15 minutes

@@ -1,4 +1,8 @@
 import { Head, Link, router } from '@inertiajs/react'
+import { ArrowLeft, Check, X } from 'lucide-react'
+import { Badge } from '@/components/admin/ui/badge'
+import { Button } from '@/components/admin/ui/button'
+import { Card, CardContent } from '@/components/admin/ui/card'
 
 interface PayoutRequest {
   id: number
@@ -26,10 +30,17 @@ interface Props {
   history: PayoutRequest[]
 }
 
-const STATUS_COLOR: Record<string, string> = {
-  pending: 'bg-amber-500/15 text-amber-300',
-  approved: 'bg-emerald-500/15 text-emerald-300',
-  rejected: 'bg-red-500/15 text-red-300',
+function statusBadge(status: string) {
+  switch (status) {
+    case 'approved':
+      return <Badge variant="success">Approved</Badge>
+    case 'rejected':
+      return <Badge variant="destructive">Rejected</Badge>
+    case 'pending':
+      return <Badge variant="warning">Pending</Badge>
+    default:
+      return <Badge variant="secondary">{status}</Badge>
+  }
 }
 
 export default function AdminReelPayoutsIndex({ pending, history }: Props) {
@@ -44,48 +55,43 @@ export default function AdminReelPayoutsIndex({ pending, history }: Props) {
   return (
     <>
       <Head title="Reel Payouts — Admin" />
-      <div className="p-5 md:p-12 max-w-6xl mx-auto">
-        <Link
-          href="/admin"
-          className="ghost-border inline-block px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-stone-500 hover:text-[#e5e2e1] transition-colors mb-6"
-        >
-          ← Admin
-        </Link>
-        <h1 className="text-3xl sm:text-4xl font-headline font-bold tracking-tight text-[#e5e2e1] mb-2">
-          Reel Payouts
-        </h1>
-        <p className="text-stone-500 text-sm mb-10">
-          Approve or reject coin payouts for reels. Approving creates a CoinAdjustment for the reel author.
-        </p>
+      <div className="max-w-6xl mx-auto space-y-6">
+        <Button variant="ghost" size="sm" asChild>
+          <Link href="/admin">
+            <ArrowLeft className="size-4" />
+            Admin
+          </Link>
+        </Button>
 
-        <section className="mb-12">
-          <h2 className="text-xl font-headline font-bold text-[#e5e2e1] mb-4">Pending ({pending.length})</h2>
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Reel Payouts</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Approve or reject coin payouts for reels. Approving creates a CoinAdjustment for the reel author.
+          </p>
+        </div>
+
+        <section>
+          <h2 className="text-base font-semibold tracking-tight mb-3">Pending ({pending.length})</h2>
           {pending.length === 0 ? (
-            <div className="bg-[#1c1b1b] ghost-border p-8 text-center text-stone-500 text-sm">No pending payouts.</div>
+            <Card>
+              <CardContent className="p-8 text-center text-sm text-muted-foreground">No pending payouts.</CardContent>
+            </Card>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-2">
               {pending.map((req) => (
                 <PayoutRow
                   key={req.id}
                   req={req}
                   actions={
                     <>
-                      <button
-                        type="button"
-                        onClick={() => approve(req.id)}
-                        className="bg-emerald-500/15 hover:bg-emerald-500/30 text-emerald-300 px-4 py-2 text-[10px] font-bold uppercase tracking-wider inline-flex items-center gap-1.5 cursor-pointer transition-colors"
-                      >
-                        <span className="material-symbols-outlined text-sm">check</span>
+                      <Button size="sm" onClick={() => approve(req.id)}>
+                        <Check className="size-4" />
                         Approve
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => reject(req.id)}
-                        className="bg-red-500/10 hover:bg-red-500/30 text-red-300 px-4 py-2 text-[10px] font-bold uppercase tracking-wider inline-flex items-center gap-1.5 cursor-pointer transition-colors"
-                      >
-                        <span className="material-symbols-outlined text-sm">close</span>
+                      </Button>
+                      <Button size="sm" variant="destructive" onClick={() => reject(req.id)}>
+                        <X className="size-4" />
                         Reject
-                      </button>
+                      </Button>
                     </>
                   }
                 />
@@ -95,11 +101,13 @@ export default function AdminReelPayoutsIndex({ pending, history }: Props) {
         </section>
 
         <section>
-          <h2 className="text-xl font-headline font-bold text-[#e5e2e1] mb-4">Recent history</h2>
+          <h2 className="text-base font-semibold tracking-tight mb-3">Recent history</h2>
           {history.length === 0 ? (
-            <div className="bg-[#1c1b1b] ghost-border p-8 text-center text-stone-500 text-sm">No history yet.</div>
+            <Card>
+              <CardContent className="p-8 text-center text-sm text-muted-foreground">No history yet.</CardContent>
+            </Card>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-2">
               {history.map((req) => (
                 <PayoutRow key={req.id} req={req} />
               ))}
@@ -113,39 +121,36 @@ export default function AdminReelPayoutsIndex({ pending, history }: Props) {
 
 function PayoutRow({ req, actions }: { req: PayoutRequest; actions?: React.ReactNode }) {
   return (
-    <div className="bg-[#1c1b1b] ghost-border p-5 flex flex-col md:flex-row md:items-center gap-4">
-      <Link href={`/users/${req.reel.user.id}`} className="flex items-center gap-3 shrink-0">
-        <img src={req.reel.user.avatar} alt="" className="w-10 h-10 rounded-full border border-white/10" />
-        <div className="min-w-0">
-          <p className="font-headline font-bold text-[#e5e2e1] text-sm truncate">{req.reel.user.display_name}</p>
-          <p className="text-[10px] text-stone-600 uppercase tracking-widest">{req.reel.project.name}</p>
-        </div>
-      </Link>
+    <Card>
+      <CardContent className="p-4 flex flex-col md:flex-row md:items-center gap-3">
+        <Link href={`/users/${req.reel.user.id}`} className="flex items-center gap-2 shrink-0">
+          <img src={req.reel.user.avatar} alt="" className="size-10 rounded-full border border-border" />
+          <div className="min-w-0">
+            <p className="font-medium text-sm truncate">{req.reel.user.display_name}</p>
+            <p className="text-xs text-muted-foreground uppercase tracking-wide">{req.reel.project.name}</p>
+          </div>
+        </Link>
 
-      <div className="flex-1 min-w-0">
-        <p className="text-stone-300 text-sm truncate">{req.reel.title || `${req.reel.kind} reel`}</p>
-        <p className="text-[10px] text-stone-600 uppercase tracking-widest mt-0.5">
-          {req.reel.views} views · {req.reel.kudos} kudos · {req.reel.comments} comments · paid{' '}
-          {req.reel.lifetime_paid.toFixed(2)}c lifetime
-        </p>
-        {req.reason && <p className="text-[10px] text-stone-500 mt-1 italic">"{req.reason}"</p>}
-        <p className="text-[10px] text-stone-700 mt-1">
-          Requested {req.created_at}
-          {req.reviewer && ` · ${req.status} by ${req.reviewer.display_name} on ${req.reviewed_at}`}
-        </p>
-      </div>
-
-      <div className="flex items-center gap-3 shrink-0">
-        <div className="text-right">
-          <p className="text-[#ffb595] font-headline font-bold text-2xl tabular-nums">{req.amount.toFixed(2)}c</p>
-          <span
-            className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 ${STATUS_COLOR[req.status] || 'bg-stone-500/15 text-stone-400'}`}
-          >
-            {req.status}
-          </span>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm truncate">{req.reel.title || `${req.reel.kind} reel`}</p>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            {req.reel.views} views · {req.reel.kudos} kudos · {req.reel.comments} comments · paid {req.reel.lifetime_paid.toFixed(2)}c lifetime
+          </p>
+          {req.reason && <p className="text-xs text-muted-foreground italic mt-1">"{req.reason}"</p>}
+          <p className="text-[11px] text-muted-foreground mt-1">
+            Requested {req.created_at}
+            {req.reviewer && ` · ${req.status} by ${req.reviewer.display_name} on ${req.reviewed_at}`}
+          </p>
         </div>
-        {actions && <div className="flex gap-2">{actions}</div>}
-      </div>
-    </div>
+
+        <div className="flex items-center gap-3 shrink-0">
+          <div className="text-right">
+            <p className="text-xl font-semibold tabular-nums">{req.amount.toFixed(2)}c</p>
+            {statusBadge(req.status)}
+          </div>
+          {actions && <div className="flex gap-2">{actions}</div>}
+        </div>
+      </CardContent>
+    </Card>
   )
 }

@@ -1,5 +1,29 @@
 import { useState } from 'react'
 import { Link, router, usePage } from '@inertiajs/react'
+import {
+  Gavel,
+  ShieldCheck,
+  AlertTriangle,
+  History,
+  ToggleLeft,
+  ToggleRight,
+  CheckCircle2,
+  Circle,
+  Trash2,
+  RotateCcw,
+  Award,
+  X,
+  Lock,
+  Unlock,
+  ArrowRight,
+} from 'lucide-react'
+import { Badge } from '@/components/admin/ui/badge'
+import { Button } from '@/components/admin/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/admin/ui/card'
+import { Input } from '@/components/admin/ui/input'
+import { Textarea } from '@/components/admin/ui/textarea'
+import { Separator } from '@/components/admin/ui/separator'
+import { cn } from '@/components/admin/lib/cn'
 import type { AdminUserDetail, UserNote, KudoEntry, HackatimeInfo, SharedProps } from '@/types'
 
 const permissionLabels: Record<string, string> = {
@@ -54,13 +78,13 @@ interface BadgeEntry {
 }
 
 const BADGE_COLOR_SWATCH: Record<string, string> = {
-  orange: 'bg-[#ca5924]/15 text-[#ffb595]',
-  emerald: 'bg-emerald-500/15 text-emerald-400',
-  amber: 'bg-amber-500/15 text-amber-400',
-  red: 'bg-red-500/15 text-red-400',
-  purple: 'bg-purple-500/15 text-purple-400',
-  blue: 'bg-blue-500/15 text-blue-400',
-  stone: 'bg-stone-500/15 text-stone-300',
+  orange: 'bg-orange-500/15 text-orange-700 dark:text-orange-300',
+  emerald: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300',
+  amber: 'bg-amber-500/15 text-amber-700 dark:text-amber-300',
+  red: 'bg-red-500/15 text-red-700 dark:text-red-300',
+  purple: 'bg-purple-500/15 text-purple-700 dark:text-purple-300',
+  blue: 'bg-blue-500/15 text-blue-700 dark:text-blue-300',
+  stone: 'bg-stone-500/15 text-stone-700 dark:text-stone-300',
 }
 
 export default function AdminUsersShow({
@@ -108,10 +132,7 @@ export default function AdminUsersShow({
   const [badgeColor, setBadgeColor] = useState(badge_colors[0] || 'orange')
 
   function handleBan() {
-    if (!banReason.trim()) {
-      alert('You must provide a reason for banning.')
-      return
-    }
+    if (!banReason.trim()) return alert('You must provide a reason for banning.')
     router.post(`/admin/users/${user.id}/ban`, { ban_reason: banReason })
   }
 
@@ -122,8 +143,8 @@ export default function AdminUsersShow({
 
   function handleDelete() {
     const msg = user.is_discarded
-      ? `Are you sure you want to PERMANENTLY destroy ${user.display_name}? This cannot be undone.`
-      : `Are you sure you want to delete ${user.display_name}? This will soft-delete the user.`
+      ? `Permanently destroy ${user.display_name}? This cannot be undone.`
+      : `Soft-delete ${user.display_name}?`
     if (!confirm(msg)) return
     router.delete(`/admin/users/${user.id}`)
   }
@@ -135,313 +156,273 @@ export default function AdminUsersShow({
 
   function toggleRole(role: string) {
     const newRoles = user.roles.includes(role) ? user.roles.filter((r) => r !== role) : [...user.roles, role]
-    if (newRoles.length === 0) {
-      alert('User must have at least one role.')
-      return
-    }
-    router.patch(
-      `/admin/users/${user.id}/update_roles`,
-      { roles: newRoles },
-      { preserveState: true, preserveScroll: true },
-    )
+    if (newRoles.length === 0) return alert('User must have at least one role.')
+    router.patch(`/admin/users/${user.id}/update_roles`, { roles: newRoles }, { preserveState: true, preserveScroll: true })
   }
 
   function togglePermission(perm: string) {
     const newPerms = user.permissions.includes(perm)
       ? user.permissions.filter((p) => p !== perm)
       : [...user.permissions, perm]
-    router.patch(
-      `/admin/users/${user.id}/update_permissions`,
-      { permissions: newPerms },
-      { preserveState: true, preserveScroll: true },
-    )
+    router.patch(`/admin/users/${user.id}/update_permissions`, { permissions: newPerms }, { preserveState: true, preserveScroll: true })
   }
 
   function revokeAllPermissions() {
     if (!confirm('Revoke all permissions?')) return
-    router.patch(
-      `/admin/users/${user.id}/update_permissions`,
-      { permissions: [] },
-      { preserveState: true, preserveScroll: true },
-    )
+    router.patch(`/admin/users/${user.id}/update_permissions`, { permissions: [] }, { preserveState: true, preserveScroll: true })
   }
 
   return (
-    <div className="p-5 md:p-12 max-w-6xl mx-auto">
-      <div className="flex flex-col sm:flex-row sm:items-center gap-5 mb-4 text-center sm:text-left">
-        <img
-          src={user.avatar}
-          alt={user.display_name}
-          className="w-24 h-24 border border-white/10 shrink-0 mx-auto sm:mx-0"
-        />
+    <div className="max-w-6xl mx-auto space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-4 text-center sm:text-left">
+        <img src={user.avatar} alt={user.display_name} className="size-20 rounded-full border border-border shrink-0 mx-auto sm:mx-0" />
         <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-4xl font-headline font-bold text-[#e5e2e1] tracking-tight">{user.display_name}</h1>
+          <div className="flex items-center gap-2 flex-wrap justify-center sm:justify-start">
+            <h1 className="text-2xl font-semibold tracking-tight">{user.display_name}</h1>
             {user.is_banned && (
-              <span className="bg-red-500/20 text-red-400 px-3 py-1 text-[10px] uppercase font-bold tracking-widest flex items-center gap-1.5">
-                <span className="material-symbols-outlined text-sm">gavel</span>
+              <Badge variant="destructive">
+                <Gavel className="size-3" />
                 Banned
-              </span>
+              </Badge>
             )}
-            {user.is_discarded && (
-              <span className="bg-red-500/10 text-red-400 px-3 py-1 text-[10px] uppercase font-bold tracking-widest">
-                Deleted {user.discarded_at}
-              </span>
-            )}
+            {user.is_discarded && <Badge variant="outline">Deleted {user.discarded_at}</Badge>}
           </div>
-          <p className="text-stone-500 text-sm">{user.email}</p>
+          <p className="text-sm text-muted-foreground mt-1">{user.email}</p>
         </div>
       </div>
 
       {user.is_banned && (
-        <div className="border border-red-500/20 bg-red-500/5 p-5 mb-10 flex items-start gap-3">
-          <span className="material-symbols-outlined text-red-400 text-xl shrink-0 mt-0.5">warning</span>
-          <div>
-            <p className="text-red-400 text-sm font-bold mb-1">This user is banned. Be wary.</p>
-            {user.ban_reason && <p className="text-stone-400 text-sm">{user.ban_reason}</p>}
-          </div>
-        </div>
+        <Card className="border-destructive/40 bg-destructive/5">
+          <CardContent className="p-4 flex items-start gap-3">
+            <AlertTriangle className="size-5 text-destructive shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-semibold text-destructive">This user is banned.</p>
+              {user.ban_reason && <p className="text-sm mt-1">{user.ban_reason}</p>}
+            </div>
+          </CardContent>
+        </Card>
       )}
 
-      <div className="grid grid-cols-2 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
         {[
           { label: 'Timezone', value: user.timezone },
           { label: 'Joined', value: user.created_at },
           { label: 'Banned', value: user.is_banned ? 'Yes' : 'No' },
         ].map((item) => (
-          <div key={item.label} className="bg-[#1c1b1b] ghost-border p-4">
-            <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">{item.label}</span>
-            <p className="text-[#e5e2e1] mt-1">{item.value}</p>
-          </div>
+          <Card key={item.label}>
+            <CardContent className="p-4">
+              <span className="text-xs text-muted-foreground uppercase tracking-wide">{item.label}</span>
+              <p className="mt-1">{item.value}</p>
+            </CardContent>
+          </Card>
         ))}
       </div>
 
       {hackatime && (
-        <div className="bg-[#1c1b1b] ghost-border p-6 mb-6">
-          <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">Hackatime</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div>
-              <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">Trust Level</span>
-              <p
-                className={`mt-1 font-bold ${
-                  hackatime.trust_level === 'green'
-                    ? 'text-emerald-400'
-                    : hackatime.trust_level === 'blue'
-                      ? 'text-blue-400'
-                      : hackatime.trust_level === 'yellow'
-                        ? 'text-amber-400'
-                        : hackatime.trust_level === 'red'
-                          ? 'text-red-400'
-                          : 'text-stone-400'
-                }`}
-              >
-                {hackatime.trust_level || 'Unknown'}
-              </p>
+        <Card>
+          <CardHeader>
+            <CardTitle>Hackatime</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div>
+                <span className="text-xs text-muted-foreground uppercase tracking-wide">Trust Level</span>
+                <p
+                  className={cn(
+                    'mt-1 font-semibold capitalize',
+                    hackatime.trust_level === 'green' && 'text-emerald-600 dark:text-emerald-400',
+                    hackatime.trust_level === 'blue' && 'text-blue-600 dark:text-blue-400',
+                    hackatime.trust_level === 'yellow' && 'text-amber-600 dark:text-amber-400',
+                    hackatime.trust_level === 'red' && 'text-red-600 dark:text-red-400',
+                  )}
+                >
+                  {hackatime.trust_level || 'Unknown'}
+                </p>
+              </div>
+              <div>
+                <span className="text-xs text-muted-foreground uppercase tracking-wide">Coding Time</span>
+                <p className="mt-1">
+                  {hackatime.total_coding_time ? `${Math.round(hackatime.total_coding_time / 3600)}h` : '-'}
+                </p>
+              </div>
+              <div>
+                <span className="text-xs text-muted-foreground uppercase tracking-wide">Days Active</span>
+                <p className="mt-1">{hackatime.days_active ?? '-'}</p>
+              </div>
+              <div>
+                <span className="text-xs text-muted-foreground uppercase tracking-wide">Last Active</span>
+                <p className="mt-1">{hackatime.last_heartbeat_at || '-'}</p>
+              </div>
             </div>
-            <div>
-              <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">Coding Time</span>
-              <p className="text-[#e5e2e1] mt-1">
-                {hackatime.total_coding_time ? `${Math.round(hackatime.total_coding_time / 3600)}h` : '-'}
-              </p>
-            </div>
-            <div>
-              <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">Days Active</span>
-              <p className="text-[#e5e2e1] mt-1">{hackatime.days_active ?? '-'}</p>
-            </div>
-            <div>
-              <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">Last Active</span>
-              <p className="text-[#e5e2e1] mt-1">{hackatime.last_heartbeat_at || '-'}</p>
-            </div>
-          </div>
-          {(hackatime.suspected || hackatime.banned) && (
-            <div className="mt-4 flex gap-2">
-              {hackatime.suspected && (
-                <span className="bg-amber-500/10 text-amber-400 px-3 py-1 text-[10px] uppercase font-bold tracking-widest">
-                  Suspected
-                </span>
-              )}
-              {hackatime.banned && (
-                <span className="bg-red-500/10 text-red-400 px-3 py-1 text-[10px] uppercase font-bold tracking-widest">
-                  Banned on Hackatime
-                </span>
-              )}
-            </div>
-          )}
-        </div>
+            {(hackatime.suspected || hackatime.banned) && (
+              <div className="mt-3 flex gap-2">
+                {hackatime.suspected && <Badge variant="warning">Suspected</Badge>}
+                {hackatime.banned && <Badge variant="destructive">Banned on Hackatime</Badge>}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       )}
 
-      <div className="mb-10">
-        <h2 className="text-xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-4">Roles</h2>
-        {isSuperadmin ? (
-          <>
-            <p className="text-stone-500 text-sm mb-4">
-              Assigning a staff role auto-grants its default permissions. You can still manually adjust permissions
-              below.
-            </p>
-            <div className="grid grid-cols-2 gap-2">
-              {available_roles.map((role) => {
-                const active = user.roles.includes(role)
-                return (
-                  <button
-                    key={role}
-                    onClick={() => toggleRole(role)}
-                    className={`px-4 py-3 text-left transition-colors cursor-pointer flex items-center gap-3 ${
-                      active
-                        ? 'signature-smolder text-[#4c1a00]'
-                        : 'ghost-border bg-[#1c1b1b] text-stone-500 hover:text-stone-300 hover:bg-[#2a2a2a]'
-                    }`}
-                  >
-                    <span className="material-symbols-outlined text-sm">
-                      {active ? 'check_circle' : 'radio_button_unchecked'}
-                    </span>
-                    <div>
-                      <span className="text-xs font-bold uppercase tracking-[0.15em]">{role}</span>
-                      {roleDescriptions[role] && (
-                        <p className={`text-[10px] mt-0.5 ${active ? 'text-[#4c1a00]/70' : 'text-stone-600'}`}>
-                          {roleDescriptions[role]}
-                        </p>
+      <Card>
+        <CardHeader>
+          <CardTitle>Roles</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {isSuperadmin ? (
+            <>
+              <p className="text-sm text-muted-foreground mb-3">
+                Assigning a staff role auto-grants its default permissions. You can still adjust them below.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {available_roles.map((role) => {
+                  const active = user.roles.includes(role)
+                  return (
+                    <button
+                      key={role}
+                      onClick={() => toggleRole(role)}
+                      className={cn(
+                        'px-3 py-2.5 text-left rounded-md border transition-colors cursor-pointer flex items-center gap-3',
+                        active
+                          ? 'border-primary bg-primary/10'
+                          : 'border-border bg-background hover:bg-accent',
                       )}
-                    </div>
-                  </button>
-                )
-              })}
-            </div>
-          </>
-        ) : (
-          <>
-            <p className="text-stone-500 text-sm mb-4">Only superadmins can change roles.</p>
-            <div className="flex flex-wrap gap-2">
-              {user.roles.length === 0 ? (
-                <span className="text-stone-600 text-xs">No roles</span>
-              ) : (
-                user.roles.map((role) => (
-                  <span
-                    key={role}
-                    className="px-3 py-1.5 ghost-border bg-[#1c1b1b] text-stone-300 text-[10px] font-bold uppercase tracking-[0.15em]"
-                  >
-                    {role}
-                  </span>
-                ))
-              )}
-            </div>
-          </>
-        )}
-      </div>
-
-      <div className="mb-10">
-        <div className="flex items-center justify-between mb-2">
-          <h2 className="text-xl font-headline font-bold text-[#e5e2e1] tracking-tight">Permissions</h2>
-          {isSuperadmin && user.permissions.length > 0 && (
-            <button
-              onClick={revokeAllPermissions}
-              className="bg-red-500/20 border border-red-500/40 text-red-400 hover:bg-red-500/30 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.15em] transition-colors cursor-pointer"
-            >
-              Revoke All
-            </button>
+                    >
+                      {active ? <CheckCircle2 className="size-4 text-primary" /> : <Circle className="size-4 text-muted-foreground" />}
+                      <div>
+                        <span className="text-sm font-medium capitalize">{role}</span>
+                        {roleDescriptions[role] && (
+                          <p className="text-xs text-muted-foreground">{roleDescriptions[role]}</p>
+                        )}
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="text-sm text-muted-foreground mb-3">Only superadmins can change roles.</p>
+              <div className="flex flex-wrap gap-2">
+                {user.roles.length === 0 ? (
+                  <span className="text-xs text-muted-foreground">No roles</span>
+                ) : (
+                  user.roles.map((role) => (
+                    <Badge key={role} variant="outline">
+                      {role}
+                    </Badge>
+                  ))
+                )}
+              </div>
+            </>
           )}
-        </div>
-        {isSuperadmin ? (
-          <>
-            <p className="text-stone-500 text-sm mb-4">
-              Toggle individual permissions. Assigning a role auto-grants its defaults, but you can override them.
-            </p>
-            <div className="grid grid-cols-2 gap-2">
-              {visiblePermissions.map((perm) => {
-                const active = user.permissions.includes(perm)
-                const isSuper = perm === 'superadmin'
-                return (
-                  <button
-                    key={perm}
-                    onClick={() => togglePermission(perm)}
-                    className={`px-4 py-3 text-left text-sm font-medium transition-colors cursor-pointer flex items-center gap-3 ${
-                      active
-                        ? isSuper
-                          ? 'bg-[#ca5924]/15 text-[#ffb595] ghost-border'
-                          : 'bg-emerald-500/10 text-emerald-400 ghost-border'
-                        : 'bg-[#1c1b1b] text-stone-500 ghost-border hover:bg-[#2a2a2a] hover:text-stone-300'
-                    }`}
-                  >
-                    <span className="material-symbols-outlined text-lg">{active ? 'toggle_on' : 'toggle_off'}</span>
-                    {permissionLabels[perm] || perm}
-                  </button>
-                )
-              })}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Permissions</CardTitle>
+          {isSuperadmin && user.permissions.length > 0 && (
+            <Button variant="destructive" size="sm" onClick={revokeAllPermissions}>
+              Revoke All
+            </Button>
+          )}
+        </CardHeader>
+        <CardContent>
+          {isSuperadmin ? (
+            <>
+              <p className="text-sm text-muted-foreground mb-3">
+                Toggle individual permissions. Assigning a role auto-grants its defaults.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {visiblePermissions.map((perm) => {
+                  const active = user.permissions.includes(perm)
+                  return (
+                    <button
+                      key={perm}
+                      onClick={() => togglePermission(perm)}
+                      className={cn(
+                        'px-3 py-2 text-left rounded-md border transition-colors cursor-pointer flex items-center gap-2 text-sm',
+                        active ? 'border-emerald-500/40 bg-emerald-500/5' : 'border-border bg-background hover:bg-accent',
+                      )}
+                    >
+                      {active ? <ToggleRight className="size-4 text-emerald-600 dark:text-emerald-400" /> : <ToggleLeft className="size-4 text-muted-foreground" />}
+                      {permissionLabels[perm] || perm}
+                    </button>
+                  )
+                })}
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="text-sm text-muted-foreground mb-3">Only superadmins can change permissions.</p>
+              <div className="flex flex-wrap gap-2">
+                {user.permissions.length === 0 ? (
+                  <span className="text-xs text-muted-foreground">No permissions</span>
+                ) : (
+                  user.permissions.map((perm) => (
+                    <Badge key={perm} variant="outline">
+                      {permissionLabels[perm] || perm}
+                    </Badge>
+                  ))
+                )}
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Steel Coins</CardTitle>
+          <Button variant="outline" size="sm" asChild>
+            <Link href={`/admin/users/${user.id}/coin_history`}>
+              <History className="size-4" />
+              View History
+            </Link>
+          </Button>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Adjust this user's coin balance. Positive grants, negative removes.
+          </p>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="rounded-md border border-border bg-card p-3">
+              <p className="text-xs text-muted-foreground uppercase tracking-wide">Balance</p>
+              <p className="text-xl font-semibold mt-1">{coins.balance}c</p>
             </div>
-          </>
-        ) : (
-          <>
-            <p className="text-stone-500 text-sm mb-4">Only superadmins can change permissions.</p>
-            <div className="flex flex-wrap gap-2">
-              {user.permissions.length === 0 ? (
-                <span className="text-stone-600 text-xs">No permissions</span>
-              ) : (
-                user.permissions.map((perm) => (
-                  <span
-                    key={perm}
-                    className="px-3 py-1.5 ghost-border bg-[#1c1b1b] text-stone-300 text-[10px] font-bold uppercase tracking-[0.15em]"
-                  >
-                    {permissionLabels[perm] || perm}
-                  </span>
-                ))
-              )}
+            <div className="rounded-md border border-border bg-card p-3">
+              <p className="text-xs text-muted-foreground uppercase tracking-wide">Earned</p>
+              <p className="text-xl font-semibold mt-1">{coins.earned}c</p>
             </div>
-          </>
-        )}
-      </div>
+            <div className="rounded-md border border-border bg-card p-3">
+              <p className="text-xs text-muted-foreground uppercase tracking-wide">Spent</p>
+              <p className="text-xl font-semibold mt-1">{coins.spent}c</p>
+            </div>
+            <div className="rounded-md border border-border bg-card p-3">
+              <p className="text-xs text-muted-foreground uppercase tracking-wide">Adjusted</p>
+              <p className="text-xl font-semibold mt-1">{coins.adjusted}c</p>
+            </div>
+          </div>
 
-      <div className="mb-10">
-        <div className="flex items-center justify-between mb-2 gap-3 flex-wrap">
-          <h2 className="text-xl font-headline font-bold text-[#e5e2e1] tracking-tight">Steel Coins</h2>
-          <Link
-            href={`/admin/users/${user.id}/coin_history`}
-            className="ghost-border bg-[#1c1b1b] text-stone-400 hover:text-[#e5e2e1] hover:bg-[#2a2a2a] px-4 py-2 text-[10px] font-bold uppercase tracking-[0.15em] transition-colors flex items-center gap-1"
-          >
-            <span className="material-symbols-outlined text-sm">history</span>
-            View History
-          </Link>
-        </div>
-        <p className="text-stone-500 text-sm mb-4">
-          Manually adjust this user's coin balance. Use a positive number to grant, negative to remove.
-        </p>
-
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
-          <div className="bg-[#1c1b1b] ghost-border p-4">
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-1">Balance</p>
-            <p className="text-2xl font-headline font-bold text-[#ca5924]">{coins.balance}c</p>
-          </div>
-          <div className="bg-[#1c1b1b] ghost-border p-4">
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-1">Earned</p>
-            <p className="text-2xl font-headline font-bold text-[#e5e2e1]">{coins.earned}c</p>
-          </div>
-          <div className="bg-[#1c1b1b] ghost-border p-4">
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-1">Spent</p>
-            <p className="text-2xl font-headline font-bold text-[#e5e2e1]">{coins.spent}c</p>
-          </div>
-          <div className="bg-[#1c1b1b] ghost-border p-4">
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-1">Adjusted</p>
-            <p className="text-2xl font-headline font-bold text-[#e5e2e1]">{coins.adjusted}c</p>
-          </div>
-        </div>
-
-        <div className="bg-[#1c1b1b] ghost-border p-5 mb-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <input
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+            <Input
               type="number"
               step="0.01"
               value={coinAmount}
               onChange={(e) => setCoinAmount(e.target.value)}
               placeholder="Amount (+ or -)"
-              className="bg-[#0e0e0e] border-none px-4 py-3 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600"
             />
-            <input
+            <Input
               type="text"
               value={coinReason}
               onChange={(e) => setCoinReason(e.target.value)}
               placeholder="Reason"
-              className="md:col-span-2 bg-[#0e0e0e] border-none px-4 py-3 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600"
+              className="md:col-span-2"
             />
           </div>
-          <button
+          <Button
             onClick={() => {
               const amt = parseFloat(coinAmount)
               if (!amt || !coinReason.trim()) return
@@ -457,282 +438,286 @@ export default function AdminUsersShow({
               )
             }}
             disabled={!coinAmount || !coinReason.trim()}
-            className="signature-smolder text-[#4c1a00] px-5 py-2 mt-3 text-xs font-bold uppercase tracking-[0.15em] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            size="sm"
           >
             Apply Adjustment
-          </button>
-        </div>
+          </Button>
 
-        <div className="bg-[#1c1b1b] ghost-border p-5 mb-4 flex items-center justify-between gap-4">
-          <div>
-            <p className="text-[#e5e2e1] text-sm font-headline font-bold">Shop access</p>
-            <p className="text-stone-500 text-xs">
-              Override the "must have a built project" gate. Enable to let this user buy shop items right away.
-            </p>
-          </div>
-          <button
-            onClick={() => router.post(`/admin/users/${user.id}/toggle_shop_unlocked`)}
-            className={`relative inline-flex h-6 w-11 items-center transition-colors cursor-pointer shrink-0 ${user.shop_unlocked ? 'bg-[#ca5924]' : 'bg-stone-700'}`}
-          >
-            <span
-              className={`inline-block h-4 w-4 transform bg-white transition-transform ${user.shop_unlocked ? 'translate-x-6' : 'translate-x-1'}`}
-            />
-          </button>
-        </div>
+          <Separator />
 
-        <div className="bg-[#1c1b1b] ghost-border p-5 mb-4 flex items-center justify-between gap-4">
-          <div>
-            <p className="text-[#e5e2e1] text-sm font-headline font-bold">Maintenance bypass</p>
-            <p className="text-stone-500 text-xs">Allow this user to access Forge during maintenance mode.</p>
-          </div>
-          <button
-            onClick={() => router.post(`/admin/users/${user.id}/toggle_maintenance_bypass`)}
-            className={`relative inline-flex h-6 w-11 items-center transition-colors cursor-pointer shrink-0 ${user.maintenance_bypass ? 'bg-[#ca5924]' : 'bg-stone-700'}`}
-          >
-            <span
-              className={`inline-block h-4 w-4 transform bg-white transition-transform ${user.maintenance_bypass ? 'translate-x-6' : 'translate-x-1'}`}
-            />
-          </button>
-        </div>
-
-        <div className="bg-[#1c1b1b] ghost-border p-5 mb-4 flex items-center justify-between gap-4">
-          <div className="min-w-0">
-            <p className="text-[#e5e2e1] text-sm font-headline font-bold">Referral code</p>
-            {user.referral_code ? (
-              <p className="text-stone-500 text-xs mt-1">
-                Current code: <span className="font-mono text-[#ffb595]">{user.referral_code}</span>
-              </p>
-            ) : (
-              <p className="text-stone-500 text-xs mt-1">No code set yet.</p>
-            )}
-          </div>
-          <button
-            onClick={() => {
-              const msg = user.referral_code
-                ? `Regenerate ${user.display_name}'s referral code? The old one will stop working.`
-                : `Generate a referral code for ${user.display_name}?`
-              if (!confirm(msg)) return
-              router.post(`/admin/users/${user.id}/generate_referral_code`)
-            }}
-            className="ghost-border bg-[#1c1b1b] hover:bg-[#2a2a2a] text-stone-400 hover:text-[#e5e2e1] px-4 py-2 text-xs font-bold uppercase tracking-wider cursor-pointer shrink-0"
-          >
-            {user.referral_code ? 'Regenerate' : 'Generate'}
-          </button>
-        </div>
-
-        {user.roles.includes('fulfillment') && (
-          <div className="bg-[#1c1b1b] ghost-border p-5 mb-4">
-            <p className="text-[#e5e2e1] text-sm font-headline font-bold mb-2">Fulfillment Regions</p>
-            <p className="text-stone-500 text-xs mb-3">
-              Regions this fulfillment team member handles. Orders from matching regions auto-assign to them.
-            </p>
-            <div className="grid grid-cols-2 gap-2">
-              {Object.entries(available_regions).map(([key, label]) => {
-                const active = user.fulfillment_regions.includes(key)
-                return (
-                  <button
-                    key={key}
-                    onClick={() => {
-                      const newRegions = active
-                        ? user.fulfillment_regions.filter((r) => r !== key)
-                        : [...user.fulfillment_regions, key]
-                      router.patch(`/admin/users/${user.id}/update_fulfillment_regions`, {
-                        fulfillment_regions: newRegions,
-                      })
-                    }}
-                    className={`px-3 py-2 text-xs font-bold uppercase tracking-[0.15em] transition-colors cursor-pointer ${
-                      active
-                        ? 'signature-smolder text-[#4c1a00]'
-                        : 'ghost-border bg-[#0e0e0e] text-stone-500 hover:text-stone-300 hover:bg-[#2a2a2a]'
-                    }`}
-                  >
-                    {label}
-                  </button>
-                )
-              })}
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-medium">Shop access</p>
+              <p className="text-xs text-muted-foreground">Override the "must have a built project" gate.</p>
             </div>
+            <button
+              onClick={() => router.post(`/admin/users/${user.id}/toggle_shop_unlocked`)}
+              className={cn(
+                'relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer shrink-0',
+                user.shop_unlocked ? 'bg-primary' : 'bg-muted',
+              )}
+            >
+              <span
+                className={cn(
+                  'inline-block h-4 w-4 transform rounded-full bg-background transition-transform shadow',
+                  user.shop_unlocked ? 'translate-x-6' : 'translate-x-1',
+                )}
+              />
+            </button>
           </div>
-        )}
 
-        {coin_adjustments.length > 0 && (
-          <div className="space-y-2">
-            {coin_adjustments.map((adj) => (
-              <div
-                key={adj.id}
-                className="bg-[#1c1b1b] ghost-border px-5 py-3 flex items-center justify-between gap-4 flex-wrap"
-              >
-                <div className="min-w-0">
-                  <p className="text-stone-300 text-sm break-words">{adj.reason}</p>
-                  <p className="text-stone-600 text-xs mt-0.5">
-                    by {adj.actor_name} · {adj.created_at}
-                  </p>
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-medium">Maintenance bypass</p>
+              <p className="text-xs text-muted-foreground">Allow this user during maintenance mode.</p>
+            </div>
+            <button
+              onClick={() => router.post(`/admin/users/${user.id}/toggle_maintenance_bypass`)}
+              className={cn(
+                'relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer shrink-0',
+                user.maintenance_bypass ? 'bg-primary' : 'bg-muted',
+              )}
+            >
+              <span
+                className={cn(
+                  'inline-block h-4 w-4 transform rounded-full bg-background transition-transform shadow',
+                  user.maintenance_bypass ? 'translate-x-6' : 'translate-x-1',
+                )}
+              />
+            </button>
+          </div>
+
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-sm font-medium">Referral code</p>
+              {user.referral_code ? (
+                <p className="text-xs text-muted-foreground">
+                  Current code: <span className="font-mono text-foreground">{user.referral_code}</span>
+                </p>
+              ) : (
+                <p className="text-xs text-muted-foreground">No code set yet.</p>
+              )}
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const msg = user.referral_code
+                  ? `Regenerate ${user.display_name}'s referral code?`
+                  : `Generate a referral code for ${user.display_name}?`
+                if (!confirm(msg)) return
+                router.post(`/admin/users/${user.id}/generate_referral_code`)
+              }}
+            >
+              {user.referral_code ? 'Regenerate' : 'Generate'}
+            </Button>
+          </div>
+
+          {user.roles.includes('fulfillment') && (
+            <>
+              <Separator />
+              <div>
+                <p className="text-sm font-medium mb-1">Fulfillment Regions</p>
+                <p className="text-xs text-muted-foreground mb-3">
+                  Regions this fulfillment team member handles. Orders auto-assign based on this.
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  {Object.entries(available_regions).map(([key, label]) => {
+                    const active = user.fulfillment_regions.includes(key)
+                    return (
+                      <button
+                        key={key}
+                        onClick={() => {
+                          const next = active
+                            ? user.fulfillment_regions.filter((r) => r !== key)
+                            : [...user.fulfillment_regions, key]
+                          router.patch(`/admin/users/${user.id}/update_fulfillment_regions`, { fulfillment_regions: next })
+                        }}
+                        className={cn(
+                          'px-3 py-2 text-xs font-medium rounded-md border transition-colors cursor-pointer',
+                          active
+                            ? 'bg-primary text-primary-foreground border-primary'
+                            : 'border-border bg-background text-muted-foreground hover:bg-accent hover:text-foreground',
+                        )}
+                      >
+                        {label}
+                      </button>
+                    )
+                  })}
                 </div>
-                <span
-                  className={`text-lg font-headline font-bold shrink-0 ${adj.amount >= 0 ? 'text-emerald-400' : 'text-red-400'}`}
-                >
-                  {adj.amount >= 0 ? '+' : ''}
-                  {adj.amount}c
-                </span>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
+            </>
+          )}
 
-      <div className="mb-10">
-        <h2 className="text-xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-2">Internal Notes</h2>
-        <p className="text-stone-500 text-sm mb-4">Only visible to staff.</p>
+          {coin_adjustments.length > 0 && (
+            <>
+              <Separator />
+              <div className="space-y-2">
+                {coin_adjustments.map((adj) => (
+                  <Card key={adj.id}>
+                    <CardContent className="p-3 flex items-center justify-between gap-4 flex-wrap">
+                      <div className="min-w-0">
+                        <p className="text-sm break-words">{adj.reason}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          by {adj.actor_name} · {adj.created_at}
+                        </p>
+                      </div>
+                      <span
+                        className={cn(
+                          'text-lg font-semibold shrink-0',
+                          adj.amount >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400',
+                        )}
+                      >
+                        {adj.amount >= 0 ? '+' : ''}
+                        {adj.amount}c
+                      </span>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
 
-        <div className="mb-4">
-          <textarea
-            value={noteContent}
-            onChange={(e) => setNoteContent(e.target.value)}
-            placeholder="Add a note..."
-            rows={3}
-            className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 resize-y mb-2"
-          />
-          <button
+      <Card>
+        <CardHeader>
+          <CardTitle>Internal Notes</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-sm text-muted-foreground">Only visible to staff.</p>
+          <Textarea value={noteContent} onChange={(e) => setNoteContent(e.target.value)} placeholder="Add a note..." rows={3} />
+          <Button
+            size="sm"
             onClick={() => {
               if (!noteContent.trim()) return
               router.post(`/admin/users/${user.id}/add_note`, { content: noteContent })
               setNoteContent('')
             }}
             disabled={!noteContent.trim()}
-            className="signature-smolder text-[#4c1a00] px-5 py-2 text-xs font-bold uppercase tracking-[0.15em] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Add Note
-          </button>
-        </div>
+          </Button>
+          {notes.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No notes yet.</p>
+          ) : (
+            <div className="space-y-2">
+              {notes.map((note) => (
+                <Card key={note.id}>
+                  <CardContent className="p-3 flex gap-2">
+                    <img src={note.author_avatar} alt={note.author_name} className="size-6 rounded-full shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium">{note.author_name}</span>
+                        <span className="text-xs text-muted-foreground">{note.created_at}</span>
+                      </div>
+                      <p className="text-sm whitespace-pre-wrap mt-1">{note.content}</p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => {
+                        if (confirm('Delete this note?')) router.delete(`/admin/users/${user.id}/notes/${note.id}`)
+                      }}
+                    >
+                      <X className="size-4" />
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
-        {notes.length > 0 ? (
-          <div className="space-y-2">
-            {notes.map((note) => (
-              <div key={note.id} className="bg-[#1c1b1b] ghost-border px-5 py-4 flex gap-3">
-                <img
-                  src={note.author_avatar}
-                  alt={note.author_name}
-                  className="w-8 h-8 border border-white/10 shrink-0"
-                />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-headline font-bold text-[#e5e2e1] text-sm">{note.author_name}</span>
-                    <span className="text-stone-600 text-xs">{note.created_at}</span>
-                  </div>
-                  <p className="text-stone-300 text-sm whitespace-pre-wrap">{note.content}</p>
-                </div>
-                <button
-                  onClick={() => {
-                    if (confirm('Delete this note?')) router.delete(`/admin/users/${user.id}/notes/${note.id}`)
-                  }}
-                  className="text-stone-600 hover:text-red-400 transition-colors shrink-0 cursor-pointer"
-                >
-                  <span className="material-symbols-outlined text-sm">close</span>
-                </button>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-stone-600 text-sm">No notes yet.</p>
-        )}
-      </div>
-
-      <div className="mb-10">
-        <h2 className="text-xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-2">Kudos</h2>
-        <p className="text-stone-500 text-sm mb-4">Public shoutouts shown on the user's profile.</p>
-
-        <div className="mb-4">
-          <textarea
-            value={kudoContent}
-            onChange={(e) => setKudoContent(e.target.value)}
-            placeholder="Give them some kudos..."
-            rows={3}
-            className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 resize-y mb-2"
-          />
-          <button
+      <Card>
+        <CardHeader>
+          <CardTitle>Kudos</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-sm text-muted-foreground">Public shoutouts shown on the user's profile.</p>
+          <Textarea value={kudoContent} onChange={(e) => setKudoContent(e.target.value)} placeholder="Give them some kudos..." rows={3} />
+          <Button
+            size="sm"
             onClick={() => {
               if (!kudoContent.trim()) return
               router.post(`/admin/users/${user.id}/add_kudo`, { content: kudoContent })
               setKudoContent('')
             }}
             disabled={!kudoContent.trim()}
-            className="signature-smolder text-[#4c1a00] px-5 py-2 text-xs font-bold uppercase tracking-[0.15em] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Add Kudos
-          </button>
-        </div>
+          </Button>
+          {kudos.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No kudos yet.</p>
+          ) : (
+            <div className="space-y-2">
+              {kudos.map((kudo) => (
+                <Card key={kudo.id}>
+                  <CardContent className="p-3 flex gap-2">
+                    <img src={kudo.author_avatar} alt={kudo.author_name} className="size-6 rounded-full shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium">{kudo.author_name}</span>
+                        <span className="text-xs text-muted-foreground">{kudo.created_at}</span>
+                      </div>
+                      <p className="text-sm whitespace-pre-wrap mt-1 break-words">{kudo.content}</p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => {
+                        if (confirm('Delete this kudos?')) router.delete(`/admin/users/${user.id}/kudos/${kudo.id}`)
+                      }}
+                    >
+                      <X className="size-4" />
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
-        {kudos.length > 0 ? (
-          <div className="space-y-2">
-            {kudos.map((kudo) => (
-              <div key={kudo.id} className="bg-[#1c1b1b] ghost-border px-5 py-4 flex gap-3">
-                <img
-                  src={kudo.author_avatar}
-                  alt={kudo.author_name}
-                  className="w-8 h-8 border border-white/10 shrink-0"
-                />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-headline font-bold text-[#e5e2e1] text-sm">{kudo.author_name}</span>
-                    <span className="text-stone-600 text-xs">{kudo.created_at}</span>
-                  </div>
-                  <p className="text-stone-300 text-sm whitespace-pre-wrap break-words">{kudo.content}</p>
-                </div>
-                <button
-                  onClick={() => {
-                    if (confirm('Delete this kudos?')) router.delete(`/admin/users/${user.id}/kudos/${kudo.id}`)
-                  }}
-                  className="text-stone-600 hover:text-red-400 transition-colors shrink-0 cursor-pointer"
-                >
-                  <span className="material-symbols-outlined text-sm">close</span>
-                </button>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-stone-600 text-sm">No kudos yet.</p>
-        )}
-      </div>
-
-      <div className="mb-10">
-        <h2 className="text-xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-2">Badges</h2>
-        <p className="text-stone-500 text-sm mb-4">
-          Award custom badges shown on the user's public profile. Auto-earned badges (e.g. quests) appear here too.
-        </p>
-
-        <div className="bg-[#1c1b1b] ghost-border p-5 mb-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
-            <input
-              type="text"
-              value={badgeName}
-              onChange={(e) => setBadgeName(e.target.value)}
-              placeholder="Badge name"
-              className="bg-[#0e0e0e] border-none px-4 py-3 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600"
-            />
-            <input
-              type="text"
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Award className="size-4" />
+            Badges
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-sm text-muted-foreground">
+            Award custom badges shown on the public profile. Auto-earned badges appear here too.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            <Input value={badgeName} onChange={(e) => setBadgeName(e.target.value)} placeholder="Badge name" />
+            <Input
               value={badgeIcon}
               onChange={(e) => setBadgeIcon(e.target.value)}
               placeholder="Icon (material symbol name)"
-              className="bg-[#0e0e0e] border-none px-4 py-3 text-sm font-mono text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600"
+              className="font-mono"
             />
           </div>
-          <textarea
+          <Textarea
             value={badgeDescription}
             onChange={(e) => setBadgeDescription(e.target.value)}
-            placeholder="Description (optional, shown on hover)"
+            placeholder="Description (optional)"
             rows={2}
-            className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 resize-y mb-3"
           />
-          <div className="flex flex-wrap gap-2 mb-3">
+          <div className="flex flex-wrap gap-2">
             {badge_colors.map((color) => {
               const active = badgeColor === color
               return (
                 <button
                   key={color}
                   onClick={() => setBadgeColor(color)}
-                  className={`px-3 py-2 text-[10px] font-bold uppercase tracking-[0.15em] transition-all cursor-pointer flex items-center gap-2 ${
-                    BADGE_COLOR_SWATCH[color] || BADGE_COLOR_SWATCH.orange
-                  } ${active ? 'ring-1 ring-[#ca5924]' : 'opacity-60 hover:opacity-100'}`}
+                  className={cn(
+                    'px-3 py-1.5 text-xs font-medium uppercase tracking-wide rounded-md cursor-pointer flex items-center gap-1.5 transition-all',
+                    BADGE_COLOR_SWATCH[color] || BADGE_COLOR_SWATCH.orange,
+                    active ? 'ring-2 ring-ring' : 'opacity-60 hover:opacity-100',
+                  )}
                 >
                   <span className="material-symbols-outlined text-sm">{badgeIcon || 'military_tech'}</span>
                   {color}
@@ -740,7 +725,8 @@ export default function AdminUsersShow({
               )
             })}
           </div>
-          <button
+          <Button
+            size="sm"
             onClick={() => {
               if (!badgeName.trim()) return
               router.post(
@@ -762,189 +748,176 @@ export default function AdminUsersShow({
               )
             }}
             disabled={!badgeName.trim()}
-            className="signature-smolder text-[#4c1a00] px-5 py-2 text-xs font-bold uppercase tracking-[0.15em] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Award Badge
-          </button>
-        </div>
+          </Button>
 
-        {badges.length > 0 ? (
-          <div className="space-y-2">
-            {badges.map((badge) => (
-              <div key={badge.id} className="bg-[#1c1b1b] ghost-border px-5 py-4 flex items-center gap-4">
-                <div
-                  className={`shrink-0 w-12 h-12 flex items-center justify-center ${BADGE_COLOR_SWATCH[badge.color] || BADGE_COLOR_SWATCH.orange}`}
-                >
-                  <span className="material-symbols-outlined text-2xl">{badge.icon}</span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-headline font-bold text-[#e5e2e1] text-sm">{badge.name}</span>
-                    {badge.key && (
-                      <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 bg-[#ca5924]/15 text-[#ffb595]">
-                        Auto
-                      </span>
-                    )}
-                  </div>
-                  {badge.description && <p className="text-stone-400 text-xs mt-1 break-words">{badge.description}</p>}
-                  <p className="text-stone-600 text-[10px] mt-1 uppercase tracking-[0.15em]">
-                    {badge.awarded_at}
-                    {badge.awarder_name ? ` · awarded by ${badge.awarder_name}` : ' · auto-awarded'}
-                  </p>
-                </div>
-                <button
-                  onClick={() => {
-                    if (confirm(`Remove the "${badge.name}" badge?`))
-                      router.delete(`/admin/users/${user.id}/badges/${badge.id}`)
-                  }}
-                  className="text-stone-600 hover:text-red-400 transition-colors shrink-0 cursor-pointer"
-                >
-                  <span className="material-symbols-outlined text-sm">close</span>
-                </button>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-stone-600 text-sm">No badges yet.</p>
-        )}
-      </div>
-
-      {can.destroy && (
-        <div className="mb-10">
-          <h2 className="text-xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-4">Ban Status</h2>
-          {user.is_banned ? (
-            <div className="border border-red-500/20 p-6">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="material-symbols-outlined text-red-400">gavel</span>
-                <span className="text-red-400 font-headline font-bold uppercase tracking-wider text-sm">Banned</span>
-              </div>
-              {user.ban_reason && (
-                <div className="bg-red-500/5 ghost-border p-4 mb-4">
-                  <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">Reason</span>
-                  <p className="text-stone-300 text-sm mt-1">{user.ban_reason}</p>
-                </div>
-              )}
-              <button
-                onClick={handleUnban}
-                className="bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/30 hover:text-emerald-300 px-6 py-3 text-xs font-bold uppercase tracking-[0.2em] transition-colors cursor-pointer flex items-center gap-2"
-              >
-                <span className="material-symbols-outlined text-lg">lock_open</span>
-                Unban User
-              </button>
-            </div>
+          {badges.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No badges yet.</p>
           ) : (
-            <div className="ghost-border bg-[#1c1b1b] p-6">
-              {!showBanForm ? (
-                <button
-                  onClick={() => setShowBanForm(true)}
-                  className="bg-red-500/20 border border-red-500/40 text-red-400 hover:bg-red-500/30 hover:text-red-300 px-6 py-3 text-xs font-bold uppercase tracking-[0.2em] transition-colors cursor-pointer flex items-center gap-2"
-                >
-                  <span className="material-symbols-outlined text-lg">gavel</span>
-                  Ban User
-                </button>
-              ) : (
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
-                      Reason for ban
-                    </label>
-                    <textarea
-                      value={banReason}
-                      onChange={(e) => setBanReason(e.target.value)}
-                      rows={3}
-                      className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] text-sm focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 resize-y"
-                      placeholder="Why is this user being banned?"
-                      required
-                    />
-                  </div>
-                  <div className="flex gap-3">
-                    <button
-                      onClick={handleBan}
-                      className="bg-red-500/20 border border-red-500/40 text-red-400 hover:bg-red-500/30 hover:text-red-300 px-6 py-3 text-xs font-bold uppercase tracking-[0.2em] transition-colors cursor-pointer flex items-center gap-2"
-                    >
-                      <span className="material-symbols-outlined text-lg">gavel</span>
-                      Confirm Ban
-                    </button>
-                    <button
+            <div className="space-y-2">
+              {badges.map((badge) => (
+                <Card key={badge.id}>
+                  <CardContent className="p-3 flex items-center gap-3">
+                    <div className={cn('shrink-0 size-10 rounded-md flex items-center justify-center', BADGE_COLOR_SWATCH[badge.color] || BADGE_COLOR_SWATCH.orange)}>
+                      <span className="material-symbols-outlined text-2xl">{badge.icon}</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-sm font-medium">{badge.name}</span>
+                        {badge.key && <Badge variant="outline">Auto</Badge>}
+                      </div>
+                      {badge.description && <p className="text-xs text-muted-foreground mt-0.5 break-words">{badge.description}</p>}
+                      <p className="text-[11px] text-muted-foreground mt-0.5 uppercase tracking-wide">
+                        {badge.awarded_at}
+                        {badge.awarder_name ? ` · awarded by ${badge.awarder_name}` : ' · auto-awarded'}
+                      </p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
                       onClick={() => {
-                        setShowBanForm(false)
-                        setBanReason('')
+                        if (confirm(`Remove the "${badge.name}" badge?`)) router.delete(`/admin/users/${user.id}/badges/${badge.id}`)
                       }}
-                      className="ghost-border text-stone-400 hover:text-[#e5e2e1] px-6 py-3 text-xs font-bold uppercase tracking-wider cursor-pointer transition-colors"
                     >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              )}
+                      <X className="size-4" />
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           )}
-        </div>
-      )}
+        </CardContent>
+      </Card>
 
-      <h2 className="text-xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-4">
-        Projects ({projects.length})
-      </h2>
-
-      {projects.length > 0 ? (
-        <div className="space-y-2">
-          {projects.map((project) => (
-            <Link
-              key={project.id}
-              href={`/admin/projects/${project.id}`}
-              className="block bg-[#1c1b1b] ghost-border px-5 py-4 hover:bg-[#2a2a2a] transition-all group"
-            >
-              <div className="flex items-center justify-between">
-                <span className="font-headline font-bold text-[#e5e2e1] group-hover:text-[#ffb595] transition-colors">
-                  {project.name}
-                </span>
-                <div className="flex items-center gap-4 text-xs text-stone-500">
-                  <span>{project.ships_count} ships</span>
-                  <span>{project.created_at}</span>
-                  <span className="material-symbols-outlined text-stone-600 group-hover:text-[#ffb595] transition-colors text-sm">
-                    arrow_forward
-                  </span>
+      {can.destroy && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Ban Status</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {user.is_banned ? (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-destructive">
+                  <Gavel className="size-4" />
+                  <span className="font-semibold">Banned</span>
                 </div>
+                {user.ban_reason && (
+                  <div className="rounded-md border border-border bg-muted/40 p-3">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Reason</p>
+                    <p className="text-sm">{user.ban_reason}</p>
+                  </div>
+                )}
+                <Button onClick={handleUnban}>
+                  <Unlock className="size-4" />
+                  Unban User
+                </Button>
               </div>
-            </Link>
-          ))}
-        </div>
-      ) : (
-        <p className="text-stone-500">No projects yet.</p>
+            ) : (
+              <>
+                {!showBanForm ? (
+                  <Button variant="destructive" onClick={() => setShowBanForm(true)}>
+                    <Gavel className="size-4" />
+                    Ban User
+                  </Button>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium text-muted-foreground">Reason for ban</label>
+                      <Textarea
+                        value={banReason}
+                        onChange={(e) => setBanReason(e.target.value)}
+                        placeholder="Why is this user being banned?"
+                        rows={3}
+                        required
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <Button variant="destructive" onClick={handleBan}>
+                        <Lock className="size-4" />
+                        Confirm Ban
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setShowBanForm(false)
+                          setBanReason('')
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </CardContent>
+        </Card>
       )}
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Projects ({projects.length})</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {projects.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No projects yet.</p>
+          ) : (
+            <div className="space-y-2">
+              {projects.map((project) => (
+                <Link key={project.id} href={`/admin/projects/${project.id}`} className="block group">
+                  <Card className="group-hover:bg-accent transition-colors">
+                    <CardContent className="p-3 flex items-center justify-between">
+                      <span className="font-medium truncate">{project.name}</span>
+                      <div className="flex items-center gap-3 text-xs text-muted-foreground shrink-0">
+                        <span>{project.ships_count} ships</span>
+                        <span>{project.created_at}</span>
+                        <ArrowRight className="size-3" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {can.restore && (
-        <div className="mt-16 ghost-border bg-[#1c1b1b] p-6">
-          <h2 className="text-xl font-headline font-bold text-emerald-400 tracking-tight mb-2">Restore</h2>
-          <p className="text-stone-500 text-sm mb-4">
-            This user is soft-deleted. Restore them to make their account active again.
-          </p>
-          <button
-            onClick={handleRestore}
-            className="bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/30 hover:text-emerald-300 px-6 py-3 text-xs font-bold uppercase tracking-[0.2em] transition-colors cursor-pointer flex items-center gap-2"
-          >
-            <span className="material-symbols-outlined text-lg">restore</span>
-            Restore User
-          </button>
-        </div>
+        <Card className="border-emerald-500/40">
+          <CardHeader>
+            <CardTitle className="text-emerald-600 dark:text-emerald-400">Restore</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              This user is soft-deleted. Restore them to make their account active again.
+            </p>
+            <Button onClick={handleRestore}>
+              <RotateCcw className="size-4" />
+              Restore User
+            </Button>
+          </CardContent>
+        </Card>
       )}
 
       {can.destroy && (
-        <div className={`${can.restore ? 'mt-4' : 'mt-16'} border border-red-500/20 p-6`}>
-          <h2 className="text-xl font-headline font-bold text-red-400 tracking-tight mb-2">Danger Zone</h2>
-          <p className="text-stone-500 text-sm mb-4">
-            {user.is_discarded
-              ? 'This user is soft-deleted. You can permanently destroy their account.'
-              : 'Deleting this user will soft-delete their account. They will no longer be able to sign in.'}
-          </p>
-          <button
-            onClick={handleDelete}
-            className="bg-red-500/20 border border-red-500/40 text-red-400 hover:bg-red-500/30 hover:text-red-300 px-6 py-3 text-xs font-bold uppercase tracking-[0.2em] transition-colors cursor-pointer flex items-center gap-2"
-          >
-            <span className="material-symbols-outlined text-lg">delete_forever</span>
-            {user.is_discarded ? 'Permanently Destroy' : 'Delete User'}
-          </button>
-        </div>
+        <Card className="border-destructive/40">
+          <CardHeader>
+            <CardTitle className="text-destructive flex items-center gap-2">
+              <ShieldCheck className="size-4" />
+              Danger Zone
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              {user.is_discarded ? 'Permanently destroy this user.' : 'Soft-delete this user.'}
+            </p>
+            <Button variant="destructive" onClick={handleDelete}>
+              <Trash2 className="size-4" />
+              {user.is_discarded ? 'Permanently Destroy' : 'Delete User'}
+            </Button>
+          </CardContent>
+        </Card>
       )}
     </div>
   )

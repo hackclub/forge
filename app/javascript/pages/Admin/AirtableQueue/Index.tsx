@@ -1,5 +1,9 @@
 import { Link, router } from '@inertiajs/react'
-import Pagination from '@/components/Pagination'
+import { Clock, CheckCircle2, XCircle, AlertTriangle, ArrowRight, type LucideIcon } from 'lucide-react'
+import { Badge } from '@/components/admin/ui/badge'
+import { Card, CardContent } from '@/components/admin/ui/card'
+import AdminPagination from '@/components/admin/AdminPagination'
+import { cn } from '@/components/admin/lib/cn'
 import type { PagyProps } from '@/types'
 
 type Status = 'pending' | 'sent' | 'cancelled' | 'failed'
@@ -21,11 +25,11 @@ interface QueueItem {
   created_at: string
 }
 
-const statusStyles: Record<Status, { bg: string; text: string; icon: string; label: string }> = {
-  pending: { bg: 'bg-amber-500/10', text: 'text-amber-400', icon: 'schedule', label: 'Pending' },
-  sent: { bg: 'bg-emerald-500/10', text: 'text-emerald-400', icon: 'check_circle', label: 'Sent' },
-  cancelled: { bg: 'bg-stone-500/10', text: 'text-stone-400', icon: 'cancel', label: 'Cancelled' },
-  failed: { bg: 'bg-red-500/10', text: 'text-red-400', icon: 'error', label: 'Failed' },
+const statusInfo: Record<Status, { variant: 'default' | 'secondary' | 'outline' | 'destructive' | 'success' | 'warning'; icon: LucideIcon; label: string }> = {
+  pending: { variant: 'warning', icon: Clock, label: 'Pending' },
+  sent: { variant: 'success', icon: CheckCircle2, label: 'Sent' },
+  cancelled: { variant: 'secondary', icon: XCircle, label: 'Cancelled' },
+  failed: { variant: 'destructive', icon: AlertTriangle, label: 'Failed' },
 }
 
 export default function AdminAirtableQueueIndex({
@@ -46,36 +50,42 @@ export default function AdminAirtableQueueIndex({
   }
 
   return (
-    <div className="p-5 md:p-12 max-w-[1400px] mx-auto">
-      <h1 className="text-4xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-2">Airtable Queue</h1>
-      <p className="text-stone-500 text-sm mb-6">
-        Staging area for Airtable projects. Review the submission before sending it off.
-      </p>
+    <div className="max-w-7xl mx-auto space-y-6">
+      <div>
+        <h1 className="text-2xl font-semibold tracking-tight">Airtable Queue</h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          Staging area for Airtable projects. Review the submission before sending it off.
+        </p>
+      </div>
 
       {!airtable_enabled && (
-        <div className="ghost-border bg-red-500/5 border-red-500/20 p-4 mb-6 text-red-400 text-sm">
-          Airtable is not configured. Items can be enqueued but not sent.
-        </div>
+        <Card className="border-destructive/40 bg-destructive/5">
+          <CardContent className="p-3 text-sm text-destructive">
+            Airtable is not configured. Items can be enqueued but not sent.
+          </CardContent>
+        </Card>
       )}
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {(['pending', 'sent', 'failed', 'cancelled'] as Status[]).map((s) => (
-          <div
-            key={s}
-            className={`bg-[#1c1b1b] ghost-border p-4 ${filters.status === s ? 'ring-1 ring-[#ca5924]/30' : ''}`}
-          >
-            <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-500 mb-1">
-              {statusStyles[s].label}
-            </p>
-            <p className={`text-2xl font-headline font-bold ${statusStyles[s].text}`}>{counts[s]}</p>
-          </div>
+          <Card key={s} className={filters.status === s ? 'ring-2 ring-ring' : ''}>
+            <CardContent className="p-4">
+              <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">{statusInfo[s].label}</p>
+              <p className="text-2xl font-semibold">{counts[s]}</p>
+            </CardContent>
+          </Card>
         ))}
       </div>
 
-      <div className="flex gap-2 mb-6">
+      <div className="flex gap-2 flex-wrap">
         <button
           onClick={() => applyFilter('')}
-          className={`px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.15em] transition-colors cursor-pointer ${filters.status === '' ? 'signature-smolder text-[#4c1a00]' : 'ghost-border bg-[#1c1b1b] text-stone-400 hover:bg-[#2a2a2a]'}`}
+          className={cn(
+            'px-3 py-1.5 text-xs font-medium rounded-md border transition-colors cursor-pointer',
+            filters.status === ''
+              ? 'bg-primary text-primary-foreground border-primary'
+              : 'border-border bg-background text-muted-foreground hover:bg-accent hover:text-foreground',
+          )}
         >
           All
         </button>
@@ -83,75 +93,64 @@ export default function AdminAirtableQueueIndex({
           <button
             key={s}
             onClick={() => applyFilter(s)}
-            className={`px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.15em] transition-colors cursor-pointer ${filters.status === s ? 'signature-smolder text-[#4c1a00]' : 'ghost-border bg-[#1c1b1b] text-stone-400 hover:bg-[#2a2a2a]'}`}
+            className={cn(
+              'px-3 py-1.5 text-xs font-medium rounded-md border transition-colors cursor-pointer',
+              filters.status === s
+                ? 'bg-primary text-primary-foreground border-primary'
+                : 'border-border bg-background text-muted-foreground hover:bg-accent hover:text-foreground',
+            )}
           >
-            {statusStyles[s].label}
+            {statusInfo[s].label}
           </button>
         ))}
       </div>
 
-      {items.length > 0 ? (
-        <>
-          <div className="space-y-2">
-            {items.map((item) => {
-              const st = statusStyles[item.status]
-              return (
-                <Link
-                  key={item.id}
-                  href={`/admin/airtable_queue/${item.id}`}
-                  className="block bg-[#1c1b1b] ghost-border px-5 py-4 hover:bg-[#2a2a2a] transition-all group"
-                >
-                  <div className="flex items-center justify-between gap-4">
+      {items.length === 0 ? (
+        <Card>
+          <CardContent className="p-12 text-center">
+            <p className="text-base font-medium mb-1">Queue is empty</p>
+            <p className="text-sm text-muted-foreground">Airtable-bound records will appear here for review before sending.</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-2">
+          {items.map((item) => {
+            const info = statusInfo[item.status]
+            const Icon = info.icon
+            return (
+              <Link key={item.id} href={`/admin/airtable_queue/${item.id}`} className="block group">
+                <Card className="group-hover:bg-accent transition-colors">
+                  <CardContent className="p-3 flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3 min-w-0">
-                      <span
-                        className={`${st.bg} ${st.text} px-2 py-1 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1 shrink-0`}
-                      >
-                        <span className="material-symbols-outlined text-xs">{st.icon}</span>
-                        {st.label}
-                      </span>
+                      <Badge variant={info.variant}>
+                        <Icon className="size-3" />
+                        {info.label}
+                      </Badge>
                       {item.project_inconsistent && (
-                        <span
-                          title="Project is approved but has no active Airtable record"
-                          className="bg-amber-500/10 text-amber-400 px-2 py-1 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1 shrink-0"
-                        >
-                          <span className="material-symbols-outlined text-xs">warning</span>
+                        <Badge variant="warning" title="Project approved but no active Airtable record">
+                          <AlertTriangle className="size-3" />
                           Out of sync
-                        </span>
+                        </Badge>
                       )}
                       <div className="min-w-0">
-                        <p className="text-[#e5e2e1] text-sm truncate">
-                          {item.project_name || `Forge #${item.forge_id}`}
-                        </p>
-                        <p className="text-stone-600 text-xs mt-0.5">
-                          <span className="font-mono">{item.table_name}</span>
-                          <span className="text-stone-700 mx-2">·</span>
-                          enqueued by {item.enqueued_by || 'system'}
-                          {item.sent_by && (
-                            <>
-                              <span className="text-stone-700 mx-2">·</span>
-                              sent by {item.sent_by}
-                            </>
-                          )}
+                        <p className="text-sm truncate">{item.project_name || `Forge #${item.forge_id}`}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          <span className="font-mono">{item.table_name}</span> · enqueued by{' '}
+                          {item.enqueued_by || 'system'}
+                          {item.sent_by && ` · sent by ${item.sent_by}`}
                         </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
-                      <span className="text-stone-600 text-xs">{item.created_at}</span>
-                      <span className="material-symbols-outlined text-stone-600 group-hover:text-[#ffb595] transition-colors text-sm">
-                        arrow_forward
-                      </span>
+                      <span className="text-xs text-muted-foreground">{item.created_at}</span>
+                      <ArrowRight className="size-4 text-muted-foreground" />
                     </div>
-                  </div>
-                </Link>
-              )
-            })}
-          </div>
-          <Pagination pagy={pagy} />
-        </>
-      ) : (
-        <div className="ghost-border bg-[#1c1b1b] p-16 text-center">
-          <p className="text-stone-300 text-lg font-headline font-medium mb-2">Queue is empty</p>
-          <p className="text-stone-500 text-sm">Airtable-bound records will appear here for review before sending.</p>
+                  </CardContent>
+                </Card>
+              </Link>
+            )
+          })}
+          {pagy && pagy.pages > 1 && <AdminPagination pagy={pagy} />}
         </div>
       )}
     </div>

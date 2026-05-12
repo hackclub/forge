@@ -1,6 +1,6 @@
 class Admin::ProjectsController < Admin::ApplicationController
   before_action :require_projects_permission!
-  before_action :set_project, only: [ :show, :review, :destroy, :restore, :toggle_hidden, :toggle_staff_pick, :change_tier, :add_note, :destroy_note, :mark_unbuilt ]
+  before_action :set_project, only: [ :show, :review, :destroy, :restore, :toggle_hidden, :toggle_staff_pick, :change_tier, :add_note, :destroy_note, :mark_unbuilt, :reverse_review ]
 
   def index
     scope = policy_scope(Project).includes(:user, :ships)
@@ -40,9 +40,9 @@ class Admin::ProjectsController < Admin::ApplicationController
   end
 
   def reviews
-    scope = policy_scope(Project).includes(:user, :ships).kept.where(status: :pending)
+    scope = policy_scope(Project).includes(:user).kept.where(status: :pending)
     scope = scope.search(params[:query]) if params[:query].present?
-    @pagy, @projects = pagy(scope.order(created_at: :desc))
+    @pagy, @projects = pagy(scope.order(created_at: :asc))
 
     render inertia: "Admin/Projects/Index", props: {
       projects: @projects.map { |p| serialize_project_row(p) },
@@ -51,7 +51,9 @@ class Admin::ProjectsController < Admin::ApplicationController
       status_filter: "pending",
       counts: status_counts,
       page_title: "Project Reviews",
-      hide_filters: true
+      hide_filters: true,
+      review_mode: true,
+      first_pending_id: @projects.first&.id
     }
   end
 
@@ -60,12 +62,22 @@ class Admin::ProjectsController < Admin::ApplicationController
     @ships = @project.ships.includes(:reviewer).order(created_at: :desc)
     @notes = @project.project_notes.includes(:author).order(created_at: :desc)
 
+    airtable_item = @project.airtable_queue_items.where.not(status: :cancelled).order(created_at: :desc).first
+    airtable_status = if airtable_item&.airtable_record_id.present?
+      { in_airtable: true, record_id: airtable_item.airtable_record_id }
+    elsif airtable_item
+      { in_airtable: false, queue_status: airtable_item.status }
+    else
+      { in_airtable: false }
+    end
+
     render inertia: "Admin/Projects/Show", props: {
       project: serialize_project_detail(@project),
       ships: @ships.map { |s| serialize_ship_row(s) },
       notes: @notes.map { |n| serialize_note(n) },
       review_history: @project.review_history.map { |e| serialize_review_event(e) },
-      can: { review: policy(@project).review?, destroy: policy(@project).destroy?, restore: policy(@project).restore? }
+      airtable_status: airtable_status,
+      can: { review: policy(@project).review?, destroy: policy(@project).destroy?, restore: policy(@project).restore?, reverse: policy(@project).review? && %w[approved returned rejected].include?(@project.status) }
     }
   end
 
@@ -153,6 +165,81 @@ class Admin::ProjectsController < Admin::ApplicationController
     redirect_to admin_project_path(@project), notice: "Tier changed from #{old_tier.tr('_', ' ')} to #{new_tier.tr('_', ' ')}."
   end
 
+  def reverse_review
+    authorize @project, :review?
+
+    unless %w[approved returned rejected].include?(@project.status)
+      redirect_to admin_project_path(@project), alert: "Only completed reviews can be reversed."
+      return
+    end
+
+    reason = params[:reason].to_s.strip
+    if reason.blank?
+      redirect_to admin_project_path(@project), alert: "Provide a reason when reversing a review."
+      return
+    end
+
+    previous_status = @project.status
+    previous_reviewer_id = @project.reviewer_id
+    previous_reviewed_at = @project.reviewed_at
+    previous_coins_earned = @project.coins_earned
+    refund_requested = ActiveModel::Type::Boolean.new.cast(params[:refund_coins])
+    cancel_airtable = ActiveModel::Type::Boolean.new.cast(params[:cancel_airtable])
+    notify_slack_flag = ActiveModel::Type::Boolean.new.cast(params[:notify_slack])
+
+    Project.transaction do
+      @project.update!(
+        status: :pending,
+        reviewer: nil,
+        reviewed_at: nil,
+        review_feedback: nil,
+        approval_justification: nil
+      )
+
+      if refund_requested && previous_coins_earned.to_f.positive?
+        @project.user.coin_adjustments.create!(
+          actor: current_user,
+          amount: -previous_coins_earned.to_f.round(2),
+          reason: "Review reversed for project #{@project.name} (##{@project.id}): #{reason}"
+        )
+      end
+    end
+
+    airtable_warning = nil
+    if cancel_airtable
+      @project.airtable_queue_items.where.not(status: :cancelled).find_each do |item|
+        if item.airtable_record_id.present?
+          airtable_warning ||= "Project is already in Airtable (#{item.airtable_record_id}). Local queue item cancelled — delete the Airtable record manually if needed."
+        end
+        item.update(status: :cancelled)
+      end
+    end
+
+    if notify_slack_flag && @project.tier == "tier_1" && @project.slack_channel_id.present? && @project.slack_message_ts.present?
+      app_url = ENV.fetch("APP_URL", "https://forge.hackclub.com")
+      project_url = "#{app_url}/projects/#{@project.id}"
+      reviewer_mention = current_user.slack_id.present? ? "<@#{current_user.slack_id}>" : current_user.display_name
+      user_mention = @project.user.slack_id.present? ? "<@#{@project.user.slack_id}>" : @project.user.display_name
+      msg = ":arrows_counterclockwise: #{user_mention} The review of *#{@project.name}* was reversed by #{reviewer_mention}."
+      msg += "\n\n*Reason:*\n> #{reason}"
+      msg += "\n\n<#{project_url}|View Project>"
+      SlackNotifyJob.perform_later(channel_id: @project.slack_channel_id, thread_ts: @project.slack_message_ts, text: msg)
+    end
+
+    audit!("project.review_reversed", target: @project, metadata: {
+      reason: reason,
+      previous_status: previous_status,
+      previous_reviewer_id: previous_reviewer_id,
+      previous_reviewed_at: previous_reviewed_at,
+      previous_coins_earned: previous_coins_earned,
+      refunded: refund_requested && previous_coins_earned.to_f.positive?,
+      cancelled_airtable: cancel_airtable,
+      notified_slack: notify_slack_flag
+    })
+
+    redirect_to admin_project_path(@project), notice: airtable_warning || "Review reversed. Project is back to pending."
+  end
+
   def mark_unbuilt
     authorize @project, :review?
 
@@ -189,6 +276,7 @@ class Admin::ProjectsController < Admin::ApplicationController
 
     decision = params[:decision]
     feedback = params[:feedback]
+    reasoning = params[:reasoning]
     is_pitch_stage = @project.pitch_pending?
     stage = is_pitch_stage ? :pitch : :project
 
@@ -199,6 +287,7 @@ class Admin::ProjectsController < Admin::ApplicationController
           return
         end
         @project.update!(status: :pitch_approved, reviewer: current_user, reviewed_at: Time.current, review_feedback: feedback)
+        end_active_review_session(decision: "approved")
         audit!("project.pitch_approved", target: @project, metadata: { feedback: feedback })
         notify_slack_decision(@project, "approved", feedback, stage: stage)
         redirect_to admin_project_path(@project), notice: "Pitch approved."
@@ -211,35 +300,47 @@ class Admin::ProjectsController < Admin::ApplicationController
           return
         end
         capped = capped_override_hours(@project, params[:override_hours])
+        approved_hours = capped || @project.devlog_hours
+        justification = JustificationTemplate.render_for_project(
+          project: @project,
+          reviewer: current_user,
+          claimed_hours: @project.devlog_hours,
+          approved_hours: approved_hours,
+          review_justification: reasoning.presence || feedback.to_s
+        )
         @project.update!(
           status: :approved,
           reviewer: current_user,
           reviewed_at: Time.current,
           review_feedback: feedback,
           override_hours: capped,
-          override_hours_justification: params[:override_hours_justification].presence
+          override_hours_justification: params[:override_hours_justification].presence,
+          approval_justification: justification
         )
-        audit!("project.approved", target: @project, metadata: { feedback: feedback, override_hours: capped })
+        end_active_review_session(decision: "approved")
+        audit!("project.approved", target: @project, metadata: { feedback: feedback, override_hours: capped, reasoning: reasoning })
         ReferralEligibility.mark(@project)
         notify_slack_decision(@project, "approved! :tada:", feedback, stage: stage)
-        redirect_to admin_project_path(@project), notice: "Project approved."
+        redirect_to admin_review_path(@project), notice: "Project approved."
       end
     when "return"
       if guard_duplicate_transition!(@project, :returned, "Project already returned.")
         return
       end
       @project.update!(status: :returned, reviewer: current_user, reviewed_at: Time.current, review_feedback: feedback)
+      end_active_review_session(decision: "returned")
       audit!("project.returned", target: @project, metadata: { feedback: feedback, stage: stage })
       notify_slack_decision(@project, "returned for changes", feedback, stage: stage)
-      redirect_to admin_project_path(@project), notice: "Project returned to builder."
+      redirect_to admin_review_path(@project), notice: "Project returned to builder."
     when "reject"
       if guard_duplicate_transition!(@project, :rejected, "Project already rejected.")
         return
       end
       @project.update!(status: :rejected, reviewer: current_user, reviewed_at: Time.current, review_feedback: feedback)
+      end_active_review_session(decision: "rejected")
       audit!("project.rejected", target: @project, metadata: { feedback: feedback, stage: stage })
       notify_slack_decision(@project, "rejected", feedback, stage: stage)
-      redirect_to admin_project_path(@project), notice: "Project rejected."
+      redirect_to admin_review_path(@project), notice: "Project rejected."
     when "draft"
       if guard_duplicate_transition!(@project, :draft, "Project already in draft.")
         return
@@ -262,13 +363,20 @@ class Admin::ProjectsController < Admin::ApplicationController
     when "refresh_readme"
       FetchReadmeJob.perform_later(@project.id)
       audit!("project.readme_refreshed", target: @project)
-      redirect_to admin_project_path(@project), notice: "Fetching latest README..."
+      redirect_back fallback_location: admin_project_path(@project), notice: "Fetching latest README..."
     else
       redirect_to admin_project_path(@project), alert: "Invalid review decision."
     end
   end
 
   private
+
+  def end_active_review_session(decision:)
+    return unless current_user
+    ReviewSession.active.for_reviewer(current_user).for_project(@project).find_each do |s|
+      s.end!(decision: decision)
+    end
+  end
 
   def require_projects_permission!
     require_permission!("projects")
@@ -438,7 +546,7 @@ class Admin::ProjectsController < Admin::ApplicationController
       id: event.id,
       action: event.action,
       stage: meta["stage"],
-      feedback: meta["feedback"].presence,
+      feedback: meta["feedback"].presence || meta["reason"].presence,
       reviewer_display_name: event.actor&.display_name,
       reviewer_avatar: event.actor&.avatar,
       target_type: event.target_type,

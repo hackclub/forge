@@ -1,4 +1,10 @@
 import { router, Link } from '@inertiajs/react'
+import { Dices, RotateCcw, Zap, Trophy } from 'lucide-react'
+import { Badge } from '@/components/admin/ui/badge'
+import { Button } from '@/components/admin/ui/button'
+import { Card, CardContent } from '@/components/admin/ui/card'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/admin/ui/table'
+import { cn } from '@/components/admin/lib/cn'
 
 interface ReferralUserRow {
   id: number
@@ -28,6 +34,17 @@ interface Winner {
   pool_amount: number
 }
 
+function StatCard({ label, value, accent }: { label: string; value: string | number; accent?: boolean }) {
+  return (
+    <Card className={cn(accent && 'border-primary/40')}>
+      <CardContent className="p-4">
+        <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">{label}</p>
+        <p className={cn('text-2xl font-semibold', accent && 'text-primary')}>{value}</p>
+      </CardContent>
+    </Card>
+  )
+}
+
 export default function AdminReferralsIndex({
   users,
   stats,
@@ -43,25 +60,20 @@ export default function AdminReferralsIndex({
   }
 
   function resetPool() {
-    if (!confirm('Reset the prize pool to 0? This adds the current pool to total paid out.')) return
+    if (!confirm('Reset the prize pool to 0?')) return
     router.post('/admin/referrals/reset_pool')
   }
 
   function forceApproveAll() {
-    if (
-      !confirm(
-        'Pay out every non-approved referral, including pending ones where the referred builder has NOT shipped? This cannot be undone.',
-      )
-    )
-      return
+    if (!confirm('Pay out every non-approved referral, including pending ones? Cannot be undone.')) return
     router.post('/admin/referrals/force_approve_all')
   }
 
   return (
-    <div className="p-5 md:p-12 max-w-[1400px] mx-auto">
-      <h1 className="text-4xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-8">Referrals</h1>
+    <div className="max-w-7xl mx-auto space-y-6">
+      <h1 className="text-2xl font-semibold tracking-tight">Referrals</h1>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <StatCard label="Total Referrals" value={stats.total_unique_referrals} />
         <StatCard label="Approved" value={stats.approved_count} />
         <StatCard label="Eligible" value={stats.eligible_count} />
@@ -71,94 +83,91 @@ export default function AdminReferralsIndex({
         <StatCard label="Total Spend" value={`${stats.total_referral_spend.toFixed(2)}c`} />
       </div>
 
-      <div className="flex gap-3 mb-8 flex-wrap">
-        <button
-          onClick={drawWinner}
-          className="signature-smolder text-[#4c1a00] px-6 py-3 font-bold uppercase tracking-wider text-xs cursor-pointer flex items-center gap-2"
-        >
-          <span className="material-symbols-outlined text-lg">casino</span>
+      <div className="flex gap-2 flex-wrap">
+        <Button onClick={drawWinner}>
+          <Dices className="size-4" />
           Draw Winner
-        </button>
-        <button
-          onClick={resetPool}
-          className="ghost-border bg-[#1c1b1b] text-stone-400 hover:bg-[#2a2a2a] px-6 py-3 font-bold uppercase tracking-wider text-xs cursor-pointer flex items-center gap-2"
-        >
-          <span className="material-symbols-outlined text-lg">restart_alt</span>
+        </Button>
+        <Button variant="outline" onClick={resetPool}>
+          <RotateCcw className="size-4" />
           Reset Pool
-        </button>
-        <button
-          onClick={forceApproveAll}
-          className="border border-red-500/40 bg-red-500/10 text-red-300 hover:bg-red-500/20 px-6 py-3 font-bold uppercase tracking-wider text-xs cursor-pointer flex items-center gap-2"
-        >
-          <span className="material-symbols-outlined text-lg">bolt</span>
+        </Button>
+        <Button variant="destructive" onClick={forceApproveAll}>
+          <Zap className="size-4" />
           Pay Out All
-        </button>
+        </Button>
       </div>
 
       {winner && (
-        <div className="ghost-border bg-[#1c1b1b] p-6 mb-8 border border-[#ca5924]/30">
-          <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#ffb595] mb-3">Winner Drawn</p>
-          <div className="flex items-center gap-4">
-            <img src={winner.avatar} alt="" className="w-12 h-12 object-cover" />
-            <div className="flex-1">
+        <Card className="border-primary/40">
+          <CardContent className="p-4 flex items-center gap-4">
+            <Trophy className="size-8 text-primary shrink-0" />
+            <img src={winner.avatar} alt="" className="size-12 rounded-full" />
+            <div className="flex-1 min-w-0">
+              <p className="text-xs text-muted-foreground uppercase tracking-wide mb-0.5">Winner Drawn</p>
               <Link
                 href={`/admin/users/${winner.id}`}
-                className="font-headline font-bold text-[#e5e2e1] text-xl hover:text-[#ffb595] transition-colors"
+                className="text-lg font-semibold hover:underline truncate block"
               >
                 {winner.display_name}
               </Link>
-              <p className="text-stone-500 text-sm">
+              <p className="text-sm text-muted-foreground">
                 Had {winner.tickets} ticket{winner.tickets === 1 ? '' : 's'} · Pool was {winner.pool_amount.toFixed(2)}c
               </p>
             </div>
-            <p className="text-stone-500 text-xs">Pay out manually, then reset the pool.</p>
-          </div>
-        </div>
+            <p className="text-xs text-muted-foreground hidden md:block">Pay out manually, then reset the pool.</p>
+          </CardContent>
+        </Card>
       )}
 
-      <div className="space-y-2 overflow-x-auto">
-        <div className="hidden md:grid grid-cols-[1fr_auto_auto_auto_auto] gap-4 px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600 min-w-[720px]">
-          <span>Referrer</span>
-          <span>Code</span>
-          <span>Total</span>
-          <span>Eligible</span>
-          <span>Approved</span>
-        </div>
-        {users.length === 0 ? (
-          <div className="ghost-border bg-[#1c1b1b] p-16 text-center">
-            <p className="text-stone-300 text-lg font-headline font-medium mb-2">No referrals yet</p>
-            <p className="text-stone-500 text-sm">Users get credit once their referred builder ships a project.</p>
-          </div>
-        ) : (
-          users.map((user) => (
-            <Link
-              key={user.id}
-              href={`/admin/referrals/${user.id}`}
-              className="flex flex-col gap-1 md:grid md:grid-cols-[1fr_auto_auto_auto_auto] md:gap-4 bg-[#1c1b1b] px-5 py-4 ghost-border hover:bg-[#2a2a2a] transition-all group md:min-w-[720px]"
-            >
-              <span className="flex items-center gap-3">
-                <img src={user.avatar} alt="" className="w-8 h-8 object-cover" />
-                <span className="font-headline font-bold text-[#e5e2e1] group-hover:text-[#ffb595] transition-colors truncate">
-                  {user.display_name}
-                </span>
-              </span>
-              <span className="font-mono text-stone-500 text-xs">{user.referral_code}</span>
-              <span className="text-stone-400 text-sm">{user.total}</span>
-              <span className="text-amber-400 text-sm">{user.eligible_count}</span>
-              <span className="text-emerald-400 text-sm">{user.approved_count}</span>
-            </Link>
-          ))
-        )}
-      </div>
-    </div>
-  )
-}
-
-function StatCard({ label, value, accent }: { label: string; value: string | number; accent?: boolean }) {
-  return (
-    <div className={`ghost-border bg-[#1c1b1b] p-4 ${accent ? 'border border-[#ca5924]/30' : ''}`}>
-      <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-500 mb-2">{label}</p>
-      <p className={`font-headline font-bold text-2xl ${accent ? 'text-[#ffb595]' : 'text-[#e5e2e1]'}`}>{value}</p>
+      <Card>
+        <CardContent className="pt-6">
+          {users.length === 0 ? (
+            <div className="p-10 text-center">
+              <p className="text-base font-medium mb-1">No referrals yet</p>
+              <p className="text-sm text-muted-foreground">
+                Users get credit once their referred builder ships a project.
+              </p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Referrer</TableHead>
+                  <TableHead>Code</TableHead>
+                  <TableHead>Total</TableHead>
+                  <TableHead>Eligible</TableHead>
+                  <TableHead>Approved</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {users.map((user) => (
+                  <TableRow
+                    key={user.id}
+                    onClick={() => router.visit(`/admin/referrals/${user.id}`)}
+                    className="cursor-pointer"
+                  >
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <img src={user.avatar} alt="" className="size-6 rounded-full" />
+                        <span className="font-medium">{user.display_name}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="font-mono text-xs">{user.referral_code}</TableCell>
+                    <TableCell>{user.total}</TableCell>
+                    <TableCell>
+                      <Badge variant="warning">{user.eligible_count}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="success">{user.approved_count}</Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }
