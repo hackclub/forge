@@ -31,7 +31,7 @@ class AirtableSyncJob < ApplicationJob
       "Birthday" => user.birthday&.iso8601,
       "Slack ID" => user.slack_id,
       "Optional - Override Hours Spent" => project.override_hours&.to_f,
-      "Optional - Override Hours Spent Justification" => project.override_hours_justification,
+      "Optional - Override Hours Spent Justification" => project.approval_justification.presence || project.override_hours_justification,
       "Forge Status" => project.status
     }
 
