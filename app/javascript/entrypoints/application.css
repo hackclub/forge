@@ -11,6 +11,15 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: 'IM Fell English';
+  src: local('ui-monospace'), local('SFMono-Regular'), local('Menlo'), local('Monaco'), local('Consolas'), local('Liberation Mono'), local('Courier New');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0030-0039;
+}
+
 html, body {
   background-color: #0e0e0e;
   font-family: 'IM Fell English', serif;

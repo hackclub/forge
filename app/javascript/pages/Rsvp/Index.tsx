@@ -132,12 +132,6 @@ function Footer() {
             <h3 className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-500 mb-4">Resources</h3>
             <div className="flex flex-col gap-2">
               <a
-                href="https://hackclub.com/pizza"
-                className="text-stone-500 text-sm hover:text-stone-300 transition-colors"
-              >
-                Pizza Grant
-              </a>
-              <a
                 href="https://events.hackclub.com/"
                 className="text-stone-500 text-sm hover:text-stone-300 transition-colors"
               >
