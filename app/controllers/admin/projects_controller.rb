@@ -1,6 +1,6 @@
 class Admin::ProjectsController < Admin::ApplicationController
   before_action :require_projects_permission!
-  before_action :set_project, only: [ :show, :review, :destroy, :restore, :toggle_hidden, :toggle_staff_pick, :change_tier, :add_note, :destroy_note, :mark_unbuilt, :reverse_review ]
+  before_action :set_project, only: [ :show, :review, :destroy, :restore, :toggle_hidden, :toggle_staff_pick, :change_tier, :add_note, :destroy_note, :mark_unbuilt, :reverse_review, :ai_requirements_check ]
 
   def index
     scope = policy_scope(Project).includes(:user, :ships)
@@ -367,6 +367,18 @@ class Admin::ProjectsController < Admin::ApplicationController
     else
       redirect_to admin_project_path(@project), alert: "Invalid review decision."
     end
+  end
+
+  def ai_requirements_check
+    authorize @project, :review?
+
+    result = AiRequirementsChecker.run(@project)
+    @project.update!(ai_check_result: result, ai_check_ran_at: Time.current)
+    audit!("project.ai_check_run", target: @project, metadata: { overall: result["overall"], requirements_count: result["requirements"].size })
+
+    redirect_back fallback_location: admin_review_path(@project), notice: "AI requirements check complete."
+  rescue AiRequirementsChecker::Error => e
+    redirect_back fallback_location: admin_review_path(@project), alert: "AI check failed: #{e.message}"
   end
 
   private

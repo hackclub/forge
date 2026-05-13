@@ -255,6 +255,7 @@ Rails.application.routes.draw do
           post :add_note
           post :mark_unbuilt
           post :reverse_review
+          post :ai_requirements_check
           delete "notes/:note_id" => "projects#destroy_note", as: :destroy_note
         end
       end

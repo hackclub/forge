@@ -5,6 +5,8 @@
 # Table name: projects
 #
 #  id                           :bigint           not null, primary key
+#  ai_check_ran_at              :datetime
+#  ai_check_result              :jsonb
 #  approval_justification       :text
 #  budget                       :text
 #  build_proof_url              :string

@@ -23,6 +23,7 @@ import {
   History,
   RefreshCw,
   AlertCircle,
+  Sparkles,
 } from 'lucide-react'
 import ReviewLayout from '@/layouts/ReviewLayout'
 import { Badge } from '@/components/admin/ui/badge'
@@ -49,6 +50,21 @@ import { trackReviewEvent } from '@/lib/reviewTracker'
 import { buildJustification, formatJustificationDate } from '@/lib/justificationPreview'
 import type { ProjectStatus, ProjectTier } from '@/types'
 
+interface AiCheckRequirement {
+  name: string
+  verdict: 'pass' | 'fail' | 'uncertain'
+  reasoning: string
+  source: string
+}
+
+interface AiCheckResult {
+  summary: string
+  overall: 'pass' | 'fail' | 'uncertain'
+  requirements: AiCheckRequirement[]
+  checked_at: string
+  model: string
+}
+
 interface ReviewProject {
   id: number
   name: string
@@ -70,6 +86,8 @@ interface ReviewProject {
   pitch_text: string | null
   readme_cache: string | null
   readme_fetched_at: string | null
+  ai_check_result: AiCheckResult | null
+  ai_check_ran_at: string | null
   reviewed_at: string | null
   reviewer_display_name: string | null
   review_feedback: string | null
@@ -205,6 +223,85 @@ function CollapsibleSection({
   )
 }
 
+function verdictBadge(verdict: 'pass' | 'fail' | 'uncertain') {
+  switch (verdict) {
+    case 'pass':
+      return <Badge variant="success">Pass</Badge>
+    case 'fail':
+      return <Badge variant="destructive">Fail</Badge>
+    default:
+      return <Badge variant="warning">Uncertain</Badge>
+  }
+}
+
+function AiCheckPanel({
+  result,
+  ranAt,
+  running,
+  onRun,
+}: {
+  result: AiCheckResult | null
+  ranAt: string | null
+  running: boolean
+  onRun: () => void
+}) {
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between gap-2 rounded-md border border-border bg-card p-3">
+        <div className="text-xs text-muted-foreground">
+          {ranAt ? (
+            <>
+              Last run <span className="font-mono">{ranAt}</span>
+              {result?.model && <span> · {result.model}</span>}
+            </>
+          ) : (
+            'Not run yet for this project.'
+          )}
+        </div>
+        <Button size="sm" onClick={onRun} disabled={running}>
+          {running ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
+          {running ? 'Checking…' : ranAt ? 'Re-run' : 'Run check'}
+        </Button>
+      </div>
+
+      {result ? (
+        <>
+          <div className="rounded-md border border-border bg-card p-3 space-y-2">
+            <div className="flex items-center gap-2">
+              <span className="text-xs uppercase tracking-wide text-muted-foreground">Overall</span>
+              {verdictBadge(result.overall)}
+            </div>
+            {result.summary && <p className="text-sm whitespace-pre-wrap">{result.summary}</p>}
+          </div>
+
+          {result.requirements.length === 0 ? (
+            <p className="text-sm text-muted-foreground p-3">No specific requirements returned.</p>
+          ) : (
+            <div className="space-y-2">
+              {result.requirements.map((req, idx) => (
+                <div key={idx} className="rounded-md border border-border bg-card p-3 space-y-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {verdictBadge(req.verdict)}
+                    <span className="text-sm font-semibold">{req.name}</span>
+                    {req.source && <span className="text-xs text-muted-foreground font-mono">{req.source}</span>}
+                  </div>
+                  {req.reasoning && <p className="text-xs text-muted-foreground">{req.reasoning}</p>}
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      ) : (
+        !running && (
+          <p className="text-sm text-muted-foreground p-3">
+            Click <strong>Run check</strong> to have the AI evaluate this project against the Forge requirements + design docs.
+          </p>
+        )
+      )}
+    </div>
+  )
+}
+
 interface ConcurrentReviewer {
   reviewer_name: string
   reviewer_avatar: string
@@ -236,6 +333,7 @@ export default function AdminReviewsShow({
   const isTerminal = project.status !== 'pending'
   useReviewHeartbeat(session?.heartbeat_path ?? null, session?.active_seconds ?? 0)
   const [readmeRefreshing, setReadmeRefreshing] = useState(false)
+  const [aiChecking, setAiChecking] = useState(false)
 
   const track = useCallback(
     (button: string, metadata: Record<string, unknown> = {}) => {
@@ -243,6 +341,19 @@ export default function AdminReviewsShow({
     },
     [project.id],
   )
+
+  const runAiCheck = useCallback(() => {
+    track('ai_check_run')
+    setAiChecking(true)
+    router.post(
+      `/admin/projects/${project.id}/ai_requirements_check`,
+      {},
+      {
+        preserveScroll: true,
+        onFinish: () => setAiChecking(false),
+      },
+    )
+  }, [project.id, track])
 
   const refreshReadme = useCallback(() => {
     track('refresh_readme')
@@ -537,6 +648,7 @@ export default function AdminReviewsShow({
               <TabsTrigger value="description">Description</TabsTrigger>
               <TabsTrigger value="notes">Notes ({notes.length})</TabsTrigger>
               <TabsTrigger value="timeline">Timeline</TabsTrigger>
+              <TabsTrigger value="ai_check">AI Check</TabsTrigger>
             </TabsList>
 
             <TabsContent value="journal">
@@ -650,6 +762,15 @@ export default function AdminReviewsShow({
               ) : (
                 <AdminReviewTimeline events={review_history} defaultExpanded />
               )}
+            </TabsContent>
+
+            <TabsContent value="ai_check">
+              <AiCheckPanel
+                result={project.ai_check_result}
+                ranAt={project.ai_check_ran_at}
+                running={aiChecking}
+                onRun={runAiCheck}
+              />
             </TabsContent>
           </Tabs>
 

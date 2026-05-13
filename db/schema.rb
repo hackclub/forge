@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_13_080439) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_13_111300) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -249,6 +249,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_13_080439) do
   end
 
   create_table "projects", force: :cascade do |t|
+    t.datetime "ai_check_ran_at"
+    t.jsonb "ai_check_result"
     t.text "approval_justification"
     t.text "budget"
     t.string "build_proof_url"
