@@ -3,9 +3,13 @@ class ExploreController < ApplicationController
 
   def index
     scope = Project.kept.where(hidden: false).includes(:user, :ships)
-      .order(Arel.sql("cover_image_url IS NULL"), created_at: :desc)
     scope = scope.search(params[:query]) if params[:query].present?
-    @pagy, @projects = pagy(scope)
+
+    ranked = scope.fair_feed
+    # Push cover-imageless projects to the bottom while preserving the score order within each group
+    ranked = ranked.partition { |p| p.cover_image_url.present? }.flatten
+
+    @pagy, @projects = pagy(ranked)
 
     render inertia: "Explore/Index", props: {
       projects: @projects.map { |p|
@@ -18,6 +22,7 @@ class ExploreController < ApplicationController
           user_display_name: p.user.display_name,
           user_avatar: p.user.avatar,
           ships_count: p.ships.size,
+          views_count: p.views_count,
           created_at: p.created_at.strftime("%b %d, %Y")
         }
       },

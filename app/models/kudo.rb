@@ -27,7 +27,7 @@ class Kudo < ApplicationRecord
 
   belongs_to :user
   belongs_to :author, class_name: "User"
-  belongs_to :project, optional: true
+  belongs_to :project, optional: true, counter_cache: :kudos_count
 
   validates :content, presence: true
 end

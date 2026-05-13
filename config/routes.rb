@@ -426,6 +426,7 @@ Rails.application.routes.draw do
     end
     resources :devlogs, only: [ :show, :create, :update, :destroy ]
     post "devlog_image" => "devlogs#upload_image", as: :devlog_image
+    resource :view, only: [ :create ], module: :projects, controller: "views"
     resources :reels, only: [ :new, :create ] do
       collection do
         get "", action: :manage, as: ""

@@ -1,4 +1,4 @@
-import { useMemo, useState, useRef } from 'react'
+import { useEffect, useMemo, useState, useRef } from 'react'
 import { router, Link, useForm, usePage } from '@inertiajs/react'
 import Markdown from 'react-markdown'
 import rehypeRaw from 'rehype-raw'
@@ -56,6 +56,41 @@ function validateDevlogContent(content: string): { valid: boolean; errors: strin
   return { valid: errors.length === 0, errors }
 }
 
+function DevlogContentEditor({ content, children }: { content: string; children: React.ReactNode }) {
+  const [mode, setMode] = useState<'write' | 'preview'>('write')
+  const tabClass = (active: boolean) =>
+    `px-3 py-1.5 text-[10px] uppercase tracking-[0.2em] font-bold cursor-pointer ${
+      active ? 'text-[#ffb595] border-b border-[#ca5924]' : 'text-stone-500 hover:text-stone-300 border-b border-transparent'
+    }`
+
+  return (
+    <div>
+      <div className="flex gap-1 mb-2 border-b border-stone-800">
+        <button type="button" onClick={() => setMode('write')} className={tabClass(mode === 'write')}>
+          Write
+        </button>
+        <button type="button" onClick={() => setMode('preview')} className={tabClass(mode === 'preview')}>
+          Preview
+        </button>
+      </div>
+      <div className={mode === 'write' ? '' : 'hidden'}>{children}</div>
+      {mode === 'preview' && (
+        <div className="bg-[#0e0e0e] px-4 py-3 text-sm min-h-[200px] overflow-auto">
+          {content.trim() ? (
+            <div className="prose prose-invert prose-sm max-w-none text-stone-300 prose-a:text-[#ffb595] prose-img:max-w-full prose-img:rounded-none break-words [overflow-wrap:anywhere]">
+              <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw, rehypeSanitize]}>
+                {content}
+              </Markdown>
+            </div>
+          ) : (
+            <span className="text-stone-600 text-xs italic">Nothing to preview yet.</span>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 interface DevlogEntry {
   id: number
   title: string
@@ -111,6 +146,16 @@ export default function ProjectsShow({
 }) {
   const [kudoContent, setKudoContent] = useState('')
   const [devlogOrder, setDevlogOrder] = useState<'newest' | 'oldest'>('newest')
+
+  useEffect(() => {
+    const csrf = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? ''
+    fetch(`/projects/${project.id}/view`, {
+      method: 'POST',
+      headers: { 'X-CSRF-Token': csrf },
+      credentials: 'same-origin',
+      keepalive: true,
+    }).catch(() => {})
+  }, [project.id])
 
   function submitKudo(e: React.FormEvent) {
     e.preventDefault()
@@ -876,29 +921,31 @@ export default function ProjectsShow({
                     <label className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
                       Content <span className="text-stone-600 normal-case tracking-normal">(markdown supported)</span>
                     </label>
-                    <textarea
-                      value={devlogForm.data.content}
-                      onChange={(e) => {
-                        devlogForm.setData('content', e.target.value)
-                        const { errors } = validateDevlogContent(e.target.value)
-                        setDevlogValidationErrors(errors)
-                      }}
-                      onPaste={(e) =>
-                        handleImagePaste(
-                          e,
-                          (v) => {
-                            devlogForm.setData('content', v)
-                            const { errors } = validateDevlogContent(v)
-                            setDevlogValidationErrors(errors)
-                          },
-                          devlogForm.data.content,
-                        )
-                      }
-                      rows={8}
-                      className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 text-sm resize-y font-mono"
-                      placeholder="What did you work on? Paste images directly..."
-                      required
-                    />
+                    <DevlogContentEditor content={devlogForm.data.content}>
+                      <textarea
+                        value={devlogForm.data.content}
+                        onChange={(e) => {
+                          devlogForm.setData('content', e.target.value)
+                          const { errors } = validateDevlogContent(e.target.value)
+                          setDevlogValidationErrors(errors)
+                        }}
+                        onPaste={(e) =>
+                          handleImagePaste(
+                            e,
+                            (v) => {
+                              devlogForm.setData('content', v)
+                              const { errors } = validateDevlogContent(v)
+                              setDevlogValidationErrors(errors)
+                            },
+                            devlogForm.data.content,
+                          )
+                        }
+                        rows={8}
+                        className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 text-sm resize-y font-mono"
+                        placeholder="What did you work on? Paste images directly..."
+                        required
+                      />
+                    </DevlogContentEditor>
                     <div className="text-xs text-stone-400 mt-2 flex items-center justify-between">
                       <span>
                         {devlogValidationErrors.length === 0
@@ -990,28 +1037,30 @@ export default function ProjectsShow({
                               Content{' '}
                               <span className="text-stone-600 normal-case tracking-normal">(markdown supported)</span>
                             </label>
-                            <textarea
-                              value={editDevlogForm.data.content}
-                              onChange={(e) => {
-                                editDevlogForm.setData('content', e.target.value)
-                                const { errors } = validateDevlogContent(e.target.value)
-                                setEditDevlogValidationErrors(errors)
-                              }}
-                              onPaste={(e) =>
-                                handleImagePaste(
-                                  e,
-                                  (v) => {
-                                    editDevlogForm.setData('content', v)
-                                    const { errors } = validateDevlogContent(v)
-                                    setEditDevlogValidationErrors(errors)
-                                  },
-                                  editDevlogForm.data.content,
-                                )
-                              }
-                              rows={8}
-                              className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 text-sm resize-y font-mono"
-                              required
-                            />
+                            <DevlogContentEditor content={editDevlogForm.data.content}>
+                              <textarea
+                                value={editDevlogForm.data.content}
+                                onChange={(e) => {
+                                  editDevlogForm.setData('content', e.target.value)
+                                  const { errors } = validateDevlogContent(e.target.value)
+                                  setEditDevlogValidationErrors(errors)
+                                }}
+                                onPaste={(e) =>
+                                  handleImagePaste(
+                                    e,
+                                    (v) => {
+                                      editDevlogForm.setData('content', v)
+                                      const { errors } = validateDevlogContent(v)
+                                      setEditDevlogValidationErrors(errors)
+                                    },
+                                    editDevlogForm.data.content,
+                                  )
+                                }
+                                rows={8}
+                                className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 text-sm resize-y font-mono"
+                                required
+                              />
+                            </DevlogContentEditor>
                           </div>
                           <div className="text-xs text-stone-400 flex items-center justify-between">
                             <span>

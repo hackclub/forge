@@ -12,6 +12,7 @@ interface ExploreProject {
   user_display_name: string
   user_avatar: string
   ships_count: number
+  views_count: number
   created_at: string
 }
 
@@ -90,9 +91,13 @@ export default function ExploreIndex({
                     </div>
 
                     <div className="px-5">
-                      <div className="flex justify-between items-start mb-3">
+                      <div className="flex justify-between items-center mb-3">
                         <span className="text-xs uppercase tracking-widest text-stone-500 bg-[#353534] px-3 py-1 rounded-full">
                           Project
+                        </span>
+                        <span className="inline-flex items-center gap-1 text-xs text-stone-500" title="Views">
+                          <span className="material-symbols-outlined text-sm leading-none">visibility</span>
+                          {project.views_count.toLocaleString()}
                         </span>
                       </div>
 

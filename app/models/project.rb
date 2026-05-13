@@ -13,6 +13,7 @@
 #  discarded_at                 :datetime
 #  green_flags                  :string           default([]), is an Array
 #  hidden                       :boolean          default(FALSE), not null
+#  kudos_count                  :integer          default(0), not null
 #  name                         :string           not null
 #  override_hours               :decimal(, )
 #  override_hours_justification :text
@@ -29,6 +30,7 @@
 #  subtitle                     :string
 #  tags                         :string           default([]), not null, is an Array
 #  tier                         :string           default("tier_4"), not null
+#  views_count                  :integer          default(0), not null
 #  created_at                   :datetime         not null
 #  updated_at                   :datetime         not null
 #  reviewer_id                  :bigint
@@ -65,6 +67,7 @@ class Project < ApplicationRecord
   has_many :project_notes, dependent: :destroy
   has_many :reels, dependent: :destroy
   has_many :review_sessions, dependent: :destroy
+  has_many :project_views, dependent: :destroy
   has_one_attached :cover_image
 
   after_commit :sync_to_airtable, on: [ :create, :update ], if: -> { approved? }
@@ -87,6 +90,21 @@ class Project < ApplicationRecord
 
   scope :reviewable, -> { where(status: :pending) }
   scope :staff_picks, -> { where.not(staff_pick_at: nil).order(staff_pick_at: :desc) }
+
+  def self.fair_feed
+    all.sort_by { |p| -p.feed_score }
+  end
+
+  def feed_score
+    age_hours = [ (Time.current - created_at) / 1.hour, 0.1 ].max
+    engagement = views_count + (kudos_count * 10) + (ships.size * 5)
+    engagement_rate = engagement / age_hours
+
+    freshness = age_hours < 24 ? (5.0 - (4.0 * age_hours / 24)) : 1.0
+
+    base = engagement_rate * freshness
+    base * (1.0 + rand * 0.3)
+  end
 
   def staff_pick?
     staff_pick_at.present?
