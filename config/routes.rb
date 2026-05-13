@@ -238,6 +238,7 @@ Rails.application.routes.draw do
       get "reviews" => "projects#reviews", as: :reviews
       get "reviews/:id" => "reviews#show", as: :review
       post "reviews/:id/skip" => "reviews#skip", as: :skip_review
+      post "reviews/:id/track" => "reviews#track", as: :track_review
       resources :review_sessions, only: [] do
         member do
           patch :heartbeat

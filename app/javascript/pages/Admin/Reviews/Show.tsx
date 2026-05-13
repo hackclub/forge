@@ -45,6 +45,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/admin/ui/
 import { cn } from '@/components/admin/lib/cn'
 import AdminReviewTimeline, { type ReviewEvent } from '@/components/admin/AdminReviewTimeline'
 import { useReviewHeartbeat, formatSeconds } from '@/hooks/useReviewHeartbeat'
+import { trackReviewEvent } from '@/lib/reviewTracker'
 import { buildJustification, formatJustificationDate } from '@/lib/justificationPreview'
 import type { ProjectStatus, ProjectTier } from '@/types'
 
@@ -236,7 +237,15 @@ export default function AdminReviewsShow({
   useReviewHeartbeat(session?.heartbeat_path ?? null, session?.active_seconds ?? 0)
   const [readmeRefreshing, setReadmeRefreshing] = useState(false)
 
+  const track = useCallback(
+    (button: string, metadata: Record<string, unknown> = {}) => {
+      trackReviewEvent(project.id, button, metadata)
+    },
+    [project.id],
+  )
+
   const refreshReadme = useCallback(() => {
+    track('refresh_readme')
     setReadmeRefreshing(true)
     router.post(
       `/admin/projects/${project.id}/review`,
@@ -250,7 +259,7 @@ export default function AdminReviewsShow({
         },
       },
     )
-  }, [project.id])
+  }, [project.id, track])
 
   const [reasoning, setReasoning] = useState('')
   const [feedback, setFeedback] = useState('')
@@ -289,13 +298,15 @@ export default function AdminReviewsShow({
     (newTier: string) => {
       if (newTier === project.tier) return
       if (!confirm(`Change tier from ${project.tier.replace('_', ' ')} to ${newTier.replace('_', ' ')}?`)) return
+      track('change_tier', { from: project.tier, to: newTier })
       router.post(`/admin/projects/${project.id}/change_tier`, { tier: newTier }, { preserveScroll: true })
     },
-    [project.id, project.tier],
+    [project.id, project.tier, track],
   )
 
   const submit = useCallback(
     (decision: 'approve' | 'return' | 'reject' | 'draft') => {
+      track(`${decision}_clicked`)
       const payload: Record<string, string | number | null> = { decision }
       if (decision === 'approve') {
         if (!reasoning.trim()) {
@@ -326,20 +337,20 @@ export default function AdminReviewsShow({
         onFinish: () => setSubmitting(null),
       })
     },
-    [project.id, reasoning, feedback, overrideHours, overrideJustification],
+    [project.id, reasoning, feedback, overrideHours, overrideJustification, track],
   )
 
   return (
     <div className="h-screen flex flex-col overflow-hidden border-t-2 border-orange-500">
       <div className="z-40 bg-card/40 border-b border-border px-4 py-2 flex items-center gap-3 shrink-0 flex-wrap">
-        <Button variant="outline" size="sm" asChild>
+        <Button variant="outline" size="sm" asChild onClick={() => track('end_session')}>
           <Link href="/admin/reviews">
             <ArrowLeft className="size-4" />
             End Session
           </Link>
         </Button>
         {next_pending_id && (
-          <Button variant="ghost" size="sm" asChild>
+          <Button variant="ghost" size="sm" asChild onClick={() => track('skip', { next_id: next_pending_id })}>
             <Link href={`/admin/reviews/${next_pending_id}`}>Skip</Link>
           </Button>
         )}
@@ -381,21 +392,21 @@ export default function AdminReviewsShow({
         {statusBadge(project.status)}
 
         <div className="flex items-center gap-2 ml-auto">
-          <Button variant="outline" size="sm" asChild>
+          <Button variant="outline" size="sm" asChild onClick={() => track('open_user')}>
             <a href={`/admin/users/${project.user_id}`} target="_blank" rel="noopener noreferrer">
               <UserIcon className="size-4" />
               User
             </a>
           </Button>
           {isSafeUrl(project.repo_link) && (
-            <Button variant="outline" size="sm" asChild>
+            <Button variant="outline" size="sm" asChild onClick={() => track('open_repo', { url: project.repo_link })}>
               <a href={project.repo_link!} target="_blank" rel="noopener noreferrer">
                 <GitBranch className="size-4" />
                 Repo
               </a>
             </Button>
           )}
-          <Button variant="outline" size="sm" asChild>
+          <Button variant="outline" size="sm" asChild onClick={() => track('open_public')}>
             <a href={`/projects/${project.id}`} target="_blank" rel="noopener noreferrer">
               <ExternalLink className="size-4" />
               Public
@@ -788,7 +799,12 @@ export default function AdminReviewsShow({
                 </Button>
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button variant="destructive" className="w-full" disabled={submitting !== null || !can.review}>
+                    <Button
+                      variant="destructive"
+                      className="w-full"
+                      disabled={submitting !== null || !can.review}
+                      onClick={() => track('reject_open')}
+                    >
                       <X className="size-4" />
                       Reject
                     </Button>
@@ -801,7 +817,7 @@ export default function AdminReviewsShow({
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogCancel onClick={() => track('reject_cancel')}>Cancel</AlertDialogCancel>
                       <AlertDialogAction variant="destructive" onClick={() => submit('reject')}>
                         Reject
                       </AlertDialogAction>
@@ -841,14 +857,18 @@ function ReadOnlyDecision({ project, next_pending_id }: { project: ReviewProject
         <span>This project is no longer pending. To undo a review use "Reverse Review" on the project admin page.</span>
       </div>
       <div className="flex gap-2">
-        <Button asChild variant="outline" className="flex-1">
+        <Button asChild variant="outline" className="flex-1" onClick={() => trackReviewEvent(project.id, 'view_project')}>
           <Link href={`/admin/projects/${project.id}`}>
             <History className="size-4" />
             Project page
           </Link>
         </Button>
         {next_pending_id && (
-          <Button asChild className="flex-1">
+          <Button
+            asChild
+            className="flex-1"
+            onClick={() => trackReviewEvent(project.id, 'next_project', { next_id: next_pending_id })}
+          >
             <Link href={`/admin/reviews/${next_pending_id}`}>
               Next pending
               <ChevronDown className="size-4 -rotate-90" />
