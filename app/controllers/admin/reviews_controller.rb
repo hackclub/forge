@@ -5,7 +5,7 @@ class Admin::ReviewsController < Admin::ApplicationController
   TRACKABLE_BUTTONS = %w[
     end_session skip next_project view_project
     open_user open_repo open_public
-    refresh_readme change_tier
+    refresh_readme change_tier ai_check_run
     approve_clicked return_clicked draft_clicked reject_open reject_cancel reject_confirm
     open_devlog toggle_readme
   ].freeze
@@ -164,6 +164,8 @@ class Admin::ReviewsController < Admin::ApplicationController
       reviewed_at: project.reviewed_at&.strftime("%b %d, %Y %H:%M UTC"),
       reviewer_display_name: project.reviewer&.display_name,
       review_feedback: project.review_feedback,
+      ai_check_result: project.ai_check_result,
+      ai_check_ran_at: project.ai_check_ran_at&.strftime("%b %d, %Y %H:%M UTC"),
       from_slack: project.slack_message_ts.present?,
       slack_url: project.slack_channel_id.present? && project.slack_message_ts.present? ? "https://hackclub.slack.com/archives/#{project.slack_channel_id}/p#{project.slack_message_ts.to_s.delete('.')}" : nil,
       created_at: project.created_at.strftime("%b %d, %Y"),
