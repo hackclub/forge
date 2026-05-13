@@ -1,6 +1,14 @@
 class Admin::ReviewsController < Admin::ApplicationController
   before_action :require_pending_reviews_permission!
-  before_action :set_project, only: [ :show, :skip ]
+  before_action :set_project, only: [ :show, :skip, :track ]
+
+  TRACKABLE_BUTTONS = %w[
+    end_session skip next_project view_project
+    open_user open_repo open_public
+    refresh_readme change_tier
+    approve_clicked return_clicked draft_clicked reject_open reject_cancel reject_confirm
+    open_devlog toggle_readme
+  ].freeze
 
   def show
     authorize @project, :review?
@@ -51,6 +59,21 @@ class Admin::ReviewsController < Admin::ApplicationController
     else
       redirect_to admin_reviews_path, notice: "No more pending projects."
     end
+  end
+
+  def track
+    authorize @project, :review?
+
+    button = params[:button].to_s
+    unless TRACKABLE_BUTTONS.include?(button)
+      head :unprocessable_entity
+      return
+    end
+
+    extras = params[:metadata].respond_to?(:to_unsafe_h) ? params[:metadata].to_unsafe_h : {}
+    safe_extras = extras.first(8).to_h { |k, v| [ k.to_s, v.is_a?(String) ? v.truncate(200) : v ] }
+    audit!("review.button_clicked", target: @project, metadata: { button: button }.merge(safe_extras))
+    head :no_content
   end
 
   private
