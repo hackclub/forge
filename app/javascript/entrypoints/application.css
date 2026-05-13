@@ -83,6 +83,49 @@
   padding: 0;
 }
 
+@keyframes login-ken-burns {
+  0% {
+    transform: scale(0.94);
+    opacity: 0;
+    filter: blur(8px) brightness(0.6);
+  }
+  20% {
+    opacity: 1;
+    filter: blur(2px) brightness(0.85);
+  }
+  100% {
+    transform: scale(1.18);
+    opacity: 1;
+    filter: blur(0) brightness(1);
+  }
+}
+
+@keyframes login-fade-up {
+  0% {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.login-bg {
+  animation: login-ken-burns 3000ms ease-out forwards;
+  transform-origin: center;
+}
+
+.login-bg-parallax {
+  transform: translate3d(var(--parallax-x, 0), var(--parallax-y, 0), 0);
+  transition: transform 80ms linear;
+  will-change: transform;
+}
+
+.login-card {
+  animation: login-fade-up 900ms ease-out 1100ms both;
+}
+
 .admin .markdown-content a {
   color: oklch(0.55 0.18 240);
 }

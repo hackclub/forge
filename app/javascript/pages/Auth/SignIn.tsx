@@ -1,8 +1,51 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Head } from '@inertiajs/react'
 
 export default function AuthSignIn() {
   const [email, setEmail] = useState('')
+  const parallaxRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (prefersReduced) return
+
+    const node = parallaxRef.current
+    if (!node) return
+
+    let rafId = 0
+    let targetX = 0
+    let targetY = 0
+    let currentX = 0
+    let currentY = 0
+    const maxOffset = 20
+
+    const onMove = (e: MouseEvent) => {
+      const nx = (e.clientX / window.innerWidth) * 2 - 1
+      const ny = (e.clientY / window.innerHeight) * 2 - 1
+      targetX = -nx * maxOffset
+      targetY = -ny * maxOffset
+      if (!rafId) rafId = requestAnimationFrame(tick)
+    }
+
+    const tick = () => {
+      currentX += (targetX - currentX) * 0.08
+      currentY += (targetY - currentY) * 0.08
+      node.style.setProperty('--parallax-x', `${currentX.toFixed(2)}px`)
+      node.style.setProperty('--parallax-y', `${currentY.toFixed(2)}px`)
+      if (Math.abs(targetX - currentX) > 0.1 || Math.abs(targetY - currentY) > 0.1) {
+        rafId = requestAnimationFrame(tick)
+      } else {
+        rafId = 0
+      }
+    }
+
+    window.addEventListener('mousemove', onMove)
+    return () => {
+      window.removeEventListener('mousemove', onMove)
+      if (rafId) cancelAnimationFrame(rafId)
+    }
+  }, [])
 
   function submitEmail(e: React.FormEvent) {
     e.preventDefault()
@@ -15,13 +58,15 @@ export default function AuthSignIn() {
       <Head title="Forge - Sign In" />
 
       <div className="min-h-screen bg-[#0e0e0e] text-[#e5e2e1] relative overflow-hidden flex flex-col items-center justify-center px-6 py-12">
-        <div
-          className="fixed inset-0 pointer-events-none z-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: 'url(/landing/landing.png)' }}
-        />
-        <div className="fixed inset-0 pointer-events-none z-0 bg-[#0e0e0e]/20" />
+        <div ref={parallaxRef} className="login-bg-parallax fixed inset-0 pointer-events-none z-0">
+          <div
+            className="login-bg absolute inset-[-4%] bg-cover bg-center bg-no-repeat"
+            style={{ backgroundImage: 'url(/login_page_bg.png)' }}
+          />
+        </div>
+        <div className="fixed inset-0 pointer-events-none z-0 bg-[#0e0e0e]/40" />
 
-        <div className="relative z-10 w-full max-w-md">
+        <div className="login-card relative z-10 w-full max-w-md">
           <div className="bg-[#1c1b1b]/90 backdrop-blur-sm ghost-border p-8 md:p-10">
             <div className="text-center mb-8">
               <h1 className="text-2xl md:text-3xl font-headline font-bold tracking-tight text-[#e5e2e1] mb-2">
