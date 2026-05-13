@@ -1,5 +1,58 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { Head } from '@inertiajs/react'
+
+function LandingParallaxBg() {
+  const parallaxRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    const node = parallaxRef.current
+    if (!node) return
+
+    let rafId = 0
+    let targetX = 0
+    let targetY = 0
+    let currentX = 0
+    let currentY = 0
+    const maxOffset = 20
+
+    const onMove = (e: MouseEvent) => {
+      const nx = (e.clientX / window.innerWidth) * 2 - 1
+      const ny = (e.clientY / window.innerHeight) * 2 - 1
+      targetX = -nx * maxOffset
+      targetY = -ny * maxOffset
+      if (!rafId) rafId = requestAnimationFrame(tick)
+    }
+
+    const tick = () => {
+      currentX += (targetX - currentX) * 0.08
+      currentY += (targetY - currentY) * 0.08
+      node.style.setProperty('--parallax-x', `${currentX.toFixed(2)}px`)
+      node.style.setProperty('--parallax-y', `${currentY.toFixed(2)}px`)
+      if (Math.abs(targetX - currentX) > 0.1 || Math.abs(targetY - currentY) > 0.1) {
+        rafId = requestAnimationFrame(tick)
+      } else {
+        rafId = 0
+      }
+    }
+
+    window.addEventListener('mousemove', onMove)
+    return () => {
+      window.removeEventListener('mousemove', onMove)
+      if (rafId) cancelAnimationFrame(rafId)
+    }
+  }, [])
+
+  return (
+    <div ref={parallaxRef} className="login-bg-parallax fixed inset-0 pointer-events-none z-0">
+      <div
+        className="login-bg absolute inset-[-4%] bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: 'url(/landing/landing.png)' }}
+      />
+    </div>
+  )
+}
 
 const FORGE_ICONS = [
   'hardware',
@@ -209,10 +262,7 @@ export default function LandingIndex() {
       <Head title="Forge" />
 
       <div className="min-h-screen bg-[#0e0e0e] text-[#e5e2e1] relative overflow-hidden flex flex-col">
-        <div
-          className="fixed inset-0 pointer-events-none z-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: 'url(/landing/landing.png)' }}
-        />
+        <LandingParallaxBg />
 
         <main className="relative z-10 flex-1 flex">
           <div className="w-full md:w-1/2 md:ml-16 lg:ml-32 flex flex-col items-center justify-center text-center px-8 md:px-12 pt-48 pb-24">
