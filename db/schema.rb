@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_12_115706) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_13_080439) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -238,6 +238,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_12_115706) do
     t.index ["project_id"], name: "index_project_notes_on_project_id"
   end
 
+  create_table "project_views", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "project_id", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["project_id", "user_id"], name: "index_project_views_on_project_id_and_user_id", unique: true
+    t.index ["project_id"], name: "index_project_views_on_project_id"
+    t.index ["user_id"], name: "index_project_views_on_user_id"
+  end
+
   create_table "projects", force: :cascade do |t|
     t.text "approval_justification"
     t.text "budget"
@@ -250,6 +260,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_12_115706) do
     t.datetime "discarded_at"
     t.string "green_flags", default: [], array: true
     t.boolean "hidden", default: false, null: false
+    t.integer "kudos_count", default: 0, null: false
     t.string "name", null: false
     t.decimal "override_hours"
     t.text "override_hours_justification"
@@ -270,6 +281,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_12_115706) do
     t.string "tier", default: "tier_4", null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
+    t.integer "views_count", default: 0, null: false
     t.index ["discarded_at"], name: "index_projects_on_discarded_at"
     t.index ["staff_pick_at"], name: "index_projects_on_staff_pick_at"
     t.index ["status"], name: "index_projects_on_status"
@@ -699,6 +711,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_12_115706) do
   add_foreign_key "orders", "users", column: "reviewer_id"
   add_foreign_key "project_notes", "projects"
   add_foreign_key "project_notes", "users", column: "author_id"
+  add_foreign_key "project_views", "projects"
+  add_foreign_key "project_views", "users"
   add_foreign_key "projects", "users"
   add_foreign_key "projects", "users", column: "reviewer_id"
   add_foreign_key "reel_comments", "reel_comments", column: "parent_id", on_delete: :cascade

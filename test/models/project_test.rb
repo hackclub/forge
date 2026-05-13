@@ -13,6 +13,7 @@
 #  discarded_at                 :datetime
 #  green_flags                  :string           default([]), is an Array
 #  hidden                       :boolean          default(FALSE), not null
+#  kudos_count                  :integer          default(0), not null
 #  name                         :string           not null
 #  override_hours               :decimal(, )
 #  override_hours_justification :text
@@ -29,6 +30,7 @@
 #  subtitle                     :string
 #  tags                         :string           default([]), not null, is an Array
 #  tier                         :string           default("tier_4"), not null
+#  views_count                  :integer          default(0), not null
 #  created_at                   :datetime         not null
 #  updated_at                   :datetime         not null
 #  reviewer_id                  :bigint
