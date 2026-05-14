@@ -5,7 +5,7 @@ module AiRequirementsChecker
   module_function
 
   ENDPOINT = "https://ai.hackclub.com/proxy/v1/chat/completions".freeze
-  MODEL = "anthropic/claude-opus-4.7-fast".freeze
+  MODEL = "openai/gpt-5.5".freeze
   DOC_GLOBS = [
     Rails.root.join("docs/requirements/*.md"),
     Rails.root.join("docs/design/*.md")
