@@ -61,7 +61,7 @@ export default function AuthSignIn() {
         <div ref={parallaxRef} className="login-bg-parallax fixed inset-0 pointer-events-none z-0">
           <div
             className="login-bg absolute inset-[-4%] bg-cover bg-center bg-no-repeat"
-            style={{ backgroundImage: 'url(/login_page_bg.png)' }}
+            style={{ backgroundImage: 'url(/login_page_bg.png?v=2)' }}
           />
         </div>
         <div className="fixed inset-0 pointer-events-none z-0 bg-[#0e0e0e]/40" />
