@@ -48,7 +48,7 @@ function LandingParallaxBg() {
     <div ref={parallaxRef} className="login-bg-parallax fixed inset-0 pointer-events-none z-0">
       <div
         className="login-bg absolute inset-[-4%] bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: 'url(/landing/landing.png)' }}
+        style={{ backgroundImage: 'url(/landing/landing.png?v=2)' }}
       />
     </div>
   )

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { usePage, router, Link } from '@inertiajs/react'
+import { usePage, Link } from '@inertiajs/react'
 import type { SharedProps } from '@/types'
 
 const navItems = [
@@ -39,10 +39,10 @@ export default function Nav() {
     }
   }, [mobileOpen])
 
-  function signOut(e: React.MouseEvent) {
-    e.preventDefault()
-    router.delete(shared.sign_out_path)
-  }
+  const csrfToken =
+    typeof document !== 'undefined'
+      ? document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content || ''
+      : ''
 
   const visibleItems = navItems.filter((item) => {
     if (item.authOnly && !shared.auth.user) return false
@@ -178,13 +178,17 @@ export default function Nav() {
                   </span>
                 )}
               </div>
-              <button
-                onClick={signOut}
-                className="w-full ghost-border bg-[#0e0e0e] hover:bg-[#2a2a2a] text-stone-400 hover:text-[#ffb595] px-3 py-2 uppercase tracking-wider text-[10px] font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer corner-accents"
-              >
-                <span className="material-symbols-outlined text-sm">logout</span>
-                Sign Out
-              </button>
+              <form action={shared.sign_out_path} method="post" className="w-full">
+                <input type="hidden" name="_method" value="delete" />
+                <input type="hidden" name="authenticity_token" value={csrfToken} />
+                <button
+                  type="submit"
+                  className="w-full ghost-border bg-[#0e0e0e] hover:bg-[#2a2a2a] text-stone-400 hover:text-[#ffb595] px-3 py-2 uppercase tracking-wider text-[10px] font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer corner-accents"
+                >
+                  <span className="material-symbols-outlined text-sm">logout</span>
+                  Sign Out
+                </button>
+              </form>
             </>
           ) : (
             <a
