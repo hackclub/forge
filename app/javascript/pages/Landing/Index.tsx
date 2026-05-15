@@ -1,12 +1,13 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Head } from '@inertiajs/react'
 
-function LandingParallaxBg() {
+function LandingParallaxBg({ zooming }: { zooming: boolean }) {
   const parallaxRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     if (typeof window === 'undefined') return
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    if (zooming) return
     const node = parallaxRef.current
     if (!node) return
 
@@ -42,12 +43,12 @@ function LandingParallaxBg() {
       window.removeEventListener('mousemove', onMove)
       if (rafId) cancelAnimationFrame(rafId)
     }
-  }, [])
+  }, [zooming])
 
   return (
     <div ref={parallaxRef} className="login-bg-parallax fixed inset-0 pointer-events-none z-0">
       <div
-        className="login-bg absolute inset-[-4%] bg-cover bg-center bg-no-repeat"
+        className={`absolute inset-[-4%] bg-cover bg-center bg-no-repeat ${zooming ? 'landing-bg-into-door' : 'landing-bg'}`}
         style={{ backgroundImage: 'url(/landing/landing.png?v=2)' }}
       />
     </div>
@@ -257,12 +258,27 @@ function Footer() {
 }
 
 export default function LandingIndex() {
+  const [zooming, setZooming] = useState(false)
+
+  const startZoom = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault()
+    if (zooming) return
+    if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      window.location.href = '/signin'
+      return
+    }
+    setZooming(true)
+    window.setTimeout(() => {
+      window.location.href = '/signin'
+    }, 2200)
+  }
+
   return (
     <>
       <Head title="Forge" />
 
-      <div className="min-h-screen bg-[#0e0e0e] text-[#e5e2e1] relative overflow-hidden flex flex-col">
-        <LandingParallaxBg />
+      <div className={`min-h-screen bg-[#0e0e0e] text-[#e5e2e1] relative overflow-hidden flex flex-col ${zooming ? 'landing-zooming' : ''}`}>
+        <LandingParallaxBg zooming={zooming} />
 
         <main className="relative z-10 flex-1 flex">
           <div className="w-full md:w-1/2 md:ml-16 lg:ml-32 flex flex-col items-center justify-center text-center px-8 md:px-12 pt-48 pb-24">
@@ -280,6 +296,7 @@ export default function LandingIndex() {
 
             <a
               href="/signin"
+              onClick={startZoom}
               className="signature-smolder text-[#4c1a00] font-headline font-bold py-4 px-10 uppercase tracking-[0.2em] text-sm inline-flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
             >
               <span className="material-symbols-outlined text-lg">local_fire_department</span>
