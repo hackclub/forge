@@ -372,6 +372,9 @@ class Admin::ProjectsController < Admin::ApplicationController
   def ai_requirements_check
     authorize @project, :review?
 
+    FetchReadmeJob.perform_now(@project.id) if @project.repo_link.present?
+    @project.reload
+
     result = AiRequirementsChecker.run(@project)
     @project.update!(ai_check_result: result, ai_check_ran_at: Time.current)
     audit!("project.ai_check_run", target: @project, metadata: { overall: result["overall"], requirements_count: result["requirements"].size })
