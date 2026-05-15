@@ -24,6 +24,7 @@ import {
   RefreshCw,
   AlertCircle,
   Sparkles,
+  Send,
 } from 'lucide-react'
 import ReviewLayout from '@/layouts/ReviewLayout'
 import { Badge } from '@/components/admin/ui/badge'
@@ -98,6 +99,7 @@ interface ReviewProject {
   user_id: number
   user_display_name: string
   user_email: string
+  user_slack_id: string | null
   user_avatar: string
   coins_earned_preview: number
   devlogs: {
@@ -135,6 +137,7 @@ interface Reviewer {
   display_name: string
   email: string
   is_superadmin: boolean
+  slack_id: string | null
 }
 
 interface ProjectNote {
@@ -319,6 +322,7 @@ export default function AdminReviewsShow({
   notes,
   can,
   session_stats,
+  checkpoint_channel_configured,
 }: {
   project: ReviewProject
   session: ReviewSession | null
@@ -329,6 +333,7 @@ export default function AdminReviewsShow({
   notes: ProjectNote[]
   can: { review: boolean }
   session_stats: SessionStats | null
+  checkpoint_channel_configured: boolean
 }) {
   const isTerminal = project.status !== 'pending'
   useReviewHeartbeat(session?.heartbeat_path ?? null, session?.active_seconds ?? 0)
@@ -379,6 +384,44 @@ export default function AdminReviewsShow({
   )
   const [overrideJustification, setOverrideJustification] = useState(project.override_hours_justification ?? '')
   const [submitting, setSubmitting] = useState<null | 'approve' | 'return' | 'reject' | 'draft'>(null)
+  const [checkpointOpen, setCheckpointOpen] = useState(false)
+  const [checkpointBody, setCheckpointBody] = useState('')
+  const [checkpointSlackId, setCheckpointSlackId] = useState(project.user_slack_id ?? '')
+  const [checkpointSending, setCheckpointSending] = useState(false)
+
+  const openCheckpoint = useCallback(() => {
+    setCheckpointBody(feedback)
+    setCheckpointSlackId(project.user_slack_id ?? '')
+    setCheckpointOpen(true)
+  }, [feedback, project.user_slack_id])
+
+  const sendCheckpoint = useCallback(() => {
+    const body = checkpointBody.trim()
+    const slackId = checkpointSlackId.trim()
+    if (!body) {
+      alert('Message body is required.')
+      return
+    }
+    if (!slackId) {
+      alert('Builder Slack ID is required.')
+      return
+    }
+    setCheckpointSending(true)
+    router.post(
+      `/admin/projects/${project.id}/send_checkpoint_message`,
+      { body, user_slack_id: slackId },
+      {
+        preserveScroll: true,
+        onFinish: () => {
+          setCheckpointSending(false)
+          setCheckpointOpen(false)
+        },
+      },
+    )
+  }, [project.id, checkpointBody, checkpointSlackId])
+
+  const reviewerMentionPreview = reviewer.slack_id ? `<@${reviewer.slack_id}>` : reviewer.display_name
+  const builderMentionPreview = checkpointSlackId.trim() ? `<@${checkpointSlackId.trim()}>` : '<@?>'
 
   const claimedHours = project.devlog_hours
   const approvedHours = useMemo(() => {
@@ -837,6 +880,17 @@ export default function AdminReviewsShow({
                   placeholder="What does the builder need to know?"
                   className="h-20 text-sm"
                 />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={openCheckpoint}
+                  disabled={!checkpoint_channel_configured}
+                  title={checkpoint_channel_configured ? undefined : 'FORGE_CHECKPOINT_CHANNEL_ID is not set'}
+                >
+                  <Send className="size-3.5" />
+                  Send to #forge-checkpoint
+                </Button>
               </div>
 
               <Separator />
@@ -946,6 +1000,55 @@ export default function AdminReviewsShow({
                   </AlertDialogContent>
                 </AlertDialog>
               </div>
+
+              <AlertDialog open={checkpointOpen} onOpenChange={setCheckpointOpen}>
+                <AlertDialogContent className="max-w-xl">
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Send to #forge-checkpoint</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Posts as the Forge Keeper bot. Edit the body below before sending.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <div className="space-y-3">
+                    <div className="space-y-1">
+                      <label className="text-xs text-muted-foreground">Builder Slack ID</label>
+                      <Input
+                        value={checkpointSlackId}
+                        onChange={(e) => setCheckpointSlackId(e.target.value)}
+                        placeholder="U0123456789"
+                        className="h-8 font-mono text-sm"
+                      />
+                      {!project.user_slack_id && (
+                        <p className="text-[11px] text-amber-600 dark:text-amber-400">
+                          No Slack ID on file for this user, enter one manually.
+                        </p>
+                      )}
+                    </div>
+                    <div className="rounded-md border border-border bg-muted/30 p-3 text-sm whitespace-pre-wrap">
+                      Hey {builderMentionPreview}! Our team of smiths have had a look at your project and here's what we had to say!
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs text-muted-foreground">Message body</label>
+                      <Textarea
+                        value={checkpointBody}
+                        onChange={(e) => setCheckpointBody(e.target.value)}
+                        placeholder="What does the builder need to know?"
+                        className="h-32 text-sm"
+                      />
+                    </div>
+                    <div className="rounded-md border border-border bg-muted/30 p-3 text-sm whitespace-pre-wrap">
+                      From {reviewerMentionPreview}, please discuss in this thread for any questions/feedback!
+                    </div>
+                  </div>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel disabled={checkpointSending}>Cancel</AlertDialogCancel>
+                    <Button size="sm" onClick={sendCheckpoint} disabled={checkpointSending}>
+                      {checkpointSending ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
+                      Send
+                    </Button>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </>
           )}
         </div>

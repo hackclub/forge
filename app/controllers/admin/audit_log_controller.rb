@@ -100,6 +100,7 @@ class Admin::AuditLogController < Admin::ApplicationController
     "project.note_added" => "Added internal note on",
     "project.note_destroyed" => "Deleted internal note from",
     "project.readme_refreshed" => "Refreshed README for",
+    "project.checkpoint_message_sent" => "Sent checkpoint message for",
     "project.visibility_toggled" => "Toggled visibility on",
     "project.staff_pick_toggled" => "Toggled staff pick on",
     "project.restored" => "Restored project",
