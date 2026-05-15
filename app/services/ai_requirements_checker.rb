@@ -5,7 +5,7 @@ module AiRequirementsChecker
   module_function
 
   ENDPOINT = "https://ai.hackclub.com/proxy/v1/chat/completions".freeze
-  MODEL = "qwen/qwen3-32b".freeze
+  MODEL = "google/gemini-3-flash-preview".freeze
   DOC_GLOBS = [
     Rails.root.join("docs/requirements/*.md"),
     Rails.root.join("docs/design/*.md")
