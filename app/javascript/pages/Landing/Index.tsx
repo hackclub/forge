@@ -7,7 +7,6 @@ function LandingParallaxBg({ zooming }: { zooming: boolean }) {
   useEffect(() => {
     if (typeof window === 'undefined') return
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-    if (zooming) return
     const node = parallaxRef.current
     if (!node) return
 
@@ -43,7 +42,7 @@ function LandingParallaxBg({ zooming }: { zooming: boolean }) {
       window.removeEventListener('mousemove', onMove)
       if (rafId) cancelAnimationFrame(rafId)
     }
-  }, [zooming])
+  }, [])
 
   return (
     <div ref={parallaxRef} className="login-bg-parallax fixed inset-0 pointer-events-none z-0">
@@ -270,7 +269,7 @@ export default function LandingIndex() {
     setZooming(true)
     window.setTimeout(() => {
       window.location.href = '/signin'
-    }, 2200)
+    }, 3700)
   }
 
   return (
