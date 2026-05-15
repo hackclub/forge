@@ -35,10 +35,12 @@ class Admin::ReviewsController < Admin::ApplicationController
       reviewer: {
         display_name: current_user.display_name,
         email: current_user.email,
-        is_superadmin: current_user.superadmin?
+        is_superadmin: current_user.superadmin?,
+        slack_id: current_user.slack_id
       },
       can: { review: policy(@project).review? },
-      session_stats: current_user.superadmin? ? session_stats(@project) : nil
+      session_stats: current_user.superadmin? ? session_stats(@project) : nil,
+      checkpoint_channel_configured: ENV["FORGE_CHECKPOINT_CHANNEL_ID"].to_s.strip.present?
     }
   end
 
@@ -174,6 +176,7 @@ class Admin::ReviewsController < Admin::ApplicationController
       user_display_name: project.user.display_name,
       user_email: project.user.email,
       user_avatar: project.user.avatar,
+      user_slack_id: project.user.slack_id,
       coins_earned_preview: project.coin_rate.to_f * project.total_hours.to_f,
       devlogs: project.devlogs.order(created_at: :asc).map { |d| serialize_devlog(d) }
     }
