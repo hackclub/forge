@@ -18,6 +18,7 @@ interface Props {
     content: string
     time_spent: string | null
     time_hours: number | null
+    lapse_url: string | null
     created_at: string
   }
   can_edit: boolean
@@ -37,12 +38,25 @@ export default function DevlogsShow({ project, devlog }: Props) {
         </Link>
 
         <header className="ghost-border bg-[#1c1b1b] p-8 mb-8">
-          {devlog.time_spent && (
-            <div className="flex items-center gap-2 mb-4 flex-wrap">
-              <span className="text-[#ffb595] text-xs flex items-center gap-1">
-                <span className="material-symbols-outlined text-sm">schedule</span>
-                {devlog.time_spent}
-              </span>
+          {(devlog.time_spent || devlog.lapse_url) && (
+            <div className="flex items-center gap-3 mb-4 flex-wrap">
+              {devlog.time_spent && (
+                <span className="text-[#ffb595] text-xs flex items-center gap-1">
+                  <span className="material-symbols-outlined text-sm">schedule</span>
+                  {devlog.time_spent}
+                </span>
+              )}
+              {devlog.lapse_url && (
+                <a
+                  href={devlog.lapse_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#ffb595] hover:text-[#ca5924] text-xs flex items-center gap-1"
+                >
+                  <span className="material-symbols-outlined text-sm">videocam</span>
+                  Lapse
+                </a>
+              )}
             </div>
           )}
 

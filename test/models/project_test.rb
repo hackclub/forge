@@ -8,6 +8,7 @@
 #  approval_justification       :text
 #  budget                       :text
 #  build_proof_url              :string
+#  build_review                 :boolean          default(FALSE), not null
 #  built_at                     :datetime
 #  cover_image_url              :string
 #  description                  :text
@@ -35,20 +36,23 @@
 #  views_count                  :integer          default(0), not null
 #  created_at                   :datetime         not null
 #  updated_at                   :datetime         not null
+#  linked_project_id            :bigint
 #  reviewer_id                  :bigint
 #  slack_channel_id             :string
 #  user_id                      :bigint           not null
 #
 # Indexes
 #
-#  index_projects_on_discarded_at   (discarded_at)
-#  index_projects_on_staff_pick_at  (staff_pick_at)
-#  index_projects_on_status         (status)
-#  index_projects_on_tags           (tags) USING gin
-#  index_projects_on_user_id        (user_id)
+#  index_projects_on_discarded_at                         (discarded_at)
+#  index_projects_on_linked_project_id_for_build_reviews  (linked_project_id) UNIQUE WHERE (build_review = true)
+#  index_projects_on_staff_pick_at                        (staff_pick_at)
+#  index_projects_on_status                               (status)
+#  index_projects_on_tags                                 (tags) USING gin
+#  index_projects_on_user_id                              (user_id)
 #
 # Foreign Keys
 #
+#  fk_rails_...  (linked_project_id => projects.id)
 #  fk_rails_...  (reviewer_id => users.id)
 #  fk_rails_...  (user_id => users.id)
 #

@@ -126,6 +126,11 @@ class Admin::ProjectsController < Admin::ApplicationController
   def change_tier
     authorize @project, :review?
 
+    if @project.build_review?
+      redirect_to admin_project_path(@project), alert: "Build reviews have a fixed tier."
+      return
+    end
+
     new_tier = params[:tier].to_s
     unless Project::TIERS.include?(new_tier)
       redirect_to admin_project_path(@project), alert: "Invalid tier."
@@ -186,6 +191,7 @@ class Admin::ProjectsController < Admin::ApplicationController
     refund_requested = ActiveModel::Type::Boolean.new.cast(params[:refund_coins])
     cancel_airtable = ActiveModel::Type::Boolean.new.cast(params[:cancel_airtable])
     notify_slack_flag = ActiveModel::Type::Boolean.new.cast(params[:notify_slack])
+    cascade_target = (@project.build_review? && previous_status == "approved") ? @project.linked_project : nil
 
     Project.transaction do
       @project.update!(
@@ -195,6 +201,7 @@ class Admin::ProjectsController < Admin::ApplicationController
         review_feedback: nil,
         approval_justification: nil
       )
+      cascade_target&.update!(built_at: nil, build_proof_url: nil)
 
       if refund_requested && previous_coins_earned.to_f.positive?
         @project.user.coin_adjustments.create!(
@@ -203,6 +210,10 @@ class Admin::ProjectsController < Admin::ApplicationController
           reason: "Review reversed for project #{@project.name} (##{@project.id}): #{reason}"
         )
       end
+    end
+
+    if cascade_target
+      audit!("project.marked_unbuilt", target: cascade_target, metadata: { via: "build_review_reversed", build_review_id: @project.id })
     end
 
     airtable_warning = nil
@@ -308,20 +319,27 @@ class Admin::ProjectsController < Admin::ApplicationController
           approved_hours: approved_hours,
           review_justification: reasoning.presence || feedback.to_s
         )
-        @project.update!(
-          status: :approved,
-          reviewer: current_user,
-          reviewed_at: Time.current,
-          review_feedback: feedback,
-          override_hours: capped,
-          override_hours_justification: params[:override_hours_justification].presence,
-          approval_justification: justification
-        )
+        cascade_target = @project.build_review? ? @project.linked_project : nil
+        Project.transaction do
+          @project.update!(
+            status: :approved,
+            reviewer: current_user,
+            reviewed_at: Time.current,
+            review_feedback: feedback,
+            override_hours: capped,
+            override_hours_justification: params[:override_hours_justification].presence,
+            approval_justification: justification
+          )
+          cascade_target&.update!(built_at: Time.current)
+        end
         end_active_review_session(decision: "approved")
-        audit!("project.approved", target: @project, metadata: { feedback: feedback, override_hours: capped, reasoning: reasoning })
+        audit!("project.approved", target: @project, metadata: { feedback: feedback, override_hours: capped, reasoning: reasoning, build_review: @project.build_review })
+        if cascade_target
+          audit!("project.marked_built", target: cascade_target, metadata: { via: "build_review", build_review_id: @project.id })
+        end
         ReferralEligibility.mark(@project)
         notify_slack_decision(@project, "approved! :tada:", feedback, stage: stage)
-        redirect_to admin_review_path(@project), notice: "Project approved."
+        redirect_to admin_review_path(@project), notice: @project.build_review? ? "Build review approved." : "Project approved."
       end
     when "return"
       if guard_duplicate_transition!(@project, :returned, "Project already returned.")
@@ -561,6 +579,8 @@ class Admin::ProjectsController < Admin::ApplicationController
       staff_pick: project.staff_pick?,
       built_at: project.built_at&.strftime("%b %d, %Y"),
       build_proof_url: project.build_proof_url,
+      build_review: project.build_review,
+      linked_project: project.linked_project ? { id: project.linked_project.id, name: project.linked_project.name } : nil,
       user_id: project.user_id,
       user_display_name: project.user.display_name,
       user_email: project.user.email,
@@ -577,6 +597,7 @@ class Admin::ProjectsController < Admin::ApplicationController
       content: devlog.content,
       time_spent: devlog.time_spent,
       time_hours: devlog.time_hours&.to_f,
+      lapse_url: devlog.lapse_url,
       created_at: devlog.created_at.strftime("%b %d, %Y"),
       meets_requirements: devlog.meets_submission_requirements?,
       validation: {

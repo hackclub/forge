@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_13_111300) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_17_120156) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -151,6 +151,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_13_111300) do
     t.decimal "approved_hours"
     t.text "content"
     t.datetime "created_at", null: false
+    t.string "lapse_url"
     t.bigint "project_id", null: false
     t.text "review_feedback"
     t.datetime "reviewed_at"
@@ -254,6 +255,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_13_111300) do
     t.text "approval_justification"
     t.text "budget"
     t.string "build_proof_url"
+    t.boolean "build_review", default: false, null: false
     t.datetime "built_at"
     t.string "cover_image_url"
     t.datetime "created_at", null: false
@@ -263,6 +265,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_13_111300) do
     t.string "green_flags", default: [], array: true
     t.boolean "hidden", default: false, null: false
     t.integer "kudos_count", default: 0, null: false
+    t.bigint "linked_project_id"
     t.string "name", null: false
     t.decimal "override_hours"
     t.text "override_hours_justification"
@@ -285,6 +288,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_13_111300) do
     t.bigint "user_id", null: false
     t.integer "views_count", default: 0, null: false
     t.index ["discarded_at"], name: "index_projects_on_discarded_at"
+    t.index ["linked_project_id"], name: "index_projects_on_linked_project_id_for_build_reviews", unique: true, where: "(build_review = true)"
     t.index ["staff_pick_at"], name: "index_projects_on_staff_pick_at"
     t.index ["status"], name: "index_projects_on_status"
     t.index ["tags"], name: "index_projects_on_tags", using: :gin
@@ -715,6 +719,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_13_111300) do
   add_foreign_key "project_notes", "users", column: "author_id"
   add_foreign_key "project_views", "projects"
   add_foreign_key "project_views", "users"
+  add_foreign_key "projects", "projects", column: "linked_project_id"
   add_foreign_key "projects", "users"
   add_foreign_key "projects", "users", column: "reviewer_id"
   add_foreign_key "reel_comments", "reel_comments", column: "parent_id", on_delete: :cascade

@@ -102,7 +102,8 @@ export default function AdminProjectsShow({
   const [overrideJustification, setOverrideJustification] = useState(project.override_hours_justification || '')
   const status = statusConfig[project.status] || statusConfig.draft
   const isPitchReview = project.status === 'pitch_pending'
-  const isProjectReview = project.status === 'pending'
+  const isBuildReview = project.build_review && project.status === 'pending'
+  const isProjectReview = project.status === 'pending' && !project.build_review
   const [reviewing, setReviewing] = useState(false)
   const [devlogOrder, setDevlogOrder] = useState<'newest' | 'oldest'>('newest')
 
@@ -226,11 +227,21 @@ export default function AdminProjectsShow({
             )}
             <CardContent className="p-6 pt-6 space-y-3">
               <div className="flex items-center gap-2 flex-wrap">
-                <Badge variant={status.variant}>{status.label}</Badge>
-                <Badge variant="outline">
-                  {project.tier.replace('_', ' ')}
-                  {project.budget ? ` · ${project.budget}` : ''}
+                <Badge variant={status.variant}>
+                  {project.build_review && project.status === 'pending' ? 'Build Review' : status.label}
                 </Badge>
+                <Badge variant="outline">
+                  {project.build_review ? 'Build Review' : project.tier.replace('_', ' ')}
+                  {!project.build_review && project.budget ? ` · ${project.budget}` : ''}
+                </Badge>
+                {project.linked_project && (
+                  <Link href={`/admin/projects/${project.linked_project.id}`}>
+                    <Badge variant="outline" className="hover:bg-accent">
+                      For: {project.linked_project.name}
+                      <ExternalLink className="size-3" />
+                    </Badge>
+                  </Link>
+                )}
                 {project.is_discarded && <Badge variant="destructive">Deleted {project.discarded_at}</Badge>}
                 {project.slack_url && (
                   <a href={project.slack_url} target="_blank" rel="noopener noreferrer">
@@ -534,6 +545,17 @@ export default function AdminProjectsShow({
                               {entry.time_spent}
                             </span>
                           )}
+                          {entry.lapse_url && (
+                            <a
+                              href={entry.lapse_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-1 text-foreground hover:underline"
+                            >
+                              <ExternalLink className="size-3" />
+                              Lapse
+                            </a>
+                          )}
                           <span className="text-muted-foreground">· {entry.created_at}</span>
                         </div>
                         <div className="markdown-content text-sm">
@@ -722,53 +744,59 @@ export default function AdminProjectsShow({
           {can.review && !isPitchReview && (
             <Card>
               <CardHeader>
-                <CardTitle>{isProjectReview ? 'Review Project' : 'Review Session'}</CardTitle>
+                <CardTitle>
+                  {isBuildReview ? 'Review Build Review' : isProjectReview ? 'Review Project' : 'Review Session'}
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <p className="text-sm text-muted-foreground">
-                  {isProjectReview
-                    ? 'Open a review session for this project'
-                    : 'This project has been reviewed. Open the session to inspect the recorded decision'}
+                  {isBuildReview
+                    ? `First build review${project.linked_project ? ` for ${project.linked_project.name}` : ' (no linked project)'}. Approving will mark the linked project as built.`
+                    : isProjectReview
+                      ? 'Open a review session for this project'
+                      : 'This project has been reviewed. Open the session to inspect the recorded decision'}
                 </p>
                 <Button asChild className="w-full">
                   <Link href={`/admin/reviews/${project.id}`}>
                     <ShieldCheck className="size-4" />
-                    {isProjectReview ? 'Start Review Session' : 'Open Review Session'}
+                    {isProjectReview || isBuildReview ? 'Start Review Session' : 'Open Review Session'}
                   </Link>
                 </Button>
               </CardContent>
             </Card>
           )}
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Tier</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <select
-                value={project.tier}
-                onChange={(e) => {
-                  if (
-                    e.target.value !== project.tier &&
-                    confirm(`Change tier from ${project.tier.replace('_', ' ')} to ${e.target.value.replace('_', ' ')}?`)
-                  ) {
-                    router.post(`/admin/projects/${project.id}/change_tier`, { tier: e.target.value })
-                  }
-                }}
-                className="w-full h-9 rounded-md border border-border bg-background px-3 text-sm text-foreground cursor-pointer"
-              >
-                <option value="tier_4">Tier 4 - 4c/hr</option>
-                <option value="tier_3">Tier 3 - 4.5c/hr</option>
-                <option value="tier_2">Tier 2 - 5.5c/hr</option>
-                <option value="tier_1">Tier 1 - 7c/hr</option>
-              </select>
-              {project.from_slack && project.tier !== 'tier_1' && (
-                <p className="text-amber-600 dark:text-amber-400 text-xs mt-2">
-                  Originally a Slack pitch — tier was changed by staff.
-                </p>
-              )}
-            </CardContent>
-          </Card>
+          {!project.build_review && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Tier</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <select
+                  value={project.tier}
+                  onChange={(e) => {
+                    if (
+                      e.target.value !== project.tier &&
+                      confirm(`Change tier from ${project.tier.replace('_', ' ')} to ${e.target.value.replace('_', ' ')}?`)
+                    ) {
+                      router.post(`/admin/projects/${project.id}/change_tier`, { tier: e.target.value })
+                    }
+                  }}
+                  className="w-full h-9 rounded-md border border-border bg-background px-3 text-sm text-foreground cursor-pointer"
+                >
+                  <option value="tier_4">Tier 4 - 4c/hr</option>
+                  <option value="tier_3">Tier 3 - 4.5c/hr</option>
+                  <option value="tier_2">Tier 2 - 5.5c/hr</option>
+                  <option value="tier_1">Tier 1 - 7c/hr</option>
+                </select>
+                {project.from_slack && project.tier !== 'tier_1' && (
+                  <p className="text-amber-600 dark:text-amber-400 text-xs mt-2">
+                    Originally a Slack pitch — tier was changed by staff.
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           <Card>
             <CardHeader>

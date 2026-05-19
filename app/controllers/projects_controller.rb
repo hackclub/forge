@@ -1,6 +1,6 @@
 class ProjectsController < ApplicationController
   allow_unauthenticated_access only: %i[show]
-  before_action :set_project, only: %i[show edit update destroy submit_for_review sync_journal set_devlog_mode link_repo resubmit_pitch upload_cover_image export_devlogs mark_built add_kudo destroy_kudo]
+  before_action :set_project, only: %i[show edit update destroy submit_for_review sync_journal set_devlog_mode link_repo resubmit_pitch upload_cover_image export_devlogs add_kudo destroy_kudo]
 
   def show
     authorize @project
@@ -38,21 +38,35 @@ class ProjectsController < ApplicationController
         submit_url: projects_path,
         method: "post"
       }
+    when Project::BUILD_REVIEW_TIER
+      render inertia: "Projects/Form", props: {
+        project: { name: "", subtitle: "", repo_link: "", tags: [], tier: Project::BUILD_REVIEW_TIER, build_review: true, linked_project_id: nil },
+        title: "New Build Review",
+        submit_url: projects_path,
+        method: "post",
+        linkable_projects: linkable_projects_for(current_user)
+      }
     else
-      render inertia: "Projects/New", props: {}
+      render inertia: "Projects/New", props: {
+        step: params[:path] == "project_review" ? "tiers" : "choose"
+      }
     end
   end
 
   def create
     @project = current_user.projects.build(project_params)
     @project.status = :draft
+    if @project.tier == Project::BUILD_REVIEW_TIER
+      @project.build_review = true
+    end
     authorize @project
 
     if @project.save
-      audit!("project.created", target: @project, metadata: { tier: @project.tier })
-      redirect_to @project, notice: "Project created as draft."
+      audit!("project.created", target: @project, metadata: { tier: @project.tier, build_review: @project.build_review })
+      redirect_to @project, notice: @project.build_review? ? "Build review created as draft." : "Project created as draft."
     else
-      redirect_back fallback_location: new_project_path(tier: @project.tier), inertia: { errors: @project.errors.messages }
+      fallback_tier = @project.build_review? ? Project::BUILD_REVIEW_TIER : @project.tier
+      redirect_back fallback_location: new_project_path(tier: fallback_tier), inertia: { errors: @project.errors.messages }
     end
   end
 
@@ -165,20 +179,6 @@ class ProjectsController < ApplicationController
     }
   rescue JSON::ParserError
     render json: { error: "Could not parse AI response" }, status: :unprocessable_entity
-  end
-
-  def mark_built
-    authorize @project, :update?
-
-    proof_url = params[:build_proof_url].to_s.strip
-    if proof_url.blank? || !proof_url.match?(/\Ahttps?:\/\/\S+\z/i)
-      redirect_to @project, alert: "Paste a valid URL with proof (image, video, or repo link)."
-      return
-    end
-
-    @project.update!(build_proof_url: proof_url, built_at: Time.current)
-    audit!("project.marked_built", target: @project, metadata: { build_proof_url: proof_url })
-    redirect_to @project, notice: "Marked as built. Nice work!"
   end
 
   def add_kudo
@@ -350,7 +350,16 @@ class ProjectsController < ApplicationController
   end
 
   def project_params
-    params.expect(project: [ :name, :subtitle, :repo_link, :tier, :devlog_mode, tags: [] ])
+    params.expect(project: [ :name, :subtitle, :repo_link, :tier, :devlog_mode, :linked_project_id, tags: [] ])
+  end
+
+  def linkable_projects_for(user)
+    user.projects
+      .kept
+      .where(status: :approved, build_review: false)
+      .where.missing(:build_review_for_project)
+      .order(created_at: :desc)
+      .map { |p| { id: p.id, name: p.name } }
   end
 
   def serialize_project_detail(project)
@@ -372,6 +381,8 @@ class ProjectsController < ApplicationController
       cover_image_url: project.cover_image_url,
       built_at: project.built_at&.strftime("%b %d, %Y"),
       build_proof_url: project.build_proof_url,
+      build_review: project.build_review,
+      linked_project: project.linked_project ? { id: project.linked_project.id, name: project.linked_project.name } : nil,
       airtable_sent: can_view_private_project_data && project.airtable_sent?,
       user_id: project.user_id,
       user_display_name: project.user.display_name,
@@ -403,6 +414,7 @@ class ProjectsController < ApplicationController
       content: devlog.content,
       time_spent: devlog.time_spent,
       time_hours: devlog.time_hours&.to_f,
+      lapse_url: devlog.lapse_url,
       created_at: devlog.created_at.strftime("%B %d, %Y"),
       meets_requirements: devlog.meets_submission_requirements?,
       validation: {

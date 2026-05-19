@@ -7,17 +7,21 @@ export default function ProjectsForm({
   title,
   submit_url,
   method,
+  linkable_projects,
 }: {
   project: ProjectForm
   title: string
   submit_url: string
   method: string
+  linkable_projects?: { id: number; name: string }[]
 }) {
   const { errors } = usePage<SharedProps>().props
   const [importUrl, setImportUrl] = useState('')
   const [importing, setImporting] = useState(false)
   const [importError, setImportError] = useState('')
   const [showImport, setShowImport] = useState(false)
+
+  const isBuildReview = project.tier === 'tier_build_review' || !!project.build_review
 
   const form = useForm({
     name: project.name,
@@ -26,6 +30,7 @@ export default function ProjectsForm({
     tags: project.tags,
     tier: project.tier,
     devlog_mode: project.devlog_mode || '',
+    linked_project_id: project.linked_project_id ?? '',
   })
 
   async function handleImport() {
@@ -87,7 +92,7 @@ export default function ProjectsForm({
     <div className="p-5 md:p-12 max-w-2xl mx-auto">
       <h1 className="text-4xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-8">{title}</h1>
 
-      {method === 'post' && !showImport && (
+      {method === 'post' && !showImport && !isBuildReview && (
         <button
           type="button"
           onClick={() => setShowImport(true)}
@@ -202,6 +207,34 @@ export default function ProjectsForm({
             placeholder="https://github.com/..."
           />
         </div>
+
+        {isBuildReview && method === 'post' && (
+          <div>
+            <label
+              htmlFor="linked_project_id"
+              className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2"
+            >
+              Link to Existing Project <span className="text-stone-600 normal-case tracking-normal">(optional)</span>
+            </label>
+            <select
+              id="linked_project_id"
+              value={form.data.linked_project_id ?? ''}
+              onChange={(e) => form.setData('linked_project_id', e.target.value)}
+              className="w-full bg-[#0e0e0e] border-none rounded-lg px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30"
+            >
+              <option value="">— None (non forge project) —</option>
+              {(linkable_projects || []).map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </select>
+            <p className="text-stone-600 text-xs mt-2">
+              Only approved Forge projects of yours without an existing build review are listed. Approving this build
+              review will mark the linked project as built.
+            </p>
+          </div>
+        )}
 
         {method === 'patch' && form.data.tier !== 'tier_1' && (
           <div>

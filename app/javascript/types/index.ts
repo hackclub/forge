@@ -70,6 +70,11 @@ export interface UserAddress {
   phone_number: string | null
 }
 
+export interface LinkedProjectSummary {
+  id: number
+  name: string
+}
+
 export interface ProjectDetail {
   id: number
   name: string
@@ -85,6 +90,8 @@ export interface ProjectDetail {
   cover_image_url: string | null
   built_at: string | null
   build_proof_url: string | null
+  build_review: boolean
+  linked_project: LinkedProjectSummary | null
   airtable_sent: boolean
   hca_address_portal_url: string
   user_id: number
@@ -95,7 +102,7 @@ export interface ProjectDetail {
   created_at: string
 }
 
-export type ProjectTier = 'tier_1' | 'tier_2' | 'tier_3' | 'tier_4'
+export type ProjectTier = 'tier_1' | 'tier_2' | 'tier_3' | 'tier_4' | 'tier_build_review'
 
 export interface ProjectForm {
   id?: number
@@ -105,6 +112,8 @@ export interface ProjectForm {
   tags: string[]
   tier: ProjectTier
   devlog_mode?: string | null
+  build_review?: boolean
+  linked_project_id?: number | null
 }
 
 export interface AdminUserRow {
@@ -188,6 +197,7 @@ export interface AdminDevlog {
   content: string
   time_spent: string | null
   time_hours: number | null
+  lapse_url: string | null
   created_at: string
   meets_requirements: boolean
   validation: {
@@ -230,6 +240,8 @@ export interface AdminProjectDetail {
   staff_pick: boolean
   built_at: string | null
   build_proof_url: string | null
+  build_review: boolean
+  linked_project: LinkedProjectSummary | null
   is_discarded: boolean
   discarded_at: string | null
   user_id: number
