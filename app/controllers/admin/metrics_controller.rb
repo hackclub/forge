@@ -98,6 +98,29 @@ class Admin::MetricsController < Admin::ApplicationController
       total_coins: Reel.sum(:lifetime_payout_coins).to_f.round(2)
     }
 
+    user_country_counts = User.kept.where.not(country: [ nil, "" ]).group(:country).order(Arel.sql("count(*) desc")).limit(20).count
+    users_with_country = User.kept.where.not(country: [ nil, "" ]).count
+    users_total = User.kept.count
+    user_locations = user_country_counts.map { |country, count| { country: country, count: count } }
+
+    visit_country_counts = Ahoy::Visit.where.not(country: [ nil, "" ]).group(:country).order(Arel.sql("count(*) desc")).limit(20).count
+    visit_locations = visit_country_counts.map { |country, count| { country: country, count: count } }
+    visits_total = Ahoy::Visit.where.not(country: [ nil, "" ]).count
+
+    location_distribution = {
+      users: {
+        by_country: user_locations,
+        with_country: users_with_country,
+        total: users_total,
+        countries_represented: User.kept.where.not(country: [ nil, "" ]).distinct.count(:country)
+      },
+      visits: {
+        by_country: visit_locations,
+        total: visits_total,
+        countries_represented: Ahoy::Visit.where.not(country: [ nil, "" ]).distinct.count(:country)
+      }
+    }
+
     render inertia: "Admin/Metrics/Index", props: {
       range_days: days,
       summary: {
@@ -134,7 +157,8 @@ class Admin::MetricsController < Admin::ApplicationController
         grand_total: (total_coins_all + referral_economy[:total_coins] + reel_economy[:total_coins]).round(2)
       },
       referral_economy: referral_economy,
-      reel_economy: reel_economy
+      reel_economy: reel_economy,
+      location_distribution: location_distribution
     }
   end
 end
