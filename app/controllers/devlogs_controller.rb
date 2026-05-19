@@ -22,6 +22,7 @@ class DevlogsController < ApplicationController
         content: @devlog.content,
         time_spent: @devlog.time_spent,
         time_hours: @devlog.time_hours&.to_f,
+        lapse_url: @devlog.lapse_url,
         created_at: @devlog.created_at.strftime("%B %d, %Y")
       },
       can_edit: can_edit
@@ -117,7 +118,7 @@ class DevlogsController < ApplicationController
   end
 
   def devlog_params
-    attrs = params.expect(devlog: [ :title, :content, :time_spent ])
+    attrs = params.expect(devlog: [ :title, :content, :time_spent, :lapse_url ])
     attrs[:time_spent] = normalize_time_spent(attrs[:time_spent])
     attrs[:time_hours] = TimeSpentParser.parse(attrs[:time_spent])
     attrs

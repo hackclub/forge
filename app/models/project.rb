@@ -8,6 +8,7 @@
 #  approval_justification       :text
 #  budget                       :text
 #  build_proof_url              :string
+#  build_review                 :boolean          default(FALSE), not null
 #  built_at                     :datetime
 #  cover_image_url              :string
 #  description                  :text
@@ -35,20 +36,23 @@
 #  views_count                  :integer          default(0), not null
 #  created_at                   :datetime         not null
 #  updated_at                   :datetime         not null
+#  linked_project_id            :bigint
 #  reviewer_id                  :bigint
 #  slack_channel_id             :string
 #  user_id                      :bigint           not null
 #
 # Indexes
 #
-#  index_projects_on_discarded_at   (discarded_at)
-#  index_projects_on_staff_pick_at  (staff_pick_at)
-#  index_projects_on_status         (status)
-#  index_projects_on_tags           (tags) USING gin
-#  index_projects_on_user_id        (user_id)
+#  index_projects_on_discarded_at                         (discarded_at)
+#  index_projects_on_linked_project_id_for_build_reviews  (linked_project_id) UNIQUE WHERE (build_review = true)
+#  index_projects_on_staff_pick_at                        (staff_pick_at)
+#  index_projects_on_status                               (status)
+#  index_projects_on_tags                                 (tags) USING gin
+#  index_projects_on_user_id                              (user_id)
 #
 # Foreign Keys
 #
+#  fk_rails_...  (linked_project_id => projects.id)
 #  fk_rails_...  (reviewer_id => users.id)
 #  fk_rails_...  (user_id => users.id)
 #
@@ -62,6 +66,8 @@ class Project < ApplicationRecord
 
   belongs_to :user
   belongs_to :reviewer, class_name: "User", optional: true
+  belongs_to :linked_project, class_name: "Project", optional: true
+  has_one :build_review_for_project, class_name: "Project", foreign_key: :linked_project_id, dependent: :nullify, inverse_of: :linked_project
   has_many :ships, dependent: :destroy
   has_many :devlogs, dependent: :destroy
   has_many :airtable_queue_items, dependent: :destroy
@@ -79,19 +85,25 @@ class Project < ApplicationRecord
   enum :status, { draft: 0, pending: 1, approved: 2, returned: 3, rejected: 4, pitch_approved: 7, pitch_pending: 8 }
 
   TIERS = %w[tier_1 tier_2 tier_3 tier_4].freeze
+  BUILD_REVIEW_TIER = "tier_build_review"
+  ALL_TIERS = (TIERS + [ BUILD_REVIEW_TIER ]).freeze
   TIER_COIN_RATES = {
     "tier_1" => 7.0,
     "tier_2" => 5.5,
     "tier_3" => 4.5,
-    "tier_4" => 4.0
+    "tier_4" => 4.0,
+    BUILD_REVIEW_TIER => 5.0
   }.freeze
 
   validates :name, presence: true
   validates :repo_link, format: { with: /\Ahttps?:\/\/\S+\z/i, message: "must be a valid URL starting with http:// or https://" }, allow_blank: true
-  validates :tier, inclusion: { in: TIERS }
+  validates :tier, inclusion: { in: ALL_TIERS }
+  validate :build_review_consistency
+  validate :linked_project_must_be_approved_and_owned
 
   scope :reviewable, -> { where(status: :pending) }
   scope :staff_picks, -> { where.not(staff_pick_at: nil).order(staff_pick_at: :desc) }
+  scope :build_reviews, -> { where(build_review: true) }
 
   def self.fair_feed
     all.sort_by { |p| -p.feed_score }
@@ -177,6 +189,34 @@ class Project < ApplicationRecord
   end
 
   private
+
+  def build_review_consistency
+    if build_review? && tier != BUILD_REVIEW_TIER
+      errors.add(:tier, "must be #{BUILD_REVIEW_TIER} for build reviews")
+    elsif !build_review? && tier == BUILD_REVIEW_TIER
+      errors.add(:tier, "tier_build_review is only valid for build reviews")
+    end
+  end
+
+  def linked_project_must_be_approved_and_owned
+    return if linked_project_id.blank?
+
+    unless build_review?
+      errors.add(:linked_project_id, "can only be set on build reviews")
+      return
+    end
+
+    target = linked_project
+    if target.nil?
+      errors.add(:linked_project_id, "not found")
+    elsif target.build_review?
+      errors.add(:linked_project_id, "cannot link to another build review")
+    elsif target.user_id != user_id
+      errors.add(:linked_project_id, "must be your own project")
+    elsif !target.approved?
+      errors.add(:linked_project_id, "must be an approved project")
+    end
+  end
 
   def sync_to_airtable
     AirtableSyncJob.perform_later(id)

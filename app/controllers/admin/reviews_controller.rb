@@ -154,6 +154,8 @@ class Admin::ReviewsController < Admin::ApplicationController
       status: project.status,
       tier: project.tier,
       budget: project.budget,
+      build_review: project.build_review,
+      linked_project: project.linked_project ? { id: project.linked_project.id, name: project.linked_project.name } : nil,
       coin_rate: project.coin_rate,
       total_hours: project.total_hours.to_f.round(1),
       devlog_hours: project.devlog_hours.to_f.round(1),
@@ -190,6 +192,7 @@ class Admin::ReviewsController < Admin::ApplicationController
       content: devlog.content,
       time_spent: devlog.time_spent,
       time_hours: devlog.time_hours&.to_f,
+      lapse_url: devlog.lapse_url,
       created_at: devlog.created_at.strftime("%b %d, %Y"),
       meets_requirements: devlog.meets_submission_requirements?,
       validation: {

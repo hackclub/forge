@@ -78,6 +78,8 @@ interface ReviewProject {
   status: ProjectStatus
   tier: ProjectTier
   budget: string | null
+  build_review: boolean
+  linked_project: { id: number; name: string } | null
   coin_rate: number
   total_hours: number
   devlog_hours: number
@@ -108,6 +110,7 @@ interface ReviewProject {
     content: string
     time_spent: string | null
     time_hours: number | null
+    lapse_url: string | null
     created_at: string
     meets_requirements: boolean
     validation: { content_length: number; has_image: boolean }
@@ -609,7 +612,20 @@ export default function AdminReviewsShow({
                       {project.user_email}
                     </a>
                     <span>·</span>
-                    <span>{project.tier.replace('_', ' ')}{project.budget ? ` · ${project.budget}` : ''}</span>
+                    <span>{project.build_review ? 'Build Review' : `${project.tier.replace('_', ' ')}${project.budget ? ` · ${project.budget}` : ''}`}</span>
+                    {project.linked_project && (
+                      <>
+                        <span>·</span>
+                        <a
+                          href={`/admin/projects/${project.linked_project.id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="hover:underline text-foreground"
+                        >
+                          for: {project.linked_project.name} ↗
+                        </a>
+                      </>
+                    )}
                     <span>·</span>
                     <span>started {project.created_at}</span>
                     {project.from_slack && project.slack_url && (
@@ -713,6 +729,19 @@ export default function AdminReviewsShow({
                               {entry.time_spent}
                               {entry.time_hours != null && <span className="font-mono">({entry.time_hours.toFixed(1)}h)</span>}
                             </span>
+                          </>
+                        )}
+                        {entry.lapse_url && (
+                          <>
+                            <span className="text-muted-foreground">·</span>
+                            <a
+                              href={entry.lapse_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-1 text-foreground hover:underline"
+                            >
+                              Lapse ↗
+                            </a>
                           </>
                         )}
                         {!entry.meets_requirements && <Badge variant="warning">Below requirements</Badge>}
@@ -895,24 +924,26 @@ export default function AdminReviewsShow({
 
               <Separator />
 
-              <div className="space-y-2">
-                <label className="text-xs text-muted-foreground">Override tier</label>
-                <select
-                  value={project.tier}
-                  onChange={(e) => changeTier(e.target.value)}
-                  className="w-full h-9 rounded-md border border-border bg-background px-3 text-sm text-foreground cursor-pointer"
-                >
-                  <option value="tier_4">Tier 4 — 4c/hr</option>
-                  <option value="tier_3">Tier 3 — 4.5c/hr</option>
-                  <option value="tier_2">Tier 2 — 5.5c/hr</option>
-                  <option value="tier_1">Tier 1 — 7c/hr</option>
-                </select>
-                {project.from_slack && project.tier !== 'tier_1' && (
-                  <p className="text-amber-600 dark:text-amber-400 text-[11px]">
-                    Originally a Slack pitch — tier was changed by staff.
-                  </p>
-                )}
-              </div>
+              {!project.build_review && (
+                <div className="space-y-2">
+                  <label className="text-xs text-muted-foreground">Override tier</label>
+                  <select
+                    value={project.tier}
+                    onChange={(e) => changeTier(e.target.value)}
+                    className="w-full h-9 rounded-md border border-border bg-background px-3 text-sm text-foreground cursor-pointer"
+                  >
+                    <option value="tier_4">Tier 4 — 4c/hr</option>
+                    <option value="tier_3">Tier 3 — 4.5c/hr</option>
+                    <option value="tier_2">Tier 2 — 5.5c/hr</option>
+                    <option value="tier_1">Tier 1 — 7c/hr</option>
+                  </select>
+                  {project.from_slack && project.tier !== 'tier_1' && (
+                    <p className="text-amber-600 dark:text-amber-400 text-[11px]">
+                      Originally a Slack pitch — tier was changed by staff.
+                    </p>
+                  )}
+                </div>
+              )}
 
               <Separator />
 

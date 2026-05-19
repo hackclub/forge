@@ -41,29 +41,96 @@ const TIERS: TierOption[] = [
   },
 ]
 
-export default function ProjectsNew() {
+interface Path {
+  key: 'project_review' | 'build_review'
+  label: string
+  description: string
+  href: string
+  highlight?: boolean
+}
+
+const PATHS: Path[] = [
+  {
+    key: 'project_review',
+    label: 'Project Review',
+    description:
+      'Pitch a new project for funding. Pick a tier, document your build, and earn steel coins per hour you log.',
+    href: '/projects/new?path=project_review',
+  },
+  {
+    key: 'build_review',
+    label: 'Build Review',
+    description:
+      'Already funded? Submit build time on an existing project. Earns 5c / hour. A lapse link is required for every journal.',
+    href: '/projects/new?tier=tier_build_review',
+    highlight: true,
+  },
+]
+
+export default function ProjectsNew({ step = 'choose' }: { step?: 'choose' | 'tiers' }) {
+  if (step === 'tiers') {
+    return (
+      <div className="p-5 md:p-12 max-w-4xl mx-auto text-center min-h-screen flex flex-col justify-center">
+        <h1 className="text-4xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-3">Pick a tier</h1>
+        <p className="text-stone-400 text-sm mb-2">
+          Each tier earns a different rate of steel coins per hour you log on the project.
+        </p>
+        <p className="text-stone-500 text-sm mb-10">
+          Not sure what tier to pitch? Ask in <span className="text-[#ffb595] font-bold">#forge-help</span>!
+        </p>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {TIERS.map((t) => (
+            <Link
+              key={t.tier}
+              href={`/projects/new?tier=${t.tier}`}
+              className={`group bg-[#1c1b1b] ghost-border p-7 hover:bg-[#2a2a2a] transition-colors flex flex-col gap-3 text-center items-center corner-accents ${t.pitch ? 'border border-[#ca5924]/20' : ''}`}
+            >
+              <div className="flex items-center justify-center gap-3">
+                <h2 className="text-xl font-headline font-bold text-[#e5e2e1]">{t.label}</h2>
+                <span className="text-xs font-bold uppercase tracking-[0.15em] text-[#ca5924]">{t.rate}</span>
+              </div>
+              <p className="text-stone-400 text-sm leading-relaxed">{t.description}</p>
+              <div className="mt-auto pt-3">
+                <span className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 group-hover:text-[#ffb595] transition-colors flex items-center justify-center gap-1">
+                  {t.pitch ? 'Learn more' : 'Get started'}
+                  <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                </span>
+              </div>
+            </Link>
+          ))}
+        </div>
+
+        <div className="mt-8 flex justify-center">
+          <Link
+            href="/projects/new"
+            className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 hover:text-[#ffb595] transition-colors flex items-center gap-1"
+          >
+            <span className="material-symbols-outlined text-sm">arrow_back</span>
+            Back
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="p-5 md:p-12 max-w-4xl mx-auto">
+    <div className="p-5 md:p-12 max-w-4xl mx-auto text-center min-h-screen flex flex-col justify-center">
       <h1 className="text-4xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-3">New Project</h1>
-      <p className="text-stone-400 text-sm mb-10">
-        Pick a tier. Each tier earns a different rate of steel coins per hour you log on the project.
-      </p>
+      <p className="text-stone-400 text-sm mb-10">Choose what you want to submit.</p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        {TIERS.map((t) => (
+        {PATHS.map((p) => (
           <Link
-            key={t.tier}
-            href={`/projects/new?tier=${t.tier}`}
-            className={`group bg-[#1c1b1b] ghost-border p-7 hover:bg-[#2a2a2a] transition-colors flex flex-col gap-3 ${t.pitch ? 'border border-[#ca5924]/20' : ''}`}
+            key={p.key}
+            href={p.href}
+            className={`group bg-[#1c1b1b] ghost-border p-7 hover:bg-[#2a2a2a] transition-colors flex flex-col gap-3 text-center items-center corner-accents ${p.highlight ? 'border border-[#ffb595]/30' : ''}`}
           >
-            <div className="flex items-center justify-between gap-3">
-              <h2 className="text-xl font-headline font-bold text-[#e5e2e1]">{t.label}</h2>
-              <span className="text-xs font-bold uppercase tracking-[0.15em] text-[#ca5924]">{t.rate}</span>
-            </div>
-            <p className="text-stone-400 text-sm leading-relaxed">{t.description}</p>
+            <h2 className="text-xl font-headline font-bold text-[#e5e2e1]">{p.label}</h2>
+            <p className="text-stone-400 text-sm leading-relaxed">{p.description}</p>
             <div className="mt-auto pt-3">
-              <span className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 group-hover:text-[#ffb595] transition-colors flex items-center gap-1">
-                {t.pitch ? 'Learn more' : 'Get started'}
+              <span className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 group-hover:text-[#ffb595] transition-colors flex items-center justify-center gap-1">
+                Get started
                 <span className="material-symbols-outlined text-sm">arrow_forward</span>
               </span>
             </div>
