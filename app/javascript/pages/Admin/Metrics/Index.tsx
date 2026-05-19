@@ -72,6 +72,52 @@ interface ReelEconomy {
   total_coins: number
 }
 
+interface CountryRow {
+  country: string
+  count: number
+}
+
+interface LocationDistribution {
+  users: {
+    by_country: CountryRow[]
+    with_country: number
+    total: number
+    countries_represented: number
+  }
+  visits: {
+    by_country: CountryRow[]
+    total: number
+    countries_represented: number
+  }
+}
+
+function CountryBars({ rows, total }: { rows: CountryRow[]; total: number }) {
+  if (rows.length === 0) {
+    return <p className="text-xs text-muted-foreground">No data yet.</p>
+  }
+  const max = Math.max(1, ...rows.map((r) => r.count))
+  return (
+    <div className="space-y-1.5">
+      {rows.map((row) => {
+        const pct = (row.count / max) * 100
+        const share = total > 0 ? ((row.count / total) * 100).toFixed(1) : '0.0'
+        return (
+          <div key={row.country} className="flex items-center gap-3">
+            <span className="text-xs font-mono w-20 shrink-0 truncate" title={row.country}>
+              {row.country}
+            </span>
+            <div className="flex-1 bg-muted h-4 overflow-hidden rounded">
+              <div className="h-full bg-primary rounded" style={{ width: `${pct}%` }} />
+            </div>
+            <span className="text-xs font-medium w-12 text-right tabular-nums">{row.count}</span>
+            <span className="text-[10px] text-muted-foreground w-12 text-right tabular-nums">{share}%</span>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 function Stat({ label, value, hint, accent }: { label: string; value: string | number; hint?: string; accent?: boolean }) {
   return (
     <Card>
@@ -96,6 +142,7 @@ export default function AdminMetricsIndex({
   coin_economy,
   referral_economy,
   reel_economy,
+  location_distribution,
 }: {
   range_days: number
   summary: Summary
@@ -108,6 +155,7 @@ export default function AdminMetricsIndex({
   coin_economy: CoinEconomy
   referral_economy: ReferralEconomy
   reel_economy: ReelEconomy
+  location_distribution: LocationDistribution
 }) {
   const max = Math.max(1, ...daily.map((d) => d.count))
   const maxHours = Math.max(1, ...daily_hours.map((d) => d.hours))
@@ -305,6 +353,40 @@ export default function AdminMetricsIndex({
               </TableRow>
             </TableBody>
           </Table>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Location distribution</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <div className="flex items-baseline justify-between mb-2">
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Users by country
+                </h3>
+                <span className="text-[11px] text-muted-foreground">
+                  {location_distribution.users.with_country}/{location_distribution.users.total} ·{' '}
+                  {location_distribution.users.countries_represented} countries
+                </span>
+              </div>
+              <CountryBars rows={location_distribution.users.by_country} total={location_distribution.users.with_country} />
+            </div>
+            <div>
+              <div className="flex items-baseline justify-between mb-2">
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Visits by country (IP geocoded)
+                </h3>
+                <span className="text-[11px] text-muted-foreground">
+                  {location_distribution.visits.total} visits ·{' '}
+                  {location_distribution.visits.countries_represented} countries
+                </span>
+              </div>
+              <CountryBars rows={location_distribution.visits.by_country} total={location_distribution.visits.total} />
+            </div>
+          </div>
         </CardContent>
       </Card>
 
