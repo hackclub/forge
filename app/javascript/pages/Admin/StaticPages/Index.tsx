@@ -1,4 +1,4 @@
-import { Link } from '@inertiajs/react'
+import { Link, useForm } from '@inertiajs/react'
 import {
   ArrowLeft,
   Hammer,
@@ -21,6 +21,7 @@ import {
   DollarSign,
   TableProperties,
   Activity,
+  Coins,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { Card, CardContent } from '@/components/admin/ui/card'
@@ -106,6 +107,12 @@ export default function AdminStaticPagesIndex({
   is_superadmin,
 }: AdminDashboardProps) {
   const can = (perm: string) => permissions[perm]
+  const payoutAllForm = useForm({})
+
+  function handlePayoutAll() {
+    if (!confirm('Are you sure you want to approve all pending reel payouts? This cannot be undone.')) return
+    payoutAllForm.post('/admin/reel_payouts/payout_all')
+  }
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">
@@ -182,6 +189,27 @@ export default function AdminStaticPagesIndex({
       {is_superadmin && (
         <Section title="Superadmin">
           <Tile href="/admin/airtable_queue" label="Airtable Queue" icon={TableProperties} />
+          <button
+            type="button"
+            onClick={handlePayoutAll}
+            disabled={payoutAllForm.processing}
+            className="w-full text-left"
+          >
+            <Card className="hover:bg-accent transition-colors cursor-pointer">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-md bg-muted p-2 text-foreground inline-flex items-center justify-center">
+                    <Coins className="size-5" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium truncate">
+                      {payoutAllForm.processing ? 'Processing…' : 'Payout All Reels'}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </button>
         </Section>
       )}
     </div>
