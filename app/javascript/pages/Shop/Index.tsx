@@ -51,8 +51,14 @@ interface Transaction {
   label: string
 }
 
+interface StreakFreezes {
+  owned: number
+  cost: number
+}
+
 interface Props {
   balance: Balance
+  streak_freezes: StreakFreezes
   can_buy_shop_items: boolean
   eligible_projects: EligibleProject[]
   shop_items: ShopItem[]
@@ -72,6 +78,7 @@ const STATUS_STYLES: Record<Order['status'], string> = {
 
 export default function ShopIndex({
   balance,
+  streak_freezes,
   can_buy_shop_items,
   eligible_projects,
   shop_items,
@@ -125,6 +132,16 @@ export default function ShopIndex({
     const max = item.max_quantity ?? 999
     const clamped = Math.max(1, Math.min(qty, max))
     setQuantities((prev) => ({ ...prev, [item.id]: clamped }))
+  }
+
+  function buyStreakFreeze() {
+    if (!isSignedIn) {
+      window.location.href = shared.sign_in_path
+      return
+    }
+    if (streak_freezes.cost > balance.balance) return
+    if (!confirm(`Spend ${streak_freezes.cost}c on a streak freeze?`)) return
+    router.post('/shop/orders', { kind: 'streak_freeze', quantity: 1 })
   }
 
   function buyItem(item: ShopItem) {
@@ -188,6 +205,29 @@ export default function ShopIndex({
                 </option>
               ))}
             </select>
+          </section>
+        )}
+
+        {isSignedIn && (
+          <section className="bg-[#1c1b1b] ghost-border p-5 flex items-center justify-between gap-4 flex-wrap">
+            <div className="min-w-0">
+              <p className="font-headline font-bold text-[#e5e2e1] flex items-center gap-2">
+                <span className="material-symbols-outlined text-base text-[#ffb595]">ac_unit</span>
+                Streak freeze
+              </p>
+              <p className="text-stone-500 text-xs">
+                Covers one missed day so your streak survives. You own{' '}
+                <span className="text-[#e5e2e1] font-bold">{streak_freezes.owned}</span>.
+              </p>
+            </div>
+            <button
+              onClick={buyStreakFreeze}
+              disabled={streak_freezes.cost > balance.balance}
+              className="signature-smolder text-[#4c1a00] px-5 py-2 text-xs font-bold uppercase tracking-[0.15em] cursor-pointer flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <span className="material-symbols-outlined text-base">shopping_cart</span>
+              Buy for {streak_freezes.cost}c
+            </button>
           </section>
         )}
 

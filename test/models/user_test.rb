@@ -34,6 +34,7 @@
 #  roles               :string           default([]), not null, is an Array
 #  shop_unlocked       :boolean          default(FALSE), not null
 #  state               :string
+#  streak_freezes      :integer          default(1), not null
 #  timezone            :string           not null
 #  verification_status :string
 #  created_at          :datetime         not null

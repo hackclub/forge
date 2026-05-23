@@ -18,6 +18,10 @@ class ShopController < ApplicationController
         earned: current_user&.coins_earned&.round(2) || 0,
         spent: current_user&.coins_spent&.round(2) || 0
       },
+      streak_freezes: {
+        owned: current_user&.streak_freezes || 0,
+        cost: User::STREAK_FREEZE_COST
+      },
       can_buy_shop_items: current_user&.can_buy_shop_items? || false,
       eligible_projects: eligible_projects.map { |p|
         {
@@ -57,6 +61,8 @@ class ShopController < ApplicationController
       create_direct_grant
     when "shop_item"
       create_shop_item_order
+    when "streak_freeze"
+      create_streak_freeze
     else
       redirect_to shop_path, alert: "Invalid order type."
     end
@@ -156,6 +162,32 @@ class ShopController < ApplicationController
     else
       redirect_to shop_path, alert: order.errors.full_messages.join(", ")
     end
+  end
+
+  def create_streak_freeze
+    quantity = params[:quantity].to_i
+    quantity = 1 if quantity < 1
+    total_cost = User::STREAK_FREEZE_COST * quantity
+
+    if total_cost > current_user.coin_balance
+      redirect_to shop_path, alert: "Not enough steel coins. Need #{total_cost}c, have #{current_user.coin_balance}c."
+      return
+    end
+
+    User.transaction do
+      current_user.coin_adjustments.create!(
+        amount: -total_cost,
+        reason: quantity > 1 ? "Streak freeze purchase (×#{quantity})" : "Streak freeze purchase",
+        actor: current_user
+      )
+      current_user.increment!(:streak_freezes, quantity)
+    end
+
+    current_user.apply_streak_freezes!
+    audit!("streak_freeze.purchased", target: current_user, label: "Streak freeze ×#{quantity}", metadata: { quantity: quantity, coin_cost: total_cost })
+    redirect_to shop_path, notice: "Purchased #{quantity} streak freeze#{'s' if quantity > 1}."
+  rescue ActiveRecord::RecordInvalid => e
+    redirect_to shop_path, alert: e.message
   end
 
   def serialize_order(order)
