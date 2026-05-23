@@ -12,6 +12,18 @@ class Admin::ReelPayoutsController < Admin::ApplicationController
     }
   end
 
+  def payout_all
+    requests = ReelPayoutRequest.pending.includes(reel: :user)
+    approved_count = 0
+    requests.each do |req|
+      if req.approve!(current_user)
+        audit!("reel_payout.approved", target: req.reel, label: "##{req.reel_id}", metadata: { amount: req.amount.to_f, request_id: req.id })
+        approved_count += 1
+      end
+    end
+    redirect_to admin_reel_payouts_path, notice: "Approved #{approved_count} payout#{"s" if approved_count != 1}."
+  end
+
   def approve
     if @request.approve!(current_user)
       audit!("reel_payout.approved", target: @request.reel, label: "##{@request.reel_id}", metadata: { amount: @request.amount.to_f, request_id: @request.id })

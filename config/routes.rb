@@ -287,6 +287,9 @@ Rails.application.routes.draw do
         end
       end
       resources :reel_payouts, only: [ :index ] do
+        collection do
+          post :payout_all
+        end
         member do
           post :approve
           post :reject
