@@ -10,7 +10,7 @@ class ReelsController < ApplicationController
   before_action :set_reel,    only: [ :edit, :update, :destroy ]
 
   def index
-    reels = Reel.includes(:user, :project, :reel_images).fair_feed.first(50)
+    reels = Reel.includes(:user, :project, :reel_images).fair_feed_for(current_user, limit: 50)
 
     items = reels.map { |reel| serialize_reel(reel) }
     items = inject_ads(items)
@@ -26,10 +26,10 @@ class ReelsController < ApplicationController
 
     if param.start_with?("a-")
       lead_ad = ReelAd.enabled.find(param.delete_prefix("a-").to_i)
-      reels = Reel.includes(:user, :project, :reel_images).fair_feed.first(49)
+      reels = Reel.includes(:user, :project, :reel_images).fair_feed_for(current_user, limit: 49)
     else
       @reel = Reel.find(param)
-      reels = [ @reel ] + Reel.where.not(id: @reel.id).includes(:user, :project, :reel_images).fair_feed.first(49)
+      reels = [ @reel ] + Reel.where.not(id: @reel.id).includes(:user, :project, :reel_images).fair_feed_for(current_user, limit: 49)
       set_reel_og_tags(@reel)
     end
 
