@@ -53,10 +53,32 @@ class Reel < ApplicationRecord
   validates :duration_seconds, numericality: { greater_than: 0, less_than_or_equal_to: MAX_DURATION_SECONDS }, allow_nil: true
   validates :title, length: { maximum: 200 }
 
+  FEED_POOL_SIZE = 200
+  FEED_SEEN_WINDOW = 7.days
+
   scope :recent, -> { order(created_at: :desc) }
 
-  def self.fair_feed
-    all.sort_by { |r| -r.feed_score }
+  scope :unseen_by, ->(user) {
+    next all unless user
+    seen = ReelView.where(user_id: user.id).where(created_at: FEED_SEEN_WINDOW.ago..).select(:reel_id)
+    where.not(id: seen)
+  }
+
+  def self.fair_feed_for(user, limit: 50)
+    base = all
+    candidates = base.merge(unseen_by(user)).recent.limit(FEED_POOL_SIZE).to_a
+    if candidates.size < limit
+      filler = base.where.not(id: candidates.map(&:id)).recent.limit(FEED_POOL_SIZE - candidates.size).to_a
+      candidates.concat(filler)
+    end
+    weighted_sample(candidates, limit)
+  end
+
+  def self.weighted_sample(pool, limit)
+    pool.sort_by { |r|
+      w = [ r.feed_score, 0.0001 ].max
+      -(rand ** (1.0 / w))
+    }.first(limit)
   end
 
   def feed_score
@@ -67,11 +89,7 @@ class Reel < ApplicationRecord
     # New reels (< 24h) get up to 5x boost, decaying to 1x
     freshness = age_hours < 24 ? (5.0 - (4.0 * age_hours / 24)) : 1.0
 
-    # Base score with freshness
-    base = engagement_rate * freshness
-
-    # Add 0-30% randomness so small reels get a chance
-    base * (1.0 + rand * 0.3)
+    engagement_rate * freshness
   end
 
   def kudoed_by?(user)
