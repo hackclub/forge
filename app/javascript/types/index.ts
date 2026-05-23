@@ -144,6 +144,9 @@ export interface AdminUserDetail {
   is_discarded: boolean
   discarded_at: string | null
   created_at: string
+  current_streak: number
+  longest_streak: number
+  streak_freezes: number
 }
 
 export interface HackatimeInfo {

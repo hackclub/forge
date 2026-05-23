@@ -158,6 +158,28 @@ class Admin::UsersController < Admin::ApplicationController
     redirect_to admin_user_path(@user), notice: "Fulfillment regions updated."
   end
 
+  def adjust_streak
+    @user = User.find(params[:id])
+    authorize @user, :update?
+
+    delta = params[:delta].to_i
+    reason = params[:reason].to_s.strip
+
+    if delta.zero?
+      redirect_to admin_user_path(@user), alert: "Delta must be non-zero."
+      return
+    end
+
+    if reason.blank?
+      redirect_to admin_user_path(@user), alert: "Provide a reason for the adjustment."
+      return
+    end
+
+    applied = @user.adjust_streak!(delta)
+    audit!("user.streak_adjusted", target: @user, metadata: { delta: delta, applied: applied, reason: reason, new_streak: @user.current_streak })
+    redirect_to admin_user_path(@user), notice: "Adjusted #{@user.display_name}'s streak by #{applied}."
+  end
+
   def adjust_coins
     @user = User.find(params[:id])
     authorize @user, :show?
@@ -314,7 +336,10 @@ class Admin::UsersController < Admin::ApplicationController
       fulfillment_regions: user.fulfillment_regions,
       is_discarded: user.discarded?,
       discarded_at: user.discarded_at&.strftime("%b %d, %Y"),
-      created_at: user.created_at.strftime("%B %d, %Y")
+      created_at: user.created_at.strftime("%B %d, %Y"),
+      current_streak: user.current_streak,
+      longest_streak: user.longest_streak,
+      streak_freezes: user.streak_freezes
     }
   end
 
