@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_17_120156) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_19_194510) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -676,6 +676,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_17_120156) do
     t.boolean "shop_unlocked", default: false, null: false
     t.string "slack_id", null: false
     t.string "state"
+    t.integer "streak_freezes", default: 1, null: false
     t.string "timezone", null: false
     t.datetime "updated_at", null: false
     t.string "verification_status"

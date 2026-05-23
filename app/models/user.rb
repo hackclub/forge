@@ -34,6 +34,7 @@
 #  roles               :string           default([]), not null, is an Array
 #  shop_unlocked       :boolean          default(FALSE), not null
 #  state               :string
+#  streak_freezes      :integer          default(1), not null
 #  timezone            :string           not null
 #  verification_status :string
 #  created_at          :datetime         not null
@@ -98,10 +99,31 @@ class User < ApplicationRecord
     Time.current.in_time_zone(timezone.presence || "UTC").to_date
   end
 
+  STREAK_FREEZE_COST = 5
+
   def record_activity!(date = today_in_zone)
     activity_days.find_or_create_by!(active_on: date)
+    apply_streak_freezes!(date)
   rescue ActiveRecord::RecordNotUnique
+    apply_streak_freezes!(date)
     nil
+  end
+
+  def apply_streak_freezes!(today = today_in_zone)
+    return if streak_freezes.to_i <= 0
+
+    last = activity_days.where("active_on < ?", today).maximum(:active_on)
+    return if last.nil?
+
+    gap = (today - last).to_i - 1
+    return if gap <= 0 || gap > streak_freezes
+
+    transaction do
+      gap.times do |offset|
+        activity_days.find_or_create_by!(active_on: today - (offset + 1))
+      end
+      decrement!(:streak_freezes, gap)
+    end
   end
 
   def streak_multiplier(streak = current_streak)
