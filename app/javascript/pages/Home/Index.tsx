@@ -140,7 +140,7 @@ export default function HomeIndex({ user, orph_motivation, projects, news_posts,
 
         <section data-tour="dashboard-projects" className="bg-[#1c1b1b] ghost-border p-8">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-headline font-bold text-[#e5e2e1] tracking-tight">Your projects</h2>
+            <h2 className="text-2xl font-headline font-bold text-[#e5e2e1] tracking-tight">Your forge-worthy projects</h2>
             <Link
               href="/projects/new"
               data-tour="dashboard-new-project"
