@@ -95,3 +95,7 @@ Yes!
 ## Can I use auto-routing software?
 
 No. You must do your routing manually. 
+
+## What is the purpose of streak system in forge?
+
+The streak system increases your payout according to your streak.
