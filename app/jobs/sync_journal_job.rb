@@ -8,7 +8,9 @@ class SyncJournalJob < ApplicationJob
     parsed = parse_repo_url(project.repo_link)
     return unless parsed
 
-    journal_content = fetch_journal(parsed)
+    branch = project.journal_branch.presence
+
+    journal_content = fetch_journal(parsed, branch)
     return unless journal_content.present?
 
     entries = parse_journal_entries(journal_content)
@@ -19,7 +21,7 @@ class SyncJournalJob < ApplicationJob
 
     return if entries.empty?
 
-    raw_base = build_raw_base(parsed)
+    raw_base = build_raw_base(parsed, branch)
 
     entries.each do |entry|
       existing = Devlog.where(project_id: project.id, title: entry[:title]).exists?
@@ -58,19 +60,20 @@ class SyncJournalJob < ApplicationJob
     nil
   end
 
-  def fetch_journal(parsed)
+  def fetch_journal(parsed, branch)
     case parsed[:host]
     when "github"
-      fetch_github_file(parsed[:owner], parsed[:repo], "JOURNAL.md")
+      fetch_github_file(parsed[:owner], parsed[:repo], "JOURNAL.md", branch)
     when "gitlab"
-      fetch_gitlab_file(parsed[:owner], parsed[:repo], "JOURNAL.md")
+      fetch_gitlab_file(parsed[:owner], parsed[:repo], "JOURNAL.md", branch)
     when "codeberg"
-      fetch_codeberg_file(parsed[:owner], parsed[:repo], "JOURNAL.md")
+      fetch_codeberg_file(parsed[:owner], parsed[:repo], "JOURNAL.md", branch)
     end
   end
 
-  def fetch_github_file(owner, repo, path)
+  def fetch_github_file(owner, repo, path, branch)
     uri = URI("https://api.github.com/repos/#{owner}/#{repo}/contents/#{path}")
+    uri.query = URI.encode_www_form(ref: branch) if branch.present?
     response = Net::HTTP.get_response(uri)
     return nil unless response.is_a?(Net::HTTPSuccess)
 
@@ -83,9 +86,10 @@ class SyncJournalJob < ApplicationJob
     nil
   end
 
-  def fetch_gitlab_file(owner, repo, path)
+  def fetch_gitlab_file(owner, repo, path, branch)
     project_id = URI.encode_www_form_component("#{owner}/#{repo}")
-    uri = URI("https://gitlab.com/api/v4/projects/#{project_id}/repository/files/#{URI.encode_www_form_component(path)}/raw?ref=main")
+    ref = branch.presence || "main"
+    uri = URI("https://gitlab.com/api/v4/projects/#{project_id}/repository/files/#{URI.encode_www_form_component(path)}/raw?ref=#{URI.encode_www_form_component(ref)}")
     response = Net::HTTP.get_response(uri)
     return response.body.force_encoding("UTF-8") if response.is_a?(Net::HTTPSuccess)
 
@@ -95,8 +99,9 @@ class SyncJournalJob < ApplicationJob
     nil
   end
 
-  def fetch_codeberg_file(owner, repo, path)
+  def fetch_codeberg_file(owner, repo, path, branch)
     uri = URI("https://codeberg.org/api/v1/repos/#{owner}/#{repo}/contents/#{path}")
+    uri.query = URI.encode_www_form(ref: branch) if branch.present?
     response = Net::HTTP.get_response(uri)
     return nil unless response.is_a?(Net::HTTPSuccess)
 
@@ -109,14 +114,15 @@ class SyncJournalJob < ApplicationJob
     nil
   end
 
-  def build_raw_base(parsed)
+  def build_raw_base(parsed, branch)
+    ref = branch.presence || "main"
     case parsed[:host]
     when "github"
-      "https://raw.githubusercontent.com/#{parsed[:owner]}/#{parsed[:repo]}/main/"
+      "https://raw.githubusercontent.com/#{parsed[:owner]}/#{parsed[:repo]}/#{ref}/"
     when "gitlab"
-      "https://gitlab.com/#{parsed[:owner]}/#{parsed[:repo]}/-/raw/main/"
+      "https://gitlab.com/#{parsed[:owner]}/#{parsed[:repo]}/-/raw/#{ref}/"
     when "codeberg"
-      "https://codeberg.org/#{parsed[:owner]}/#{parsed[:repo]}/raw/branch/main/"
+      "https://codeberg.org/#{parsed[:owner]}/#{parsed[:repo]}/raw/branch/#{ref}/"
     else
       ""
     end

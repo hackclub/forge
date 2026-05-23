@@ -269,6 +269,17 @@ class ProjectsController < ApplicationController
     redirect_to @project, notice: "Repository linked."
   end
 
+  def set_journal_branch
+    authorize @project, :update?
+    branch = params[:journal_branch].to_s.strip
+    if branch.present? && !branch.match?(/\A[\w.\-\/]+\z/)
+      redirect_to @project, alert: "Branch name has invalid characters."
+      return
+    end
+    @project.update!(journal_branch: branch.presence)
+    redirect_to @project, notice: branch.present? ? "Journal branch set to #{branch}." : "Journal branch reset to default."
+  end
+
   def submit_for_review
     authorize @project
 
@@ -373,6 +384,7 @@ class ProjectsController < ApplicationController
       subtitle: project.subtitle,
       tags: project.tags,
       repo_link: project.repo_link,
+      journal_branch: project.journal_branch,
       status: project.status,
       devlog_mode: project.devlog_mode,
       review_feedback: can_view_private_project_data ? project.review_feedback : nil,

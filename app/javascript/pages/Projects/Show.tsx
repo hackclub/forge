@@ -179,6 +179,8 @@ export default function ProjectsShow({
   const [showDevlogForm, setShowDevlogForm] = useState(false)
   const [showRepoForm, setShowRepoForm] = useState(false)
   const [repoUrl, setRepoUrl] = useState('')
+  const [editingBranch, setEditingBranch] = useState(false)
+  const [branchDraft, setBranchDraft] = useState(project.journal_branch || '')
   const [uploadingCover, setUploadingCover] = useState(false)
   const [editingSubtitle, setEditingSubtitle] = useState(false)
   const [subtitleDraft, setSubtitleDraft] = useState(project.subtitle || '')
@@ -356,6 +358,18 @@ export default function ProjectsShow({
           setShowRepoForm(false)
           setRepoUrl('')
         },
+      },
+    )
+  }
+
+  function saveBranch(e: React.FormEvent) {
+    e.preventDefault()
+    router.patch(
+      `/projects/${project.id}/set_journal_branch`,
+      { journal_branch: branchDraft.trim() },
+      {
+        preserveScroll: true,
+        onSuccess: () => setEditingBranch(false),
       },
     )
   }
@@ -715,6 +729,43 @@ export default function ProjectsShow({
                   )}
                   {can.update && project.repo_link && (
                     <>
+                      {editingBranch ? (
+                        <form onSubmit={saveBranch} className="flex items-center gap-1">
+                          <input
+                            type="text"
+                            value={branchDraft}
+                            onChange={(e) => setBranchDraft(e.target.value)}
+                            placeholder="default"
+                            className="ghost-border bg-[#0e0e0e] text-[#e5e2e1] px-2 py-1.5 text-xs font-mono w-32"
+                            autoFocus
+                          />
+                          <button
+                            type="submit"
+                            className="signature-smolder text-[#4c1a00] px-3 py-1.5 text-xs font-bold uppercase tracking-[0.15em] cursor-pointer"
+                          >
+                            Save
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditingBranch(false)
+                              setBranchDraft(project.journal_branch || '')
+                            }}
+                            className="text-stone-500 hover:text-stone-300 px-2 py-1.5 text-xs cursor-pointer"
+                          >
+                            Cancel
+                          </button>
+                        </form>
+                      ) : (
+                        <button
+                          onClick={() => setEditingBranch(true)}
+                          title="Set the branch the JOURNAL.md is read from"
+                          className="ghost-border bg-[#1c1b1b] hover:bg-[#2a2a2a] text-stone-400 hover:text-[#e5e2e1] px-3 py-2 text-xs font-bold uppercase tracking-[0.15em] flex items-center gap-2 cursor-pointer transition-colors"
+                        >
+                          <span className="material-symbols-outlined text-base">account_tree</span>
+                          {project.journal_branch ? project.journal_branch : 'default branch'}
+                        </button>
+                      )}
                       <button
                         onClick={() => router.post(`/projects/${project.id}/sync_journal`)}
                         className="signature-smolder text-[#4c1a00] px-5 py-2 text-xs font-bold uppercase tracking-[0.15em] flex items-center gap-2 cursor-pointer"
