@@ -1,6 +1,6 @@
 class Admin::ProjectsController < Admin::ApplicationController
   before_action :require_projects_permission!
-  before_action :set_project, only: [ :show, :review, :destroy, :restore, :toggle_hidden, :toggle_staff_pick, :change_tier, :add_note, :destroy_note, :mark_unbuilt, :reverse_review, :ai_requirements_check, :send_checkpoint_message ]
+  before_action :set_project, only: [ :show, :review, :destroy, :restore, :toggle_hidden, :toggle_staff_pick, :change_tier, :add_note, :destroy_note, :mark_unbuilt, :reverse_review, :ai_requirements_check, :send_checkpoint_message, :send_dm_message ]
 
   def index
     scope = policy_scope(Project).includes(:user, :ships)
@@ -428,10 +428,42 @@ class Admin::ProjectsController < Admin::ApplicationController
     text = "Hey #{user_mention}! Our team of smiths have had a look at your project and here's what we had to say!\n\n#{body}\n\nFrom #{reviewer_mention}, please discuss in this thread for any questions/feedback!"
 
     client = Slack::Web::Client.new(token: ENV.fetch("SLACK_BOT_TOKEN", nil))
-    client.chat_postMessage(channel: channel, text: text)
+    response = client.chat_postMessage(channel: channel, text: text)
+
+    if response["ts"].present?
+      app_url = ENV.fetch("APP_URL", "https://forge.hackclub.com")
+      project_url = "#{app_url}/projects/#{@project.id}"
+      client.chat_postMessage(channel: channel, thread_ts: response["ts"], text: "Project: #{project_url}")
+    end
 
     audit!("project.checkpoint_message_sent", target: @project, metadata: { user_slack_id: user_slack_id })
     redirect_back fallback_location: admin_review_path(@project), notice: "Checkpoint message sent."
+  rescue Slack::Web::Api::Errors::SlackError => e
+    redirect_back fallback_location: admin_review_path(@project), alert: "Slack error: #{e.message}"
+  end
+
+  def send_dm_message
+    authorize @project, :review?
+
+    body = params[:body].to_s.strip
+    user_slack_id = params[:user_slack_id].to_s.strip
+    if body.blank?
+      redirect_back fallback_location: admin_review_path(@project), alert: "Message body is required."
+      return
+    end
+    if user_slack_id.blank?
+      redirect_back fallback_location: admin_review_path(@project), alert: "Builder Slack ID is required."
+      return
+    end
+
+    reviewer_mention = current_user.slack_id.present? ? "<@#{current_user.slack_id}>" : current_user.display_name
+    text = "Hey! Our team of smiths have had a look at your project and here's what we had to say!\n\n#{body}\n\nFrom #{reviewer_mention}, feel free to reply here for any questions/feedback!"
+
+    client = Slack::Web::Client.new(token: ENV.fetch("SLACK_BOT_TOKEN", nil))
+    client.chat_postMessage(channel: user_slack_id, text: text)
+
+    audit!("project.dm_message_sent", target: @project, metadata: { user_slack_id: user_slack_id })
+    redirect_back fallback_location: admin_review_path(@project), notice: "DM sent to builder."
   rescue Slack::Web::Api::Errors::SlackError => e
     redirect_back fallback_location: admin_review_path(@project), alert: "Slack error: #{e.message}"
   end

@@ -257,6 +257,7 @@ Rails.application.routes.draw do
           post :reverse_review
           post :ai_requirements_check
           post :send_checkpoint_message
+          post :send_dm_message
           delete "notes/:note_id" => "projects#destroy_note", as: :destroy_note
         end
       end
