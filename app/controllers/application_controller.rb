@@ -65,12 +65,6 @@ class ApplicationController < ActionController::Base
     return unless user_signed_in?
 
     now = Time.current
-    today = current_user.today_in_zone
-    if session[:activity_tracked_on] != today.iso8601
-      current_user.record_activity!(today)
-      session[:activity_tracked_on] = today.iso8601
-    end
-
     if current_user.last_seen_at.nil? || current_user.last_seen_at < 1.minute.ago
       current_user.update_columns(last_seen_at: now)
     end

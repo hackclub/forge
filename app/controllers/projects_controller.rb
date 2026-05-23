@@ -226,6 +226,7 @@ class ProjectsController < ApplicationController
     end
 
     SyncJournalJob.perform_now(@project.id)
+    current_user&.record_activity!
     audit!("project.journal_synced", target: @project)
     redirect_to @project, notice: "Journal synced."
   end

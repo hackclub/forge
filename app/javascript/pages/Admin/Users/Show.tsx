@@ -126,6 +126,8 @@ export default function AdminUsersShow({
   const [kudoContent, setKudoContent] = useState('')
   const [coinAmount, setCoinAmount] = useState('')
   const [coinReason, setCoinReason] = useState('')
+  const [streakDelta, setStreakDelta] = useState('')
+  const [streakReason, setStreakReason] = useState('')
   const [badgeName, setBadgeName] = useState('')
   const [badgeDescription, setBadgeDescription] = useState('')
   const [badgeIcon, setBadgeIcon] = useState('military_tech')
@@ -369,6 +371,69 @@ export default function AdminUsersShow({
               </div>
             </>
           )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Streak</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-3 gap-3">
+            <div className="rounded-md border border-border bg-card p-3">
+              <p className="text-xs text-muted-foreground uppercase tracking-wide">Current</p>
+              <p className="text-xl font-semibold mt-1">{user.current_streak} days</p>
+            </div>
+            <div className="rounded-md border border-border bg-card p-3">
+              <p className="text-xs text-muted-foreground uppercase tracking-wide">Longest</p>
+              <p className="text-xl font-semibold mt-1">{user.longest_streak} days</p>
+            </div>
+            <div className="rounded-md border border-border bg-card p-3">
+              <p className="text-xs text-muted-foreground uppercase tracking-wide">Freezes</p>
+              <p className="text-xl font-semibold mt-1">{user.streak_freezes}</p>
+            </div>
+          </div>
+
+          <p className="text-sm text-muted-foreground">
+            Positive grants days backward (filling the first gap), negative removes the most recent active days.
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+            <Input
+              type="number"
+              step="1"
+              value={streakDelta}
+              onChange={(e) => setStreakDelta(e.target.value)}
+              placeholder="Delta (+ or -)"
+            />
+            <Input
+              type="text"
+              value={streakReason}
+              onChange={(e) => setStreakReason(e.target.value)}
+              placeholder="Reason"
+              className="md:col-span-2"
+            />
+          </div>
+          <Button
+            onClick={() => {
+              const d = parseInt(streakDelta, 10)
+              if (!d || !streakReason.trim()) return
+              router.post(
+                `/admin/users/${user.id}/adjust_streak`,
+                { delta: d, reason: streakReason },
+                {
+                  onSuccess: () => {
+                    setStreakDelta('')
+                    setStreakReason('')
+                  },
+                },
+              )
+            }}
+            disabled={!streakDelta || !streakReason.trim()}
+            size="sm"
+          >
+            Apply Adjustment
+          </Button>
         </CardContent>
       </Card>
 

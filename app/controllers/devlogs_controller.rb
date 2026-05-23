@@ -42,6 +42,7 @@ class DevlogsController < ApplicationController
     end
 
     if @devlog.save
+      current_user&.record_activity!
       audit!("devlog.created", target: @devlog, label: @devlog.title, metadata: { project_id: @project.id, title: @devlog.title, time_spent: @devlog.time_spent })
       redirect_to @project, notice: "Devlog entry added."
     else

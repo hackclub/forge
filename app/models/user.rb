@@ -126,6 +126,35 @@ class User < ApplicationRecord
     end
   end
 
+  def adjust_streak!(delta, today: today_in_zone)
+    delta = delta.to_i
+    return 0 if delta.zero?
+
+    if delta.positive?
+      cursor = if activity_days.exists?(active_on: today)
+        c = today - 1
+        c -= 1 while activity_days.exists?(active_on: c)
+        c
+      else
+        today
+      end
+
+      added = 0
+      transaction do
+        delta.times do
+          activity_days.find_or_create_by!(active_on: cursor)
+          cursor -= 1
+          added += 1
+        end
+      end
+      added
+    else
+      ids = activity_days.order(active_on: :desc).limit(-delta).pluck(:id)
+      activity_days.where(id: ids).delete_all
+      -ids.size
+    end
+  end
+
   def streak_multiplier(streak = current_streak)
     STREAK_MULTIPLIER_TIERS.reverse_each do |threshold, mult|
       return mult if streak >= threshold

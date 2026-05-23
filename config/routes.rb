@@ -274,6 +274,7 @@ Rails.application.routes.draw do
           post :add_badge
           delete "badges/:badge_id" => "users#destroy_badge", as: :destroy_badge
           post :adjust_coins
+          post :adjust_streak
           get :coin_history
           post :toggle_shop_unlocked
           post :toggle_maintenance_bypass
