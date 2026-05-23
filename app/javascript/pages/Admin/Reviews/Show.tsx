@@ -391,6 +391,10 @@ export default function AdminReviewsShow({
   const [checkpointBody, setCheckpointBody] = useState('')
   const [checkpointSlackId, setCheckpointSlackId] = useState(project.user_slack_id ?? '')
   const [checkpointSending, setCheckpointSending] = useState(false)
+  const [dmOpen, setDmOpen] = useState(false)
+  const [dmBody, setDmBody] = useState('')
+  const [dmSlackId, setDmSlackId] = useState(project.user_slack_id ?? '')
+  const [dmSending, setDmSending] = useState(false)
 
   const openCheckpoint = useCallback(() => {
     setCheckpointBody(feedback)
@@ -422,6 +426,37 @@ export default function AdminReviewsShow({
       },
     )
   }, [project.id, checkpointBody, checkpointSlackId])
+
+  const openDm = useCallback(() => {
+    setDmBody(feedback)
+    setDmSlackId(project.user_slack_id ?? '')
+    setDmOpen(true)
+  }, [feedback, project.user_slack_id])
+
+  const sendDm = useCallback(() => {
+    const body = dmBody.trim()
+    const slackId = dmSlackId.trim()
+    if (!body) {
+      alert('Message body is required.')
+      return
+    }
+    if (!slackId) {
+      alert('Builder Slack ID is required.')
+      return
+    }
+    setDmSending(true)
+    router.post(
+      `/admin/projects/${project.id}/send_dm_message`,
+      { body, user_slack_id: slackId },
+      {
+        preserveScroll: true,
+        onFinish: () => {
+          setDmSending(false)
+          setDmOpen(false)
+        },
+      },
+    )
+  }, [project.id, dmBody, dmSlackId])
 
   const reviewerMentionPreview = reviewer.slack_id ? `<@${reviewer.slack_id}>` : reviewer.display_name
   const builderMentionPreview = checkpointSlackId.trim() ? `<@${checkpointSlackId.trim()}>` : '<@?>'
@@ -920,6 +955,10 @@ export default function AdminReviewsShow({
                   <Send className="size-3.5" />
                   Send to #forge-checkpoint
                 </Button>
+                <Button variant="outline" size="sm" className="w-full" onClick={openDm}>
+                  <Send className="size-3.5" />
+                  Send to DM
+                </Button>
               </div>
 
               <Separator />
@@ -1075,6 +1114,55 @@ export default function AdminReviewsShow({
                     <AlertDialogCancel disabled={checkpointSending}>Cancel</AlertDialogCancel>
                     <Button size="sm" onClick={sendCheckpoint} disabled={checkpointSending}>
                       {checkpointSending ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
+                      Send
+                    </Button>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+
+              <AlertDialog open={dmOpen} onOpenChange={setDmOpen}>
+                <AlertDialogContent className="max-w-xl">
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Send DM to builder</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Posts as the Forge Keeper bot, straight to the builder's Slack DMs. Edit the body below before sending.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <div className="space-y-3">
+                    <div className="space-y-1">
+                      <label className="text-xs text-muted-foreground">Builder Slack ID</label>
+                      <Input
+                        value={dmSlackId}
+                        onChange={(e) => setDmSlackId(e.target.value)}
+                        placeholder="U0123456789"
+                        className="h-8 font-mono text-sm"
+                      />
+                      {!project.user_slack_id && (
+                        <p className="text-[11px] text-amber-600 dark:text-amber-400">
+                          No Slack ID on file for this user, enter one manually.
+                        </p>
+                      )}
+                    </div>
+                    <div className="rounded-md border border-border bg-muted/30 p-3 text-sm whitespace-pre-wrap">
+                      Hey! Our team of smiths have had a look at your project and here's what we had to say!
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs text-muted-foreground">Message body</label>
+                      <Textarea
+                        value={dmBody}
+                        onChange={(e) => setDmBody(e.target.value)}
+                        placeholder="What does the builder need to know?"
+                        className="h-32 text-sm"
+                      />
+                    </div>
+                    <div className="rounded-md border border-border bg-muted/30 p-3 text-sm whitespace-pre-wrap">
+                      From {reviewerMentionPreview}, feel free to reply here for any questions/feedback!
+                    </div>
+                  </div>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel disabled={dmSending}>Cancel</AlertDialogCancel>
+                    <Button size="sm" onClick={sendDm} disabled={dmSending}>
+                      {dmSending ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
                       Send
                     </Button>
                   </AlertDialogFooter>
