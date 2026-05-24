@@ -99,3 +99,14 @@ No. You must do your routing manually.
 ## What is the purpose of streak system in forge?
 
 The streak system increases your payout according to your streak.
+
+## What is the payout increase of streaks?
+
+|streak|increase|
+|------|--------|
+|3+ days|1.02x|
+|7+ days|1.05x|
+|14+ days|1.1x|
+|30+ days|1.15x|
+|60+ days|1.20x|
+|100+ days|1.25x|
