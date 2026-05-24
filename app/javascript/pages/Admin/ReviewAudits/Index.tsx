@@ -25,14 +25,8 @@ interface ReviewerTotal {
   reviewer_name: string
   active_seconds: number
   wall_seconds: number
-  sessions_count: number
+  reviews_count: number
 }
-
-const filters = [
-  { key: '', label: 'All' },
-  { key: 'open', label: 'Open (in-progress)' },
-  { key: 'closed', label: 'Closed' },
-]
 
 function decisionBadge(decision: string | null) {
   if (!decision) return <Badge variant="warning">in progress</Badge>
@@ -76,7 +70,7 @@ function Leaderboard({
               <TableHead>Reviewer</TableHead>
               <TableHead>Active</TableHead>
               <TableHead>Wall</TableHead>
-              <TableHead className="text-right">Sessions</TableHead>
+              <TableHead className="text-right">Reviews</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -102,7 +96,7 @@ function Leaderboard({
                 <TableCell className={cn('font-mono text-sm', sortKey === 'wall_seconds' && 'font-semibold')}>
                   {formatSeconds(t.wall_seconds)}
                 </TableCell>
-                <TableCell className="text-right font-mono text-xs">{t.sessions_count}</TableCell>
+                <TableCell className="text-right font-mono text-xs">{t.reviews_count}</TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -120,7 +114,7 @@ export default function ReviewAuditsIndex({
 }: {
   sessions: SessionRow[]
   pagy: PagyProps
-  filters: { reviewer_id: string; project_id: string; status: string }
+  filters: { reviewer_id: string; project_id: string }
   totals: ReviewerTotal[]
 }) {
   function applyFilter(key: string, value: string) {
@@ -135,26 +129,26 @@ export default function ReviewAuditsIndex({
           Review Audits
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Every review session ever opened — reviewer, project, active seconds, and a full audit trail of what happened. Superadmin only.
+          Every completed review — reviewer, project, active seconds, and a full audit trail of what happened. Superadmin only.
         </p>
       </div>
 
       {totals.length === 0 ? (
         <Card>
-          <CardContent className="p-6 text-sm text-muted-foreground text-center">No closed sessions yet.</CardContent>
+          <CardContent className="p-6 text-sm text-muted-foreground text-center">No completed reviews yet.</CardContent>
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Leaderboard
             title="Active time leaderboard"
-            description="Sum of heartbeat-measured active time across all sessions. The basis for reviewer payouts."
+            description="Sum of heartbeat-measured active time across completed reviews. The basis for reviewer payouts."
             totals={totals}
             sortKey="active_seconds"
             onPickReviewer={(id) => applyFilter('reviewer_id', String(id))}
           />
           <Leaderboard
             title="Wall-clock leaderboard"
-            description="Sum of started_at→ended_at durations across all sessions. Includes idle/AFK time. Use the gap vs active to spot inefficient reviewers."
+            description="Sum of started_at→ended_at durations across completed reviews. Includes idle/AFK time. Use the gap vs active to spot inefficient reviewers."
             totals={totals}
             sortKey="wall_seconds"
             onPickReviewer={(id) => applyFilter('reviewer_id', String(id))}
@@ -162,38 +156,24 @@ export default function ReviewAuditsIndex({
         </div>
       )}
 
-      <div className="flex gap-2 flex-wrap items-center">
-        {filters.map((opt) => (
-          <button
-            key={opt.key}
-            onClick={() => applyFilter('status', opt.key)}
-            className={cn(
-              'px-3 py-1.5 text-xs font-medium rounded-md border transition-colors cursor-pointer',
-              f.status === opt.key
-                ? 'bg-primary text-primary-foreground border-primary'
-                : 'border-border bg-background text-muted-foreground hover:bg-accent hover:text-foreground',
-            )}
-          >
-            {opt.label}
-          </button>
-        ))}
-        {(f.reviewer_id || f.project_id) && (
+      {(f.reviewer_id || f.project_id) && (
+        <div className="flex gap-2 flex-wrap items-center">
           <button
             onClick={() => router.get('/admin/review_audits')}
             className="text-xs text-muted-foreground hover:text-foreground cursor-pointer underline"
           >
             clear filters
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       <Card>
         <CardHeader>
-          <CardTitle>Sessions</CardTitle>
+          <CardTitle>Completed reviews</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {sessions.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-10 text-center">No sessions match.</p>
+            <p className="text-sm text-muted-foreground py-10 text-center">No completed reviews match.</p>
           ) : (
             <Table>
               <TableHeader>
