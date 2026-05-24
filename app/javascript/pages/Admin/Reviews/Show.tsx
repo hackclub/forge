@@ -1156,7 +1156,7 @@ export default function AdminReviewsShow({
                       />
                     </div>
                     <div className="rounded-md border border-border bg-muted/30 p-3 text-sm whitespace-pre-wrap">
-                      From {reviewerMentionPreview}, feel free to reply here for any questions/feedback!
+                      From {reviewerMentionPreview} — please DM your reviewer if you have any questions, or resubmit once you've worked on this feedback!
                     </div>
                   </div>
                   <AlertDialogFooter>

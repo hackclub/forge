@@ -457,7 +457,7 @@ class Admin::ProjectsController < Admin::ApplicationController
     end
 
     reviewer_mention = current_user.slack_id.present? ? "<@#{current_user.slack_id}>" : current_user.display_name
-    text = "Hey! Our team of smiths have had a look at your project and here's what we had to say!\n\n#{body}\n\nFrom #{reviewer_mention}, feel free to reply here for any questions/feedback!"
+    text = "Hey! Our team of smiths have had a look at your project and here's what we had to say!\n\n#{body}\n\nFrom #{reviewer_mention} — please DM your reviewer if you have any questions, or resubmit once you've worked on this feedback!"
 
     client = Slack::Web::Client.new(token: ENV.fetch("SLACK_BOT_TOKEN", nil))
     client.chat_postMessage(channel: user_slack_id, text: text)
