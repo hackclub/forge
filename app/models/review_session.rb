@@ -32,6 +32,7 @@ class ReviewSession < ApplicationRecord
 
   scope :active, -> { where(ended_at: nil) }
   scope :ended, -> { where.not(ended_at: nil) }
+  scope :completed, -> { where.not(decision: nil) }
   scope :for_reviewer, ->(user) { where(reviewer_id: user.id) }
   scope :for_project, ->(project) { where(project_id: project.id) }
 

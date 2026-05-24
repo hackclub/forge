@@ -26,7 +26,7 @@ class Admin::ProjectsController < Admin::ApplicationController
   def pitches
     scope = policy_scope(Project).includes(:user, :ships).kept.where(status: :pitch_pending)
     scope = scope.search(params[:query]) if params[:query].present?
-    @pagy, @projects = pagy(scope.order(created_at: :desc))
+    @pagy, @projects = pagy(scope.order(created_at: :asc))
 
     render inertia: "Admin/Projects/Index", props: {
       projects: @projects.map { |p| serialize_project_row(p) },
