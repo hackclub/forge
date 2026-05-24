@@ -110,19 +110,21 @@ class User < ApplicationRecord
   end
 
   def apply_streak_freezes!(today = today_in_zone)
-    return if streak_freezes.to_i <= 0
+    freezes = streak_freezes.to_i
+    return if freezes <= 0
 
     last = activity_days.where("active_on < ?", today).maximum(:active_on)
     return if last.nil?
 
     gap = (today - last).to_i - 1
-    return if gap <= 0 || gap > streak_freezes
+    return if gap <= 0
 
+    to_fill = [ gap, freezes ].min
     transaction do
-      gap.times do |offset|
+      to_fill.times do |offset|
         activity_days.find_or_create_by!(active_on: today - (offset + 1))
       end
-      decrement!(:streak_freezes, gap)
+      decrement!(:streak_freezes, to_fill)
     end
   end
 
