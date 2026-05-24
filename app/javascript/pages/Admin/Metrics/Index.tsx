@@ -72,6 +72,14 @@ interface ReelEconomy {
   total_coins: number
 }
 
+interface ReviewStats {
+  completed: number
+  avg_active_seconds: number
+  avg_wall_seconds: number
+  avg_turnaround_seconds: number
+  turnaround_sample: number
+}
+
 interface CountryRow {
   country: string
   count: number
@@ -118,6 +126,17 @@ function CountryBars({ rows, total }: { rows: CountryRow[]; total: number }) {
   )
 }
 
+function formatDuration(s: number): string {
+  if (!s || s <= 0) return '—'
+  const d = Math.floor(s / 86400)
+  const h = Math.floor((s % 86400) / 3600)
+  const m = Math.floor((s % 3600) / 60)
+  if (d > 0) return `${d}d ${h}h`
+  if (h > 0) return `${h}h ${m}m`
+  if (m > 0) return `${m}m ${s % 60}s`
+  return `${s}s`
+}
+
 function Stat({ label, value, hint, accent }: { label: string; value: string | number; hint?: string; accent?: boolean }) {
   return (
     <Card>
@@ -143,6 +162,7 @@ export default function AdminMetricsIndex({
   referral_economy,
   reel_economy,
   location_distribution,
+  reviews,
 }: {
   range_days: number
   summary: Summary
@@ -156,6 +176,7 @@ export default function AdminMetricsIndex({
   referral_economy: ReferralEconomy
   reel_economy: ReelEconomy
   location_distribution: LocationDistribution
+  reviews: ReviewStats
 }) {
   const max = Math.max(1, ...daily.map((d) => d.count))
   const maxHours = Math.max(1, ...daily_hours.map((d) => d.hours))
@@ -282,6 +303,20 @@ export default function AdminMetricsIndex({
           <Stat label="Awards only" value={payouts.positive_only} accent />
           <Stat label="Avg per day (net)" value={payouts.avg_per_day} />
           <Stat label="Avg per day (awards)" value={payouts.avg_positive_per_day} />
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <h2 className="text-sm font-semibold tracking-wide uppercase text-muted-foreground">Reviews — last {range_days} days</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <Stat label="Reviews completed" value={reviews.completed} hint="decisions made in range" accent />
+          <Stat label="Avg review time" value={formatDuration(reviews.avg_active_seconds)} hint="active (heartbeat) time per review" />
+          <Stat label="Avg open → decision" value={formatDuration(reviews.avg_wall_seconds)} hint="reviewer opened until decided" />
+          <Stat
+            label="Avg submit → decision"
+            value={formatDuration(reviews.avg_turnaround_seconds)}
+            hint={`builder submit until decided · n=${reviews.turnaround_sample}`}
+          />
         </div>
       </div>
 

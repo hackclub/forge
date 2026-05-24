@@ -121,6 +121,8 @@ class Admin::MetricsController < Admin::ApplicationController
       }
     }
 
+    review_stats = review_metrics(start_date.beginning_of_day..today.end_of_day)
+
     render inertia: "Admin/Metrics/Index", props: {
       range_days: days,
       summary: {
@@ -158,7 +160,56 @@ class Admin::MetricsController < Admin::ApplicationController
       },
       referral_economy: referral_economy,
       reel_economy: reel_economy,
-      location_distribution: location_distribution
+      location_distribution: location_distribution,
+      reviews: review_stats
+    }
+  end
+
+  private
+
+  # Review throughput for completed reviews in the given window:
+  #   - avg_active_seconds:    heartbeat-measured hands-on review time per review
+  #   - avg_wall_seconds:      open → decision wall-clock per review
+  #   - avg_turnaround_seconds: builder submit → reviewer decision (queue + review)
+  def review_metrics(window)
+    completed = ReviewSession.completed.where(ended_at: window)
+    completed_count = completed.count
+    avg_active = completed.average(:active_seconds).to_f.round
+
+    wall_total = 0
+    completed.where.not(started_at: nil).pluck(:started_at, :ended_at).each do |started_at, ended_at|
+      wall_total += (ended_at - started_at).to_i
+    end
+    avg_wall = completed_count.positive? ? (wall_total / completed_count) : 0
+
+    decision_actions = %w[project.approved project.returned project.rejected project.pitch_approved]
+    decisions = AuditEvent
+      .where(action: decision_actions, target_type: "Project", created_at: window)
+      .pluck(:target_id, :created_at)
+
+    subs_by_project = AuditEvent
+      .where(action: "project.submitted_for_review", target_type: "Project", target_id: decisions.map(&:first).uniq)
+      .pluck(:target_id, :created_at)
+      .group_by(&:first)
+      .transform_values { |rows| rows.map(&:last) }
+
+    turnaround_total = 0
+    turnaround_count = 0
+    decisions.each do |project_id, decided_at|
+      submitted_at = subs_by_project[project_id]&.select { |t| t <= decided_at }&.max
+      next unless submitted_at
+
+      turnaround_total += (decided_at - submitted_at).to_i
+      turnaround_count += 1
+    end
+    avg_turnaround = turnaround_count.positive? ? (turnaround_total / turnaround_count) : 0
+
+    {
+      completed: completed_count,
+      avg_active_seconds: avg_active,
+      avg_wall_seconds: avg_wall,
+      avg_turnaround_seconds: avg_turnaround,
+      turnaround_sample: turnaround_count
     }
   end
 end

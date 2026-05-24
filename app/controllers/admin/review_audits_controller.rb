@@ -3,11 +3,9 @@ class Admin::ReviewAuditsController < Admin::ApplicationController
   before_action :set_session, only: [ :show ]
 
   def index
-    scope = ReviewSession.includes(:reviewer, :project).order(started_at: :desc)
+    scope = ReviewSession.completed.includes(:reviewer, :project).order(ended_at: :desc)
     scope = scope.where(reviewer_id: params[:reviewer_id]) if params[:reviewer_id].present?
     scope = scope.where(project_id: params[:project_id]) if params[:project_id].present?
-    scope = scope.where(decision: nil) if params[:status] == "open"
-    scope = scope.where.not(decision: nil) if params[:status] == "closed"
 
     @pagy, @sessions = pagy(scope)
 
@@ -16,8 +14,7 @@ class Admin::ReviewAuditsController < Admin::ApplicationController
       pagy: pagy_props(@pagy),
       filters: {
         reviewer_id: params[:reviewer_id].to_s,
-        project_id: params[:project_id].to_s,
-        status: params[:status].to_s
+        project_id: params[:project_id].to_s
       },
       totals: aggregate_totals
     }
@@ -53,7 +50,7 @@ class Admin::ReviewAuditsController < Admin::ApplicationController
   end
 
   def aggregate_totals
-    base = ReviewSession.all
+    base = ReviewSession.completed
     by_active = base.group(:reviewer_id).sum(:active_seconds)
     counts = base.group(:reviewer_id).count
 
@@ -72,7 +69,7 @@ class Admin::ReviewAuditsController < Admin::ApplicationController
         reviewer_name: names[id] || "Unknown",
         active_seconds: by_active[id] || 0,
         wall_seconds: wall_by_id[id] || 0,
-        sessions_count: counts[id] || 0
+        reviews_count: counts[id] || 0
       }
     end
   end
