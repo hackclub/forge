@@ -1,4 +1,7 @@
 class Admin::ReviewAuditsController < Admin::ApplicationController
+  REVIEWER_HOURLY_USD = 15.0
+  REVIEWER_PER_REVIEW_USD = 0.33
+
   before_action :require_superadmin!
   before_action :set_session, only: [ :show ]
 
@@ -64,12 +67,20 @@ class Admin::ReviewAuditsController < Admin::ApplicationController
     names = User.where(id: reviewer_ids).pluck(:id, :display_name).to_h
 
     reviewer_ids.map do |id|
+      active_seconds = by_active[id] || 0
+      reviews_count = counts[id] || 0
+      hourly_estimate = (active_seconds / 3600.0) * REVIEWER_HOURLY_USD
+      per_review_estimate = reviews_count * REVIEWER_PER_REVIEW_USD
+
       {
         reviewer_id: id,
         reviewer_name: names[id] || "Unknown",
-        active_seconds: by_active[id] || 0,
+        active_seconds: active_seconds,
         wall_seconds: wall_by_id[id] || 0,
-        reviews_count: counts[id] || 0
+        reviews_count: reviews_count,
+        hourly_estimate_usd: hourly_estimate.round(2),
+        per_review_estimate_usd: per_review_estimate.round(2),
+        estimated_payment_usd: [ hourly_estimate, per_review_estimate ].max.round(2)
       }
     end
   end
