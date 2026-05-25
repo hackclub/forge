@@ -274,6 +274,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_25_120000) do
     t.datetime "readme_fetched_at"
     t.string "red_flags", default: [], array: true
     t.string "repo_link"
+    t.string "journal_branch"
     t.text "review_feedback"
     t.datetime "reviewed_at"
     t.bigint "reviewer_id"

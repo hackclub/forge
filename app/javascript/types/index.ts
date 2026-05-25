@@ -81,6 +81,7 @@ export interface ProjectDetail {
   subtitle: string | null
   tags: string[]
   repo_link: string | null
+  journal_branch: string | null
   status: ProjectStatus
   devlog_mode: 'website' | 'git' | null
   review_feedback: string | null

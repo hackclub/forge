@@ -433,6 +433,7 @@ Rails.application.routes.draw do
       post :upload_cover_image
       patch :set_devlog_mode
       patch :link_repo
+      patch :set_journal_branch
       post :add_kudo
       delete "kudos/:kudo_id" => "projects#destroy_kudo", as: :destroy_kudo
     end
