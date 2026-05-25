@@ -1,5 +1,5 @@
 class Admin::ReviewAuditsController < Admin::ApplicationController
-  REVIEWER_HOURLY_USD = 15.0
+  REVIEWER_HOURLY_USD = 10.0
   REVIEWER_PER_REVIEW_USD = 0.33
 
   before_action :require_superadmin!
@@ -80,7 +80,7 @@ class Admin::ReviewAuditsController < Admin::ApplicationController
         reviews_count: reviews_count,
         hourly_estimate_usd: hourly_estimate.round(2),
         per_review_estimate_usd: per_review_estimate.round(2),
-        estimated_payment_usd: [ hourly_estimate, per_review_estimate ].max.round(2)
+        estimated_payment_usd: ((hourly_estimate + per_review_estimate) / 2.0).round(2)
       }
     end
   end
