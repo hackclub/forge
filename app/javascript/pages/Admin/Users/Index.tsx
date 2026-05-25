@@ -46,8 +46,8 @@ export default function AdminUsersIndex({
               type="search"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search users…"
-              className="pl-9 w-72"
+              placeholder="Search by name, email, or Slack ID…"
+              className="pl-9 w-80"
             />
           </div>
           <Button type="submit" variant="outline" size="sm">
