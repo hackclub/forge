@@ -340,6 +340,12 @@ Rails.application.routes.draw do
           post :revert_project
         end
       end
+      resources :hackatime_bans, only: [ :index ] do
+        collection do
+          post :refresh
+          post :ban_all
+        end
+      end
       get "metrics" => "metrics#index", as: :metrics
       get "airtable_sync" => "airtable_sync#index", as: :airtable_sync
       post "airtable_sync/recheck" => "airtable_sync#recheck", as: :airtable_sync_recheck

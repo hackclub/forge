@@ -22,6 +22,7 @@ import {
   TableProperties,
   Activity,
   Coins,
+  ShieldX,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { Card, CardContent } from '@/components/admin/ui/card'
@@ -173,6 +174,7 @@ export default function AdminStaticPagesIndex({
           )}
           {can('audit_log') && <Tile href="/admin/metrics" label="Metrics" icon={BarChart3} />}
           {can('audit_log') && <Tile href="/admin/audit_log" label="Audit Log" icon={ScrollText} />}
+          {can('hackatime') && <Tile href="/admin/hackatime_bans" label="Hackatime Bans" icon={ShieldX} />}
           {is_admin && <Tile href="/admin/database" label="Database" icon={Database} />}
           {can('jobs') && <Tile href="/admin/jobs" label="Background Jobs" icon={Briefcase} external />}
           {is_superadmin && <Tile href="/admin/reel_payouts" label="Reel Payouts" icon={DollarSign} />}
