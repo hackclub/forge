@@ -26,6 +26,9 @@ interface ReviewerTotal {
   active_seconds: number
   wall_seconds: number
   reviews_count: number
+  hourly_estimate_usd: number
+  per_review_estimate_usd: number
+  estimated_payment_usd: number
 }
 
 function decisionBadge(decision: string | null) {
@@ -71,34 +74,43 @@ function Leaderboard({
               <TableHead>Active</TableHead>
               <TableHead>Wall</TableHead>
               <TableHead className="text-right">Reviews</TableHead>
+              <TableHead className="text-right">Est. Pay</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {sorted.map((t, idx) => (
-              <TableRow
-                key={t.reviewer_id}
-                className="cursor-pointer"
-                onClick={() => onPickReviewer(t.reviewer_id)}
-              >
-                <TableCell className="text-muted-foreground font-mono text-xs">{idx + 1}</TableCell>
-                <TableCell>
-                  <Link
-                    href={`/admin/users/${t.reviewer_id}`}
-                    className="hover:underline"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    {t.reviewer_name}
-                  </Link>
-                </TableCell>
-                <TableCell className={cn('font-mono text-sm', sortKey === 'active_seconds' && 'font-semibold')}>
-                  {formatSeconds(t.active_seconds)}
-                </TableCell>
-                <TableCell className={cn('font-mono text-sm', sortKey === 'wall_seconds' && 'font-semibold')}>
-                  {formatSeconds(t.wall_seconds)}
-                </TableCell>
-                <TableCell className="text-right font-mono text-xs">{t.reviews_count}</TableCell>
-              </TableRow>
-            ))}
+            {sorted.map((t, idx) => {
+              const basis = t.hourly_estimate_usd >= t.per_review_estimate_usd ? 'hourly' : 'per-review'
+              const tooltip = `Hourly: $${t.hourly_estimate_usd.toFixed(2)} (${(t.active_seconds / 3600).toFixed(2)}h × $15)\nPer-review: $${t.per_review_estimate_usd.toFixed(2)} (${t.reviews_count} × $0.33)\nUsing ${basis} (whichever is higher)`
+              return (
+                <TableRow
+                  key={t.reviewer_id}
+                  className="cursor-pointer"
+                  onClick={() => onPickReviewer(t.reviewer_id)}
+                >
+                  <TableCell className="text-muted-foreground font-mono text-xs">{idx + 1}</TableCell>
+                  <TableCell>
+                    <Link
+                      href={`/admin/users/${t.reviewer_id}`}
+                      className="hover:underline"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {t.reviewer_name}
+                    </Link>
+                  </TableCell>
+                  <TableCell className={cn('font-mono text-sm', sortKey === 'active_seconds' && 'font-semibold')}>
+                    {formatSeconds(t.active_seconds)}
+                  </TableCell>
+                  <TableCell className={cn('font-mono text-sm', sortKey === 'wall_seconds' && 'font-semibold')}>
+                    {formatSeconds(t.wall_seconds)}
+                  </TableCell>
+                  <TableCell className="text-right font-mono text-xs">{t.reviews_count}</TableCell>
+                  <TableCell className="text-right font-mono text-sm" title={tooltip}>
+                    ${t.estimated_payment_usd.toFixed(2)}
+                    <span className="text-[10px] text-muted-foreground ml-1">({basis === 'hourly' ? 'hr' : 'per'})</span>
+                  </TableCell>
+                </TableRow>
+              )
+            })}
           </TableBody>
         </Table>
       </CardContent>
