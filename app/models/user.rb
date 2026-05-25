@@ -61,7 +61,7 @@ class User < ApplicationRecord
     Rails.cache.delete("user/#{id}")
   end
 
-  pg_search_scope :search, against: [ :display_name, :email ], using: { tsearch: { prefix: true } }
+  pg_search_scope :search, against: [ :display_name, :email, :slack_id ], using: { tsearch: { prefix: true } }
 
   has_many :ahoy_visits, class_name: "Ahoy::Visit", dependent: :nullify
   has_many :ahoy_events, class_name: "Ahoy::Event", dependent: :nullify
