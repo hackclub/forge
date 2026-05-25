@@ -79,8 +79,7 @@ function Leaderboard({
           </TableHeader>
           <TableBody>
             {sorted.map((t, idx) => {
-              const basis = t.hourly_estimate_usd >= t.per_review_estimate_usd ? 'hourly' : 'per-review'
-              const tooltip = `Hourly: $${t.hourly_estimate_usd.toFixed(2)} (${(t.active_seconds / 3600).toFixed(2)}h × $15)\nPer-review: $${t.per_review_estimate_usd.toFixed(2)} (${t.reviews_count} × $0.33)\nUsing ${basis} (whichever is higher)`
+              const tooltip = `Hourly: $${t.hourly_estimate_usd.toFixed(2)} (${(t.active_seconds / 3600).toFixed(2)}h × $10)\nPer-review: $${t.per_review_estimate_usd.toFixed(2)} (${t.reviews_count} × $0.33)\nFinal: average = $${t.estimated_payment_usd.toFixed(2)}`
               return (
                 <TableRow
                   key={t.reviewer_id}
@@ -106,7 +105,6 @@ function Leaderboard({
                   <TableCell className="text-right font-mono text-xs">{t.reviews_count}</TableCell>
                   <TableCell className="text-right font-mono text-sm" title={tooltip}>
                     ${t.estimated_payment_usd.toFixed(2)}
-                    <span className="text-[10px] text-muted-foreground ml-1">({basis === 'hourly' ? 'hr' : 'per'})</span>
                   </TableCell>
                 </TableRow>
               )
