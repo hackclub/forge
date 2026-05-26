@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_25_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_26_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -283,6 +283,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_25_120000) do
     t.datetime "staff_pick_at"
     t.integer "status", default: 0, null: false
     t.string "subtitle"
+    t.datetime "submitted_at"
     t.string "tags", default: [], null: false, array: true
     t.string "tier", default: "tier_4", null: false
     t.datetime "updated_at", null: false
@@ -292,6 +293,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_25_120000) do
     t.index ["linked_project_id"], name: "index_projects_on_linked_project_id_for_build_reviews", unique: true, where: "(build_review = true)"
     t.index ["staff_pick_at"], name: "index_projects_on_staff_pick_at"
     t.index ["status"], name: "index_projects_on_status"
+    t.index ["submitted_at"], name: "index_projects_on_submitted_at"
     t.index ["tags"], name: "index_projects_on_tags", using: :gin
     t.index ["user_id"], name: "index_projects_on_user_id"
   end

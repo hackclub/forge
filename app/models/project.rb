@@ -137,7 +137,7 @@ class Project < ApplicationRecord
   end
 
   def submit_for_review!
-    update!(status: :pending)
+    update!(status: :pending, submitted_at: Time.current)
   end
 
   def reviewable?
