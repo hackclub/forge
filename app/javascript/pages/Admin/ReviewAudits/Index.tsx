@@ -148,22 +148,13 @@ export default function ReviewAuditsIndex({
           <CardContent className="p-6 text-sm text-muted-foreground text-center">No completed reviews yet.</CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Leaderboard
-            title="Active time leaderboard"
-            description="Sum of heartbeat-measured active time across completed reviews. The basis for reviewer payouts."
-            totals={totals}
-            sortKey="active_seconds"
-            onPickReviewer={(id) => applyFilter('reviewer_id', String(id))}
-          />
-          <Leaderboard
-            title="Wall-clock leaderboard"
-            description="Sum of started_at→ended_at durations across completed reviews. Includes idle/AFK time. Use the gap vs active to spot inefficient reviewers."
-            totals={totals}
-            sortKey="wall_seconds"
-            onPickReviewer={(id) => applyFilter('reviewer_id', String(id))}
-          />
-        </div>
+        <Leaderboard
+          title="Active time leaderboard"
+          description="Sum of heartbeat-measured active time across completed reviews. The basis for reviewer payouts."
+          totals={totals}
+          sortKey="active_seconds"
+          onPickReviewer={(id) => applyFilter('reviewer_id', String(id))}
+        />
       )}
 
       {(f.reviewer_id || f.project_id) && (
