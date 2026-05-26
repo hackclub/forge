@@ -42,7 +42,7 @@ class Admin::ProjectsController < Admin::ApplicationController
   def reviews
     scope = policy_scope(Project).includes(:user).kept.where(status: :pending)
     scope = scope.search(params[:query]) if params[:query].present?
-    @pagy, @projects = pagy(scope.order(created_at: :asc))
+    @pagy, @projects = pagy(scope.order(Arel.sql("COALESCE(submitted_at, created_at) ASC")))
 
     render inertia: "Admin/Projects/Index", props: {
       projects: @projects.map { |p| serialize_project_row(p) },
