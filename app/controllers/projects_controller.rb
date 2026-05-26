@@ -366,10 +366,12 @@ class ProjectsController < ApplicationController
   end
 
   def linkable_projects_for(user)
+    linked_ids = Project.kept.where(build_review: true).where.not(linked_project_id: nil).select(:linked_project_id)
+
     user.projects
       .kept
       .where(status: :approved, build_review: false)
-      .where.missing(:build_review_for_project)
+      .where.not(id: linked_ids)
       .order(created_at: :desc)
       .map { |p| { id: p.id, name: p.name } }
   end
