@@ -5,7 +5,8 @@ class LeaderboardController < ApplicationController
     referral_counts = Referral.group(:referrer_id).count
     hours_totals = compute_hours_totals
     streak_user_ids = User.kept.joins(:activity_days).distinct.pluck(:id)
-    streak_totals = streak_user_ids.to_h { |id| [ id, User.find(id).longest_streak ] }
+    streak_totals = streak_user_ids.to_h { |id| [ id, User.find(id).current_streak ] }
+    streak_totals.reject! { |_, v| v.zero? }
 
     referral_ids = referral_counts.sort_by { |_, v| -v }.first(LIMIT).map(&:first)
     hours_ids = hours_totals.select { |_, v| v > 0 }.sort_by { |_, v| -v }.first(LIMIT).map(&:first)
