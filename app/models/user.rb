@@ -18,6 +18,7 @@
 #  git_instance_url    :string
 #  git_provider        :string           default("github")
 #  github_username     :string
+#  hackatime_banned_at :datetime
 #  hca_token           :text
 #  is_adult            :boolean          default(FALSE), not null
 #  is_banned           :boolean          default(FALSE), not null
@@ -44,9 +45,10 @@
 #
 # Indexes
 #
-#  index_users_on_discarded_at   (discarded_at)
-#  index_users_on_last_seen_at   (last_seen_at)
-#  index_users_on_referral_code  (referral_code) UNIQUE
+#  index_users_on_discarded_at         (discarded_at)
+#  index_users_on_hackatime_banned_at  (hackatime_banned_at)
+#  index_users_on_last_seen_at         (last_seen_at)
+#  index_users_on_referral_code        (referral_code) UNIQUE
 #
 class User < ApplicationRecord
   include Discardable
@@ -79,6 +81,7 @@ class User < ApplicationRecord
   has_many :referrals_made, class_name: "Referral", foreign_key: :referrer_id, dependent: :destroy, inverse_of: :referrer
   has_one :referral_received, class_name: "Referral", foreign_key: :referred_id, dependent: :destroy, inverse_of: :referred
   has_many :activity_days, class_name: "UserActivityDay", dependent: :destroy
+  has_many :login_days, class_name: "UserLoginDay", dependent: :destroy
   has_many :badges, dependent: :destroy
   has_many :awarded_badges, class_name: "Badge", foreign_key: :awarder_id, dependent: :nullify, inverse_of: :awarder
   has_many :reels, dependent: :destroy

@@ -65,9 +65,17 @@ class ApplicationController < ActionController::Base
     return unless user_signed_in?
 
     now = Time.current
-    if current_user.last_seen_at.nil? || current_user.last_seen_at < 1.minute.ago
-      current_user.update_columns(last_seen_at: now)
+    last_seen = current_user.last_seen_at
+    return unless last_seen.nil? || last_seen < 1.minute.ago
+
+    current_user.update_columns(last_seen_at: now)
+
+    today = Date.current
+    if last_seen.nil? || last_seen.to_date < today
+      UserLoginDay.find_or_create_by!(user_id: current_user.id, login_on: today)
     end
+  rescue ActiveRecord::RecordNotUnique
+    # concurrent request raced us; row exists, nothing to do
   rescue StandardError => e
     Rails.logger.warn("track_user_activity failed: #{e.class}: #{e.message}")
   end

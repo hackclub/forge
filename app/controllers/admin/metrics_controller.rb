@@ -4,15 +4,9 @@ class Admin::MetricsController < Admin::ApplicationController
     today = Date.current
     start_date = today - (days - 1)
 
-    visit_in_range = Ahoy::Visit
-      .where.not(user_id: nil)
-      .where(started_at: start_date.beginning_of_day..today.end_of_day)
+    login_in_range = UserLoginDay.where(login_on: start_date..today)
 
-    counts_by_day = visit_in_range
-      .group(Arel.sql("DATE(started_at)"))
-      .distinct
-      .count(:user_id)
-      .transform_keys { |k| k.is_a?(String) ? Date.parse(k) : k }
+    counts_by_day = login_in_range.group(:login_on).distinct.count(:user_id)
 
     daily = (start_date..today).map do |d|
       { date: d.strftime("%Y-%m-%d"), label: d.strftime("%b %d"), count: counts_by_day[d] || 0 }
@@ -20,12 +14,8 @@ class Admin::MetricsController < Admin::ApplicationController
 
     totals = daily.map { |d| d[:count] }
     total_signups = User.kept.count
-    active_any = visit_in_range.distinct.count(:user_id)
-    active_today = Ahoy::Visit
-      .where.not(user_id: nil)
-      .where(started_at: today.beginning_of_day..today.end_of_day)
-      .distinct
-      .count(:user_id)
+    active_any = login_in_range.distinct.count(:user_id)
+    active_today = UserLoginDay.where(login_on: today).distinct.count(:user_id)
     active_now = User.kept.where("last_seen_at > ?", 5.minutes.ago).count
     avg_dau = totals.size.positive? ? (totals.sum.to_f / totals.size).round(1) : 0
 
