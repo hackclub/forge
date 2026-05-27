@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_26_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_27_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -264,6 +264,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_26_120000) do
     t.datetime "discarded_at"
     t.string "green_flags", default: [], array: true
     t.boolean "hidden", default: false, null: false
+    t.string "journal_branch"
     t.integer "kudos_count", default: 0, null: false
     t.bigint "linked_project_id"
     t.string "name", null: false
@@ -274,7 +275,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_26_120000) do
     t.datetime "readme_fetched_at"
     t.string "red_flags", default: [], array: true
     t.string "repo_link"
-    t.string "journal_branch"
     t.text "review_feedback"
     t.datetime "reviewed_at"
     t.bigint "reviewer_id"
@@ -282,8 +282,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_26_120000) do
     t.string "slack_message_ts"
     t.datetime "staff_pick_at"
     t.integer "status", default: 0, null: false
-    t.string "subtitle"
     t.datetime "submitted_at"
+    t.string "subtitle"
     t.string "tags", default: [], null: false, array: true
     t.string "tier", default: "tier_4", null: false
     t.datetime "updated_at", null: false
@@ -611,6 +611,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_26_120000) do
     t.string "claimed_by_slack_id"
     t.datetime "created_at", null: false
     t.text "original_text", null: false
+    t.string "public_response_ts"
     t.datetime "resolved_at"
     t.string "resolved_by_name"
     t.string "resolved_by_slack_id"
@@ -621,6 +622,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_26_120000) do
     t.string "thread_ts", null: false
     t.datetime "updated_at", null: false
     t.index ["bts_message_ts"], name: "index_support_tickets_on_bts_message_ts"
+    t.index ["public_response_ts"], name: "index_support_tickets_on_public_response_ts"
     t.index ["status"], name: "index_support_tickets_on_status"
     t.index ["thread_ts"], name: "index_support_tickets_on_thread_ts", unique: true
   end

@@ -7,6 +7,7 @@
 #  claimed_at           :datetime
 #  claimed_by_name      :string
 #  original_text        :text             not null
+#  public_response_ts   :string
 #  resolved_at          :datetime
 #  resolved_by_name     :string
 #  slack_avatar_url     :string
@@ -23,9 +24,10 @@
 #
 # Indexes
 #
-#  index_support_tickets_on_bts_message_ts  (bts_message_ts)
-#  index_support_tickets_on_status          (status)
-#  index_support_tickets_on_thread_ts       (thread_ts) UNIQUE
+#  index_support_tickets_on_bts_message_ts      (bts_message_ts)
+#  index_support_tickets_on_public_response_ts  (public_response_ts)
+#  index_support_tickets_on_status              (status)
+#  index_support_tickets_on_thread_ts           (thread_ts) UNIQUE
 #
 class SupportTicket < ApplicationRecord
   has_paper_trail
