@@ -22,22 +22,14 @@ class SupportTicketJob < ApplicationJob
       status: :open
     )
 
-    public_blocks = [
-      {
-        type: "section",
-        text: {
-          type: "mrkdwn",
-          text: "heyo! this message is to confirm that we've recieved your query! one of our team members will be with you soon to try and getcha sorted\n\nin the meantime, check out <https://forge.hackclub.com/docs|the docs> as your answer might already be there!"
-        }
-      }
-    ]
-
-    slack_client.chat_postMessage(
+    public_result = slack_client.chat_postMessage(
       channel: channel_id,
       thread_ts: message_ts,
-      blocks: public_blocks,
+      blocks: self.class.public_blocks(ticket),
       text: "heyo! this message is to confirm that we've recieved your query! one of our team members will be with you soon to try and getcha sorted"
     )
+
+    ticket.update!(public_response_ts: public_result["ts"]) if public_result["ok"]
 
     begin
       slack_client.reactions_add(channel: channel_id, timestamp: message_ts, name: "thinking_face")
@@ -138,6 +130,60 @@ class SupportTicketJob < ApplicationJob
     ticket.update!(bts_message_ts: nil)
   rescue StandardError => e
     Rails.logger.error("Failed to delete BTS message: #{e.message}")
+  end
+
+  def self.public_blocks(ticket)
+    intro = "heyo! this message is to confirm that we've recieved your query! one of our team members will be with you soon to try and getcha sorted\n\nin the meantime, check out <https://forge.hackclub.com/docs|the docs> as your answer might already be there!"
+
+    button = if ticket.resolved?
+      {
+        type: "button",
+        text: { type: "plain_text", text: "Reopen", emoji: true },
+        action_id: "support_public_reopen",
+        value: ticket.id.to_s
+      }
+    else
+      {
+        type: "button",
+        text: { type: "plain_text", text: "Mark Resolved", emoji: true },
+        style: "primary",
+        action_id: "support_public_resolve",
+        value: ticket.id.to_s
+      }
+    end
+
+    [
+      { type: "section", text: { type: "mrkdwn", text: intro } },
+      { type: "actions", elements: [ button ] }
+    ]
+  end
+
+  def self.recreate_bts_message(ticket)
+    return if ticket.bts_message_ts.present?
+
+    client = Slack::Web::Client.new(token: ENV.fetch("SLACK_BOT_TOKEN", nil))
+    result = client.chat_postMessage(
+      channel: ticket.bts_channel_id,
+      blocks: bts_blocks(ticket),
+      text: "Support question reopened by #{ticket.slack_display_name}"
+    )
+    ticket.update!(bts_message_ts: result["ts"]) if result["ok"]
+  rescue StandardError => e
+    Rails.logger.error("Failed to recreate BTS message: #{e.message}")
+  end
+
+  def self.update_public_response(ticket)
+    return unless ticket.public_response_ts.present?
+
+    client = Slack::Web::Client.new(token: ENV.fetch("SLACK_BOT_TOKEN", nil))
+    client.chat_update(
+      channel: ticket.channel_id,
+      ts: ticket.public_response_ts,
+      blocks: public_blocks(ticket),
+      text: "heyo! this message is to confirm that we've recieved your query! one of our team members will be with you soon to try and getcha sorted"
+    )
+  rescue StandardError => e
+    Rails.logger.error("Failed to update public support response: #{e.message}")
   end
 
   private

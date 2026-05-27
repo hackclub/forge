@@ -63,6 +63,7 @@ class SupportRelayJob < ApplicationJob
     end
     slack_client.reactions_add(channel: ticket.channel_id, timestamp: ticket.thread_ts, name: "white_check_mark")
     SupportTicketJob.delete_bts_message(ticket)
+    SupportTicketJob.update_public_response(ticket)
   end
 
   def handle_reopen(ticket, slack_user_id)
@@ -70,6 +71,7 @@ class SupportRelayJob < ApplicationJob
 
     ticket.update!(status: :open, resolved_by_slack_id: nil, resolved_by_name: nil, resolved_at: nil)
     update_bts_message(ticket)
+    SupportTicketJob.update_public_response(ticket)
 
     begin
       slack_client.reactions_remove(channel: ticket.channel_id, timestamp: ticket.thread_ts, name: "white_check_mark")
