@@ -13,23 +13,41 @@ interface ExploreProject {
   user_avatar: string
   ships_count: number
   views_count: number
+  built: boolean
   created_at: string
 }
+
+type Filter = 'all' | 'in_progress' | 'built'
+
+const FILTERS: { key: Filter; label: string }[] = [
+  { key: 'all', label: 'All' },
+  { key: 'in_progress', label: 'In Progress' },
+  { key: 'built', label: 'Built' },
+]
 
 export default function ExploreIndex({
   projects,
   pagy,
   query,
+  filter,
 }: {
   projects: ExploreProject[]
   pagy: PagyProps
   query: string
+  filter: Filter
 }) {
   const [searchQuery, setSearchQuery] = useState(query)
 
   function search(e: React.FormEvent) {
     e.preventDefault()
-    router.get('/explore', { query: searchQuery }, { preserveState: true })
+    router.get('/explore', { query: searchQuery, filter }, { preserveState: true })
+  }
+
+  function setFilter(next: Filter) {
+    const params: Record<string, string> = {}
+    if (query) params.query = query
+    if (next !== 'all') params.filter = next
+    router.get('/explore', params, { preserveState: true })
   }
 
   return (
@@ -67,6 +85,26 @@ export default function ExploreIndex({
               </button>
             </form>
           </div>
+
+          <div className="mt-6 flex flex-wrap gap-2">
+            {FILTERS.map((f) => {
+              const active = filter === f.key
+              return (
+                <button
+                  key={f.key}
+                  type="button"
+                  onClick={() => setFilter(f.key)}
+                  className={
+                    active
+                      ? 'signature-smolder text-[#4c1a00] px-4 py-1.5 text-xs font-bold uppercase tracking-[0.15em] cursor-pointer'
+                      : 'ghost-border bg-[#1c1b1b] hover:bg-[#2a2a2a] text-stone-400 hover:text-[#e5e2e1] px-4 py-1.5 text-xs font-bold uppercase tracking-[0.15em] cursor-pointer transition-colors'
+                  }
+                >
+                  {f.label}
+                </button>
+              )
+            })}
+          </div>
         </section>
 
         {projects.length > 0 ? (
@@ -92,8 +130,14 @@ export default function ExploreIndex({
 
                     <div className="px-5">
                       <div className="flex justify-between items-center mb-3">
-                        <span className="text-xs uppercase tracking-widest text-stone-500 bg-[#353534] px-3 py-1 rounded-full">
-                          Project
+                        <span
+                          className={
+                            project.built
+                              ? 'text-xs uppercase tracking-widest text-emerald-300 bg-emerald-900/40 px-3 py-1 rounded-full'
+                              : 'text-xs uppercase tracking-widest text-stone-500 bg-[#353534] px-3 py-1 rounded-full'
+                          }
+                        >
+                          {project.built ? 'Built' : 'In Progress'}
                         </span>
                         <span className="inline-flex items-center gap-1 text-xs text-stone-500" title="Views">
                           <span className="material-symbols-outlined text-sm leading-none">visibility</span>
@@ -141,10 +185,10 @@ export default function ExploreIndex({
           <div className="bg-[#1c1b1b] rounded-xl ghost-border p-16 text-center">
             <span className="material-symbols-outlined text-5xl text-stone-700 mb-4">search_off</span>
             <p className="text-stone-300 text-lg font-headline font-medium mb-2">
-              {query ? 'No projects found' : 'No projects yet'}
+              {query ? 'No projects found' : filter === 'built' ? 'No built projects yet' : filter === 'in_progress' ? 'No projects in progress' : 'No projects yet'}
             </p>
             <p className="text-stone-500 text-sm">
-              {query ? 'Try a different search term.' : 'Be the first to submit a project.'}
+              {query ? 'Try a different search term or clear the filter.' : 'Be the first to submit a project.'}
             </p>
           </div>
         )}
