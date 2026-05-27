@@ -134,7 +134,7 @@ class Slack::InteractivityController < ApplicationController
     slack_client.chat_postMessage(
       channel: ticket.channel_id,
       thread_ts: ticket.thread_ts,
-      text: ":white_check_mark: <@#{ticket.slack_user_id}> This question has been marked as resolved by #{resolver_mention}!"
+      text: "Ohohoho looks like this message has been marked resolved by #{resolver_mention}, if you have any more questions feel free to make a new ticket"
     )
     begin
       slack_client.reactions_remove(
