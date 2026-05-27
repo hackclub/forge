@@ -1033,7 +1033,7 @@ export default function ProjectsShow({
                   {project.build_review && (
                     <div>
                       <label className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
-                        Lapse Link <span className="text-red-400 normal-case tracking-normal">(required)</span>
+                        Lapse Link <span className="text-[#ffb595] normal-case tracking-normal">(highly recommended)</span>
                       </label>
                       <input
                         type="url"
@@ -1041,8 +1041,8 @@ export default function ProjectsShow({
                         onChange={(e) => devlogForm.setData('lapse_url', e.target.value)}
                         className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 text-sm"
                         placeholder="https://lapse.hackclub.com/timelapse/create"
-                        required
                       />
+                      <p className="text-xs text-stone-500 mt-1.5">A timelapse of your build helps reviewers verify hours faster — submissions without one are more likely to be returned.</p>
                     </div>
                   )}
                   <button
@@ -1163,7 +1163,7 @@ export default function ProjectsShow({
                           {project.build_review && (
                             <div>
                               <label className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
-                                Lapse Link <span className="text-red-400 normal-case tracking-normal">(required)</span>
+                                Lapse Link <span className="text-[#ffb595] normal-case tracking-normal">(highly recommended)</span>
                               </label>
                               <input
                                 type="url"
@@ -1171,7 +1171,6 @@ export default function ProjectsShow({
                                 onChange={(e) => editDevlogForm.setData('lapse_url', e.target.value)}
                                 className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 text-sm"
                                 placeholder="https://lapse.hackclub.com/timelapse"
-                                required
                               />
                             </div>
                           )}

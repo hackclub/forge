@@ -37,7 +37,6 @@ class Devlog < ApplicationRecord
 
   validates :title, presence: true
   validates :content, presence: true
-  validates :lapse_url, presence: true, format: { with: /\Ahttps?:\/\/\S+\z/i, message: "must be a valid URL" }, if: -> { project&.build_review? && !draft? }
   validates :lapse_url, format: { with: /\Ahttps?:\/\/\S+\z/i, message: "must be a valid URL" }, allow_blank: true
 
   default_scope { order(id: :desc) }
