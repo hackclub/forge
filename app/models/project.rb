@@ -169,7 +169,8 @@ class Project < ApplicationRecord
   def coins_earned
     return 0.0 unless approved?
 
-    (total_hours * coin_rate * user.streak_multiplier).round(2)
+    multiplier = streak_at_approval ? user.streak_multiplier(streak_at_approval) : user.streak_multiplier
+    (total_hours * coin_rate * multiplier).round(2)
   end
 
   REVIEW_EVENT_ACTIONS = %w[
