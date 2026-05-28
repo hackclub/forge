@@ -22,6 +22,7 @@ class SyncJournalJob < ApplicationJob
     return if entries.empty?
 
     raw_base = build_raw_base(parsed, branch)
+    dates_to_credit = []
 
     entries.each do |entry|
       existing = Devlog.where(project_id: project.id, title: entry[:title]).exists?
@@ -39,9 +40,16 @@ class SyncJournalJob < ApplicationJob
       )
       if devlog.save
         Rails.logger.info("SyncJournal: created devlog '#{entry[:title]}' with time_spent=#{entry[:time_spent]}, time_hours=#{devlog.time_hours}")
+        if (entry_date = extract_entry_date(entry))
+          dates_to_credit << entry_date
+        end
       else
         Rails.logger.error("SyncJournal: failed to create devlog '#{entry[:title]}': #{devlog.errors.full_messages}")
       end
+    end
+
+    dates_to_credit.uniq.sort.each do |date|
+      project.user.record_activity!(date)
     end
   end
 
@@ -140,6 +148,41 @@ class SyncJournalJob < ApplicationJob
       path = $2
       "![#{alt}](#{raw_base}#{path})"
     end
+  end
+
+  MONTH_NAMES = (Date::MONTHNAMES.compact + Date::ABBR_MONTHNAMES.compact).map(&:downcase).uniq.freeze
+  MONTH_PATTERN = Regexp.new("\\b(#{MONTH_NAMES.join('|')})\\b", Regexp::IGNORECASE).freeze
+  ISO_DATE_PATTERN = /\b(\d{4})-(\d{1,2})-(\d{1,2})\b/.freeze
+
+  def extract_entry_date(entry)
+    source = "#{entry[:title]} #{entry[:content]}"
+
+    if (m = source.match(ISO_DATE_PATTERN))
+      return build_safe_date(m[1].to_i, m[2].to_i, m[3].to_i)
+    end
+
+    if (m = source.match(/#{MONTH_PATTERN}\.?\s+(\d{1,2})(?:[\s,]+(\d{4}))?/))
+      month_name = m[1].downcase
+      month = Date::MONTHNAMES.index { |n| n&.downcase == month_name } ||
+              Date::ABBR_MONTHNAMES.index { |n| n&.downcase == month_name }
+      return nil unless month
+
+      day = m[2].to_i
+      year = m[3]&.to_i || Date.current.year
+      return build_safe_date(year, month, day)
+    end
+
+    nil
+  end
+
+  def build_safe_date(year, month, day)
+    date = Date.new(year, month, day)
+    return nil if date > Date.current + 1
+    return nil if date < 2.years.ago.to_date
+
+    date
+  rescue Date::Error, ArgumentError
+    nil
   end
 
   HEADER_PATTERN = /^(\#{1,3})\s+(.+)$/
