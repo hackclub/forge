@@ -199,7 +199,8 @@ class Admin::ProjectsController < Admin::ApplicationController
         reviewer: nil,
         reviewed_at: nil,
         review_feedback: nil,
-        approval_justification: nil
+        approval_justification: nil,
+        streak_at_approval: nil
       )
       cascade_target&.update!(built_at: nil, build_proof_url: nil)
 
@@ -328,7 +329,8 @@ class Admin::ProjectsController < Admin::ApplicationController
             review_feedback: feedback,
             override_hours: capped,
             override_hours_justification: params[:override_hours_justification].presence,
-            approval_justification: justification
+            approval_justification: justification,
+            streak_at_approval: @project.user.current_streak
           )
           cascade_target&.update!(built_at: Time.current)
         end
