@@ -10,7 +10,7 @@ class FetchReadmeJob < ApplicationJob
     result =
       if (m = project.repo_link.match(%r{github\.com/([^/]+)/([^/]+?)(?:\.git)?(?:/|$)}))
         fetch_github(m[1], m[2])
-      elsif (m = project.repo_link.match(%r{gitlab\.com/([^?#]+?)(?:\.git)?(?:/-/|/|$)}))
+      elsif (m = project.repo_link.match(%r{gitlab\.com/([^?#]+?)(?:\.git)?(?:/-/[^?#]*)?/?(?:[?#]|$)}))
         fetch_gitlab(m[1].chomp("/"))
       end
     return unless result
