@@ -1,5 +1,6 @@
 require "net/http"
 require "json"
+require "digest"
 
 module AiRequirementsChecker
   module_function
@@ -19,6 +20,8 @@ module AiRequirementsChecker
     }
   }.freeze
   DEFAULT_PROVIDER = "hackclub".freeze
+  PER_REQUIREMENT_CONCURRENCY = 6
+  PER_REQUIREMENT_TIMEOUT = 45
 
   DOC_GLOBS = [
     Rails.root.join("docs/requirements/*.md"),
@@ -33,23 +36,116 @@ module AiRequirementsChecker
 
     config = base.merge(model: ENV.fetch("AI_REQUIREMENTS_MODEL", base[:model]))
 
-    response = post_chat(build_prompt(project), config)
-    unless response.is_a?(Net::HTTPSuccess)
-      detail = extract_upstream_error(response.body).to_s.truncate(200)
-      raise Error, "#{config[:label]} request failed (#{response.code})#{detail.present? ? ": #{detail}" : ''}"
-    end
+    requirements = list_requirements(config)
+    raise Error, "Could not extract any requirements from the rubric." if requirements.empty?
 
-    content = JSON.parse(response.body).dig("choices", 0, "message", "content").to_s
-    parsed = extract_json(content) || {}
+    evaluated = evaluate_in_parallel(requirements, project, config)
 
     {
-      "summary" => parsed["summary"].to_s,
-      "overall" => normalize_verdict(parsed["overall"]),
-      "requirements" => Array(parsed["requirements"]).first(40).map { |req| sanitize_requirement(req) },
+      "summary" => build_summary(evaluated),
+      "overall" => overall_verdict(evaluated),
+      "requirements" => evaluated,
       "checked_at" => Time.current.iso8601,
       "model" => config[:model],
       "provider" => provider.to_s
     }
+  end
+
+  def list_requirements(config)
+    Rails.cache.fetch([ "ai_requirements_checker", "requirement_list", docs_digest, config[:model] ], expires_in: 12.hours) do
+      fetch_requirement_list(config)
+    end
+  end
+
+  def fetch_requirement_list(config)
+    response = post_chat(list_requirements_prompt, config)
+    raise_for_response!(response, config)
+
+    content = JSON.parse(response.body).dig("choices", 0, "message", "content").to_s
+    parsed = extract_json(content) || {}
+    Array(parsed["requirements"]).first(20).filter_map do |req|
+      next unless req.is_a?(Hash)
+      name = req["name"].to_s.strip
+      next if name.empty?
+
+      {
+        "name" => name.truncate(120),
+        "source" => req["source"].to_s.truncate(80),
+        "criterion" => req["criterion"].to_s.truncate(400)
+      }
+    end
+  end
+
+  def evaluate_in_parallel(requirements, project, config)
+    project_context = project_context_text(project)
+    queue = Queue.new
+    requirements.each { |req| queue << req }
+    results = Array.new(requirements.size)
+    index_by_name = requirements.each_with_index.to_h { |req, i| [ req["name"], i ] }
+
+    workers = Array.new([ PER_REQUIREMENT_CONCURRENCY, requirements.size ].min) do
+      Thread.new do
+        until queue.empty?
+          begin
+            req = queue.pop(true)
+          rescue ThreadError
+            break
+          end
+          results[index_by_name[req["name"]]] = evaluate_requirement(req, project_context, config)
+        end
+      end
+    end
+    workers.each(&:join)
+    results.compact
+  end
+
+  def evaluate_requirement(requirement, project_context, config)
+    response = post_chat(evaluate_requirement_prompt(requirement, project_context), config)
+    return uncertain_result(requirement, "Couldn't reach the AI (#{response.code}).") unless response.is_a?(Net::HTTPSuccess)
+
+    content = JSON.parse(response.body).dig("choices", 0, "message", "content").to_s
+    parsed = extract_json(content) || {}
+    {
+      "name" => requirement["name"],
+      "source" => requirement["source"],
+      "verdict" => normalize_verdict(parsed["verdict"]),
+      "reasoning" => parsed["reasoning"].to_s.truncate(400)
+    }
+  rescue Net::ReadTimeout, Net::OpenTimeout
+    uncertain_result(requirement, "Check timed out — please verify yourself.")
+  rescue SocketError, Errno::ECONNREFUSED, Errno::ECONNRESET, OpenSSL::SSL::SSLError, JSON::ParserError
+    uncertain_result(requirement, "Couldn't get a clean answer from the AI — please verify yourself.")
+  end
+
+  def uncertain_result(requirement, message)
+    {
+      "name" => requirement["name"],
+      "source" => requirement["source"],
+      "verdict" => "uncertain",
+      "reasoning" => message
+    }
+  end
+
+  def overall_verdict(evaluated)
+    verdicts = evaluated.map { |r| r["verdict"] }
+    return "fail" if verdicts.include?("fail")
+    return "uncertain" if verdicts.include?("uncertain")
+    "pass"
+  end
+
+  def build_summary(evaluated)
+    fails = evaluated.select { |r| r["verdict"] == "fail" }
+    uncertains = evaluated.select { |r| r["verdict"] == "uncertain" }
+    passes = evaluated.count { |r| r["verdict"] == "pass" }
+
+    if fails.any?
+      top = fails.first(3).map { |r| r["name"] }.join(", ")
+      "#{fails.size} thing#{'s' if fails.size != 1} to fix before you submit — start with: #{top}."
+    elsif uncertains.any?
+      "Looks promising — #{passes} clear pass#{'es' if passes != 1}, but #{uncertains.size} item#{'s' if uncertains.size != 1} I couldn't verify from text alone. Give them a once-over yourself."
+    else
+      "Looks great! All #{passes} checks passed."
+    end
   end
 
   def docs_text
@@ -58,18 +154,34 @@ module AiRequirementsChecker
     end.join("\n\n---\n\n")
   end
 
-  def build_prompt(project)
+  def docs_digest
+    @docs_digest ||= Digest::SHA256.hexdigest(docs_text)
+  end
+
+  def list_requirements_prompt
+    <<~PROMPT
+      You're helping prepare a checklist for Hack Club Forge project submissions. From the docs below, extract every concrete, checkable requirement a builder needs to meet before submitting. Aim for 8-18 entries. Each entry should be one distinct thing — do not collapse multiple requirements into a single item. Skip purely soft suggestions ("try to" / "consider…").
+
+      ## Forge docs
+      #{docs_text}
+
+      ## Output
+      For each requirement, give:
+        - name: short neutral name, under 8 words
+        - source: the doc filename it came from (e.g. "submitting.md")
+        - criterion: one sentence describing exactly what the project must have or do to pass this requirement
+
+      Respond in valid JSON only, no markdown fences:
+      {"requirements": [{"name": "...", "source": "...", "criterion": "..."}]}
+    PROMPT
+  end
+
+  def project_context_text(project)
     devlog_summary = project.devlogs.order(created_at: :asc).map do |d|
       "- #{d.created_at.to_date} · #{d.title} (#{d.time_spent || '—'}): #{d.content.to_s.truncate(400)}"
     end.join("\n").presence || "(no devlogs)"
 
-    <<~PROMPT
-      You're Orph, a friendly Hack Club Forge helper. The builder hasn't submitted yet — you're giving them a heads-up so they can fix anything obvious before a human reviewer sees it. Be warm and encouraging, like a teammate doing a quick pre-flight check, not a strict grader. The goal is to *help them ship*, not to gatekeep.
-
-      ## Forge documentation (the requirements you're checking against)
-      #{docs_text}
-
-      ## Project to check
+    <<~CTX
       - Name: #{project.name}
       - Subtitle: #{project.subtitle}
       - Tier: #{project.tier}
@@ -88,38 +200,46 @@ module AiRequirementsChecker
 
       ### Devlogs
       #{devlog_summary}
+    CTX
+  end
 
-      ## What you can and cannot verify
-      You only see *text* — the project metadata above and the README markdown. You DO NOT see images, screenshots, or rendered pages. That means:
-        - You CAN check: presence of text content (descriptions, BOM tables, sections, headings), presence of markdown image links (`![alt](url)` or `<img>` tags), repository URL format, devlog text content, hour totals, journal format strings like `Total time spent:`.
-        - You CANNOT check: whether an image actually depicts a PCB / schematic / 3D render / hardware photo, whether the README's images are high quality, whether code in the repo works, whether the build looks "real," or anything visual.
+  def evaluate_requirement_prompt(requirement, project_context)
+    <<~PROMPT
+      You're Orph, a friendly Hack Club Forge helper. You're doing a pre-submission check, focused on ONE requirement. Be encouraging and constructive — your job is to help the builder ship, not gatekeep.
 
-      For requirements that depend on visual content you cannot see:
-        - If the README contains at least one image reference (`![...](...)` or `<img …>`), mark "uncertain" and say something like "I can see images in the README but can't verify they show the required content — double-check yourself."
-        - If the README has *no* image references at all, mark "fail" and say no images were found in the README.
-        - Never claim a screenshot exists or doesn't exist based on guessing — only the literal image markdown counts.
+      ## The requirement
+      Name: #{requirement['name']}
+      Source: #{requirement['source']}
+      What it means: #{requirement['criterion']}
 
-      ## Task
-      Extract every concrete, checkable requirement from the rubric (especially `docs/requirements/*` and `docs/design/journal-format.md` / `how-to-journal.md`). Aim for thorough coverage — 8 to 20 entries is normal. Do NOT collapse multiple distinct requirements into one entry. Only skip purely soft suggestions ("try to" / "consider…"). For visual requirements you can't fully verify, still include them and mark "uncertain" — never drop them.
+      ## The project
+      #{project_context}
 
-      For each requirement:
-        - name: short, neutral name of the requirement (under 8 words)
-        - verdict: "pass", "fail", or "uncertain". Prefer "uncertain" over guessing on anything visual.
-        - reasoning: one short sentence. Quote or point at the specific evidence (or its absence) — e.g. "no `BOM.csv` mentioned in the README" or "README has 2 image references but I can't tell what they show — please verify." If passing, say so briefly. Always sound like you're on the builder's side.
-        - source: the doc filename it came from (e.g. "shipping.md")
+      ## What you can verify
+      You only see text — project metadata and README markdown. You DO NOT see images, screenshots, or rendered pages.
+        - You CAN check: text content (descriptions, BOM tables, sections, headings), markdown image references (`![alt](url)` or `<img>`), repo URL format, devlog text, hour totals, journal format strings.
+        - You CANNOT check: what an image actually depicts (PCB vs. random photo), code quality, whether the build looks real.
 
-      Then an overall verdict — "pass" if everything important clearly passes, "fail" only if something important is clearly missing in the text, "uncertain" if visual-only items remain — and a 1-2 sentence summary that names the biggest thing to fix (if any) without piling on. If the project looks great, just say it looks great.
+      For visual requirements: if the README has at least one image reference, mark "uncertain" and say you can see images but can't verify their content. If there are zero image references, mark "fail" and say no images were found.
 
+      ## Output
       Respond in valid JSON only, no markdown fences:
-      {"summary": "...", "overall": "pass|fail|uncertain", "requirements": [{"name": "...", "verdict": "pass|fail|uncertain", "reasoning": "...", "source": "..."}]}
+      {"verdict": "pass|fail|uncertain", "reasoning": "one short sentence, on the builder's side"}
     PROMPT
+  end
+
+  def raise_for_response!(response, config)
+    return if response.is_a?(Net::HTTPSuccess)
+    detail = extract_upstream_error(response.body).to_s.truncate(200)
+    raise Error, "#{config[:label]} request failed (#{response.code})#{detail.present? ? ": #{detail}" : ''}"
   end
 
   def post_chat(prompt, config)
     uri = URI(config[:endpoint])
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = true
-    http.read_timeout = 90
+    http.open_timeout = 10
+    http.read_timeout = PER_REQUIREMENT_TIMEOUT
 
     req = Net::HTTP::Post.new(uri)
     req["Content-Type"] = "application/json"
@@ -148,15 +268,5 @@ module AiRequirementsChecker
   def normalize_verdict(value)
     v = value.to_s.downcase
     %w[pass fail uncertain].include?(v) ? v : "uncertain"
-  end
-
-  def sanitize_requirement(req)
-    req = req.is_a?(Hash) ? req : {}
-    {
-      "name" => req["name"].to_s.truncate(120),
-      "verdict" => normalize_verdict(req["verdict"]),
-      "reasoning" => req["reasoning"].to_s.truncate(400),
-      "source" => req["source"].to_s.truncate(80)
-    }
   end
 end
