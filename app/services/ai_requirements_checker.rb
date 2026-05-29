@@ -20,9 +20,10 @@ module AiRequirementsChecker
     }
   }.freeze
   DEFAULT_PROVIDER = "hackclub".freeze
-  PER_REQUIREMENT_CONCURRENCY = 3
+  PER_REQUIREMENT_CONCURRENCY = ENV.fetch("AI_REQUIREMENTS_CONCURRENCY", "1").to_i
   PER_REQUIREMENT_TIMEOUT = 45
-  RATE_LIMIT_RETRIES = 3
+  RATE_LIMIT_RETRIES = 5
+  PER_REQUIREMENT_DELAY = ENV.fetch("AI_REQUIREMENTS_DELAY", "0.4").to_f
 
   DOC_GLOBS = [
     Rails.root.join("docs/requirements/*.md"),
@@ -93,6 +94,7 @@ module AiRequirementsChecker
             break
           end
           results[index_by_name[req["name"]]] = evaluate_requirement(req, project_context, config)
+          sleep PER_REQUIREMENT_DELAY if PER_REQUIREMENT_DELAY.positive?
         end
       end
     end
