@@ -1,6 +1,6 @@
 class ProjectsController < ApplicationController
   allow_unauthenticated_access only: %i[show]
-  before_action :set_project, only: %i[show edit update destroy submit_for_review ai_check run_ai_check sync_journal set_devlog_mode link_repo set_journal_branch resubmit_pitch upload_cover_image export_devlogs add_kudo destroy_kudo]
+  before_action :set_project, only: %i[show edit update destroy submit_for_review ai_check run_ai_check ai_check_status sync_journal set_devlog_mode link_repo set_journal_branch resubmit_pitch upload_cover_image export_devlogs add_kudo destroy_kudo]
 
   def show
     authorize @project
@@ -365,16 +365,16 @@ class ProjectsController < ApplicationController
   def run_ai_check
     authorize @project, :submit_for_review?
 
-    FetchReadmeJob.perform_now(@project.id) if @project.repo_link.present?
-    @project.reload
+    @project.update!(ai_check_result: { "status" => "queued", "queued_at" => Time.current.iso8601 })
+    RunAiRequirementsCheckJob.perform_later(@project.id)
+    audit!("project.ai_check_run", target: @project, metadata: { via: "owner" })
 
-    result = AiRequirementsChecker.run(@project)
-    @project.update!(ai_check_result: result, ai_check_ran_at: Time.current)
-    audit!("project.ai_check_run", target: @project, metadata: { overall: result["overall"], requirements_count: result["requirements"].size, provider: result["provider"], via: "owner" })
+    render json: { status: "queued" }
+  end
 
-    render json: { result: result, ran_at: @project.ai_check_ran_at.iso8601 }
-  rescue AiRequirementsChecker::Error => e
-    render json: { error: e.message }, status: :service_unavailable
+  def ai_check_status
+    authorize @project, :submit_for_review?
+    render json: { result: @project.ai_check_result, ran_at: @project.ai_check_ran_at&.iso8601 }
   end
 
   private
