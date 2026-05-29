@@ -38,7 +38,7 @@ Forge is a Hack Club program where teen builders (ages 13-18) get funded for har
 - All models use `has_paper_trail` for audit logging
 
 ### Project Lifecycle
-1. User posts pitch in `#into-the-forge` Slack channel
+1. User posts pitch in `#forgery` Slack channel
 2. `SlackPitchJob` picks it up, uses Hack Club AI to clean formatting and generate admin summary
 3. Project created as `pending`, bot replies in Slack thread
 4. Admin reviews in `/admin/projects/:id` — can approve/return/reject with feedback

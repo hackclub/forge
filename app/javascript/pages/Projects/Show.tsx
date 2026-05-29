@@ -1518,7 +1518,7 @@ export default function ProjectsShow({
                 Resubmit Pitch
               </h4>
               <p className="text-stone-400 text-sm mb-4">
-                Edit your original message in <span className="text-[#ffb595] font-bold">#into-the-forge</span> on Slack
+                Edit your original message in <span className="text-[#ffb595] font-bold">#forgery</span> on Slack
                 with the requested changes, then hit resubmit.
               </p>
               <button
