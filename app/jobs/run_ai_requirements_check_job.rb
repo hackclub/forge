@@ -10,12 +10,12 @@ class RunAiRequirementsCheckJob < ApplicationJob
     FetchReadmeJob.perform_now(project.id) if project.repo_link.present?
     project.reload
 
-    result = AiRequirementsChecker.run(project, **(provider.present? ? { provider: provider } : {}))
+    result = ForgeCheckService.run(project)
     project.update!(
       ai_check_result: result.merge("status" => "done"),
       ai_check_ran_at: Time.current
     )
-  rescue AiRequirementsChecker::Error => e
+  rescue ForgeCheckService::Error, AiRequirementsChecker::Error => e
     project&.update!(ai_check_result: { "status" => "error", "message" => e.message, "errored_at" => Time.current.iso8601 })
   end
 end
