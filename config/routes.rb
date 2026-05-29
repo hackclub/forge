@@ -429,6 +429,7 @@ Rails.application.routes.draw do
       post :submit_for_review
       get :ai_check
       post :run_ai_check
+      get :ai_check_status
       post :sync_journal
       get :export_devlogs
       post :resubmit_pitch
