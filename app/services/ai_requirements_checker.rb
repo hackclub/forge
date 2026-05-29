@@ -20,8 +20,9 @@ module AiRequirementsChecker
     }
   }.freeze
   DEFAULT_PROVIDER = "hackclub".freeze
-  PER_REQUIREMENT_CONCURRENCY = 6
+  PER_REQUIREMENT_CONCURRENCY = 3
   PER_REQUIREMENT_TIMEOUT = 45
+  RATE_LIMIT_RETRIES = 3
 
   DOC_GLOBS = [
     Rails.root.join("docs/requirements/*.md"),
@@ -236,17 +237,31 @@ module AiRequirementsChecker
 
   def post_chat(prompt, config)
     uri = URI(config[:endpoint])
-    http = Net::HTTP.new(uri.host, uri.port)
-    http.use_ssl = true
-    http.open_timeout = 10
-    http.read_timeout = PER_REQUIREMENT_TIMEOUT
+    body = { model: config[:model], messages: [ { role: "user", content: prompt } ] }.to_json
 
-    req = Net::HTTP::Post.new(uri)
-    req["Content-Type"] = "application/json"
-    req["Authorization"] = "Bearer #{ENV[config[:api_key_env]]}"
-    req.body = { model: config[:model], messages: [ { role: "user", content: prompt } ] }.to_json
+    attempt = 0
+    response = nil
+    loop do
+      http = Net::HTTP.new(uri.host, uri.port)
+      http.use_ssl = true
+      http.open_timeout = 10
+      http.read_timeout = PER_REQUIREMENT_TIMEOUT
 
-    http.request(req)
+      req = Net::HTTP::Post.new(uri)
+      req["Content-Type"] = "application/json"
+      req["Authorization"] = "Bearer #{ENV[config[:api_key_env]]}"
+      req.body = body
+      response = http.request(req)
+
+      break unless response.code.to_i == 429 && attempt < RATE_LIMIT_RETRIES
+
+      retry_after = response["Retry-After"].to_f
+      delay = retry_after.positive? ? retry_after : (2**attempt) + rand
+      sleep [ delay, 10 ].min
+      attempt += 1
+    end
+
+    response
   end
 
   def extract_json(text)
