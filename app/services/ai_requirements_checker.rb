@@ -28,11 +28,16 @@ module AiRequirementsChecker
   class Error < StandardError; end
 
   def run(project, provider: ENV.fetch("AI_REQUIREMENTS_PROVIDER", DEFAULT_PROVIDER))
-    config = PROVIDERS[provider.to_s] || raise(Error, "Unknown AI provider: #{provider}")
-    raise Error, "#{config[:label]} API key is not configured" if ENV[config[:api_key_env]].to_s.empty?
+    base = PROVIDERS[provider.to_s] || raise(Error, "Unknown AI provider: #{provider}")
+    raise Error, "#{base[:label]} API key is not configured" if ENV[base[:api_key_env]].to_s.empty?
+
+    config = base.merge(model: ENV.fetch("AI_REQUIREMENTS_MODEL", base[:model]))
 
     response = post_chat(build_prompt(project), config)
-    raise Error, "#{config[:label]} request failed (#{response.code})" unless response.is_a?(Net::HTTPSuccess)
+    unless response.is_a?(Net::HTTPSuccess)
+      detail = extract_upstream_error(response.body).to_s.truncate(200)
+      raise Error, "#{config[:label]} request failed (#{response.code})#{detail.present? ? ": #{detail}" : ''}"
+    end
 
     content = JSON.parse(response.body).dig("choices", 0, "message", "content").to_s
     parsed = extract_json(content) || {}
@@ -131,6 +136,13 @@ module AiRequirementsChecker
     JSON.parse(match[0])
   rescue JSON::ParserError
     nil
+  end
+
+  def extract_upstream_error(body)
+    parsed = JSON.parse(body.to_s)
+    parsed.dig("error", "message") || parsed["error"] || parsed["message"] || body.to_s
+  rescue JSON::ParserError
+    body.to_s
   end
 
   def normalize_verdict(value)
