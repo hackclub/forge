@@ -427,6 +427,8 @@ Rails.application.routes.draw do
     end
     member do
       post :submit_for_review
+      get :ai_check
+      post :run_ai_check
       post :sync_journal
       get :export_devlogs
       post :resubmit_pitch

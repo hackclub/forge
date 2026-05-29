@@ -281,7 +281,7 @@ export default function ProjectsShow({
 
   function proceedWithSubmission() {
     setShowSubmitWarning(false)
-    router.post(`/projects/${project.id}/submit_for_review`)
+    router.visit(`/projects/${project.id}/ai_check`)
   }
 
   function submitDevlog(e: React.FormEvent) {
@@ -1505,7 +1505,7 @@ export default function ProjectsShow({
                     onClick={proceedWithSubmission}
                     className="flex-1 signature-smolder text-[#4c1a00] font-headline font-bold py-2 uppercase tracking-wider text-sm active:scale-95 transition-transform"
                   >
-                    Submit Anyway
+                    Continue to AI Check
                   </button>
                 </div>
               </div>
