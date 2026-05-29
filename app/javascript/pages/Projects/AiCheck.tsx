@@ -216,7 +216,7 @@ function ProjectsAiCheck({
           >
             auto_awesome
           </span>
-          <h1 className="text-4xl font-headline font-bold text-[#e5e2e1] tracking-tight">AI Pre-Submission Check</h1>
+          <h1 className="text-4xl font-headline font-bold text-[#e5e2e1] tracking-tight">Pre Submission Check</h1>
         </div>
         <p className="text-stone-400 text-sm leading-relaxed mb-8 max-w-2xl">
           Before a human reviewer takes a look, Orph will run your project through the Forge requirements. Most rejections
