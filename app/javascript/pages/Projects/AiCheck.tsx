@@ -10,12 +10,16 @@ interface AiCheckRequirement {
 }
 
 interface AiCheckResult {
-  summary: string
-  overall: 'pass' | 'fail' | 'uncertain'
-  requirements: AiCheckRequirement[]
-  checked_at: string
-  model: string
+  status?: 'queued' | 'running' | 'done' | 'error'
+  summary?: string
+  overall?: 'pass' | 'fail' | 'uncertain'
+  requirements?: AiCheckRequirement[]
+  checked_at?: string
+  model?: string
   provider?: string
+  message?: string
+  started_at?: string
+  queued_at?: string
 }
 
 interface AiCheckProject {
@@ -73,17 +77,58 @@ function ProjectsAiCheck({
   result: AiCheckResult | null
   ran_at: string | null
 }) {
+  const isInProgress = (r: AiCheckResult | null) => r?.status === 'queued' || r?.status === 'running'
+
   const [result, setResult] = useState<AiCheckResult | null>(initialResult)
   const [ranAt, setRanAt] = useState<string | null>(initialRanAt)
-  const [running, setRunning] = useState(false)
+  const [running, setRunning] = useState(isInProgress(initialResult))
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const startedRef = useRef(false)
+  const pollRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const stopPolling = useCallback(() => {
+    if (pollRef.current) {
+      clearTimeout(pollRef.current)
+      pollRef.current = null
+    }
+  }, [])
+
+  const pollStatus = useCallback(async () => {
+    try {
+      const res = await fetch(`/projects/${project.id}/ai_check_status`, {
+        credentials: 'same-origin',
+        headers: { Accept: 'application/json' },
+      })
+      if (!res.ok) {
+        pollRef.current = setTimeout(pollStatus, 2000)
+        return
+      }
+      const data = await res.json()
+      const next: AiCheckResult | null = data.result ?? null
+      setResult(next)
+      setRanAt(data.ran_at ?? null)
+      if (next?.status === 'error') {
+        setError(next.message || 'AI check failed.')
+        setRunning(false)
+        return
+      }
+      if (isInProgress(next)) {
+        setRunning(true)
+        pollRef.current = setTimeout(pollStatus, 2000)
+      } else {
+        setRunning(false)
+      }
+    } catch {
+      pollRef.current = setTimeout(pollStatus, 3000)
+    }
+  }, [project.id])
 
   const runCheck = useCallback(async () => {
+    stopPolling()
     setRunning(true)
     setError(null)
-    setResult(null)
+    setResult({ status: 'queued' })
     setRanAt(null)
     try {
       const csrf = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? ''
@@ -92,25 +137,31 @@ function ProjectsAiCheck({
         headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrf, Accept: 'application/json' },
         credentials: 'same-origin',
       })
-      const data = await res.json().catch(() => ({}))
       if (!res.ok) {
-        setError(data.error || 'AI check failed. Try again in a moment.')
-      } else {
-        setResult(data.result)
-        setRanAt(data.ran_at)
+        const data = await res.json().catch(() => ({}))
+        setError(data.error || 'Failed to start the AI check. Try again in a moment.')
+        setRunning(false)
+        return
       }
+      pollRef.current = setTimeout(pollStatus, 1500)
     } catch {
       setError('Network error. Try again in a moment.')
-    } finally {
       setRunning(false)
     }
-  }, [project.id])
+  }, [project.id, pollStatus, stopPolling])
 
   useEffect(() => {
     if (startedRef.current) return
     startedRef.current = true
-    if (!initialResult) runCheck()
-  }, [initialResult, runCheck])
+    if (!initialResult || isInProgress(initialResult)) {
+      if (isInProgress(initialResult)) {
+        pollRef.current = setTimeout(pollStatus, 1500)
+      } else {
+        runCheck()
+      }
+    }
+    return stopPolling
+  }, [initialResult, runCheck, pollStatus, stopPolling])
 
   const counts = useMemo(() => {
     const reqs = result?.requirements ?? []
@@ -204,17 +255,19 @@ function ProjectsAiCheck({
           </div>
         )}
 
-        {running && !result && (
+        {running && result?.status !== 'done' && (
           <div className="bg-[#1c1b1b] ghost-border p-10 text-center mb-5">
             <span className="material-symbols-outlined text-4xl text-[#ca5924] animate-spin block mb-3">
               progress_activity
             </span>
-            <p className="text-[#e5e2e1] font-headline font-bold text-lg mb-1">Scanning your project…</p>
-            <p className="text-stone-500 text-xs">This can take up to a minute.</p>
+            <p className="text-[#e5e2e1] font-headline font-bold text-lg mb-1">
+              {result?.status === 'running' ? 'Scanning your project…' : 'Queued — starting in a moment…'}
+            </p>
+            <p className="text-stone-500 text-xs">This usually takes 30-60 seconds.</p>
           </div>
         )}
 
-        {result && (
+        {result?.status === 'done' && result.overall && (
           <>
             <div className="bg-[#1c1b1b] ghost-border p-6 mb-5">
               <div className="flex items-center gap-3 mb-4 flex-wrap">
@@ -247,9 +300,9 @@ function ProjectsAiCheck({
               )}
             </div>
 
-            {result.requirements.length > 0 && (
+            {(result.requirements ?? []).length > 0 && (
               <div className="space-y-2 mb-5">
-                {result.requirements.map((req, idx) => {
+                {(result.requirements ?? []).map((req, idx) => {
                   const cfg = VERDICT_CONFIG[req.verdict]
                   return (
                     <div key={idx} className={`bg-[#1c1b1b] border ${cfg.border} p-4`}>
