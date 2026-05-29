@@ -1,6 +1,6 @@
 class ProjectsController < ApplicationController
   allow_unauthenticated_access only: %i[show]
-  before_action :set_project, only: %i[show edit update destroy submit_for_review sync_journal set_devlog_mode link_repo set_journal_branch resubmit_pitch upload_cover_image export_devlogs add_kudo destroy_kudo]
+  before_action :set_project, only: %i[show edit update destroy submit_for_review ai_check run_ai_check sync_journal set_devlog_mode link_repo set_journal_branch resubmit_pitch upload_cover_image export_devlogs add_kudo destroy_kudo]
 
   def show
     authorize @project
@@ -345,6 +345,36 @@ class ProjectsController < ApplicationController
     @project.cover_image.attach(file)
     @project.update!(cover_image_url: nil)
     redirect_to @project, notice: "Cover image uploaded. Processing..."
+  end
+
+  def ai_check
+    authorize @project, :submit_for_review?
+
+    render inertia: "Projects/AiCheck", props: {
+      project: {
+        id: @project.id,
+        name: @project.name,
+        subtitle: @project.subtitle,
+        cover_image_url: @project.cover_image_url
+      },
+      result: @project.ai_check_result,
+      ran_at: @project.ai_check_ran_at&.iso8601
+    }
+  end
+
+  def run_ai_check
+    authorize @project, :submit_for_review?
+
+    FetchReadmeJob.perform_now(@project.id) if @project.repo_link.present?
+    @project.reload
+
+    result = AiRequirementsChecker.run(@project)
+    @project.update!(ai_check_result: result, ai_check_ran_at: Time.current)
+    audit!("project.ai_check_run", target: @project, metadata: { overall: result["overall"], requirements_count: result["requirements"].size, provider: result["provider"], via: "owner" })
+
+    render json: { result: result, ran_at: @project.ai_check_ran_at.iso8601 }
+  rescue AiRequirementsChecker::Error => e
+    render json: { error: e.message }, status: :service_unavailable
   end
 
   private
