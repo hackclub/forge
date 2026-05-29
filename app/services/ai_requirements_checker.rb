@@ -33,7 +33,13 @@ module AiRequirementsChecker
 
     config = base.merge(model: ENV.fetch("AI_REQUIREMENTS_MODEL", base[:model]))
 
-    response = post_chat(build_prompt(project), config)
+    response = begin
+      post_chat(build_prompt(project), config)
+    rescue Net::ReadTimeout, Net::OpenTimeout
+      raise Error, "#{config[:label]} timed out — the model took too long to respond. Try again."
+    rescue SocketError, Errno::ECONNREFUSED, Errno::ECONNRESET, OpenSSL::SSL::SSLError => e
+      raise Error, "#{config[:label]} network error: #{e.class.name.split('::').last}"
+    end
     unless response.is_a?(Net::HTTPSuccess)
       detail = extract_upstream_error(response.body).to_s.truncate(200)
       raise Error, "#{config[:label]} request failed (#{response.code})#{detail.present? ? ": #{detail}" : ''}"
@@ -119,7 +125,8 @@ module AiRequirementsChecker
     uri = URI(config[:endpoint])
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = true
-    http.read_timeout = 90
+    http.open_timeout = 10
+    http.read_timeout = ENV.fetch("AI_REQUIREMENTS_TIMEOUT", "180").to_i
 
     req = Net::HTTP::Post.new(uri)
     req["Content-Type"] = "application/json"
