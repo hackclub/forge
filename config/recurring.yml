@@ -29,6 +29,11 @@ production:
     queue: background
     schedule: every 15 minutes
 
+  sync_all_journals:
+    class: SyncAllJournalsJob
+    queue: background
+    schedule: every hour at minute 30
+
   streak_freeze_check:
     class: StreakFreezeCheckJob
     queue: background
