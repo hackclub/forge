@@ -103,6 +103,7 @@ Forge is a Hack Club program where teen builders (ages 13-18) get funded for har
 - `SLACK_SUPPORT_CHANNEL_ID` — Channel ID for support questions
 - `SLACK_BTS_CHANNEL_ID` — Channel ID for behind-the-scenes support staff
 - `SLACK_FULFILLMENT_CHANNEL_ID` — Channel ID for the rolling fulfillment-orders queue
+- `SLACK_REELS_CHANNEL_ID` — Channel ID where the Forge Keeper announces new reels
 - `APP_URL` — Base URL for links in Slack messages (defaults to `https://forge.hackclub.com`)
 
 ### Deployment

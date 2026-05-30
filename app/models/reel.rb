@@ -53,6 +53,12 @@ class Reel < ApplicationRecord
   validates :duration_seconds, numericality: { greater_than: 0, less_than_or_equal_to: MAX_DURATION_SECONDS }, allow_nil: true
   validates :title, length: { maximum: 200 }
 
+  after_create_commit :notify_slack
+
+  def notify_slack
+    SlackReelNotifyJob.perform_later(id)
+  end
+
   FEED_CANDIDATE_WINDOW = 60.days
   FEED_SEEN_WINDOW = 7.days
   FEED_MAX_PER_CREATOR = 2
