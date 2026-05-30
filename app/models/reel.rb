@@ -59,7 +59,7 @@ class Reel < ApplicationRecord
     SlackReelNotifyJob.perform_later(id)
   end
 
-  FEED_CANDIDATE_WINDOW = 60.days
+  FEED_CANDIDATE_WINDOW = 14.days
   FEED_SEEN_WINDOW = 7.days
   FEED_MAX_PER_CREATOR = 2
 
@@ -106,9 +106,9 @@ class Reel < ApplicationRecord
                  (Math.log10(kudos_count + 1) * 3) +
                  (Math.log10(comments_count + 1) * 2)
 
-    recency = 1.0 / (1.0 + (age_hours / 48.0))
+    recency = 1.0 / (1.0 + ((age_hours / 24.0)**1.5))
 
-    1.0 + (engagement * (0.5 + (recency * 2.0)))
+    (1.0 + engagement) * recency
   end
 
   def kudoed_by?(user)
