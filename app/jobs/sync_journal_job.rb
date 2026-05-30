@@ -82,7 +82,12 @@ class SyncJournalJob < ApplicationJob
   def fetch_github_file(owner, repo, path, branch)
     uri = URI("https://api.github.com/repos/#{owner}/#{repo}/contents/#{path}")
     uri.query = URI.encode_www_form(ref: branch) if branch.present?
-    response = Net::HTTP.get_response(uri)
+    req = Net::HTTP::Get.new(uri)
+    token = ENV["GITHUB_TOKEN"].to_s
+    req["Authorization"] = "Bearer #{token}" if token.present?
+    http = Net::HTTP.new(uri.host, uri.port)
+    http.use_ssl = true
+    response = http.request(req)
     return nil unless response.is_a?(Net::HTTPSuccess)
 
     data = JSON.parse(response.body)
