@@ -117,8 +117,8 @@ export default function HomeIndex({ user, orph_motivation, projects, news_posts,
               {orphReached ? 'The forge did it — Orph is grinning again!' : 'Help cheer Orph back up'}
             </h2>
             <p className="text-stone-400 text-sm mb-4">
-              Orph was tinkering away in his workshop when his project crashed and shattered to pieces. Orph got very
-              very sad. As a community our goal is to build 100 projects together and cheer him up and show him that he
+              Orph was tinkering away in her workshop when her project crashed and shattered to pieces. Orph got very
+              very sad. As a community our goal is to build 100 projects together and cheer her up and show her that she
               can make cool stuff too!
             </p>
             <div className="h-3 bg-[#0e0e0e] ghost-border overflow-hidden">
