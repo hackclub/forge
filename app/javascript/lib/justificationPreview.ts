@@ -1,4 +1,4 @@
-const TEMPLATE = `This is the first design ship of {ship_name} for Forge. Submitted {submittion_time}
+const TEMPLATE = `This is the first {ship_type} ship of {ship_name} for Forge. Submitted {submittion_time}
 
 Time was logged journaling and committing through GitHub, This design may also include time lapsing if given by the user
 
@@ -20,6 +20,7 @@ For any questions, please reach out to aarav@hackclub.com.
 `
 
 export interface JustificationContext {
+  ship_type: string
   ship_name: string
   submittion_time: string
   project_approval_time: string
@@ -35,7 +36,8 @@ export function buildJustification(ctx: JustificationContext): string {
   const deflation = Math.max(0, (ctx.claimed_hours - ctx.approved_hours)).toFixed(1)
   const reasoning = ctx.review_justification.trim() || '(no justification provided)'
   const emailPart = ctx.reviewer_email ? ` (${ctx.reviewer_email})` : ''
-  return TEMPLATE.replace('{ship_name}', ctx.ship_name)
+  return TEMPLATE.replace('{ship_type}', ctx.ship_type)
+    .replace('{ship_name}', ctx.ship_name)
     .replace('{submittion_time}', ctx.submittion_time)
     .replace('{project_approval_time}', ctx.project_approval_time)
     .replace('{reviewer_name}', ctx.reviewer_name)

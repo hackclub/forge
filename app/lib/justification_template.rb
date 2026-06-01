@@ -5,7 +5,7 @@ class JustificationTemplate
   }.freeze
 
   TEMPLATE = <<~TEMPLATE.freeze
-    This is the %{iteration} design ship of %{ship_name} for Forge. Submitted %{submittion_time}
+    This is the %{iteration} %{ship_type} ship of %{ship_name} for Forge. Submitted %{submittion_time}
 
     Time was logged journaling and committing through GitHub, This design may also include time lapsing if given by the user
 
@@ -33,6 +33,7 @@ class JustificationTemplate
 
     render_text(
       iteration: iteration,
+      ship_type: ship_type_for(project),
       ship_name: project.name,
       submittion_time: ship.created_at.strftime("%B %-d, %Y at %H:%M UTC"),
       project_approval_time: project.reviewed_at&.strftime("%B %-d, %Y at %H:%M UTC") || "pending",
@@ -48,6 +49,7 @@ class JustificationTemplate
   def self.render_for_project(project:, reviewer:, claimed_hours:, approved_hours:, review_justification:)
     render_text(
       iteration: "first",
+      ship_type: ship_type_for(project),
       ship_name: project.name,
       submittion_time: project.created_at.strftime("%B %-d, %Y at %H:%M UTC"),
       project_approval_time: project.reviewed_at&.strftime("%B %-d, %Y at %H:%M UTC") || Time.current.strftime("%B %-d, %Y at %H:%M UTC"),
@@ -60,13 +62,14 @@ class JustificationTemplate
     )
   end
 
-  def self.render_text(iteration:, ship_name:, submittion_time:, project_approval_time:, reviewer_name:, reviewer_email:, claimed_hours:, approved_hours:, review_justification:, forge_admin_link:)
+  def self.render_text(iteration:, ship_type:, ship_name:, submittion_time:, project_approval_time:, reviewer_name:, reviewer_email:, claimed_hours:, approved_hours:, review_justification:, forge_admin_link:)
     deflation = (claimed_hours.to_f - approved_hours.to_f).round(1)
     deflation = 0 if deflation.negative?
 
     format(
       TEMPLATE,
       iteration: iteration,
+      ship_type: ship_type,
       ship_name: ship_name,
       submittion_time: submittion_time,
       project_approval_time: project_approval_time,
@@ -76,6 +79,10 @@ class JustificationTemplate
       review_justification: review_justification.to_s.strip.presence || "(no justification provided)",
       forge_admin_link: forge_admin_link
     )
+  end
+
+  def self.ship_type_for(project)
+    project.build_review? ? "build" : "design"
   end
 
   def self.admin_ship_url(ship)
