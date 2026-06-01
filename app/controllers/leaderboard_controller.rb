@@ -41,7 +41,7 @@ class LeaderboardController < ApplicationController
 
   def compute_hours_totals
     totals = Hash.new(0.0)
-    Project.kept.where(hidden: false).includes(:devlogs).find_each do |project|
+    Project.kept.where(hidden: false).not_shadow_banned.includes(:devlogs).find_each do |project|
       totals[project.user_id] += project.devlog_hours
     end
     totals

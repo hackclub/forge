@@ -16,6 +16,7 @@
 #  discarded_at                 :datetime
 #  green_flags                  :string           default([]), is an Array
 #  hidden                       :boolean          default(FALSE), not null
+#  journal_branch               :string
 #  kudos_count                  :integer          default(0), not null
 #  name                         :string           not null
 #  override_hours               :decimal(, )
@@ -27,9 +28,12 @@
 #  repo_link                    :string
 #  review_feedback              :text
 #  reviewed_at                  :datetime
+#  shadow_banned                :boolean          default(FALSE), not null
 #  slack_message_ts             :string
 #  staff_pick_at                :datetime
 #  status                       :integer          default("draft"), not null
+#  streak_at_approval           :integer
+#  submitted_at                 :datetime
 #  subtitle                     :string
 #  tags                         :string           default([]), not null, is an Array
 #  tier                         :string           default("tier_4"), not null
@@ -47,6 +51,7 @@
 #  index_projects_on_linked_project_id_for_build_reviews  (linked_project_id) UNIQUE WHERE (build_review = true)
 #  index_projects_on_staff_pick_at                        (staff_pick_at)
 #  index_projects_on_status                               (status)
+#  index_projects_on_submitted_at                         (submitted_at)
 #  index_projects_on_tags                                 (tags) USING gin
 #  index_projects_on_user_id                              (user_id)
 #

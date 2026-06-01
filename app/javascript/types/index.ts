@@ -241,6 +241,7 @@ export interface AdminProjectDetail {
   devlogs: AdminDevlog[]
   notes: ProjectNote[]
   hidden: boolean
+  shadow_banned: boolean
   staff_pick: boolean
   built_at: string | null
   build_proof_url: string | null
