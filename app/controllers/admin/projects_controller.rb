@@ -1,6 +1,6 @@
 class Admin::ProjectsController < Admin::ApplicationController
   before_action :require_projects_permission!
-  before_action :set_project, only: [ :show, :review, :destroy, :restore, :toggle_hidden, :toggle_staff_pick, :change_tier, :add_note, :destroy_note, :mark_unbuilt, :reverse_review, :ai_requirements_check, :send_checkpoint_message, :send_dm_message ]
+  before_action :set_project, only: [ :show, :review, :destroy, :restore, :toggle_hidden, :toggle_shadow_ban, :toggle_staff_pick, :change_tier, :add_note, :destroy_note, :mark_unbuilt, :reverse_review, :ai_requirements_check, :send_checkpoint_message, :send_dm_message ]
 
   def index
     scope = policy_scope(Project).includes(:user, :ships)
@@ -87,6 +87,14 @@ class Admin::ProjectsController < Admin::ApplicationController
     audit!("project.visibility_toggled", target: @project, metadata: { hidden: @project.hidden })
     status = @project.hidden? ? "hidden" : "visible"
     redirect_to admin_project_path(@project), notice: "Project is now #{status} on explore."
+  end
+
+  def toggle_shadow_ban
+    authorize @project, :update?
+    @project.update!(shadow_banned: !@project.shadow_banned)
+    audit!("project.shadow_ban_toggled", target: @project, metadata: { shadow_banned: @project.shadow_banned })
+    status = @project.shadow_banned? ? "shadow-banned" : "no longer shadow-banned"
+    redirect_to admin_project_path(@project), notice: "Project is #{status}; hours hidden from metrics and leaderboard."
   end
 
   def toggle_staff_pick
@@ -610,6 +618,7 @@ class Admin::ProjectsController < Admin::ApplicationController
       devlog_hours: project.devlog_hours,
       devlogs: project.devlogs.order(id: :desc).map { |d| serialize_devlog(d) },
       hidden: project.hidden,
+      shadow_banned: project.shadow_banned,
       staff_pick: project.staff_pick?,
       built_at: project.built_at&.strftime("%b %d, %Y"),
       build_proof_url: project.build_proof_url,

@@ -21,6 +21,8 @@ class Admin::MetricsController < Admin::ApplicationController
 
     hours_by_day = Devlog
       .unscope(:order)
+      .joins(:project)
+      .where(projects: { shadow_banned: false })
       .where(created_at: start_date.beginning_of_day..today.end_of_day)
       .group(Arel.sql("DATE(created_at)"))
       .sum(:time_hours)
@@ -59,7 +61,7 @@ class Admin::MetricsController < Admin::ApplicationController
     avg_payout_per_day = (payouts_total / days).round(2)
     avg_positive_per_day = (payouts_positive / days).round(2)
 
-    approved_projects = Project.kept.approved
+    approved_projects = Project.kept.approved.not_shadow_banned
     tier_breakdown = Project::TIERS.map do |tier|
       scoped = approved_projects.where(tier: tier)
       projects_count = scoped.count

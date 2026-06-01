@@ -250,6 +250,7 @@ Rails.application.routes.draw do
           post :review
           post :restore
           post :toggle_hidden
+          post :toggle_shadow_ban
           post :toggle_staff_pick
           post :change_tier
           post :add_note

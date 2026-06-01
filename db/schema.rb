@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_28_010000) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_01_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -278,6 +278,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_28_010000) do
     t.text "review_feedback"
     t.datetime "reviewed_at"
     t.bigint "reviewer_id"
+    t.boolean "shadow_banned", default: false, null: false
     t.string "slack_channel_id"
     t.string "slack_message_ts"
     t.datetime "staff_pick_at"
