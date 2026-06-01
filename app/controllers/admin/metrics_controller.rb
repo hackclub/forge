@@ -23,8 +23,8 @@ class Admin::MetricsController < Admin::ApplicationController
       .unscope(:order)
       .joins(:project)
       .where(projects: { shadow_banned: false })
-      .where(created_at: start_date.beginning_of_day..today.end_of_day)
-      .group(Arel.sql("DATE(created_at)"))
+      .where(devlogs: { created_at: start_date.beginning_of_day..today.end_of_day })
+      .group(Arel.sql("DATE(devlogs.created_at)"))
       .sum(:time_hours)
       .transform_keys { |k| k.is_a?(String) ? Date.parse(k) : k }
 
