@@ -473,6 +473,7 @@ export default function AdminReviewsShow({
   const justificationPreview = useMemo(
     () =>
       buildJustification({
+        ship_type: project.build_review ? 'build' : 'design',
         ship_name: project.name,
         submittion_time: formatJustificationDate(project.created_at_iso),
         project_approval_time: formatJustificationDate(new Date().toISOString()),
