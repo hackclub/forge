@@ -110,3 +110,7 @@ The streak system increases your payout according to your streak.
 |30+ days|1.15x|
 |60+ days|1.20x|
 |100+ days|1.25x|
+
+Is hackatime or lapse url necessary for coding time?
+
+Hackatime or lapse is necessary for coding time more than 1 hour. If not included time will be deflated accordingly.
