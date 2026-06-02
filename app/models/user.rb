@@ -18,6 +18,7 @@
 #  git_instance_url    :string
 #  git_provider        :string           default("github")
 #  github_username     :string
+#  hackatime_banned_at :datetime
 #  hca_token           :text
 #  is_adult            :boolean          default(FALSE), not null
 #  is_banned           :boolean          default(FALSE), not null
@@ -44,9 +45,10 @@
 #
 # Indexes
 #
-#  index_users_on_discarded_at   (discarded_at)
-#  index_users_on_last_seen_at   (last_seen_at)
-#  index_users_on_referral_code  (referral_code) UNIQUE
+#  index_users_on_discarded_at         (discarded_at)
+#  index_users_on_hackatime_banned_at  (hackatime_banned_at)
+#  index_users_on_last_seen_at         (last_seen_at)
+#  index_users_on_referral_code        (referral_code) UNIQUE
 #
 class User < ApplicationRecord
   include Discardable
@@ -61,7 +63,7 @@ class User < ApplicationRecord
     Rails.cache.delete("user/#{id}")
   end
 
-  pg_search_scope :search, against: [ :display_name, :email ], using: { tsearch: { prefix: true } }
+  pg_search_scope :search, against: [ :display_name, :email, :slack_id ], using: { tsearch: { prefix: true } }
 
   has_many :ahoy_visits, class_name: "Ahoy::Visit", dependent: :nullify
   has_many :ahoy_events, class_name: "Ahoy::Event", dependent: :nullify
@@ -79,6 +81,7 @@ class User < ApplicationRecord
   has_many :referrals_made, class_name: "Referral", foreign_key: :referrer_id, dependent: :destroy, inverse_of: :referrer
   has_one :referral_received, class_name: "Referral", foreign_key: :referred_id, dependent: :destroy, inverse_of: :referred
   has_many :activity_days, class_name: "UserActivityDay", dependent: :destroy
+  has_many :login_days, class_name: "UserLoginDay", dependent: :destroy
   has_many :badges, dependent: :destroy
   has_many :awarded_badges, class_name: "Badge", foreign_key: :awarder_id, dependent: :nullify, inverse_of: :awarder
   has_many :reels, dependent: :destroy
@@ -110,19 +113,21 @@ class User < ApplicationRecord
   end
 
   def apply_streak_freezes!(today = today_in_zone)
-    return if streak_freezes.to_i <= 0
+    freezes = streak_freezes.to_i
+    return if freezes <= 0
 
     last = activity_days.where("active_on < ?", today).maximum(:active_on)
     return if last.nil?
 
     gap = (today - last).to_i - 1
-    return if gap <= 0 || gap > streak_freezes
+    return if gap <= 0
 
+    to_fill = [ gap, freezes ].min
     transaction do
-      gap.times do |offset|
+      to_fill.times do |offset|
         activity_days.find_or_create_by!(active_on: today - (offset + 1))
       end
-      decrement!(:streak_freezes, gap)
+      decrement!(:streak_freezes, to_fill)
     end
   end
 

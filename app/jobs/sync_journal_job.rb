@@ -8,7 +8,9 @@ class SyncJournalJob < ApplicationJob
     parsed = parse_repo_url(project.repo_link)
     return unless parsed
 
-    journal_content = fetch_journal(parsed)
+    branch = project.journal_branch.presence
+
+    journal_content = fetch_journal(parsed, branch)
     return unless journal_content.present?
 
     entries = parse_journal_entries(journal_content)
@@ -19,7 +21,8 @@ class SyncJournalJob < ApplicationJob
 
     return if entries.empty?
 
-    raw_base = build_raw_base(parsed)
+    raw_base = build_raw_base(parsed, branch)
+    dates_to_credit = []
 
     entries.each do |entry|
       existing = Devlog.where(project_id: project.id, title: entry[:title]).exists?
@@ -37,9 +40,16 @@ class SyncJournalJob < ApplicationJob
       )
       if devlog.save
         Rails.logger.info("SyncJournal: created devlog '#{entry[:title]}' with time_spent=#{entry[:time_spent]}, time_hours=#{devlog.time_hours}")
+        if (entry_date = extract_entry_date(entry))
+          dates_to_credit << entry_date
+        end
       else
         Rails.logger.error("SyncJournal: failed to create devlog '#{entry[:title]}': #{devlog.errors.full_messages}")
       end
+    end
+
+    dates_to_credit.uniq.sort.each do |date|
+      project.user.record_activity!(date)
     end
   end
 
@@ -58,20 +68,26 @@ class SyncJournalJob < ApplicationJob
     nil
   end
 
-  def fetch_journal(parsed)
+  def fetch_journal(parsed, branch)
     case parsed[:host]
     when "github"
-      fetch_github_file(parsed[:owner], parsed[:repo], "JOURNAL.md")
+      fetch_github_file(parsed[:owner], parsed[:repo], "JOURNAL.md", branch)
     when "gitlab"
-      fetch_gitlab_file(parsed[:owner], parsed[:repo], "JOURNAL.md")
+      fetch_gitlab_file(parsed[:owner], parsed[:repo], "JOURNAL.md", branch)
     when "codeberg"
-      fetch_codeberg_file(parsed[:owner], parsed[:repo], "JOURNAL.md")
+      fetch_codeberg_file(parsed[:owner], parsed[:repo], "JOURNAL.md", branch)
     end
   end
 
-  def fetch_github_file(owner, repo, path)
+  def fetch_github_file(owner, repo, path, branch)
     uri = URI("https://api.github.com/repos/#{owner}/#{repo}/contents/#{path}")
-    response = Net::HTTP.get_response(uri)
+    uri.query = URI.encode_www_form(ref: branch) if branch.present?
+    req = Net::HTTP::Get.new(uri)
+    token = ENV["GITHUB_TOKEN"].to_s
+    req["Authorization"] = "Bearer #{token}" if token.present?
+    http = Net::HTTP.new(uri.host, uri.port)
+    http.use_ssl = true
+    response = http.request(req)
     return nil unless response.is_a?(Net::HTTPSuccess)
 
     data = JSON.parse(response.body)
@@ -83,9 +99,10 @@ class SyncJournalJob < ApplicationJob
     nil
   end
 
-  def fetch_gitlab_file(owner, repo, path)
+  def fetch_gitlab_file(owner, repo, path, branch)
     project_id = URI.encode_www_form_component("#{owner}/#{repo}")
-    uri = URI("https://gitlab.com/api/v4/projects/#{project_id}/repository/files/#{URI.encode_www_form_component(path)}/raw?ref=main")
+    ref = branch.presence || "main"
+    uri = URI("https://gitlab.com/api/v4/projects/#{project_id}/repository/files/#{URI.encode_www_form_component(path)}/raw?ref=#{URI.encode_www_form_component(ref)}")
     response = Net::HTTP.get_response(uri)
     return response.body.force_encoding("UTF-8") if response.is_a?(Net::HTTPSuccess)
 
@@ -95,8 +112,9 @@ class SyncJournalJob < ApplicationJob
     nil
   end
 
-  def fetch_codeberg_file(owner, repo, path)
+  def fetch_codeberg_file(owner, repo, path, branch)
     uri = URI("https://codeberg.org/api/v1/repos/#{owner}/#{repo}/contents/#{path}")
+    uri.query = URI.encode_www_form(ref: branch) if branch.present?
     response = Net::HTTP.get_response(uri)
     return nil unless response.is_a?(Net::HTTPSuccess)
 
@@ -109,14 +127,15 @@ class SyncJournalJob < ApplicationJob
     nil
   end
 
-  def build_raw_base(parsed)
+  def build_raw_base(parsed, branch)
+    ref = branch.presence || "main"
     case parsed[:host]
     when "github"
-      "https://raw.githubusercontent.com/#{parsed[:owner]}/#{parsed[:repo]}/main/"
+      "https://raw.githubusercontent.com/#{parsed[:owner]}/#{parsed[:repo]}/#{ref}/"
     when "gitlab"
-      "https://gitlab.com/#{parsed[:owner]}/#{parsed[:repo]}/-/raw/main/"
+      "https://gitlab.com/#{parsed[:owner]}/#{parsed[:repo]}/-/raw/#{ref}/"
     when "codeberg"
-      "https://codeberg.org/#{parsed[:owner]}/#{parsed[:repo]}/raw/branch/main/"
+      "https://codeberg.org/#{parsed[:owner]}/#{parsed[:repo]}/raw/branch/#{ref}/"
     else
       ""
     end
@@ -134,6 +153,41 @@ class SyncJournalJob < ApplicationJob
       path = $2
       "![#{alt}](#{raw_base}#{path})"
     end
+  end
+
+  MONTH_NAMES = (Date::MONTHNAMES.compact + Date::ABBR_MONTHNAMES.compact).map(&:downcase).uniq.freeze
+  MONTH_PATTERN = Regexp.new("\\b(#{MONTH_NAMES.join('|')})\\b", Regexp::IGNORECASE).freeze
+  ISO_DATE_PATTERN = /\b(\d{4})-(\d{1,2})-(\d{1,2})\b/.freeze
+
+  def extract_entry_date(entry)
+    source = "#{entry[:title]} #{entry[:content]}"
+
+    if (m = source.match(ISO_DATE_PATTERN))
+      return build_safe_date(m[1].to_i, m[2].to_i, m[3].to_i)
+    end
+
+    if (m = source.match(/#{MONTH_PATTERN}\.?\s+(\d{1,2})(?:[\s,]+(\d{4}))?/))
+      month_name = m[1].downcase
+      month = Date::MONTHNAMES.index { |n| n&.downcase == month_name } ||
+              Date::ABBR_MONTHNAMES.index { |n| n&.downcase == month_name }
+      return nil unless month
+
+      day = m[2].to_i
+      year = m[3]&.to_i || Date.current.year
+      return build_safe_date(year, month, day)
+    end
+
+    nil
+  end
+
+  def build_safe_date(year, month, day)
+    date = Date.new(year, month, day)
+    return nil if date > Date.current + 1
+    return nil if date < 2.years.ago.to_date
+
+    date
+  rescue Date::Error, ArgumentError
+    nil
   end
 
   HEADER_PATTERN = /^(\#{1,3})\s+(.+)$/

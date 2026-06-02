@@ -53,8 +53,15 @@ class Reel < ApplicationRecord
   validates :duration_seconds, numericality: { greater_than: 0, less_than_or_equal_to: MAX_DURATION_SECONDS }, allow_nil: true
   validates :title, length: { maximum: 200 }
 
-  FEED_POOL_SIZE = 200
+  after_create_commit :notify_slack
+
+  def notify_slack
+    SlackReelNotifyJob.perform_later(id)
+  end
+
+  FEED_CANDIDATE_WINDOW = 14.days
   FEED_SEEN_WINDOW = 7.days
+  FEED_MAX_PER_CREATOR = 2
 
   scope :recent, -> { order(created_at: :desc) }
 
@@ -65,31 +72,43 @@ class Reel < ApplicationRecord
   }
 
   def self.fair_feed_for(user, limit: 50)
-    base = all
-    candidates = base.merge(unseen_by(user)).recent.limit(FEED_POOL_SIZE).to_a
+    base = where("created_at > ?", FEED_CANDIDATE_WINDOW.ago)
+    candidates = base.merge(unseen_by(user)).to_a
+
     if candidates.size < limit
-      filler = base.where.not(id: candidates.map(&:id)).recent.limit(FEED_POOL_SIZE - candidates.size).to_a
+      filler = base.where.not(id: candidates.map(&:id)).order(Arel.sql("RANDOM()")).limit(limit * 3).to_a
       candidates.concat(filler)
     end
-    weighted_sample(candidates, limit)
+
+    picks = weighted_sample(candidates, [ candidates.size, limit * 3 ].min)
+    cap_per_creator(picks, FEED_MAX_PER_CREATOR).first(limit)
   end
 
   def self.weighted_sample(pool, limit)
     pool.sort_by { |r|
-      w = [ r.feed_score, 0.0001 ].max
+      w = [ r.feed_score, 0.1 ].max
       -(rand ** (1.0 / w))
     }.first(limit)
   end
 
+  def self.cap_per_creator(reels, cap)
+    counts = Hash.new(0)
+    reels.select do |r|
+      counts[r.user_id] += 1
+      counts[r.user_id] <= cap
+    end
+  end
+
   def feed_score
     age_hours = [ (Time.current - created_at) / 1.hour, 0.1 ].max
-    engagement = views_count + (kudos_count * 10) + (comments_count * 5)
-    engagement_rate = engagement / age_hours
 
-    # New reels (< 24h) get up to 5x boost, decaying to 1x
-    freshness = age_hours < 24 ? (5.0 - (4.0 * age_hours / 24)) : 1.0
+    engagement = Math.log10(views_count + 1) +
+                 (Math.log10(kudos_count + 1) * 3) +
+                 (Math.log10(comments_count + 1) * 2)
 
-    engagement_rate * freshness
+    recency = 1.0 / (1.0 + ((age_hours / 24.0)**1.5))
+
+    (1.0 + engagement) * recency
   end
 
   def kudoed_by?(user)

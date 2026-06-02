@@ -16,6 +16,7 @@
 #  discarded_at                 :datetime
 #  green_flags                  :string           default([]), is an Array
 #  hidden                       :boolean          default(FALSE), not null
+#  journal_branch               :string
 #  kudos_count                  :integer          default(0), not null
 #  name                         :string           not null
 #  override_hours               :decimal(, )
@@ -27,9 +28,12 @@
 #  repo_link                    :string
 #  review_feedback              :text
 #  reviewed_at                  :datetime
+#  shadow_banned                :boolean          default(FALSE), not null
 #  slack_message_ts             :string
 #  staff_pick_at                :datetime
 #  status                       :integer          default("draft"), not null
+#  streak_at_approval           :integer
+#  submitted_at                 :datetime
 #  subtitle                     :string
 #  tags                         :string           default([]), not null, is an Array
 #  tier                         :string           default("tier_4"), not null
@@ -47,6 +51,7 @@
 #  index_projects_on_linked_project_id_for_build_reviews  (linked_project_id) UNIQUE WHERE (build_review = true)
 #  index_projects_on_staff_pick_at                        (staff_pick_at)
 #  index_projects_on_status                               (status)
+#  index_projects_on_submitted_at                         (submitted_at)
 #  index_projects_on_tags                                 (tags) USING gin
 #  index_projects_on_user_id                              (user_id)
 #
@@ -104,6 +109,9 @@ class Project < ApplicationRecord
   scope :reviewable, -> { where(status: :pending) }
   scope :staff_picks, -> { where.not(staff_pick_at: nil).order(staff_pick_at: :desc) }
   scope :build_reviews, -> { where(build_review: true) }
+  # Shadow-banned projects stay fully visible everywhere, but their hours are
+  # excluded from the public leaderboard and admin metrics aggregates.
+  scope :not_shadow_banned, -> { where(shadow_banned: false) }
 
   def self.fair_feed
     all.sort_by { |p| -p.feed_score }
@@ -137,7 +145,7 @@ class Project < ApplicationRecord
   end
 
   def submit_for_review!
-    update!(status: :pending)
+    update!(status: :pending, submitted_at: Time.current)
   end
 
   def reviewable?
@@ -169,7 +177,8 @@ class Project < ApplicationRecord
   def coins_earned
     return 0.0 unless approved?
 
-    (total_hours * coin_rate * user.streak_multiplier).round(2)
+    multiplier = streak_at_approval ? user.streak_multiplier(streak_at_approval) : user.streak_multiplier
+    (total_hours * coin_rate * multiplier).round(2)
   end
 
   REVIEW_EVENT_ACTIONS = %w[

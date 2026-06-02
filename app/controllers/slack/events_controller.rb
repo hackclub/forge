@@ -66,13 +66,6 @@ class Slack::EventsController < ApplicationController
         text: event["text"],
         files: event["files"]
       )
-    elsif is_thread && channel == support_channel_id
-      SupportForwardJob.perform_later(
-        slack_user_id: event["user"],
-        channel_id: channel,
-        thread_ts: event["thread_ts"],
-        text: event["text"]
-      )
     elsif is_thread && channel == bts_channel_id
       SupportRelayJob.perform_later(
         slack_user_id: event["user"],

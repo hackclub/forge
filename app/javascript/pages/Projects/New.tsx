@@ -61,7 +61,7 @@ const PATHS: Path[] = [
     key: 'build_review',
     label: 'Build Review',
     description:
-      'Already funded? Submit build time on an existing project. Earns 5c / hour. A lapse link is required for every journal.',
+      'Already funded? Submit build time on an existing project. Earns 5c / hour. A lapse link on each journal is highly recommended.',
     href: '/projects/new?tier=tier_build_review',
     highlight: true,
   },

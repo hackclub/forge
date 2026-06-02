@@ -23,7 +23,7 @@ export default function ProjectsAdvancedPitch() {
 
       <p className="text-stone-400 text-sm leading-relaxed mb-8">
         For projects that cost more than $200, your grant covers the full cost. To get started, post your pitch in{' '}
-        <span className="text-[#ffb595] font-bold">#into-the-forge</span> on Slack with a detailed description and rough
+        <span className="text-[#ffb595] font-bold">#forgery</span> on Slack with a detailed description and rough
         BOM. It'll be picked up automatically.
       </p>
 
@@ -63,7 +63,7 @@ export default function ProjectsAdvancedPitch() {
         className="signature-smolder text-[#4c1a00] font-headline font-bold py-3 px-4 flex items-center justify-center gap-2 active:scale-95 transition-transform w-full"
       >
         <span className="material-symbols-outlined text-lg">open_in_new</span>
-        Open #into-the-forge
+        Open #forgery
       </a>
     </div>
   )

@@ -821,6 +821,26 @@ export default function AdminProjectsShow({
                 </button>
               </div>
               <div className="flex items-center justify-between">
+                <div className="pr-3">
+                  <span>Shadow ban</span>
+                  <p className="text-xs text-muted-foreground">Hides hours from metrics and leaderboard. Nothing else changes.</p>
+                </div>
+                <button
+                  onClick={() => router.post(`/admin/projects/${project.id}/toggle_shadow_ban`)}
+                  className={cn(
+                    'relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors cursor-pointer',
+                    project.shadow_banned ? 'bg-primary' : 'bg-muted',
+                  )}
+                >
+                  <span
+                    className={cn(
+                      'inline-block h-4 w-4 transform rounded-full bg-background transition-transform shadow',
+                      project.shadow_banned ? 'translate-x-6' : 'translate-x-1',
+                    )}
+                  />
+                </button>
+              </div>
+              <div className="flex items-center justify-between">
                 <span>Staff pick</span>
                 <button
                   onClick={() => router.post(`/admin/projects/${project.id}/toggle_staff_pick`)}

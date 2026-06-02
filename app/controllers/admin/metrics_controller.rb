@@ -4,10 +4,9 @@ class Admin::MetricsController < Admin::ApplicationController
     today = Date.current
     start_date = today - (days - 1)
 
-    counts_by_day = UserActivityDay
-      .where(active_on: start_date..today)
-      .group(:active_on)
-      .count
+    login_in_range = UserLoginDay.where(login_on: start_date..today)
+
+    counts_by_day = login_in_range.group(:login_on).distinct.count(:user_id)
 
     daily = (start_date..today).map do |d|
       { date: d.strftime("%Y-%m-%d"), label: d.strftime("%b %d"), count: counts_by_day[d] || 0 }
@@ -15,15 +14,17 @@ class Admin::MetricsController < Admin::ApplicationController
 
     totals = daily.map { |d| d[:count] }
     total_signups = User.kept.count
-    active_any = UserActivityDay.where(active_on: start_date..today).distinct.count(:user_id)
-    active_today = UserActivityDay.where(active_on: today).distinct.count(:user_id)
+    active_any = login_in_range.distinct.count(:user_id)
+    active_today = UserLoginDay.where(login_on: today).distinct.count(:user_id)
     active_now = User.kept.where("last_seen_at > ?", 5.minutes.ago).count
     avg_dau = totals.size.positive? ? (totals.sum.to_f / totals.size).round(1) : 0
 
     hours_by_day = Devlog
       .unscope(:order)
-      .where(created_at: start_date.beginning_of_day..today.end_of_day)
-      .group(Arel.sql("DATE(created_at)"))
+      .joins(:project)
+      .where(projects: { shadow_banned: false })
+      .where(devlogs: { created_at: start_date.beginning_of_day..today.end_of_day })
+      .group(Arel.sql("DATE(devlogs.created_at)"))
       .sum(:time_hours)
       .transform_keys { |k| k.is_a?(String) ? Date.parse(k) : k }
 
@@ -60,7 +61,7 @@ class Admin::MetricsController < Admin::ApplicationController
     avg_payout_per_day = (payouts_total / days).round(2)
     avg_positive_per_day = (payouts_positive / days).round(2)
 
-    approved_projects = Project.kept.approved
+    approved_projects = Project.kept.approved.not_shadow_banned
     tier_breakdown = Project::TIERS.map do |tier|
       scoped = approved_projects.where(tier: tier)
       projects_count = scoped.count

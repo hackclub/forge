@@ -179,6 +179,8 @@ export default function ProjectsShow({
   const [showDevlogForm, setShowDevlogForm] = useState(false)
   const [showRepoForm, setShowRepoForm] = useState(false)
   const [repoUrl, setRepoUrl] = useState('')
+  const [editingBranch, setEditingBranch] = useState(false)
+  const [branchDraft, setBranchDraft] = useState(project.journal_branch || '')
   const [uploadingCover, setUploadingCover] = useState(false)
   const [editingSubtitle, setEditingSubtitle] = useState(false)
   const [subtitleDraft, setSubtitleDraft] = useState(project.subtitle || '')
@@ -279,6 +281,7 @@ export default function ProjectsShow({
 
   function proceedWithSubmission() {
     setShowSubmitWarning(false)
+    // router.visit(`/projects/${project.id}/ai_check`)
     router.post(`/projects/${project.id}/submit_for_review`)
   }
 
@@ -356,6 +359,18 @@ export default function ProjectsShow({
           setShowRepoForm(false)
           setRepoUrl('')
         },
+      },
+    )
+  }
+
+  function saveBranch(e: React.FormEvent) {
+    e.preventDefault()
+    router.patch(
+      `/projects/${project.id}/set_journal_branch`,
+      { journal_branch: branchDraft.trim() },
+      {
+        preserveScroll: true,
+        onSuccess: () => setEditingBranch(false),
       },
     )
   }
@@ -715,6 +730,43 @@ export default function ProjectsShow({
                   )}
                   {can.update && project.repo_link && (
                     <>
+                      {editingBranch ? (
+                        <form onSubmit={saveBranch} className="flex items-center gap-1">
+                          <input
+                            type="text"
+                            value={branchDraft}
+                            onChange={(e) => setBranchDraft(e.target.value)}
+                            placeholder="default"
+                            className="ghost-border bg-[#0e0e0e] text-[#e5e2e1] px-2 py-1.5 text-xs font-mono w-32"
+                            autoFocus
+                          />
+                          <button
+                            type="submit"
+                            className="signature-smolder text-[#4c1a00] px-3 py-1.5 text-xs font-bold uppercase tracking-[0.15em] cursor-pointer"
+                          >
+                            Save
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditingBranch(false)
+                              setBranchDraft(project.journal_branch || '')
+                            }}
+                            className="text-stone-500 hover:text-stone-300 px-2 py-1.5 text-xs cursor-pointer"
+                          >
+                            Cancel
+                          </button>
+                        </form>
+                      ) : (
+                        <button
+                          onClick={() => setEditingBranch(true)}
+                          title="Set the branch the JOURNAL.md is read from"
+                          className="ghost-border bg-[#1c1b1b] hover:bg-[#2a2a2a] text-stone-400 hover:text-[#e5e2e1] px-3 py-2 text-xs font-bold uppercase tracking-[0.15em] flex items-center gap-2 cursor-pointer transition-colors"
+                        >
+                          <span className="material-symbols-outlined text-base">account_tree</span>
+                          {project.journal_branch ? project.journal_branch : 'default branch'}
+                        </button>
+                      )}
                       <button
                         onClick={() => router.post(`/projects/${project.id}/sync_journal`)}
                         className="signature-smolder text-[#4c1a00] px-5 py-2 text-xs font-bold uppercase tracking-[0.15em] flex items-center gap-2 cursor-pointer"
@@ -982,7 +1034,7 @@ export default function ProjectsShow({
                   {project.build_review && (
                     <div>
                       <label className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
-                        Lapse Link <span className="text-red-400 normal-case tracking-normal">(required)</span>
+                        Lapse Link <span className="text-[#ffb595] normal-case tracking-normal">(highly recommended)</span>
                       </label>
                       <input
                         type="url"
@@ -990,8 +1042,8 @@ export default function ProjectsShow({
                         onChange={(e) => devlogForm.setData('lapse_url', e.target.value)}
                         className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 text-sm"
                         placeholder="https://lapse.hackclub.com/timelapse/create"
-                        required
                       />
+                      <p className="text-xs text-stone-500 mt-1.5">A timelapse of your build helps reviewers verify hours faster — submissions without one are more likely to be returned.</p>
                     </div>
                   )}
                   <button
@@ -1112,7 +1164,7 @@ export default function ProjectsShow({
                           {project.build_review && (
                             <div>
                               <label className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
-                                Lapse Link <span className="text-red-400 normal-case tracking-normal">(required)</span>
+                                Lapse Link <span className="text-[#ffb595] normal-case tracking-normal">(highly recommended)</span>
                               </label>
                               <input
                                 type="url"
@@ -1120,7 +1172,6 @@ export default function ProjectsShow({
                                 onChange={(e) => editDevlogForm.setData('lapse_url', e.target.value)}
                                 className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 text-sm"
                                 placeholder="https://lapse.hackclub.com/timelapse"
-                                required
                               />
                             </div>
                           )}
@@ -1455,7 +1506,7 @@ export default function ProjectsShow({
                     onClick={proceedWithSubmission}
                     className="flex-1 signature-smolder text-[#4c1a00] font-headline font-bold py-2 uppercase tracking-wider text-sm active:scale-95 transition-transform"
                   >
-                    Submit Anyway
+                    Continue to AI Check
                   </button>
                 </div>
               </div>
@@ -1468,7 +1519,7 @@ export default function ProjectsShow({
                 Resubmit Pitch
               </h4>
               <p className="text-stone-400 text-sm mb-4">
-                Edit your original message in <span className="text-[#ffb595] font-bold">#into-the-forge</span> on Slack
+                Edit your original message in <span className="text-[#ffb595] font-bold">#forgery</span> on Slack
                 with the requested changes, then hit resubmit.
               </p>
               <button

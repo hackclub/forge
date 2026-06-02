@@ -81,6 +81,7 @@ export interface ProjectDetail {
   subtitle: string | null
   tags: string[]
   repo_link: string | null
+  journal_branch: string | null
   status: ProjectStatus
   devlog_mode: 'website' | 'git' | null
   review_feedback: string | null
@@ -240,6 +241,7 @@ export interface AdminProjectDetail {
   devlogs: AdminDevlog[]
   notes: ProjectNote[]
   hidden: boolean
+  shadow_banned: boolean
   staff_pick: boolean
   built_at: string | null
   build_proof_url: string | null

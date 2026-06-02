@@ -49,16 +49,6 @@ class Admin::SupportTicketsController < Admin::ApplicationController
       icon_url: current_user.avatar
     )
 
-    if @ticket.bts_message_ts.present?
-      slack_client.chat_postMessage(
-        channel: @ticket.bts_channel_id,
-        thread_ts: @ticket.bts_message_ts,
-        text: text,
-        username: current_user.display_name,
-        icon_url: current_user.avatar
-      )
-    end
-
     audit!("support_ticket.replied", target: @ticket, label: @ticket.slack_display_name, metadata: { message: text })
     redirect_to admin_support_ticket_path(@ticket), notice: "Reply sent."
   rescue StandardError => e
@@ -96,7 +86,7 @@ class Admin::SupportTicketsController < Admin::ApplicationController
     slack_client.chat_postMessage(
       channel: @ticket.channel_id,
       thread_ts: @ticket.thread_ts,
-      text: ":white_check_mark: <@#{@ticket.slack_user_id}> This question has been marked as resolved by <@#{current_user.slack_id}>!"
+      text: "Ohohoho looks like this message has been marked resolved by <@#{current_user.slack_id}>, if you have any more questions feel free to make a new ticket"
     )
     slack_client.reactions_add(
       channel: @ticket.channel_id,
@@ -104,6 +94,7 @@ class Admin::SupportTicketsController < Admin::ApplicationController
       name: "white_check_mark"
     )
     SupportTicketJob.delete_bts_message(@ticket)
+    SupportTicketJob.update_public_response(@ticket)
     audit!("support_ticket.resolved", target: @ticket, label: @ticket.slack_display_name)
     redirect_to admin_support_ticket_path(@ticket), notice: "Ticket resolved."
   rescue StandardError => e

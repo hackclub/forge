@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_19_194510) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_01_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -264,6 +264,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_19_194510) do
     t.datetime "discarded_at"
     t.string "green_flags", default: [], array: true
     t.boolean "hidden", default: false, null: false
+    t.string "journal_branch"
     t.integer "kudos_count", default: 0, null: false
     t.bigint "linked_project_id"
     t.string "name", null: false
@@ -277,10 +278,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_19_194510) do
     t.text "review_feedback"
     t.datetime "reviewed_at"
     t.bigint "reviewer_id"
+    t.boolean "shadow_banned", default: false, null: false
     t.string "slack_channel_id"
     t.string "slack_message_ts"
     t.datetime "staff_pick_at"
     t.integer "status", default: 0, null: false
+    t.integer "streak_at_approval"
+    t.datetime "submitted_at"
     t.string "subtitle"
     t.string "tags", default: [], null: false, array: true
     t.string "tier", default: "tier_4", null: false
@@ -291,6 +295,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_19_194510) do
     t.index ["linked_project_id"], name: "index_projects_on_linked_project_id_for_build_reviews", unique: true, where: "(build_review = true)"
     t.index ["staff_pick_at"], name: "index_projects_on_staff_pick_at"
     t.index ["status"], name: "index_projects_on_status"
+    t.index ["submitted_at"], name: "index_projects_on_submitted_at"
     t.index ["tags"], name: "index_projects_on_tags", using: :gin
     t.index ["user_id"], name: "index_projects_on_user_id"
   end
@@ -608,6 +613,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_19_194510) do
     t.string "claimed_by_slack_id"
     t.datetime "created_at", null: false
     t.text "original_text", null: false
+    t.string "public_response_ts"
     t.datetime "resolved_at"
     t.string "resolved_by_name"
     t.string "resolved_by_slack_id"
@@ -618,6 +624,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_19_194510) do
     t.string "thread_ts", null: false
     t.datetime "updated_at", null: false
     t.index ["bts_message_ts"], name: "index_support_tickets_on_bts_message_ts"
+    t.index ["public_response_ts"], name: "index_support_tickets_on_public_response_ts"
     t.index ["status"], name: "index_support_tickets_on_status"
     t.index ["thread_ts"], name: "index_support_tickets_on_thread_ts", unique: true
   end
@@ -629,6 +636,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_19_194510) do
     t.bigint "user_id", null: false
     t.index ["user_id", "active_on"], name: "index_user_activity_days_on_user_id_and_active_on", unique: true
     t.index ["user_id"], name: "index_user_activity_days_on_user_id"
+  end
+
+  create_table "user_login_days", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.date "login_on", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["login_on"], name: "index_user_login_days_on_login_on"
+    t.index ["user_id", "login_on"], name: "index_user_login_days_on_user_id_and_login_on", unique: true
+    t.index ["user_id"], name: "index_user_login_days_on_user_id"
   end
 
   create_table "user_notes", force: :cascade do |t|
@@ -658,6 +675,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_19_194510) do
     t.string "git_instance_url"
     t.string "git_provider", default: "github"
     t.string "github_username"
+    t.datetime "hackatime_banned_at"
     t.string "hca_id", null: false
     t.text "hca_token"
     t.boolean "is_adult", default: false, null: false
@@ -681,6 +699,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_19_194510) do
     t.datetime "updated_at", null: false
     t.string "verification_status"
     t.index ["discarded_at"], name: "index_users_on_discarded_at"
+    t.index ["hackatime_banned_at"], name: "index_users_on_hackatime_banned_at"
     t.index ["last_seen_at"], name: "index_users_on_last_seen_at"
     t.index ["referral_code"], name: "index_users_on_referral_code", unique: true
   end
@@ -752,6 +771,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_19_194510) do
   add_foreign_key "solid_queue_recurring_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_scheduled_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "user_activity_days", "users"
+  add_foreign_key "user_login_days", "users"
   add_foreign_key "user_notes", "users"
   add_foreign_key "user_notes", "users", column: "author_id"
 end

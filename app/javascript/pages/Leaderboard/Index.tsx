@@ -121,8 +121,8 @@ export default function LeaderboardIndex({
       format: (v) => `${v}h`,
     },
     {
-      title: 'Best Streak',
-      subtitle: 'Longest activity streak ever recorded',
+      title: 'Current Streak',
+      subtitle: 'Active journaling streaks right now',
       valueLabel: 'Days',
       rows: streaks,
       emptyTitle: 'No streaks yet',

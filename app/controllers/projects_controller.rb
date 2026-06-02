@@ -1,6 +1,6 @@
 class ProjectsController < ApplicationController
   allow_unauthenticated_access only: %i[show]
-  before_action :set_project, only: %i[show edit update destroy submit_for_review sync_journal set_devlog_mode link_repo resubmit_pitch upload_cover_image export_devlogs add_kudo destroy_kudo]
+  before_action :set_project, only: %i[show edit update destroy submit_for_review ai_check run_ai_check ai_check_status sync_journal set_devlog_mode link_repo set_journal_branch resubmit_pitch upload_cover_image export_devlogs add_kudo destroy_kudo]
 
   def show
     authorize @project
@@ -269,6 +269,17 @@ class ProjectsController < ApplicationController
     redirect_to @project, notice: "Repository linked."
   end
 
+  def set_journal_branch
+    authorize @project, :update?
+    branch = params[:journal_branch].to_s.strip
+    if branch.present? && !branch.match?(/\A[\w.\-\/]+\z/)
+      redirect_to @project, alert: "Branch name has invalid characters."
+      return
+    end
+    @project.update!(journal_branch: branch.presence)
+    redirect_to @project, notice: branch.present? ? "Journal branch set to #{branch}." : "Journal branch reset to default."
+  end
+
   def submit_for_review
     authorize @project
 
@@ -336,6 +347,36 @@ class ProjectsController < ApplicationController
     redirect_to @project, notice: "Cover image uploaded. Processing..."
   end
 
+  def ai_check
+    authorize @project, :submit_for_review?
+
+    render inertia: "Projects/AiCheck", props: {
+      project: {
+        id: @project.id,
+        name: @project.name,
+        subtitle: @project.subtitle,
+        cover_image_url: @project.cover_image_url
+      },
+      result: @project.ai_check_result,
+      ran_at: @project.ai_check_ran_at&.iso8601
+    }
+  end
+
+  def run_ai_check
+    authorize @project, :submit_for_review?
+
+    @project.update!(ai_check_result: { "status" => "queued", "queued_at" => Time.current.iso8601 })
+    RunAiRequirementsCheckJob.perform_later(@project.id)
+    audit!("project.ai_check_run", target: @project, metadata: { via: "owner" })
+
+    render json: { status: "queued" }
+  end
+
+  def ai_check_status
+    authorize @project, :submit_for_review?
+    render json: { result: @project.ai_check_result, ran_at: @project.ai_check_ran_at&.iso8601 }
+  end
+
   private
 
   def fetch_json(url)
@@ -355,10 +396,12 @@ class ProjectsController < ApplicationController
   end
 
   def linkable_projects_for(user)
+    linked_ids = Project.kept.where(build_review: true).where.not(linked_project_id: nil).select(:linked_project_id)
+
     user.projects
       .kept
       .where(status: :approved, build_review: false)
-      .where.missing(:build_review_for_project)
+      .where.not(id: linked_ids)
       .order(created_at: :desc)
       .map { |p| { id: p.id, name: p.name } }
   end
@@ -373,6 +416,7 @@ class ProjectsController < ApplicationController
       subtitle: project.subtitle,
       tags: project.tags,
       repo_link: project.repo_link,
+      journal_branch: project.journal_branch,
       status: project.status,
       devlog_mode: project.devlog_mode,
       review_feedback: can_view_private_project_data ? project.review_feedback : nil,

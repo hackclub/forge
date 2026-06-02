@@ -250,6 +250,7 @@ Rails.application.routes.draw do
           post :review
           post :restore
           post :toggle_hidden
+          post :toggle_shadow_ban
           post :toggle_staff_pick
           post :change_tier
           post :add_note
@@ -340,6 +341,12 @@ Rails.application.routes.draw do
           post :revert_project
         end
       end
+      resources :hackatime_bans, only: [ :index ] do
+        collection do
+          post :refresh
+          post :ban_all
+        end
+      end
       get "metrics" => "metrics#index", as: :metrics
       get "airtable_sync" => "airtable_sync#index", as: :airtable_sync
       post "airtable_sync/recheck" => "airtable_sync#recheck", as: :airtable_sync_recheck
@@ -421,12 +428,16 @@ Rails.application.routes.draw do
     end
     member do
       post :submit_for_review
+      get :ai_check
+      post :run_ai_check
+      get :ai_check_status
       post :sync_journal
       get :export_devlogs
       post :resubmit_pitch
       post :upload_cover_image
       patch :set_devlog_mode
       patch :link_repo
+      patch :set_journal_branch
       post :add_kudo
       delete "kudos/:kudo_id" => "projects#destroy_kudo", as: :destroy_kudo
     end
