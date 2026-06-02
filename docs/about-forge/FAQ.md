@@ -113,4 +113,4 @@ The streak system increases your payout according to your streak.
 
 Is hackatime or lapse url necessary for coding time?
 
-Hackatime or lapse is necessary for coding time more than 1 hour. If not included time will be deflated accordingly.
+Hackatime or lapse is necessary for coding time more than 1 hour. If not included, time will be deflated accordingly.
