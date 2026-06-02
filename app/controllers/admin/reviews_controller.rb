@@ -20,7 +20,7 @@ class Admin::ReviewsController < Admin::ApplicationController
       .kept
       .where(status: :pending)
       .where.not(id: @project.id)
-      .order(created_at: :asc)
+      .order(Arel.sql("COALESCE(submitted_at, created_at) ASC"))
       .limit(1)
       .pluck(:id)
       .first
@@ -51,7 +51,7 @@ class Admin::ReviewsController < Admin::ApplicationController
       .kept
       .where(status: :pending)
       .where.not(id: @project.id)
-      .order(created_at: :asc)
+      .order(Arel.sql("COALESCE(submitted_at, created_at) ASC"))
       .limit(1)
       .pluck(:id)
       .first
