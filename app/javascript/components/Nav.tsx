@@ -2,7 +2,17 @@ import { useEffect, useState } from 'react'
 import { usePage, Link } from '@inertiajs/react'
 import type { SharedProps } from '@/types'
 
-const navItems = [
+type NavItem = {
+  href: string
+  label: string
+  icon: string
+  authOnly: boolean
+  tour: string | undefined
+  flag: string | undefined
+  hideFlag?: string
+}
+
+const navItems: NavItem[] = [
   { href: '/explore', label: 'Explore', icon: 'explore', authOnly: false, tour: 'nav-explore', flag: undefined },
   { href: '/reels', label: 'Reels', icon: 'play_circle', authOnly: true, tour: undefined, flag: 'reels_enabled' },
   { href: '/home', label: 'Dashboard', icon: 'dashboard', authOnly: true, tour: 'nav-dashboard', flag: undefined },
@@ -15,7 +25,16 @@ const navItems = [
     tour: undefined,
     flag: undefined,
   },
-  { href: '/news', label: 'News', icon: 'campaign', authOnly: true, tour: undefined, flag: undefined },
+  { href: '/guilds', label: 'Guilds', icon: 'shield', authOnly: true, tour: undefined, flag: 'guilds_enabled' },
+  {
+    href: '/news',
+    label: 'News',
+    icon: 'campaign',
+    authOnly: true,
+    tour: undefined,
+    flag: undefined,
+    hideFlag: 'guilds_enabled',
+  },
   { href: '/docs', label: 'Resources', icon: 'menu_book', authOnly: false, tour: 'nav-docs', flag: undefined },
 ]
 
@@ -47,6 +66,7 @@ export default function Nav() {
   const visibleItems = navItems.filter((item) => {
     if (item.authOnly && !shared.auth.user) return false
     if (item.flag && !shared[item.flag]) return false
+    if (item.hideFlag && shared[item.hideFlag]) return false
     return true
   })
 

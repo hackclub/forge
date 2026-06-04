@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_01_000000) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_04_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -172,6 +172,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_01_000000) do
     t.string "name", null: false
     t.datetime "updated_at", null: false
     t.index ["name"], name: "index_feature_flags_on_name", unique: true
+  end
+
+  create_table "guild_states", force: :cascade do |t|
+    t.datetime "computed_at"
+    t.datetime "created_at", null: false
+    t.integer "guild", null: false
+    t.integer "members_active_week", default: 0, null: false
+    t.decimal "multiplier", precision: 5, scale: 3, default: "1.0", null: false
+    t.integer "referrals_week", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.index ["guild"], name: "index_guild_states_on_guild", unique: true
   end
 
   create_table "kudos", force: :cascade do |t|
@@ -675,6 +686,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_01_000000) do
     t.string "git_instance_url"
     t.string "git_provider", default: "github"
     t.string "github_username"
+    t.integer "guild"
     t.datetime "hackatime_banned_at"
     t.string "hca_id", null: false
     t.text "hca_token"
@@ -699,6 +711,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_01_000000) do
     t.datetime "updated_at", null: false
     t.string "verification_status"
     t.index ["discarded_at"], name: "index_users_on_discarded_at"
+    t.index ["guild"], name: "index_users_on_guild"
     t.index ["hackatime_banned_at"], name: "index_users_on_hackatime_banned_at"
     t.index ["last_seen_at"], name: "index_users_on_last_seen_at"
     t.index ["referral_code"], name: "index_users_on_referral_code", unique: true
