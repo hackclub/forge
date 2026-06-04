@@ -29,8 +29,9 @@ Generally speaking, each project must be closer to a product than a demo - that 
 - AI Generated READMEs or Journal entries
 - Stolen work from other people
 - Missing firmware/software
+- AI generated firmware
 
-> NOTE: Your project will be rejected if any of these are missing, and resubmitting will put you at the back of the queue again. Please double and triple check these before submitting!
+> NOTE: Your project will be returned if any of these are missing, and resubmitting will put you at the back of the queue again. Please double and triple check these before submitting!
 
 ## README.md
 
