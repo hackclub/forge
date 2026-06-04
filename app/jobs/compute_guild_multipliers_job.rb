@@ -3,7 +3,7 @@ class ComputeGuildMultipliersJob < ApplicationJob
 
   MIN_MULTIPLIER = 1.0
   MAX_MULTIPLIER = 1.04
-  REFERRAL_WEIGHT = 0.002
+  REFERRAL_WEIGHT = 0.0045
 
   def perform
     return unless FeatureFlag.enabled?("guilds")
