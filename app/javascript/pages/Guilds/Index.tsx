@@ -187,7 +187,7 @@ export default function GuildsIndex({
                 </h3>
               </div>
               {recent_activity.length === 0 ? (
-                <p className="text-stone-600 text-sm italic">No devlogs from your guild yet. Be the first to ship.</p>
+                <p className="text-stone-600 text-sm italic">No devlogs from your guild yet. Be the first to ship!.</p>
               ) : (
                 <div className="ghost-border divide-y divide-white/5">
                   {recent_activity.map((item) => (
