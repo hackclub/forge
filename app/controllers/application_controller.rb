@@ -11,6 +11,7 @@ class ApplicationController < ActionController::Base
   before_action :track_user_activity
   before_action :set_paper_trail_whodunnit
   before_action :prompt_birthday_reauth!
+  before_action :prompt_guild_choice!
 
   rescue_from Pundit::NotAuthorizedError, with: :user_not_authorized
 
@@ -31,6 +32,7 @@ class ApplicationController < ActionController::Base
           is_superadmin: u.superadmin?,
           is_banned: u.is_banned,
           current_streak: u.current_streak,
+          guild: u.guild,
           needs_onboarding: !u.has_attribute?(:onboarded_at) || u.onboarded_at.nil?
         }
       }
@@ -39,10 +41,11 @@ class ApplicationController < ActionController::Base
   inertia_share flash: -> { flash.to_hash }
   inertia_share maintenance_mode: -> { FeatureFlag.enabled?("maintenance_mode") }
   inertia_share reels_enabled: -> { reels_enabled? }
+  inertia_share guilds_enabled: -> { guilds_enabled? }
   inertia_share sign_in_path: -> { signin_path }
   inertia_share sign_out_path: -> { signout_path }
 
-  helper_method :reels_enabled?
+  helper_method :reels_enabled?, :guilds_enabled?
 
   def reels_enabled?
     FeatureFlag.enabled?("reels") || current_user&.admin?
@@ -50,6 +53,14 @@ class ApplicationController < ActionController::Base
 
   def require_reels_enabled!
     raise ActionController::RoutingError, "Not Found" unless reels_enabled?
+  end
+
+  def guilds_enabled?
+    FeatureFlag.enabled?("guilds") || current_user&.admin?
+  end
+
+  def require_guilds_enabled!
+    raise ActionController::RoutingError, "Not Found" unless guilds_enabled?
   end
 
   private
@@ -107,5 +118,17 @@ class ApplicationController < ActionController::Base
 
     session[:birthday_reauth_attempted] = true
     redirect_to hca_start_path, notice: "Please re-authorize Forge to finish your profile."
+  end
+
+  def prompt_guild_choice!
+    return unless user_signed_in?
+    return unless guilds_enabled?
+    return if current_user.joined_guild?
+    return if current_user.onboarded_at.nil?
+    return unless request.get? || request.head?
+    return if request.xhr? || request.format.json?
+    return if request.path.start_with?("/auth/", "/signin", "/signout", "/sorry", "/admin", "/guilds/choose")
+
+    redirect_to new_guild_choice_path
   end
 end

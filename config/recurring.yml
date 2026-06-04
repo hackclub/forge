@@ -38,3 +38,8 @@ production:
     class: StreakFreezeCheckJob
     queue: background
     schedule: every hour
+
+  compute_guild_multipliers:
+    class: ComputeGuildMultipliersJob
+    queue: background
+    schedule: every Sunday at 0:00
