@@ -9,11 +9,18 @@ interface Row {
   multiplier: number
   members_active_week: number
   referrals_week: number
+  prize_pool_coins: number
   referrals_total: number
   computed_at: string | null
 }
 
-type SortKey = 'multiplier' | 'member_count' | 'members_active_week' | 'referrals_week' | 'referrals_total'
+type SortKey =
+  | 'multiplier'
+  | 'member_count'
+  | 'members_active_week'
+  | 'referrals_week'
+  | 'prize_pool_coins'
+  | 'referrals_total'
 
 const ACCENT: Record<string, string> = {
   rivendell: 'text-emerald-300',
@@ -23,6 +30,7 @@ const ACCENT: Record<string, string> = {
 }
 
 const COLUMNS: { key: SortKey; label: string }[] = [
+  { key: 'prize_pool_coins', label: 'Pool (7d)' },
   { key: 'multiplier', label: 'Multiplier' },
   { key: 'member_count', label: 'Members' },
   { key: 'members_active_week', label: 'Active (7d)' },
@@ -55,8 +63,8 @@ export default function GuildsLeaderboard({ mine, rows }: { mine: string | null;
             How the houses stack up.
           </h1>
           <p className="text-stone-500 text-sm mt-2 max-w-2xl">
-            Click a column to sort. Multiplier is recomputed every Sunday from the share of members active that week
-            plus approved referrals.
+            Click a column to sort. Each approved referral adds 1 coin to its guild's pool — paid out Sunday, split
+            proportionally to the referrers. The multiplier (max 1.04×) scales with weekly referrals on top.
           </p>
         </div>
 
@@ -122,8 +130,9 @@ export default function GuildsLeaderboard({ mine, rows }: { mine: string | null;
                       </Link>
                     </td>
                     <td className="text-right px-4 py-3 text-[#ffb595] font-headline font-bold tabular-nums">
-                      {row.multiplier.toFixed(2)}×
+                      {row.prize_pool_coins.toFixed(2)}c
                     </td>
+                    <td className="text-right px-4 py-3 text-stone-300 tabular-nums">{row.multiplier.toFixed(2)}×</td>
                     <td className="text-right px-4 py-3 text-[#e5e2e1] tabular-nums">{row.member_count}</td>
                     <td className="text-right px-4 py-3 text-stone-300 tabular-nums">{row.members_active_week}</td>
                     <td className="text-right px-4 py-3 text-stone-300 tabular-nums">{row.referrals_week}</td>
