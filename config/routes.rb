@@ -416,7 +416,11 @@ Rails.application.routes.draw do
 
   get  "guilds/choose" => "guild_choices#new", as: :new_guild_choice
   post "guilds/choose" => "guild_choices#create", as: :guild_choices
-  resources :guilds, only: %i[index show]
+  resources :guilds, only: %i[index show] do
+    collection do
+      get :leaderboard
+    end
+  end
 
   get "reels" => "reels#index", as: :reels_feed
   post "reel_ads/:id/impression" => "reel_ads#impression", as: :reel_ad_impression
