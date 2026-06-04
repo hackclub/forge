@@ -62,10 +62,6 @@ export default function GuildsLeaderboard({ mine, rows }: { mine: string | null;
           <h1 className="text-3xl md:text-4xl font-headline font-bold tracking-tighter text-[#e5e2e1]">
             How the houses stack up.
           </h1>
-          <p className="text-stone-500 text-sm mt-2 max-w-2xl">
-            Click a column to sort. Each approved referral adds 1 coin to its guild's pool — paid out Sunday, split
-            proportionally to the referrers. The multiplier (max 1.04×) scales with weekly referrals on top.
-          </p>
         </div>
 
         <div className="ghost-border overflow-x-auto">
