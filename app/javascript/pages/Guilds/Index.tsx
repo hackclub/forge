@@ -7,6 +7,7 @@ interface GuildSummary {
   icon: string
   member_count: number
   multiplier: number
+  prize_pool_coins: number
   computed_at: string | null
 }
 
@@ -116,27 +117,34 @@ export default function GuildsIndex({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="bg-[#1c1b1b] border border-white/5 corner-accents p-5">
                 <p className="text-[10px] uppercase tracking-[0.3em] text-stone-500 font-bold mb-3">
-                  This week's boost
+                  This week's prize pool
                 </p>
-                <p className="text-4xl font-headline font-bold text-[#ffb595] tabular-nums">
-                  {my_guild_detail.multiplier.toFixed(2)}×
+                <p className="text-4xl font-headline font-bold text-[#ffb595] tabular-nums flex items-baseline gap-1.5">
+                  {my_guild_detail.prize_pool_coins.toFixed(2)}
+                  <span className="text-base text-stone-500">coins</span>
                 </p>
                 <p className="text-xs text-stone-500 mt-2 leading-relaxed">
-                  Every coin you earn from approved projects is multiplied by this. Recomputed every Sunday based on
-                  guild activity.
+                  1 coin per approved referral from your guild this week. Paid out Sunday — your share is proportional
+                  to how many referrals you personally brought in.
                 </p>
                 <div className="flex gap-4 mt-4 text-xs">
                   <div>
-                    <span className="text-[#e5e2e1] font-headline font-bold tabular-nums">
-                      {my_guild_detail.members_active_week}
+                    <span className="text-[#ffb595] font-headline font-bold tabular-nums">
+                      {my_guild_detail.multiplier.toFixed(2)}×
                     </span>{' '}
-                    <span className="text-stone-600">active this week</span>
+                    <span className="text-stone-600">multiplier</span>
                   </div>
                   <div>
                     <span className="text-[#e5e2e1] font-headline font-bold tabular-nums">
                       {my_guild_detail.referrals_week}
                     </span>{' '}
-                    <span className="text-stone-600">referrals this week</span>
+                    <span className="text-stone-600">referrals</span>
+                  </div>
+                  <div>
+                    <span className="text-[#e5e2e1] font-headline font-bold tabular-nums">
+                      {my_guild_detail.members_active_week}
+                    </span>{' '}
+                    <span className="text-stone-600">active</span>
                   </div>
                 </div>
               </div>
@@ -218,11 +226,14 @@ export default function GuildsIndex({
               </h3>
               <ul className="text-xs text-stone-400 space-y-2 leading-relaxed">
                 <li>
-                  Every Sunday at midnight, each guild gets a multiplier between 1.00× and 1.50× based on the share of
-                  members active that week plus approved referrals.
+                  Every approved referral adds 1 coin to your guild's weekly prize pool. The pool is paid out every
+                  Sunday — your share is proportional to how many referrals you personally brought in.
                 </li>
-                <li>The multiplier boosts coin earnings from approved projects and on referral payouts.</li>
-                <li>Approved referrals from your link count toward your guild's leaderboard.</li>
+                <li>
+                  On top of that, the guild earns a small multiplier (up to 1.04×) on coin gains from projects and
+                  referral payouts, based on how many referrals the guild brought in that week.
+                </li>
+                <li>Stacking with the streak multiplier, the combined boost is capped at 1.30×.</li>
                 <li>Only an admin can move you to a different guild after you've picked.</li>
               </ul>
             </div>
