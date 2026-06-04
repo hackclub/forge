@@ -85,6 +85,7 @@ Coming soon.
         - [Robu](https://robu.in/)
         - [Robocraze](https://robocraze.com/)
         - [EBhoot](https://ebhoot.in/)
+        - [MakerBazar](https://makerbazar.in/)
 
 > confirmed more vendors? wanna add specific notes for your country? contribute [here](https://github.com/hackclub/forge/edit/main/docs/design/sourcing-parts.md)!! You'd be helping a ton of people!
 
