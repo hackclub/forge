@@ -124,8 +124,7 @@ export default function GuildsIndex({
                   <span className="text-base text-stone-500">coins</span>
                 </p>
                 <p className="text-xs text-stone-500 mt-2 leading-relaxed">
-                  1 coin per approved referral from your guild this week. Paid out Sunday — your share is proportional
-                  to how many referrals you personally brought in.
+                  Every refferal YOUR guild brings in this week gets your guild 1 coin! At the end of the week you recieve the coins based on how much you contributed to the guild!
                 </p>
                 <div className="flex gap-4 mt-4 text-xs">
                   <div>
@@ -226,15 +225,13 @@ export default function GuildsIndex({
               </h3>
               <ul className="text-xs text-stone-400 space-y-2 leading-relaxed">
                 <li>
-                  Every approved referral adds 1 coin to your guild's weekly prize pool. The pool is paid out every
-                  Sunday — your share is proportional to how many referrals you personally brought in.
+                  Every refferal YOUR guild brings in this week gets your guild 1 coin! At the end of the week you recieve the coins based on how much you contributed to the guild!
                 </li>
                 <li>
                   On top of that, the guild earns a small multiplier (up to 1.04×) on coin gains from projects and
                   referral payouts, based on how many referrals the guild brought in that week.
                 </li>
-                <li>Stacking with the streak multiplier, the combined boost is capped at 1.30×.</li>
-                <li>Only an admin can move you to a different guild after you've picked.</li>
+                <li>Stacking with the streak multiplier, the combined boost is capped at x1.30!</li>
               </ul>
             </div>
           </div>
