@@ -3,9 +3,9 @@ class GuildsController < ApplicationController
   before_action :require_guilds_enabled!
 
   THEMES = {
-    "rivendell" => { tagline: "The river clan", icon: "park" },
-    "erebor"    => { tagline: "Deep in the mines of forge", icon: "construction" },
-    "edoras"    => { tagline: "High up in the sky", icon: "bolt" },
+    "rivendell" => { tagline: "Refuge of the Elves", icon: "park" },
+    "erebor"    => { tagline: "The Lonely Mountain", icon: "construction" },
+    "edoras"    => { tagline: "Land of the horselords", icon: "bolt" },
     "valinor"   => { tagline: "The Undying Lands", icon: "auto_awesome" }
   }.freeze
 
