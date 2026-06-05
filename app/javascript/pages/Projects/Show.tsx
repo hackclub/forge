@@ -196,6 +196,47 @@ export default function ProjectsShow({
     lapse_url: '',
   })
 
+  const devlogDraftKey = `forge:devlog-draft:${project.id}`
+  const devlogDraftRestored = useRef(false)
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(devlogDraftKey)
+      if (saved) {
+        const draft = JSON.parse(saved)
+        const next = {
+          title: draft.title || '',
+          content: draft.content || '',
+          time_spent: draft.time_spent || '',
+          lapse_url: draft.lapse_url || '',
+        }
+        if (next.title || next.content || next.time_spent || next.lapse_url) {
+          devlogForm.setData(next)
+          setShowDevlogForm(true)
+        }
+      }
+    } catch {
+      // ignore malformed draft
+    }
+    devlogDraftRestored.current = true
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => {
+    if (!devlogDraftRestored.current) return
+    const d = devlogForm.data
+    try {
+      if (d.title || d.content || d.time_spent || d.lapse_url) {
+        localStorage.setItem(devlogDraftKey, JSON.stringify(d))
+      } else {
+        localStorage.removeItem(devlogDraftKey)
+      }
+    } catch {
+      // ignore storage errors (quota, private mode)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [devlogForm.data])
+
   const [editingDevlogId, setEditingDevlogId] = useState<number | null>(null)
   const editDevlogForm = useForm({
     title: '',
@@ -290,6 +331,11 @@ export default function ProjectsShow({
     devlogForm.post(`/projects/${project.id}/devlogs`, {
       onSuccess: () => {
         devlogForm.reset()
+        try {
+          localStorage.removeItem(devlogDraftKey)
+        } catch {
+          // ignore
+        }
         setShowDevlogForm(false)
       },
     })
