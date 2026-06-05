@@ -111,6 +111,10 @@ The streak system increases your payout according to your streak.
 |60+ days|1.20x|
 |100+ days|1.25x|
 
-Is hackatime or lapse url necessary for coding time?
+## Is hackatime or lapse url necessary for coding time?
 
 Hackatime or lapse is necessary for coding time more than 1 hour. If not included, time will be deflated accordingly.
+
+## Do i need a lapse building my project?
+
+Yes, you need to lapse building it. If not lapsed we might deflate time if the work to time ratio is inconsistent.
