@@ -4,15 +4,15 @@ class GuildChoicesController < ApplicationController
 
   GUILD_THEMES = {
     "rivendell" => {
-      tagline: "The river clan",
+      tagline: "Refuge of the Elves",
       icon: "park"
     },
     "erebor" => {
-      tagline: "Deep in the mines of forge",
+      tagline: "The Lonely Mountain",
       icon: "construction"
     },
     "edoras" => {
-      tagline: "High up in the sky",
+      tagline: "Land of the horselords",
       icon: "bolt"
     },
     "valinor" => {
