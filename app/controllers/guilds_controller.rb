@@ -21,9 +21,8 @@ class GuildsController < ApplicationController
     recent_activity = []
     if my_guild
       recent_activity = Devlog
-        .where.not(status: :draft)
         .joins(project: :user)
-        .merge(Project.kept)
+        .merge(Project.kept.where(hidden: false).not_shadow_banned)
         .merge(User.in_guild(my_guild))
         .includes(project: :user)
         .order(created_at: :desc)
