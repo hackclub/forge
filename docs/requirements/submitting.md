@@ -1,4 +1,4 @@
-| title       | Submitting your design              |
+| title       | Submission requirements             |
 | ----------- | ----------------------------------- |
 
 # Submitting your design
@@ -25,13 +25,15 @@ Generally speaking, each project must be closer to a product than a demo - that 
 - A cover image, title, and description on Forge
 - Your repository linked to Forge
 
+> NOTE: Your project will be returned if any of these are missing, and resubmitting will put you at the back of the queue again. Please double and triple check these before submitting!
+
 ## You should not have: 
 - AI Generated READMEs or Journal entries
 - Stolen work from other people
 - Missing firmware/software
 - AI generated firmware
-
-> NOTE: Your project will be returned if any of these are missing, and resubmitting will put you at the back of the queue again. Please double and triple check these before submitting!
+- 
+>Note: If any source of plagiarism or the things above is found in your project, it will be rejected or returned for changes.
 
 ## README.md
 
@@ -45,4 +47,13 @@ Your README should contain:
 - A wiring diagram, if you're doing any wiring that isn't on a PCB
 - A BOM in table format at the end of the README
 
+# Submitting your build
+
+For submitting your build, You should lapse the building phase and journal it. If not lapsed building it, We might deflate the time accordingly.
+
+- It should have several pictures of the build in journals to show the progress.
+- Pictures of the finished build and the link of demo video in the readme of the repo.
+- If any changes made like adding a wire in pcb as you forgot a connection, Update in pcb and repo.
+
+> Note: Submitting your build requires you to follow the design submission requirements too. If not, Your project will be returned for changes due to that you would have to wait again for the next review.
 
