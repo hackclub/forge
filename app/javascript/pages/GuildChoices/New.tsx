@@ -25,7 +25,7 @@ export default function GuildChoicesNew({ guilds }: { guilds: GuildOption[] }) {
   }
 
   return (
-    <div className="min-h-screen bg-[#0e0e0e] text-stone-200">
+    <div className="min-h-screen text-stone-200">
       <Head title="Choose your guild" />
       <div className="max-w-5xl mx-auto px-6 py-16">
         <div className="text-center mb-12">

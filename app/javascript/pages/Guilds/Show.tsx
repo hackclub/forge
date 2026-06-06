@@ -43,7 +43,7 @@ export default function GuildsShow({
   const accent = ACCENT[guild.name] || 'text-[#ca5924]'
 
   return (
-    <div className="min-h-screen bg-[#0e0e0e] text-stone-200">
+    <div className="min-h-screen text-stone-200">
       <Head title={`${guild.name} — Guild`} />
       <div className="max-w-5xl mx-auto px-6 py-10">
         <Link

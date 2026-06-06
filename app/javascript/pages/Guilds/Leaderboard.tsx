@@ -46,7 +46,7 @@ export default function GuildsLeaderboard({ mine, rows }: { mine: string | null;
   }, [rows, sortKey])
 
   return (
-    <div className="min-h-screen bg-[#0e0e0e] text-stone-200">
+    <div className="min-h-screen text-stone-200">
       <Head title="Guild leaderboard" />
       <div className="max-w-5xl mx-auto px-6 py-10">
         <Link
