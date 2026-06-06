@@ -30,38 +30,26 @@ const steps: Step[] = [
     body: `I'm Orph or the Forge Keeper around here. Let me give you the quick tour of the workshop, be aware the forge isn't for beginers so be careful in where you tread, this will only take a minute (or a couple days) and then you can start building projects`,
   },
   {
-    target: '[data-tour="nav-dashboard"]',
-    title: `The forge base`,
-    body: `This is home base. Your projects, quests, important info everything lies here so ya better get comfy because your going to be here for most of your time in the forge`,
-  },
-  {
     target: '[data-tour="nav-explore"]',
     title: `Discover what others are building`,
     body: `Stuck for ideas like Aarav? The Discover area shows what other forger's are forging right now. Steal inspiration shamelessly (atleast thats what aarav does) feel free to doom scroll here as well, no phones gonna be allowed in tha forge!`,
   },
   {
     title: `a 101 on how to make money with orph (you wish you had this irl)`,
-    body: `Wanna get rich? Wanna make something fun? Theres 2 ways to do that (or 3), the first way is through making projects - head over to the docs for more info or wait for the next step :), the second way is referalls! If you bring more of your friends to the forge you can earn some cold hard casssshh`,
+    body: `lots of people in life ask : how to get rich? - ya got 3 ways,
+    1 - Make projects!!, 
+    2 - Reffer People ,
+    3 - Be the best guild! (checkout docs for more info)`,
   },
   {
-    target: '[data-tour="dashboard-new-project"], [data-tour="new-project"]',
-    title: `Tiers - fancy fancy`,
-    body: `Around these parts, 2 things define how much you get per project, the first one is tiers - a tier 4 project will earn you a decent amount for decent amount of work, likewise a tier 1 earns you a lot equiavalent to the work you put in, the second way - don't get robbed around these parts`,
+    target: '[data-tour="nav-dashboard"]',
+    title: `Projects!`,
+    body: `Use this very cool anvil to make and view your projects! Once you make/journal your project from here you can send them to the furnace to get quality checked by me and our smiths and once they are approved they will show up here!`,
   },
   {
-    target: '[data-tour="dashboard-new-project"], [data-tour="new-project"]',
-    title: `Pitches - the secret to success`,
-    body: `Ever had a project thats failed? Ever wanted more opinons and chatter abour your project? Introducing the forgery, the forgery is a special part of the forge that you pitch your idea,pitches help you to interact with the community on slack a about your idea and are the pathway to get unlimited funding from tier 1 (read the docs for more)`,
-  },
-  {
-    target: '[data-tour="dashboard-quest"]',
-    title: `Orph's Quest - oooo a fancy quest`,
-    body: `OHOHOHOHO the first quest has begun! Quests are weekly community challenges that reward you with badges and coins. Head to Settings > Public Profile to view them.Since this first quest is a community quest, progress from other people’s projects will also contribute to your quest bar!`,
-  },
-  {
-    target: '[data-tour="dashboard-quest"]',
-    title: `Your first quest`,
-    body: `Build any project and ship it. That's it. Once it's approved you'll earn your first coins and a badge to prove you belong here. Progress from other peoples quest bar also fills up the bar and likewise for you!`,
+    target: '[data-tour="nav-ship"]',
+    title: `THE FURNACE`,
+    body: `THIS is the big scary furnace - its what all of your projects need to go through to turn into real hardended projects that then get checked by our smiths - make sure your project meets all the requirements or it may not survive the fire in the furnace`,
   },
   {
     target: '[data-tour="nav-shop"]',

@@ -42,6 +42,7 @@ class ApplicationController < ActionController::Base
   inertia_share maintenance_mode: -> { FeatureFlag.enabled?("maintenance_mode") }
   inertia_share reels_enabled: -> { reels_enabled? }
   inertia_share guilds_enabled: -> { guilds_enabled? }
+  inertia_share forge_ui_enabled: -> { forge_ui_enabled? }
   inertia_share sign_in_path: -> { signin_path }
   inertia_share sign_out_path: -> { signout_path }
 
@@ -57,6 +58,10 @@ class ApplicationController < ActionController::Base
 
   def guilds_enabled?
     FeatureFlag.enabled?("guilds") || current_user&.admin?
+  end
+
+  def forge_ui_enabled?
+    current_user&.has_role?("forge_ui") || current_user&.admin?
   end
 
   def require_guilds_enabled!

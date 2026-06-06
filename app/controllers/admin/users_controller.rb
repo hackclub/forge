@@ -12,7 +12,7 @@ class Admin::UsersController < Admin::ApplicationController
       pagy: pagy_props(@pagy),
       query: params[:query].to_s,
       role_filter: params[:role].to_s,
-      available_roles: %w[user admin reviewer support fulfillment]
+      available_roles: %w[user admin reviewer support fulfillment forge_ui]
     }
   end
 
@@ -38,7 +38,7 @@ class Admin::UsersController < Admin::ApplicationController
       coin_adjustments: @user.coin_adjustments.includes(:actor).order(created_at: :desc).map { |a| serialize_adjustment(a) },
       hackatime: hackatime ? serialize_hackatime(hackatime) : nil,
       can: { destroy: policy(@user).destroy?, restore: policy(@user).restore? },
-      available_roles: %w[user admin reviewer support fulfillment],
+      available_roles: %w[user admin reviewer support fulfillment forge_ui],
       available_permissions: User::AVAILABLE_PERMISSIONS,
       available_regions: HasRegion::REGIONS,
       available_guilds: User.guilds.keys,
