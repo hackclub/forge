@@ -9,6 +9,7 @@ export interface User {
   is_superadmin: boolean
   is_banned: boolean
   current_streak: number
+  guild: string | null
   needs_onboarding: boolean
 }
 
@@ -29,6 +30,8 @@ export interface SharedProps {
   sign_out_path: string
   maintenance_mode: boolean
   reels_enabled: boolean
+  guilds_enabled: boolean
+  forge_ui_enabled: boolean
   errors: Record<string, string[]>
   [key: string]: unknown
 }
@@ -148,6 +151,7 @@ export interface AdminUserDetail {
   current_streak: number
   longest_streak: number
   streak_freezes: number
+  guild: string | null
 }
 
 export interface HackatimeInfo {

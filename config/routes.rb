@@ -266,6 +266,7 @@ Rails.application.routes.draw do
         member do
           patch :update_roles
           patch :update_permissions
+          patch :update_guild
           post :restore
           post :ban
           post :unban
@@ -412,6 +413,14 @@ Rails.application.routes.draw do
   patch "users/:id/github" => "users#update_github", as: :user_github
   get "news" => "news#index", as: :news
   get "news/:id" => "news#show", as: :news_post
+
+  get  "guilds/choose" => "guild_choices#new", as: :new_guild_choice
+  post "guilds/choose" => "guild_choices#create", as: :guild_choices
+  resources :guilds, only: %i[index show] do
+    collection do
+      get :leaderboard
+    end
+  end
 
   get "reels" => "reels#index", as: :reels_feed
   post "reel_ads/:id/impression" => "reel_ads#impression", as: :reel_ad_impression

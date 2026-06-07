@@ -178,7 +178,8 @@ class Project < ApplicationRecord
     return 0.0 unless approved?
 
     multiplier = streak_at_approval ? user.streak_multiplier(streak_at_approval) : user.streak_multiplier
-    (total_hours * coin_rate * multiplier).round(2)
+    guild_multiplier = GuildState.multiplier_for(user.guild)
+    (total_hours * coin_rate * multiplier * guild_multiplier).round(2)
   end
 
   REVIEW_EVENT_ACTIONS = %w[

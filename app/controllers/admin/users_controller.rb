@@ -12,7 +12,7 @@ class Admin::UsersController < Admin::ApplicationController
       pagy: pagy_props(@pagy),
       query: params[:query].to_s,
       role_filter: params[:role].to_s,
-      available_roles: %w[user admin reviewer support fulfillment]
+      available_roles: %w[user admin reviewer support fulfillment forge_ui]
     }
   end
 
@@ -38,9 +38,11 @@ class Admin::UsersController < Admin::ApplicationController
       coin_adjustments: @user.coin_adjustments.includes(:actor).order(created_at: :desc).map { |a| serialize_adjustment(a) },
       hackatime: hackatime ? serialize_hackatime(hackatime) : nil,
       can: { destroy: policy(@user).destroy?, restore: policy(@user).restore? },
-      available_roles: %w[user admin reviewer support fulfillment],
+      available_roles: %w[user admin reviewer support fulfillment forge_ui],
       available_permissions: User::AVAILABLE_PERMISSIONS,
       available_regions: HasRegion::REGIONS,
+      available_guilds: User.guilds.keys,
+      guilds_enabled: guilds_enabled?,
       badge_colors: Badge::COLORS
     }
   end
@@ -300,6 +302,32 @@ class Admin::UsersController < Admin::ApplicationController
     redirect_to admin_user_path(@user), notice: "Permissions updated."
   end
 
+  def update_guild
+    @user = User.find(params[:id])
+    authorize @user, :update?
+
+    unless FeatureFlag.enabled?("guilds") || current_user.admin?
+      redirect_to admin_user_path(@user), alert: "Guilds are disabled."
+      return
+    end
+
+    unless current_user.superadmin?
+      redirect_to admin_user_path(@user), alert: "Only superadmins can change guilds."
+      return
+    end
+
+    requested = params[:guild].to_s.presence
+    if requested && !User.guilds.key?(requested)
+      redirect_to admin_user_path(@user), alert: "Unknown guild."
+      return
+    end
+
+    previous = @user.guild
+    @user.update!(guild: requested)
+    audit!("user.guild_updated", target: @user, metadata: { from: previous, to: requested })
+    redirect_to admin_user_path(@user), notice: requested ? "Guild set to #{requested.titleize}." : "Guild cleared."
+  end
+
   private
 
   def require_users_permission!
@@ -339,7 +367,8 @@ class Admin::UsersController < Admin::ApplicationController
       created_at: user.created_at.strftime("%B %d, %Y"),
       current_streak: user.current_streak,
       longest_streak: user.longest_streak,
-      streak_freezes: user.streak_freezes
+      streak_freezes: user.streak_freezes,
+      guild: user.guild
     }
   end
 

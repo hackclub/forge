@@ -18,6 +18,7 @@
 #  git_instance_url    :string
 #  git_provider        :string           default("github")
 #  github_username     :string
+#  guild               :integer
 #  hackatime_banned_at :datetime
 #  hca_token           :text
 #  is_adult            :boolean          default(FALSE), not null
@@ -46,6 +47,7 @@
 # Indexes
 #
 #  index_users_on_discarded_at         (discarded_at)
+#  index_users_on_guild                (guild)
 #  index_users_on_hackatime_banned_at  (hackatime_banned_at)
 #  index_users_on_last_seen_at         (last_seen_at)
 #  index_users_on_referral_code        (referral_code) UNIQUE
@@ -61,6 +63,15 @@ class User < ApplicationRecord
 
   def bust_cache
     Rails.cache.delete("user/#{id}")
+  end
+
+  enum :guild, { rivendell: 0, erebor: 1, edoras: 2, valinor: 3 }
+  scope :in_guild, ->(name) { where(guild: name) }
+
+  after_commit :enqueue_guild_channel_invite, on: %i[create update], if: :saved_change_to_guild?
+
+  def joined_guild?
+    guild.present?
   end
 
   pg_search_scope :search, against: [ :display_name, :email, :slack_id ], using: { tsearch: { prefix: true } }
@@ -590,5 +601,11 @@ class User < ApplicationRecord
     return slack_id unless Rails.env.development?
 
     slack_id.delete_suffix("_DEV")
+  end
+
+  def enqueue_guild_channel_invite
+    return if guild.blank?
+
+    SlackInviteToGuildChannelJob.perform_later(id)
   end
 end

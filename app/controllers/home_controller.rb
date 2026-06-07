@@ -1,17 +1,23 @@
 class HomeController < ApplicationController
+  include ShopProps
+  include ExploreFeedProps
+  include LeaderboardProps
+  include DocsProps
+
   def index
     projects = current_user.projects.kept.order(updated_at: :desc).to_a
     news_posts = NewsPost.includes(:author).published.limit(3)
     staff_picks = Project.kept.where(hidden: false).includes(:user).staff_picks.limit(3)
     approved_count = Project.kept.where(status: %i[approved pending pitch_approved pitch_pending]).count
 
-    render inertia: "Home/Index", props: {
+    render inertia: forge_ui_enabled? ? "Home/Forge" : "Home/Index", props: {
       user: {
         display_name: current_user.display_name,
         email: current_user.email,
         avatar: current_user.avatar,
         created_at: current_user.created_at.strftime("%B %d, %Y")
       },
+      coin_balance: current_user.coin_balance,
       stats: {
         projects_count: projects.size
       },
@@ -49,7 +55,11 @@ class HomeController < ApplicationController
           user_display_name: p.user.display_name,
           user_avatar: p.user.avatar
         }
-      }
+      },
+      shop: InertiaRails.optional { shop_props },
+      explore: InertiaRails.optional { explore_feed_props },
+      leaderboard: InertiaRails.optional { leaderboard_props },
+      docs: InertiaRails.optional { docs_props(params[:doc]) }
     }
   end
 

@@ -100,6 +100,8 @@ export default function AdminUsersShow({
   available_roles,
   available_permissions,
   available_regions,
+  available_guilds,
+  guilds_enabled,
   badge_colors,
 }: {
   user: AdminUserDetail
@@ -114,6 +116,8 @@ export default function AdminUsersShow({
   available_roles: string[]
   available_permissions: string[]
   available_regions: Record<string, string>
+  available_guilds: string[]
+  guilds_enabled: boolean
   badge_colors: string[]
 }) {
   const currentUser = usePage<SharedProps>().props.auth.user
@@ -159,25 +163,49 @@ export default function AdminUsersShow({
   function toggleRole(role: string) {
     const newRoles = user.roles.includes(role) ? user.roles.filter((r) => r !== role) : [...user.roles, role]
     if (newRoles.length === 0) return alert('User must have at least one role.')
-    router.patch(`/admin/users/${user.id}/update_roles`, { roles: newRoles }, { preserveState: true, preserveScroll: true })
+    router.patch(
+      `/admin/users/${user.id}/update_roles`,
+      { roles: newRoles },
+      { preserveState: true, preserveScroll: true },
+    )
   }
 
   function togglePermission(perm: string) {
     const newPerms = user.permissions.includes(perm)
       ? user.permissions.filter((p) => p !== perm)
       : [...user.permissions, perm]
-    router.patch(`/admin/users/${user.id}/update_permissions`, { permissions: newPerms }, { preserveState: true, preserveScroll: true })
+    router.patch(
+      `/admin/users/${user.id}/update_permissions`,
+      { permissions: newPerms },
+      { preserveState: true, preserveScroll: true },
+    )
   }
 
   function revokeAllPermissions() {
     if (!confirm('Revoke all permissions?')) return
-    router.patch(`/admin/users/${user.id}/update_permissions`, { permissions: [] }, { preserveState: true, preserveScroll: true })
+    router.patch(
+      `/admin/users/${user.id}/update_permissions`,
+      { permissions: [] },
+      { preserveState: true, preserveScroll: true },
+    )
+  }
+
+  function setGuild(guild: string | null) {
+    router.patch(
+      `/admin/users/${user.id}/update_guild`,
+      { guild: guild ?? '' },
+      { preserveState: true, preserveScroll: true },
+    )
   }
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center gap-4 text-center sm:text-left">
-        <img src={user.avatar} alt={user.display_name} className="size-20 rounded-full border border-border shrink-0 mx-auto sm:mx-0" />
+        <img
+          src={user.avatar}
+          alt={user.display_name}
+          className="size-20 rounded-full border border-border shrink-0 mx-auto sm:mx-0"
+        />
         <div>
           <div className="flex items-center gap-2 flex-wrap justify-center sm:justify-start">
             <h1 className="text-2xl font-semibold tracking-tight">{user.display_name}</h1>
@@ -285,12 +313,14 @@ export default function AdminUsersShow({
                       onClick={() => toggleRole(role)}
                       className={cn(
                         'px-3 py-2.5 text-left rounded-md border transition-colors cursor-pointer flex items-center gap-3',
-                        active
-                          ? 'border-primary bg-primary/10'
-                          : 'border-border bg-background hover:bg-accent',
+                        active ? 'border-primary bg-primary/10' : 'border-border bg-background hover:bg-accent',
                       )}
                     >
-                      {active ? <CheckCircle2 className="size-4 text-primary" /> : <Circle className="size-4 text-muted-foreground" />}
+                      {active ? (
+                        <CheckCircle2 className="size-4 text-primary" />
+                      ) : (
+                        <Circle className="size-4 text-muted-foreground" />
+                      )}
                       <div>
                         <span className="text-sm font-medium capitalize">{role}</span>
                         {roleDescriptions[role] && (
@@ -345,10 +375,16 @@ export default function AdminUsersShow({
                       onClick={() => togglePermission(perm)}
                       className={cn(
                         'px-3 py-2 text-left rounded-md border transition-colors cursor-pointer flex items-center gap-2 text-sm',
-                        active ? 'border-emerald-500/40 bg-emerald-500/5' : 'border-border bg-background hover:bg-accent',
+                        active
+                          ? 'border-emerald-500/40 bg-emerald-500/5'
+                          : 'border-border bg-background hover:bg-accent',
                       )}
                     >
-                      {active ? <ToggleRight className="size-4 text-emerald-600 dark:text-emerald-400" /> : <ToggleLeft className="size-4 text-muted-foreground" />}
+                      {active ? (
+                        <ToggleRight className="size-4 text-emerald-600 dark:text-emerald-400" />
+                      ) : (
+                        <ToggleLeft className="size-4 text-muted-foreground" />
+                      )}
                       {permissionLabels[perm] || perm}
                     </button>
                   )
@@ -373,6 +409,62 @@ export default function AdminUsersShow({
           )}
         </CardContent>
       </Card>
+
+      {guilds_enabled && (
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle>Guild</CardTitle>
+            {isSuperadmin && user.guild && (
+              <Button variant="outline" size="sm" onClick={() => setGuild(null)}>
+                Clear
+              </Button>
+            )}
+          </CardHeader>
+          <CardContent>
+            {isSuperadmin ? (
+              <>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Users pick their guild once on signup. Changing it here overrides their choice and re-invites them to
+                  the new guild's channel.
+                </p>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                  {available_guilds.map((g) => {
+                    const active = user.guild === g
+                    return (
+                      <button
+                        key={g}
+                        onClick={() => setGuild(g)}
+                        className={cn(
+                          'px-3 py-2.5 text-left rounded-md border transition-colors cursor-pointer flex items-center gap-2',
+                          active ? 'border-primary bg-primary/10' : 'border-border bg-background hover:bg-accent',
+                        )}
+                      >
+                        {active ? (
+                          <CheckCircle2 className="size-4 text-primary" />
+                        ) : (
+                          <Circle className="size-4 text-muted-foreground" />
+                        )}
+                        <span className="text-sm font-medium capitalize">{g}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </>
+            ) : (
+              <>
+                <p className="text-sm text-muted-foreground mb-3">Only superadmins can change a user's guild.</p>
+                {user.guild ? (
+                  <Badge variant="outline" className="capitalize">
+                    {user.guild}
+                  </Badge>
+                ) : (
+                  <span className="text-xs text-muted-foreground">No guild</span>
+                )}
+              </>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>
@@ -596,7 +688,9 @@ export default function AdminUsersShow({
                           const next = active
                             ? user.fulfillment_regions.filter((r) => r !== key)
                             : [...user.fulfillment_regions, key]
-                          router.patch(`/admin/users/${user.id}/update_fulfillment_regions`, { fulfillment_regions: next })
+                          router.patch(`/admin/users/${user.id}/update_fulfillment_regions`, {
+                            fulfillment_regions: next,
+                          })
                         }}
                         className={cn(
                           'px-3 py-2 text-xs font-medium rounded-md border transition-colors cursor-pointer',
@@ -651,7 +745,12 @@ export default function AdminUsersShow({
         </CardHeader>
         <CardContent className="space-y-3">
           <p className="text-sm text-muted-foreground">Only visible to staff.</p>
-          <Textarea value={noteContent} onChange={(e) => setNoteContent(e.target.value)} placeholder="Add a note..." rows={3} />
+          <Textarea
+            value={noteContent}
+            onChange={(e) => setNoteContent(e.target.value)}
+            placeholder="Add a note..."
+            rows={3}
+          />
           <Button
             size="sm"
             onClick={() => {
@@ -701,7 +800,12 @@ export default function AdminUsersShow({
         </CardHeader>
         <CardContent className="space-y-3">
           <p className="text-sm text-muted-foreground">Public shoutouts shown on the user's profile.</p>
-          <Textarea value={kudoContent} onChange={(e) => setKudoContent(e.target.value)} placeholder="Give them some kudos..." rows={3} />
+          <Textarea
+            value={kudoContent}
+            onChange={(e) => setKudoContent(e.target.value)}
+            placeholder="Give them some kudos..."
+            rows={3}
+          />
           <Button
             size="sm"
             onClick={() => {
@@ -824,7 +928,12 @@ export default function AdminUsersShow({
               {badges.map((badge) => (
                 <Card key={badge.id}>
                   <CardContent className="p-3 flex items-center gap-3">
-                    <div className={cn('shrink-0 size-10 rounded-md flex items-center justify-center', BADGE_COLOR_SWATCH[badge.color] || BADGE_COLOR_SWATCH.orange)}>
+                    <div
+                      className={cn(
+                        'shrink-0 size-10 rounded-md flex items-center justify-center',
+                        BADGE_COLOR_SWATCH[badge.color] || BADGE_COLOR_SWATCH.orange,
+                      )}
+                    >
                       <span className="material-symbols-outlined text-2xl">{badge.icon}</span>
                     </div>
                     <div className="flex-1 min-w-0">
@@ -832,7 +941,9 @@ export default function AdminUsersShow({
                         <span className="text-sm font-medium">{badge.name}</span>
                         {badge.key && <Badge variant="outline">Auto</Badge>}
                       </div>
-                      {badge.description && <p className="text-xs text-muted-foreground mt-0.5 break-words">{badge.description}</p>}
+                      {badge.description && (
+                        <p className="text-xs text-muted-foreground mt-0.5 break-words">{badge.description}</p>
+                      )}
                       <p className="text-[11px] text-muted-foreground mt-0.5 uppercase tracking-wide">
                         {badge.awarded_at}
                         {badge.awarder_name ? ` · awarded by ${badge.awarder_name}` : ' · auto-awarded'}
@@ -842,7 +953,8 @@ export default function AdminUsersShow({
                       variant="ghost"
                       size="icon"
                       onClick={() => {
-                        if (confirm(`Remove the "${badge.name}" badge?`)) router.delete(`/admin/users/${user.id}/badges/${badge.id}`)
+                        if (confirm(`Remove the "${badge.name}" badge?`))
+                          router.delete(`/admin/users/${user.id}/badges/${badge.id}`)
                       }}
                     >
                       <X className="size-4" />

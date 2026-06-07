@@ -59,9 +59,11 @@ class Referral < ApplicationRecord
     return unless force || eligible?
 
     transaction do
+      guild_multiplier = GuildState.multiplier_for(referrer.guild)
+      amount = (PAYOUT_AMOUNT * guild_multiplier).round(2)
       adjustment = referrer.coin_adjustments.create!(
         actor: actor,
-        amount: PAYOUT_AMOUNT,
+        amount: amount,
         reason: "Referral payout for #{referred.display_name}"
       )
       ReferralPrizePool.instance.contribute!(PRIZE_POOL_CONTRIBUTION)

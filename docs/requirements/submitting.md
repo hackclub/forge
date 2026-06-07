@@ -32,8 +32,8 @@ Generally speaking, each project must be closer to a product than a demo - that 
 - Stolen work from other people
 - Missing firmware/software
 - AI generated firmware
-- 
->Note: If any source of plagiarism or the things above is found in your project, it will be rejected or returned for changes.
+
+> NOTE: If your project has plagiarism or any thing above, It could be returned or rejected.
 
 ## README.md
 
