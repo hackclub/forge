@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useState } from 'react'
+import FireIcon from '@/components/FireIcon'
 
 interface Props {
   onDone: () => void
@@ -81,15 +82,7 @@ export default function OnboardingCelebration({ onDone }: Props) {
         }
       >
         <span className="forge-celebration-coin w-[180px] h-[180px] bg-[#0e0e0e] shadow-[0_0_40px_rgba(238,103,28,0.7)] flex items-center justify-center border border-[#ca5924]/40">
-          <span
-            className="material-symbols-outlined text-[#ffb595] leading-none"
-            style={{
-              fontSize: '170px',
-              fontVariationSettings: "'FILL' 1, 'wght' 500, 'opsz' 48",
-            }}
-          >
-            local_fire_department
-          </span>
+          <FireIcon className="text-[150px] leading-none" />
         </span>
       </div>
 

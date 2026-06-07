@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
+import FireIcon from '@/components/FireIcon'
 
 const SIZES = {
   sm: 'max-w-md',
@@ -98,14 +99,17 @@ export default function ForgePopup({ open, onClose, title, icon, size = 'md', ch
         {(title || icon) && (
           <div className="flex shrink-0 items-center justify-between gap-3 border-b border-white/5 px-5 py-4 sm:px-6">
             <div className="flex min-w-0 items-center gap-2.5">
-              {icon && (
-                <span
-                  className="material-symbols-outlined shrink-0 text-2xl text-[#ca5924]"
-                  style={{ fontVariationSettings: "'FILL' 1" }}
-                >
-                  {icon}
-                </span>
-              )}
+              {icon &&
+                (icon === 'local_fire_department' ? (
+                  <FireIcon className="text-2xl" />
+                ) : (
+                  <span
+                    className="material-symbols-outlined shrink-0 text-2xl text-[#ca5924]"
+                    style={{ fontVariationSettings: "'FILL' 1" }}
+                  >
+                    {icon}
+                  </span>
+                ))}
               {title && (
                 <h2 className="truncate font-headline text-lg font-bold tracking-tight text-[#e5e2e1] sm:text-xl">
                   {title}

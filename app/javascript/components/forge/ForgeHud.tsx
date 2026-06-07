@@ -74,7 +74,7 @@ export default function ForgeHud({ coinBalance }: { coinBalance: number }) {
       </Link>
 
       <div className="absolute right-5 top-4 z-30 hidden items-center gap-4 md:flex xl:gap-5">
-        <Counter icon="local_fire_department" value={user.current_streak} label="Day streak" color="#ff7a3c" />
+        <Counter img="/fire.png" value={user.current_streak} label="Day streak" />
         <Counter img="/coin.png" value={coinBalance} label="Steel coins" />
       </div>
     </>

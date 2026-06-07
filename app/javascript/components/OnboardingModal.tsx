@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { router } from '@inertiajs/react'
 import OnboardingCelebration from '@/components/OnboardingCelebration'
+import FireIcon from '@/components/FireIcon'
 
 type DinoKey = 'wave' | 'glasses' | 'thumbsup' | 'destroyer' | 'aaa' | 'docs' | 'rich'
 
@@ -373,9 +374,11 @@ export default function OnboardingModal() {
             className="signature-smolder text-[#4c1a00] px-3 py-1.5 font-bold uppercase tracking-wider text-[10px] flex items-center gap-1.5 disabled:opacity-50 cursor-pointer shrink-0 corner-accents"
           >
             {!done ? 'Skip' : isLast ? 'Enter the forge' : 'Next'}
-            <span className="material-symbols-outlined text-sm">
-              {!done ? 'fast_forward' : isLast ? 'local_fire_department' : 'arrow_forward'}
-            </span>
+            {isLast && done ? (
+              <FireIcon className="text-sm" />
+            ) : (
+              <span className="material-symbols-outlined text-sm">{!done ? 'fast_forward' : 'arrow_forward'}</span>
+            )}
           </button>
         </div>
       </div>

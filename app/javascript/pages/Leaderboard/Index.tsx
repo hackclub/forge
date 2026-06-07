@@ -1,4 +1,5 @@
 import { Head, Link } from '@inertiajs/react'
+import FireIcon from '@/components/FireIcon'
 
 interface Row {
   id: number
@@ -93,7 +94,11 @@ function LeaderboardTable({ board, current_user_id }: { board: Board; current_us
     <div>
       <div className="flex items-center justify-between gap-2 mb-3">
         <div className="flex items-center gap-2 min-w-0">
-          <span className="material-symbols-outlined text-[#ca5924]">{board.icon}</span>
+          {board.icon === 'local_fire_department' ? (
+            <FireIcon className="text-2xl" />
+          ) : (
+            <span className="material-symbols-outlined text-[#ca5924]">{board.icon}</span>
+          )}
           <h2 className="text-xl font-headline font-bold text-[#e5e2e1] tracking-tight truncate">{board.title}</h2>
         </div>
         {board.actionHref && (

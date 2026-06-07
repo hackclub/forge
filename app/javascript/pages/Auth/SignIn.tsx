@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Head } from '@inertiajs/react'
+import FireIcon from '@/components/FireIcon'
 
 export default function AuthSignIn() {
   const [email, setEmail] = useState('')
@@ -79,7 +80,7 @@ export default function AuthSignIn() {
               href="/auth/hca/start"
               className="w-full signature-smolder text-[#4c1a00] font-headline font-bold py-3 uppercase tracking-[0.2em] text-xs flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
             >
-              <span className="material-symbols-outlined text-lg">local_fire_department</span>
+              <FireIcon className="text-lg" />
               Log in with Hack Club Auth
             </a>
 

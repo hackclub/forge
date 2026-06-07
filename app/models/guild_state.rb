@@ -1,3 +1,20 @@
+# == Schema Information
+#
+# Table name: guild_states
+#
+#  id                  :bigint           not null, primary key
+#  computed_at         :datetime
+#  guild               :integer          not null
+#  members_active_week :integer          default(0), not null
+#  multiplier          :decimal(5, 3)    default(1.0), not null
+#  referrals_week      :integer          default(0), not null
+#  created_at          :datetime         not null
+#  updated_at          :datetime         not null
+#
+# Indexes
+#
+#  index_guild_states_on_guild  (guild) UNIQUE
+#
 class GuildState < ApplicationRecord
   enum :guild, { rivendell: 0, erebor: 1, edoras: 2, valinor: 3 }
 

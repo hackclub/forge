@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Head, Link, router } from '@inertiajs/react'
 import type { ProjectStatus } from '@/types'
+import FireIcon from '@/components/FireIcon'
 
 interface ProfileUser {
   id: number
@@ -213,11 +214,7 @@ export default function UsersShow({ user, stats, projects, kudos, badges, can_gi
                 : 'No current streak'
             }
           >
-            <span
-              className={`material-symbols-outlined text-3xl ${stats.current_streak > 0 ? 'text-[#ca5924]' : 'text-stone-600'}`}
-            >
-              local_fire_department
-            </span>
+            <FireIcon className={`text-3xl ${stats.current_streak > 0 ? '' : 'opacity-40 grayscale'}`} />
             <div className="text-left">
               <p
                 className={`text-2xl font-headline font-bold leading-none ${stats.current_streak > 0 ? 'text-[#ffb595]' : 'text-stone-500'}`}
@@ -239,11 +236,7 @@ export default function UsersShow({ user, stats, projects, kudos, badges, can_gi
                 <div
                   className={`w-14 h-14 flex items-center justify-center ${stats.current_streak > 0 ? 'bg-[#ca5924]/15' : 'bg-stone-500/10'}`}
                 >
-                  <span
-                    className={`material-symbols-outlined text-3xl ${stats.current_streak > 0 ? 'text-[#ca5924]' : 'text-stone-600'}`}
-                  >
-                    local_fire_department
-                  </span>
+                  <FireIcon className={`text-3xl ${stats.current_streak > 0 ? '' : 'opacity-40 grayscale'}`} />
                 </div>
                 <div>
                   <p className="text-4xl font-headline font-bold text-[#e5e2e1] tracking-tight leading-none">
