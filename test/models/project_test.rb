@@ -64,7 +64,47 @@
 require "test_helper"
 
 class ProjectTest < ActiveSupport::TestCase
-  # test "the truth" do
-  #   assert true
-  # end
+  include ActiveJob::TestHelper
+
+  def draft_project
+    Project.create!(user: users(:one), name: "Sync Test", tier: "tier_4", status: :draft)
+  end
+
+  test "approving a draft project enqueues a single AirtableSyncJob" do
+    project = draft_project
+
+    assert_enqueued_jobs 1, only: AirtableSyncJob do
+      project.update!(status: :approved)
+    end
+  end
+
+  test "editing an already-approved project does not re-enqueue AirtableSyncJob" do
+    project = draft_project
+    project.update!(status: :approved) # initial, legitimate sync
+
+    # The reported bug: any later edit to an approved project re-queued it.
+    assert_no_enqueued_jobs only: AirtableSyncJob do
+      project.update!(subtitle: "edited after approval")
+    end
+  end
+
+  test "re-approving a project that was already sent to Airtable does not enqueue AirtableSyncJob" do
+    project = draft_project
+    project.update!(status: :approved)
+
+    # Simulate the queued item having been successfully delivered to Airtable.
+    project.airtable_queue_items.create!(
+      status: :sent,
+      sent_at: Time.current,
+      table_name: "Test Table",
+      forge_id: project.id.to_s,
+      payload: {}
+    )
+
+    project.update!(status: :returned)
+
+    assert_no_enqueued_jobs only: AirtableSyncJob do
+      project.update!(status: :approved)
+    end
+  end
 end
