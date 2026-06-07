@@ -48,6 +48,10 @@ class Referral < ApplicationRecord
   validates :referred_id, uniqueness: true
   validate :cannot_refer_self
 
+  # Refresh the referrer's guild multiplier as soon as a new referral lands,
+  # so the multiplier/prize pool climb live instead of only on the weekly cron.
+  after_commit :recompute_referrer_guild, on: :create
+
   def mark_eligible!(project)
     return unless pending?
 
@@ -75,5 +79,12 @@ class Referral < ApplicationRecord
 
   def cannot_refer_self
     errors.add(:referred_id, "cannot be the referrer") if referrer_id == referred_id
+  end
+
+  def recompute_referrer_guild
+    guild = referrer&.guild
+    return if guild.blank?
+
+    ComputeGuildMultipliersJob.perform_later(guild: guild, distribute: false)
   end
 end
