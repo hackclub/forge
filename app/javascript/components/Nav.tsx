@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { usePage, Link } from '@inertiajs/react'
 import type { SharedProps } from '@/types'
+import FireIcon from '@/components/FireIcon'
 
 type NavItem = {
   href: string
@@ -193,7 +194,7 @@ export default function Nav() {
                     className="flex items-center gap-1 bg-[#ca5924]/10 text-[#ffb595] px-2 py-1 shrink-0"
                     title={`${shared.auth.user.current_streak} day streak`}
                   >
-                    <span className="material-symbols-outlined text-base">local_fire_department</span>
+                    <FireIcon className="text-base" />
                     <span className="text-xs font-bold font-headline">{shared.auth.user.current_streak}</span>
                   </span>
                 )}

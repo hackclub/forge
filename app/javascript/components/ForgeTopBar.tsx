@@ -1,5 +1,6 @@
 import { Link, usePage } from '@inertiajs/react'
 import type { SharedProps } from '@/types'
+import FireIcon from '@/components/FireIcon'
 
 export default function ForgeTopBar() {
   const shared = usePage<SharedProps>().props
@@ -18,9 +19,7 @@ export default function ForgeTopBar() {
         <span className="material-symbols-outlined text-xl transition-transform group-hover:-translate-x-0.5">
           arrow_back
         </span>
-        <span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>
-          local_fire_department
-        </span>
+        <FireIcon className="text-xl" />
         <span className="hidden sm:inline">Back to the Forge</span>
       </Link>
 
@@ -42,7 +41,7 @@ export default function ForgeTopBar() {
                 className="flex items-center gap-1 bg-[#ca5924]/10 px-2 py-1 text-[#ffb595]"
                 title={`${user.current_streak} day streak`}
               >
-                <span className="material-symbols-outlined text-base">local_fire_department</span>
+                <FireIcon className="text-base" />
                 <span className="font-headline text-xs font-bold">{user.current_streak}</span>
               </span>
             )}

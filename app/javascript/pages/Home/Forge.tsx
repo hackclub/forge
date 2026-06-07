@@ -10,6 +10,7 @@ import ExplorePopup from '@/components/forge/ExplorePopup'
 import LeaderboardPopup from '@/components/forge/LeaderboardPopup'
 import FaqPopup from '@/components/forge/FaqPopup'
 import ForgeHud from '@/components/forge/ForgeHud'
+import FireIcon from '@/components/FireIcon'
 import ForgeMusic from '@/components/forge/ForgeMusic'
 import type { DashboardProject } from '@/components/forge/projectStatus'
 
@@ -49,7 +50,7 @@ const OBJECTS: ForgeObject[] = [
     y: 26,
     w: 33,
     h: 35,
-    rot: -14,
+    rot: -11,
     points: [
       [11.4, 33.4],
       [39.8, 20.4],
@@ -59,8 +60,8 @@ const OBJECTS: ForgeObject[] = [
       [13.6, 67.1],
       [11.8, 40.7],
     ],
-    lx: 25.6,
-    ly: 23.2,
+    lx: 25.7,
+    ly: 23.5,
     tbox: { x: 11.2, y: 20.9, w: 34.3, h: 47.4 },
   },
   {
@@ -70,9 +71,10 @@ const OBJECTS: ForgeObject[] = [
     icon: 'menu_book',
     tour: 'nav-docs',
     x: 3,
-    y: 5,
+    y: 4,
     w: 9,
-    h: 19,
+    h: 21,
+    rot: 0,
     tbox: { x: 2.3, y: 2.6, w: 10.9, h: 22.7 },
   },
   {
@@ -85,7 +87,7 @@ const OBJECTS: ForgeObject[] = [
     y: 64,
     w: 21,
     h: 21,
-    rot: -26,
+    rot: -23,
     points: [
       [29.3, 74.6],
       [40.3, 63.4],
@@ -109,6 +111,7 @@ const OBJECTS: ForgeObject[] = [
     y: 26,
     w: 26,
     h: 54,
+    rot: 10,
     points: [
       [63.2, 33.2],
       [79.1, 27.7],
@@ -121,8 +124,8 @@ const OBJECTS: ForgeObject[] = [
       [58.9, 64.1],
       [59.2, 43.4],
     ],
-    lx: 68.4,
-    ly: 23.5,
+    lx: 68.3,
+    ly: 32.4,
     tbox: { x: 53.2, y: 0, w: 29.5, h: 85.9 },
   },
   {
@@ -135,6 +138,7 @@ const OBJECTS: ForgeObject[] = [
     y: 54,
     w: 13,
     h: 23,
+    rot: 0,
     points: [
       [85, 58.2],
       [90.5, 54],
@@ -160,7 +164,7 @@ const OBJECTS: ForgeObject[] = [
     y: 84,
     w: 16,
     h: 14,
-    rot: 19,
+    rot: 16,
     points: [
       [79.8, 81.6],
       [93.1, 89.6],
@@ -171,8 +175,8 @@ const OBJECTS: ForgeObject[] = [
       [80.2, 88.4],
       [78.1, 85.2],
     ],
-    lx: 86.5,
-    ly: 82.5,
+    lx: 85.7,
+    ly: 82.1,
     tbox: { x: 75.8, y: 77.3, w: 18.1, h: 22.1 },
   },
 ]
@@ -311,7 +315,11 @@ export default function ForgeScene({ projects, orph_motivation, coin_balance }: 
                 onClick={() => setOpen(o.id)}
                 className="corner-accents flex flex-col items-center gap-2.5 bg-[#1c1b1b] p-5 text-center ghost-border transition active:scale-95 hover:bg-[#2a2a2a]"
               >
-                <span className="material-symbols-outlined text-3xl text-[#ca5924]">{o.icon}</span>
+                {o.icon === 'local_fire_department' ? (
+                  <FireIcon className="text-3xl" />
+                ) : (
+                  <span className="material-symbols-outlined text-3xl text-[#ca5924]">{o.icon}</span>
+                )}
                 <span className="font-headline text-sm uppercase tracking-wider text-[#e5e2e1]">{o.label}</span>
               </button>
             ))}

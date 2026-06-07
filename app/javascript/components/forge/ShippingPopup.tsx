@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from '@inertiajs/react'
 import { STATUS_COLORS, STATUS_LABELS, type DashboardProject } from './projectStatus'
+import FireIcon from '@/components/FireIcon'
 
 interface ShippingPopupProps {
   projects: DashboardProject[]
@@ -17,12 +18,7 @@ export default function ShippingPopup({ projects, onClose }: ShippingPopupProps)
   if (projects.length === 0) {
     return (
       <div className="py-10 text-center">
-        <span
-          className="material-symbols-outlined mb-3 block text-5xl text-[#ca5924]"
-          style={{ fontVariationSettings: "'FILL' 1" }}
-        >
-          local_fire_department
-        </span>
+        <FireIcon className="mb-3 block text-5xl mx-auto" />
         <p className="mb-1 font-headline text-lg text-[#e5e2e1]">Nothing to ship yet</p>
         <p className="mb-6 text-sm text-stone-500">Forge a project first, then bring it to the furnace.</p>
         <Link
@@ -92,7 +88,7 @@ export default function ShippingPopup({ projects, onClose }: ShippingPopupProps)
           disabled={selectedId === null}
           className="signature-smolder corner-accents inline-flex cursor-pointer items-center gap-2 px-6 py-3 font-headline text-xs font-bold uppercase tracking-wider text-[#4c1a00] disabled:cursor-not-allowed disabled:opacity-40"
         >
-          <span className="material-symbols-outlined text-base">local_fire_department</span>
+          <FireIcon className="text-base" />
           Ship it
         </button>
       </div>

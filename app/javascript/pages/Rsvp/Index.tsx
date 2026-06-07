@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { Head } from '@inertiajs/react'
+import FireIcon from '@/components/FireIcon'
 
 const FORGE_ICONS = [
   'hardware',
@@ -232,7 +233,7 @@ export default function RsvpIndex() {
               href="/signin"
               className="signature-smolder text-[#4c1a00] font-headline font-bold py-4 px-10 uppercase tracking-[0.2em] text-sm inline-flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
             >
-              <span className="material-symbols-outlined text-lg">local_fire_department</span>
+              <FireIcon className="text-lg" />
               Get Started
             </a>
           </div>

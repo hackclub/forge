@@ -1,5 +1,6 @@
 import { Link } from '@inertiajs/react'
 import { ForgeLoading, useForgeData } from './useForgeData'
+import FireIcon from '@/components/FireIcon'
 
 interface Row {
   id: number
@@ -88,7 +89,11 @@ function LeaderboardTable({ board, currentUserId }: { board: Board; currentUserI
   return (
     <div>
       <div className="mb-3 flex items-center gap-2">
-        <span className="material-symbols-outlined text-[#ca5924]">{board.icon}</span>
+        {board.icon === 'local_fire_department' ? (
+          <FireIcon className="text-2xl" />
+        ) : (
+          <span className="material-symbols-outlined text-[#ca5924]">{board.icon}</span>
+        )}
         <h3 className="truncate font-headline text-lg font-bold tracking-tight text-[#e5e2e1]">{board.title}</h3>
       </div>
       <p className="mb-4 text-xs text-stone-500">{board.subtitle}</p>
