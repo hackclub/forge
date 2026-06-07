@@ -83,7 +83,7 @@ class Project < ApplicationRecord
   has_many :project_views, dependent: :destroy
   has_one_attached :cover_image
 
-  after_commit :sync_to_airtable, on: [ :create, :update ], if: -> { approved? }
+  after_commit :sync_to_airtable, on: [ :create, :update ], if: -> { approved? && saved_change_to_status? && !airtable_sent? }
   after_update_commit :maybe_award_orph_quest, if: :saved_change_to_status?
   after_update_commit :process_cover_image_upload, if: -> { cover_image.attached? && cover_image_url.blank? }
 
