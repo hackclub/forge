@@ -57,7 +57,7 @@ module PitchParser
   # values don't throw off the depth. Returns nil if no complete object exists
   # (e.g. the response was truncated), which lets the caller retry/fall back.
   def extract_json_object(content)
-    cleaned = content.gsub(%r{<think>.*?</think>}m, "").gsub(/```(?:json)?/i, "")
+    cleaned = strip_reasoning(content).gsub(/```(?:json)?/i, "")
     start = cleaned.index("{")
     return nil if start.nil?
 
@@ -84,6 +84,17 @@ module PitchParser
     end
 
     nil
+  end
+
+  # Drop any <think>…</think> reasoning that precedes the answer by taking
+  # everything after the last closing tag. Uses plain string search (rindex)
+  # instead of a regex so a crafted response can't trigger catastrophic
+  # backtracking (ReDoS).
+  def strip_reasoning(content)
+    close = content.rindex("</think>")
+    return content if close.nil?
+
+    content[(close + "</think>".length)..]
   end
 
   def fallback(text)
