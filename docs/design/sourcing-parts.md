@@ -86,6 +86,9 @@ Coming soon.
         - [Robocraze](https://robocraze.com/)
         - [EBhoot](https://ebhoot.in/)
         - [MakerBazar](https://makerbazar.in/)
+     
+### Netherlands:
+Due to package import tarrifs from out of the EU, you should try to use Dutch webshops, like [Otronic](https://www.otronic.nl/) or [BitsandParts](https://www.bitsandparts.nl) (note that BitsandParts has a bit limited stock and a pretty weird website). These webshops have a pretty bad search engine, so try to use the categories. A downside to Otronic is that shipping is a bit expensive, but its definetly the best out there. Also note that some YSWS's require USD prices, and these shops only sell in euros. 
 
 > confirmed more vendors? wanna add specific notes for your country? contribute [here](https://github.com/hackclub/forge/edit/main/docs/design/sourcing-parts.md)!! You'd be helping a ton of people!
 
