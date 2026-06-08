@@ -10,7 +10,7 @@ Forge is open to builders aged 13 to 18. You must be a member of the Hack Club S
 
 ## When does Forge end?
 
-There's no set date right now, but expect it to last at least until June-July 2026.
+There's no set date right now, but expect it to last at least until October 2026, after the IRL event.
 
 ## How much funding can I get?
 
@@ -98,7 +98,7 @@ No. You must do your routing manually.
 
 ## What is the purpose of streak system in forge?
 
-The streak system increases your payout according to your streak.
+The streak system increases your payout according to your streak, which increases for every day you journal!
 
 ## What is the payout increase of streaks?
 
