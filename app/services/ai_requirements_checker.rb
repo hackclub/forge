@@ -19,7 +19,7 @@ module AiRequirementsChecker
       label: "Google Gemini"
     }
   }.freeze
-  DEFAULT_PROVIDER = "hackclub".freeze
+  DEFAULT_PROVIDER = "google".freeze
   EVALUATION_TIMEOUT = 90
   RATE_LIMIT_RETRIES = 4
   RETRYABLE_CODES = [ 429, 500, 502, 503, 504 ].freeze
