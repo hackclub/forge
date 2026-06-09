@@ -40,6 +40,7 @@ module AiRequirementsChecker
     requirements = list_requirements(config)
     raise Error, "Could not extract any requirements from the rubric." if requirements.empty?
 
+    requirements = requirements_for_tier(requirements, project.tier)
     evaluated = evaluate_all(requirements, project, config)
 
     {
@@ -52,8 +53,18 @@ module AiRequirementsChecker
     }
   end
 
+  # Keep tiers an explicit subset of a requirement only when the docs gate it
+  # (e.g. pitches are Tier 1 only). An empty array means "applies to every tier".
+  def requirements_for_tier(requirements, tier)
+    tier_number = tier.to_s[/\d+/]&.to_i
+    requirements.select do |req|
+      tiers = Array(req["tiers"])
+      tiers.empty? || tier_number.nil? || tiers.include?(tier_number)
+    end
+  end
+
   def list_requirements(config)
-    Rails.cache.fetch([ "ai_requirements_checker", "requirement_list", docs_digest, config[:model] ], expires_in: 12.hours) do
+    Rails.cache.fetch([ "ai_requirements_checker", "requirement_list", "v2", docs_digest, config[:model] ], expires_in: 12.hours) do
       fetch_requirement_list(config)
     end
   end
@@ -72,7 +83,8 @@ module AiRequirementsChecker
       {
         "name" => name.truncate(120),
         "source" => req["source"].to_s.truncate(80),
-        "criterion" => req["criterion"].to_s.truncate(400)
+        "criterion" => req["criterion"].to_s.truncate(400),
+        "tiers" => Array(req["tiers"]).filter_map { |t| Integer(t, exception: false) }
       }
     end
   end
@@ -161,9 +173,10 @@ module AiRequirementsChecker
         - name: short neutral name, under 8 words
         - source: the doc filename it came from (e.g. "submitting.md")
         - criterion: one sentence describing exactly what the project must have or do to pass this requirement
+        - tiers: project tiers this requirement applies to, as numbers 1-4. Use an empty array [] when it applies to every tier. ONLY list specific tiers when the docs explicitly gate it (e.g. "you are only required to pitch for Tier 1 projects" → [1]). Note tier 1 is the most advanced, tier 4 the simplest.
 
       Respond in valid JSON only, no markdown fences:
-      {"requirements": [{"name": "...", "source": "...", "criterion": "..."}]}
+      {"requirements": [{"name": "...", "source": "...", "criterion": "...", "tiers": []}]}
     PROMPT
   end
 
