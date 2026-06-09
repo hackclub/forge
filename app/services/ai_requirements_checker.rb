@@ -20,9 +20,8 @@ module AiRequirementsChecker
     }
   }.freeze
   DEFAULT_PROVIDER = "hackclub".freeze
-  PER_REQUIREMENT_CONCURRENCY = 3
-  PER_REQUIREMENT_TIMEOUT = 45
-  RATE_LIMIT_RETRIES = 3
+  EVALUATION_TIMEOUT = 90
+  RATE_LIMIT_RETRIES = 4
 
   DOC_GLOBS = [
     Rails.root.join("docs/requirements/*.md"),
@@ -40,7 +39,7 @@ module AiRequirementsChecker
     requirements = list_requirements(config)
     raise Error, "Could not extract any requirements from the rubric." if requirements.empty?
 
-    evaluated = evaluate_in_parallel(requirements, project, config)
+    evaluated = evaluate_all(requirements, project, config)
 
     {
       "summary" => build_summary(evaluated),
@@ -77,45 +76,35 @@ module AiRequirementsChecker
     end
   end
 
-  def evaluate_in_parallel(requirements, project, config)
+  def evaluate_all(requirements, project, config)
     project_context = project_context_text(project)
-    queue = Queue.new
-    requirements.each { |req| queue << req }
-    results = Array.new(requirements.size)
-    index_by_name = requirements.each_with_index.to_h { |req, i| [ req["name"], i ] }
-
-    workers = Array.new([ PER_REQUIREMENT_CONCURRENCY, requirements.size ].min) do
-      Thread.new do
-        until queue.empty?
-          begin
-            req = queue.pop(true)
-          rescue ThreadError
-            break
-          end
-          results[index_by_name[req["name"]]] = evaluate_requirement(req, project_context, config)
-        end
-      end
-    end
-    workers.each(&:join)
-    results.compact
-  end
-
-  def evaluate_requirement(requirement, project_context, config)
-    response = post_chat(evaluate_requirement_prompt(requirement, project_context), config)
-    return uncertain_result(requirement, "Couldn't reach the AI (#{response.code}).") unless response.is_a?(Net::HTTPSuccess)
+    response = post_chat(evaluate_all_prompt(requirements, project_context), config)
+    return requirements.map { |req| uncertain_result(req, "Couldn't reach the AI (#{response&.code}).") } unless response.is_a?(Net::HTTPSuccess)
 
     content = JSON.parse(response.body).dig("choices", 0, "message", "content").to_s
     parsed = extract_json(content) || {}
-    {
-      "name" => requirement["name"],
-      "source" => requirement["source"],
-      "verdict" => normalize_verdict(parsed["verdict"]),
-      "reasoning" => parsed["reasoning"].to_s.truncate(400)
-    }
+    by_name = Array(parsed["results"]).each_with_object({}) do |row, acc|
+      next unless row.is_a?(Hash)
+
+      key = row["name"].to_s.strip.downcase
+      acc[key] = row unless key.empty?
+    end
+
+    requirements.map do |req|
+      row = by_name[req["name"].to_s.strip.downcase]
+      next uncertain_result(req, "The AI didn't return a verdict for this one — please verify yourself.") unless row
+
+      {
+        "name" => req["name"],
+        "source" => req["source"],
+        "verdict" => normalize_verdict(row["verdict"]),
+        "reasoning" => row["reasoning"].to_s.truncate(400)
+      }
+    end
   rescue Net::ReadTimeout, Net::OpenTimeout
-    uncertain_result(requirement, "Check timed out — please verify yourself.")
+    requirements.map { |req| uncertain_result(req, "Check timed out — please verify yourself.") }
   rescue SocketError, Errno::ECONNREFUSED, Errno::ECONNRESET, OpenSSL::SSL::SSLError, JSON::ParserError
-    uncertain_result(requirement, "Couldn't get a clean answer from the AI — please verify yourself.")
+    requirements.map { |req| uncertain_result(req, "Couldn't get a clean answer from the AI — please verify yourself.") }
   end
 
   def uncertain_result(requirement, message)
@@ -204,14 +193,16 @@ module AiRequirementsChecker
     CTX
   end
 
-  def evaluate_requirement_prompt(requirement, project_context)
-    <<~PROMPT
-      You're Orph, a friendly Hack Club Forge helper. You're doing a pre-submission check, focused on ONE requirement. Be encouraging and constructive — your job is to help the builder ship, not gatekeep.
+  def evaluate_all_prompt(requirements, project_context)
+    requirement_list = requirements.each_with_index.map do |req, i|
+      "#{i + 1}. name: #{req['name']}\n   source: #{req['source']}\n   what it means: #{req['criterion']}"
+    end.join("\n")
 
-      ## The requirement
-      Name: #{requirement['name']}
-      Source: #{requirement['source']}
-      What it means: #{requirement['criterion']}
+    <<~PROMPT
+      You're Orph, a friendly Hack Club Forge helper doing a pre-submission check. Be encouraging and constructive — your job is to help the builder ship, not gatekeep. Evaluate the project against EVERY requirement below and give a verdict for each one.
+
+      ## The requirements
+      #{requirement_list}
 
       ## The project
       #{project_context}
@@ -224,8 +215,8 @@ module AiRequirementsChecker
       For visual requirements: if the README has at least one image reference, mark "uncertain" and say you can see images but can't verify their content. If there are zero image references, mark "fail" and say no images were found.
 
       ## Output
-      Respond in valid JSON only, no markdown fences:
-      {"verdict": "pass|fail|uncertain", "reasoning": "one short sentence, on the builder's side"}
+      Return a verdict for every requirement, echoing back its exact `name`. Respond in valid JSON only, no markdown fences:
+      {"results": [{"name": "...", "verdict": "pass|fail|uncertain", "reasoning": "one short sentence, on the builder's side"}]}
     PROMPT
   end
 
@@ -245,7 +236,7 @@ module AiRequirementsChecker
       http = Net::HTTP.new(uri.host, uri.port)
       http.use_ssl = true
       http.open_timeout = 10
-      http.read_timeout = PER_REQUIREMENT_TIMEOUT
+      http.read_timeout = EVALUATION_TIMEOUT
 
       req = Net::HTTP::Post.new(uri)
       req["Content-Type"] = "application/json"
