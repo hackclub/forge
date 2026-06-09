@@ -208,7 +208,8 @@ class Admin::ProjectsController < Admin::ApplicationController
         reviewed_at: nil,
         review_feedback: nil,
         approval_justification: nil,
-        streak_at_approval: nil
+        streak_at_approval: nil,
+        coins_awarded: nil
       )
       cascade_target&.update!(built_at: nil, build_proof_url: nil)
 
@@ -340,6 +341,7 @@ class Admin::ProjectsController < Admin::ApplicationController
             approval_justification: justification,
             streak_at_approval: @project.user.current_streak
           )
+          @project.update_column(:coins_awarded, @project.computed_coins)
           cascade_target&.update!(built_at: Time.current)
         end
         end_active_review_session(decision: "approved")
