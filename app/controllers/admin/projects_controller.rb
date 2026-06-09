@@ -1,6 +1,6 @@
 class Admin::ProjectsController < Admin::ApplicationController
   before_action :require_projects_permission!
-  before_action :set_project, only: [ :show, :review, :destroy, :restore, :toggle_hidden, :toggle_shadow_ban, :toggle_staff_pick, :change_tier, :add_note, :destroy_note, :mark_unbuilt, :reverse_review, :ai_requirements_check, :send_checkpoint_message, :send_dm_message ]
+  before_action :set_project, only: [ :show, :review, :destroy, :restore, :toggle_hidden, :toggle_shadow_ban, :toggle_staff_pick, :change_tier, :add_note, :destroy_note, :mark_unbuilt, :reverse_review, :ai_requirements_check, :ai_requirements_check_status, :send_checkpoint_message, :send_dm_message ]
 
   def index
     scope = policy_scope(Project).includes(:user, :ships)
@@ -402,16 +402,16 @@ class Admin::ProjectsController < Admin::ApplicationController
   def ai_requirements_check
     authorize @project, :review?
 
-    FetchReadmeJob.perform_now(@project.id) if @project.repo_link.present?
-    @project.reload
+    @project.update!(ai_check_result: { "status" => "queued", "queued_at" => Time.current.iso8601 })
+    RunReviewerAiCheckJob.perform_later(@project.id)
+    audit!("project.ai_check_run", target: @project, metadata: { via: "reviewer" })
 
-    result = AiRequirementsChecker.run(@project)
-    @project.update!(ai_check_result: result, ai_check_ran_at: Time.current)
-    audit!("project.ai_check_run", target: @project, metadata: { overall: result["overall"], requirements_count: result["requirements"].size })
+    render json: { status: "queued" }
+  end
 
-    redirect_back fallback_location: admin_review_path(@project), notice: "AI requirements check complete."
-  rescue AiRequirementsChecker::Error => e
-    redirect_back fallback_location: admin_review_path(@project), alert: "AI check failed: #{e.message}"
+  def ai_requirements_check_status
+    authorize @project, :review?
+    render json: { result: @project.ai_check_result, ran_at: @project.ai_check_ran_at&.iso8601 }
   end
 
   def send_checkpoint_message

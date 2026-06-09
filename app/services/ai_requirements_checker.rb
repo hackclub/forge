@@ -19,9 +19,10 @@ module AiRequirementsChecker
       label: "Google Gemini"
     }
   }.freeze
-  DEFAULT_PROVIDER = "hackclub".freeze
+  DEFAULT_PROVIDER = "google".freeze
   EVALUATION_TIMEOUT = 90
   RATE_LIMIT_RETRIES = 4
+  RETRYABLE_CODES = [ 429, 500, 502, 503, 504 ].freeze
 
   DOC_GLOBS = [
     Rails.root.join("docs/requirements/*.md"),
@@ -244,7 +245,7 @@ module AiRequirementsChecker
       req.body = body
       response = http.request(req)
 
-      break unless response.code.to_i == 429 && attempt < RATE_LIMIT_RETRIES
+      break unless RETRYABLE_CODES.include?(response.code.to_i) && attempt < RATE_LIMIT_RETRIES
 
       retry_after = response["Retry-After"].to_f
       delay = retry_after.positive? ? retry_after : (2**attempt) + rand
