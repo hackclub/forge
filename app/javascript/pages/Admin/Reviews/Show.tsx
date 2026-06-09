@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Link, router } from '@inertiajs/react'
 import Markdown from 'react-markdown'
@@ -59,11 +59,14 @@ interface AiCheckRequirement {
 }
 
 interface AiCheckResult {
-  summary: string
-  overall: 'pass' | 'fail' | 'uncertain'
-  requirements: AiCheckRequirement[]
-  checked_at: string
-  model: string
+  status?: 'queued' | 'running' | 'done' | 'error'
+  summary?: string
+  overall?: 'pass' | 'fail' | 'uncertain'
+  requirements?: AiCheckRequirement[]
+  checked_at?: string
+  model?: string
+  provider?: string
+  message?: string
 }
 
 interface ReviewProject {
@@ -222,7 +225,9 @@ function CollapsibleSection({
         <span className="text-sm font-semibold shrink-0">{title}</span>
         {summary && <span className="text-xs text-muted-foreground flex-1 min-w-0 truncate">{summary}</span>}
         {!summary && <span className="flex-1" />}
-        <ChevronDown className={cn('size-3.5 shrink-0 text-muted-foreground transition-transform', !open && '-rotate-90')} />
+        <ChevronDown
+          className={cn('size-3.5 shrink-0 text-muted-foreground transition-transform', !open && '-rotate-90')}
+        />
       </button>
       {open && <div>{children}</div>}
     </div>
@@ -270,7 +275,16 @@ function AiCheckPanel({
         </Button>
       </div>
 
-      {result ? (
+      {result?.status === 'error' ? (
+        <div className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+          {result.message || 'AI check failed. Try again in a moment.'}
+        </div>
+      ) : result?.status === 'queued' || result?.status === 'running' ? (
+        <div className="flex items-center gap-2 rounded-md border border-border bg-card p-3 text-sm text-muted-foreground">
+          <Loader2 className="size-4 animate-spin" />
+          {result.status === 'running' ? 'Scanning the project…' : 'Queued — starting in a moment…'}
+        </div>
+      ) : result?.overall ? (
         <>
           <div className="rounded-md border border-border bg-card p-3 space-y-2">
             <div className="flex items-center gap-2">
@@ -280,11 +294,11 @@ function AiCheckPanel({
             {result.summary && <p className="text-sm whitespace-pre-wrap">{result.summary}</p>}
           </div>
 
-          {result.requirements.length === 0 ? (
+          {(result.requirements ?? []).length === 0 ? (
             <p className="text-sm text-muted-foreground p-3">No specific requirements returned.</p>
           ) : (
             <div className="space-y-2">
-              {result.requirements.map((req, idx) => (
+              {(result.requirements ?? []).map((req, idx) => (
                 <div key={idx} className="rounded-md border border-border bg-card p-3 space-y-1">
                   <div className="flex items-center gap-2 flex-wrap">
                     {verdictBadge(req.verdict)}
@@ -300,7 +314,8 @@ function AiCheckPanel({
       ) : (
         !running && (
           <p className="text-sm text-muted-foreground p-3">
-            Click <strong>Run check</strong> to have the AI evaluate this project against the Forge requirements + design docs.
+            Click <strong>Run check</strong> to have the AI evaluate this project against the Forge requirements +
+            design docs.
           </p>
         )
       )}
@@ -341,7 +356,12 @@ export default function AdminReviewsShow({
   const isTerminal = project.status !== 'pending'
   useReviewHeartbeat(session?.heartbeat_path ?? null, session?.active_seconds ?? 0)
   const [readmeRefreshing, setReadmeRefreshing] = useState(false)
-  const [aiChecking, setAiChecking] = useState(false)
+
+  const aiInProgress = (r: AiCheckResult | null) => r?.status === 'queued' || r?.status === 'running'
+  const [aiResult, setAiResult] = useState<AiCheckResult | null>(project.ai_check_result)
+  const [aiRanAt, setAiRanAt] = useState<string | null>(project.ai_check_ran_at)
+  const [aiChecking, setAiChecking] = useState(aiInProgress(project.ai_check_result))
+  const aiPollRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const track = useCallback(
     (button: string, metadata: Record<string, unknown> = {}) => {
@@ -350,18 +370,65 @@ export default function AdminReviewsShow({
     [project.id],
   )
 
-  const runAiCheck = useCallback(() => {
+  const pollAiStatus = useCallback(async () => {
+    try {
+      const res = await fetch(`/admin/projects/${project.id}/ai_requirements_check_status`, {
+        credentials: 'same-origin',
+        headers: { Accept: 'application/json' },
+      })
+      if (!res.ok) {
+        aiPollRef.current = setTimeout(pollAiStatus, 2500)
+        return
+      }
+      const data = await res.json()
+      const next: AiCheckResult | null = data.result ?? null
+      setAiResult(next)
+      setAiRanAt(data.ran_at ?? null)
+      if (next?.status === 'queued' || next?.status === 'running') {
+        setAiChecking(true)
+        aiPollRef.current = setTimeout(pollAiStatus, 2500)
+      } else {
+        setAiChecking(false)
+      }
+    } catch {
+      aiPollRef.current = setTimeout(pollAiStatus, 3000)
+    }
+  }, [project.id])
+
+  const runAiCheck = useCallback(async () => {
     track('ai_check_run')
+    if (aiPollRef.current) clearTimeout(aiPollRef.current)
     setAiChecking(true)
-    router.post(
-      `/admin/projects/${project.id}/ai_requirements_check`,
-      {},
-      {
-        preserveScroll: true,
-        onFinish: () => setAiChecking(false),
-      },
-    )
-  }, [project.id, track])
+    setAiResult({ status: 'queued' })
+    setAiRanAt(null)
+    try {
+      const csrf = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? ''
+      const res = await fetch(`/admin/projects/${project.id}/ai_requirements_check`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrf, Accept: 'application/json' },
+        credentials: 'same-origin',
+      })
+      if (!res.ok) {
+        setAiResult({ status: 'error', message: 'Failed to start the AI check. Try again in a moment.' })
+        setAiChecking(false)
+        return
+      }
+      aiPollRef.current = setTimeout(pollAiStatus, 1500)
+    } catch {
+      setAiResult({ status: 'error', message: 'Network error. Try again in a moment.' })
+      setAiChecking(false)
+    }
+  }, [project.id, track, pollAiStatus])
+
+  useEffect(() => {
+    if (aiInProgress(project.ai_check_result)) {
+      aiPollRef.current = setTimeout(pollAiStatus, 1500)
+    }
+    return () => {
+      if (aiPollRef.current) clearTimeout(aiPollRef.current)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const refreshReadme = useCallback(() => {
     track('refresh_readme')
@@ -613,7 +680,8 @@ export default function AdminReviewsShow({
           <AlertCircle className="size-4 shrink-0" />
           <span>
             {concurrent_reviewers.map((r) => r.reviewer_name).join(', ')}{' '}
-            {concurrent_reviewers.length === 1 ? 'is' : 'are'} currently reviewing this project. Coordinate to avoid duplicate decisions.
+            {concurrent_reviewers.length === 1 ? 'is' : 'are'} currently reviewing this project. Coordinate to avoid
+            duplicate decisions.
           </span>
         </div>
       )}
@@ -648,7 +716,11 @@ export default function AdminReviewsShow({
                       {project.user_email}
                     </a>
                     <span>·</span>
-                    <span>{project.build_review ? 'Build Review' : `${project.tier.replace('_', ' ')}${project.budget ? ` · ${project.budget}` : ''}`}</span>
+                    <span>
+                      {project.build_review
+                        ? 'Build Review'
+                        : `${project.tier.replace('_', ' ')}${project.budget ? ` · ${project.budget}` : ''}`}
+                    </span>
                     {project.linked_project && (
                       <>
                         <span>·</span>
@@ -667,7 +739,12 @@ export default function AdminReviewsShow({
                     {project.from_slack && project.slack_url && (
                       <>
                         <span>·</span>
-                        <a href={project.slack_url} target="_blank" rel="noopener noreferrer" className="hover:underline text-foreground">
+                        <a
+                          href={project.slack_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="hover:underline text-foreground"
+                        >
                           Slack pitch ↗
                         </a>
                       </>
@@ -708,7 +785,9 @@ export default function AdminReviewsShow({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {project.green_flags.length > 0 && (
                 <div className="rounded-md border border-emerald-500/30 bg-emerald-500/5 p-3">
-                  <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wide mb-1.5">Green flags</p>
+                  <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wide mb-1.5">
+                    Green flags
+                  </p>
                   <ul className="space-y-1 text-sm">
                     {project.green_flags.map((g, i) => (
                       <li key={i} className="flex gap-2">
@@ -721,7 +800,9 @@ export default function AdminReviewsShow({
               )}
               {project.red_flags.length > 0 && (
                 <div className="rounded-md border border-red-500/30 bg-red-500/5 p-3">
-                  <p className="text-xs font-semibold text-red-600 dark:text-red-400 uppercase tracking-wide mb-1.5">Red flags</p>
+                  <p className="text-xs font-semibold text-red-600 dark:text-red-400 uppercase tracking-wide mb-1.5">
+                    Red flags
+                  </p>
                   <ul className="space-y-1 text-sm">
                     {project.red_flags.map((r, i) => (
                       <li key={i} className="flex gap-2">
@@ -763,7 +844,9 @@ export default function AdminReviewsShow({
                             <span className="flex items-center gap-1 text-muted-foreground">
                               <Clock className="size-3" />
                               {entry.time_spent}
-                              {entry.time_hours != null && <span className="font-mono">({entry.time_hours.toFixed(1)}h)</span>}
+                              {entry.time_hours != null && (
+                                <span className="font-mono">({entry.time_hours.toFixed(1)}h)</span>
+                              )}
                             </span>
                           </>
                         )}
@@ -812,7 +895,9 @@ export default function AdminReviewsShow({
               ) : (
                 <div className="rounded-md border border-border bg-card p-6 text-center space-y-3">
                   <p className="text-sm text-muted-foreground">
-                    {project.repo_link ? "No README cached yet — pull it now." : "No repository linked, so there's no README to fetch."}
+                    {project.repo_link
+                      ? 'No README cached yet — pull it now.'
+                      : "No repository linked, so there's no README to fetch."}
                   </p>
                   {project.repo_link && (
                     <Button onClick={refreshReadme} disabled={readmeRefreshing}>
@@ -838,7 +923,9 @@ export default function AdminReviewsShow({
 
             <TabsContent value="description">
               {project.description ? (
-                <div className="rounded-md border border-border bg-card p-3 text-sm whitespace-pre-wrap">{project.description}</div>
+                <div className="rounded-md border border-border bg-card p-3 text-sm whitespace-pre-wrap">
+                  {project.description}
+                </div>
               ) : (
                 <p className="text-sm text-muted-foreground p-3">No description.</p>
               )}
@@ -873,12 +960,7 @@ export default function AdminReviewsShow({
             </TabsContent>
 
             <TabsContent value="ai_check">
-              <AiCheckPanel
-                result={project.ai_check_result}
-                ranAt={project.ai_check_ran_at}
-                running={aiChecking}
-                onRun={runAiCheck}
-              />
+              <AiCheckPanel result={aiResult} ranAt={aiRanAt} running={aiChecking} onRun={runAiCheck} />
             </TabsContent>
           </Tabs>
 
@@ -890,7 +972,8 @@ export default function AdminReviewsShow({
               defaultOpen={false}
             >
               <div className="px-3 py-2 text-xs text-muted-foreground border-b border-border bg-muted/30">
-                Active review time recorded per reviewer for this project — the basis for reviewer payouts. Visible to superadmins only.
+                Active review time recorded per reviewer for this project — the basis for reviewer payouts. Visible to
+                superadmins only.
               </div>
               <div className="divide-y divide-border">
                 {session_stats.sessions.map((s) => (
@@ -924,7 +1007,8 @@ export default function AdminReviewsShow({
               <div className="space-y-2">
                 <label className="text-xs text-muted-foreground flex items-center gap-1.5">
                   <ScrollText className="size-3.5" />
-                  Reasoning <span className="text-muted-foreground/60">(wraps into justification template on approval)</span>
+                  Reasoning{' '}
+                  <span className="text-muted-foreground/60">(wraps into justification template on approval)</span>
                 </label>
                 <Textarea
                   value={reasoning}
@@ -1024,22 +1108,45 @@ export default function AdminReviewsShow({
                 )}
               </div>
 
-              <CollapsibleSection title="Justification preview" summary="What goes to the Unified DB" storageKey="preview" defaultOpen>
+              <CollapsibleSection
+                title="Justification preview"
+                summary="What goes to the Unified DB"
+                storageKey="preview"
+                defaultOpen
+              >
                 <pre className="p-3 text-[11px] whitespace-pre-wrap font-mono leading-relaxed text-muted-foreground">
                   {justificationPreview}
                 </pre>
               </CollapsibleSection>
 
               <div className="space-y-2 pt-1">
-                <Button className="w-full" disabled={submitting !== null || !can.review} onClick={() => submit('approve')}>
-                  {submitting === 'approve' ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
+                <Button
+                  className="w-full"
+                  disabled={submitting !== null || !can.review}
+                  onClick={() => submit('approve')}
+                >
+                  {submitting === 'approve' ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    <Check className="size-4" />
+                  )}
                   Approve · {previewCoins.toFixed(2)}c
                 </Button>
-                <Button variant="outline" className="w-full" disabled={submitting !== null || !can.review} onClick={() => submit('return')}>
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  disabled={submitting !== null || !can.review}
+                  onClick={() => submit('return')}
+                >
                   {submitting === 'return' ? <Loader2 className="size-4 animate-spin" /> : <Undo2 className="size-4" />}
                   Return (needs changes)
                 </Button>
-                <Button variant="ghost" className="w-full" disabled={submitting !== null || !can.review} onClick={() => submit('draft')}>
+                <Button
+                  variant="ghost"
+                  className="w-full"
+                  disabled={submitting !== null || !can.review}
+                  onClick={() => submit('draft')}
+                >
                   <FileEdit className="size-4" />
                   Send back to Draft
                 </Button>
@@ -1096,7 +1203,8 @@ export default function AdminReviewsShow({
                       )}
                     </div>
                     <div className="rounded-md border border-border bg-muted/30 p-3 text-sm whitespace-pre-wrap">
-                      Hey {builderMentionPreview}! Our team of smiths have had a look at your project and here's what we had to say!
+                      Hey {builderMentionPreview}! Our team of smiths have had a look at your project and here's what we
+                      had to say!
                     </div>
                     <div className="space-y-1">
                       <label className="text-xs text-muted-foreground">Message body</label>
@@ -1126,7 +1234,8 @@ export default function AdminReviewsShow({
                   <AlertDialogHeader>
                     <AlertDialogTitle>Send DM to builder</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Posts as the Forge Keeper bot, straight to the builder's Slack DMs. Edit the body below before sending.
+                      Posts as the Forge Keeper bot, straight to the builder's Slack DMs. Edit the body below before
+                      sending.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <div className="space-y-3">
@@ -1157,7 +1266,8 @@ export default function AdminReviewsShow({
                       />
                     </div>
                     <div className="rounded-md border border-border bg-muted/30 p-3 text-sm whitespace-pre-wrap">
-                      From {reviewerMentionPreview} — please DM your reviewer if you have any questions, or resubmit once you've worked on this feedback!
+                      From {reviewerMentionPreview} — please DM your reviewer if you have any questions, or resubmit
+                      once you've worked on this feedback!
                     </div>
                   </div>
                   <AlertDialogFooter>
@@ -1193,7 +1303,9 @@ function ReadOnlyDecision({ project, next_pending_id }: { project: ReviewProject
       {project.review_feedback && (
         <div className="space-y-1">
           <label className="text-xs text-muted-foreground uppercase tracking-wide">Feedback</label>
-          <p className="text-sm whitespace-pre-wrap rounded-md border border-border bg-muted/30 p-2">{project.review_feedback}</p>
+          <p className="text-sm whitespace-pre-wrap rounded-md border border-border bg-muted/30 p-2">
+            {project.review_feedback}
+          </p>
         </div>
       )}
       <div className="rounded-md border border-amber-500/30 bg-amber-500/5 p-3 text-xs text-amber-700 dark:text-amber-400 flex gap-2">
@@ -1201,7 +1313,12 @@ function ReadOnlyDecision({ project, next_pending_id }: { project: ReviewProject
         <span>This project is no longer pending. To undo a review use "Reverse Review" on the project admin page.</span>
       </div>
       <div className="flex gap-2">
-        <Button asChild variant="outline" className="flex-1" onClick={() => trackReviewEvent(project.id, 'view_project')}>
+        <Button
+          asChild
+          variant="outline"
+          className="flex-1"
+          onClick={() => trackReviewEvent(project.id, 'view_project')}
+        >
           <Link href={`/admin/projects/${project.id}`}>
             <History className="size-4" />
             Project page
