@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from '@inertiajs/react'
+import { Link, router } from '@inertiajs/react'
 import { STATUS_COLORS, STATUS_LABELS, type DashboardProject } from './projectStatus'
 import FireIcon from '@/components/FireIcon'
 
@@ -12,7 +12,9 @@ export default function ShippingPopup({ projects, onClose }: ShippingPopupProps)
   const [selectedId, setSelectedId] = useState<number | null>(null)
 
   function handleShip() {
+    if (selectedId === null) return
     onClose()
+    router.visit(`/projects/${selectedId}/ai_check`)
   }
 
   if (projects.length === 0) {
