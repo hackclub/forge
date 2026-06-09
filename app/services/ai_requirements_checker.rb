@@ -182,13 +182,14 @@ module AiRequirementsChecker
 
   def project_context_text(project)
     devlog_summary = project.devlogs.order(created_at: :asc).map do |d|
-      "- #{d.created_at.to_date} · #{d.title} (#{d.time_spent || '—'}): #{d.content.to_s.truncate(400)}"
+      "- #{d.created_at.to_date} · #{d.title} — #{d.parsed_hours.to_f.round(2)}h logged: #{d.content.to_s.truncate(400)}"
     end.join("\n").presence || "(no devlogs)"
 
     <<~CTX
       - Name: #{project.name}
       - Subtitle: #{project.subtitle}
       - Tier: #{project.tier}
+      - Devlog mode: #{project.devlog_mode.presence || 'unknown'}
       - Repo: #{project.repo_link.presence || '(none)'}
       - Total devlog hours: #{project.devlog_hours}
       - Cover image: #{project.cover_image_url.present? ? 'yes' : 'no'}
@@ -227,6 +228,8 @@ module AiRequirementsChecker
         - You CANNOT check: what an image actually depicts (PCB vs. random photo), code quality, whether the build looks real.
 
       For visual requirements: if the README has at least one image reference, mark "uncertain" and say you can see images but can't verify their content. If there are zero image references, mark "fail" and say no images were found.
+
+      Devlog hours and format: each devlog above shows the hours the builder logged ("Xh logged"). Treat that as the builder's stated time spent. A "website" devlog states its time in that structured field, NOT as a journal sentence — so for website mode, count logged hours as satisfying any "time spent / duration stated" requirement, and do not fail it for missing a "Total time spent: X hours" phrase. Journal-format requirements (YAML frontmatter, dated entry headers, the "Total time spent" phrasing) only apply to "git" journal mode; for "website" mode, mark those "pass".
 
       ## Output
       Return a verdict for every requirement, echoing back its exact `name`. Respond in valid JSON only, no markdown fences:
