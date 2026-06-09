@@ -10,6 +10,7 @@
 #  build_proof_url              :string
 #  build_review                 :boolean          default(FALSE), not null
 #  built_at                     :datetime
+#  coins_awarded                :decimal(10, 2)
 #  cover_image_url              :string
 #  description                  :text
 #  devlog_mode                  :string
@@ -175,6 +176,18 @@ class Project < ApplicationRecord
   end
 
   def coins_earned
+    return 0.0 unless approved?
+    # Coins are locked in at approval time (see computed_coins). Returning the
+    # snapshot keeps balances stable — they only move on a new approval (auto
+    # payout) or a manual coin adjustment, never on a weekly multiplier recompute.
+    return coins_awarded.to_f if coins_awarded.present?
+
+    computed_coins
+  end
+
+  # The live earning formula. Captured into coins_awarded at approval; only used
+  # directly as a fallback for legacy rows that predate the snapshot.
+  def computed_coins
     return 0.0 unless approved?
 
     multiplier = streak_at_approval ? user.streak_multiplier(streak_at_approval) : user.streak_multiplier
