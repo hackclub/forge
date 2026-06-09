@@ -322,8 +322,7 @@ export default function ProjectsShow({
 
   function proceedWithSubmission() {
     setShowSubmitWarning(false)
-    // router.visit(`/projects/${project.id}/ai_check`)
-    router.post(`/projects/${project.id}/submit_for_review`)
+    router.visit(`/projects/${project.id}/ai_check`)
   }
 
   function submitDevlog(e: React.FormEvent) {
