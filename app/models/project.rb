@@ -10,6 +10,7 @@
 #  build_proof_url              :string
 #  build_review                 :boolean          default(FALSE), not null
 #  built_at                     :datetime
+#  coins_awarded                :decimal(10, 2)
 #  cover_image_url              :string
 #  description                  :text
 #  devlog_mode                  :string
@@ -175,6 +176,13 @@ class Project < ApplicationRecord
   end
 
   def coins_earned
+    return 0.0 unless approved?
+    return coins_awarded.to_f if coins_awarded.present?
+
+    computed_coins
+  end
+
+  def computed_coins
     return 0.0 unless approved?
 
     multiplier = streak_at_approval ? user.streak_multiplier(streak_at_approval) : user.streak_multiplier

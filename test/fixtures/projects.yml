@@ -12,6 +12,7 @@
 #  build_proof_url              :string
 #  build_review                 :boolean          default(FALSE), not null
 #  built_at                     :datetime
+#  coins_awarded                :decimal(10, 2)
 #  cover_image_url              :string
 #  description                  :text
 #  devlog_mode                  :string
