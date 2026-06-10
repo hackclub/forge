@@ -42,7 +42,6 @@ class Devlog < ApplicationRecord
   default_scope { order(id: :desc) }
 
   def parsed_hours
-    # Use pre-parsed time_hours if available, otherwise parse time_spent
     return time_hours if time_hours.present?
     return 0 unless time_spent
 

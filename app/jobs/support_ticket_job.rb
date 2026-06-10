@@ -34,7 +34,6 @@ class SupportTicketJob < ApplicationJob
     begin
       slack_client.reactions_add(channel: channel_id, timestamp: message_ts, name: "thinking_face")
     rescue Slack::Web::Api::Errors::AlreadyReacted
-      # already there, ignore
     end
 
     bts_blocks = self.class.bts_blocks(ticket)

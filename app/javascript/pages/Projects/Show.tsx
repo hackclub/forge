@@ -60,7 +60,9 @@ function DevlogContentEditor({ content, children }: { content: string; children:
   const [mode, setMode] = useState<'write' | 'preview'>('write')
   const tabClass = (active: boolean) =>
     `px-3 py-1.5 text-[10px] uppercase tracking-[0.2em] font-bold cursor-pointer ${
-      active ? 'text-[#ffb595] border-b border-[#ca5924]' : 'text-stone-500 hover:text-stone-300 border-b border-transparent'
+      active
+        ? 'text-[#ffb595] border-b border-[#ca5924]'
+        : 'text-stone-500 hover:text-stone-300 border-b border-transparent'
     }`
 
   return (
@@ -215,9 +217,7 @@ export default function ProjectsShow({
           setShowDevlogForm(true)
         }
       }
-    } catch {
-      // ignore malformed draft
-    }
+    } catch {}
     devlogDraftRestored.current = true
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -231,9 +231,7 @@ export default function ProjectsShow({
       } else {
         localStorage.removeItem(devlogDraftKey)
       }
-    } catch {
-      // ignore storage errors (quota, private mode)
-    }
+    } catch {}
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [devlogForm.data])
 
@@ -332,9 +330,7 @@ export default function ProjectsShow({
         devlogForm.reset()
         try {
           localStorage.removeItem(devlogDraftKey)
-        } catch {
-          // ignore
-        }
+        } catch {}
         setShowDevlogForm(false)
       },
     })
@@ -1079,7 +1075,8 @@ export default function ProjectsShow({
                   {project.build_review && (
                     <div>
                       <label className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
-                        Lapse Link <span className="text-[#ffb595] normal-case tracking-normal">(highly recommended)</span>
+                        Lapse Link{' '}
+                        <span className="text-[#ffb595] normal-case tracking-normal">(highly recommended)</span>
                       </label>
                       <input
                         type="url"
@@ -1088,7 +1085,10 @@ export default function ProjectsShow({
                         className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 text-sm"
                         placeholder="https://lapse.hackclub.com/timelapse/create"
                       />
-                      <p className="text-xs text-stone-500 mt-1.5">A timelapse of your build helps reviewers verify hours faster — submissions without one are more likely to be returned.</p>
+                      <p className="text-xs text-stone-500 mt-1.5">
+                        A timelapse of your build helps reviewers verify hours faster — submissions without one are more
+                        likely to be returned.
+                      </p>
                     </div>
                   )}
                   <button
@@ -1209,7 +1209,8 @@ export default function ProjectsShow({
                           {project.build_review && (
                             <div>
                               <label className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
-                                Lapse Link <span className="text-[#ffb595] normal-case tracking-normal">(highly recommended)</span>
+                                Lapse Link{' '}
+                                <span className="text-[#ffb595] normal-case tracking-normal">(highly recommended)</span>
                               </label>
                               <input
                                 type="url"
@@ -1564,8 +1565,8 @@ export default function ProjectsShow({
                 Resubmit Pitch
               </h4>
               <p className="text-stone-400 text-sm mb-4">
-                Edit your original message in <span className="text-[#ffb595] font-bold">#forgery</span> on Slack
-                with the requested changes, then hit resubmit.
+                Edit your original message in <span className="text-[#ffb595] font-bold">#forgery</span> on Slack with
+                the requested changes, then hit resubmit.
               </p>
               <button
                 onClick={() => router.post(`/projects/${project.id}/resubmit_pitch`)}

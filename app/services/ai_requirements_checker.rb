@@ -55,6 +55,79 @@ module AiRequirementsChecker
 
   # Keep tiers an explicit subset of a requirement only when the docs gate it
   # (e.g. pitches are Tier 1 only). An empty array means "applies to every tier".
+  def check_justification(item, provider: ENV.fetch("AI_REQUIREMENTS_PROVIDER", DEFAULT_PROVIDER))
+    base = PROVIDERS[provider.to_s] || raise(Error, "Unknown AI provider: #{provider}")
+    raise Error, "#{base[:label]} API key is not configured" if ENV[base[:api_key_env]].to_s.empty?
+
+    config = base.merge(model: ENV.fetch("AI_REQUIREMENTS_MODEL", base[:model]))
+    response = post_chat(justification_prompt(item), config)
+    raise_for_response!(response, config)
+
+    content = JSON.parse(response.body).dig("choices", 0, "message", "content").to_s
+    parsed = extract_json(content) || {}
+    checks = Array(parsed["checks"]).filter_map do |row|
+      next unless row.is_a?(Hash)
+      name = row["name"].to_s.strip
+      next if name.empty?
+
+      {
+        "name" => name.truncate(120),
+        "verdict" => normalize_verdict(row["verdict"]),
+        "reasoning" => row["reasoning"].to_s.truncate(400)
+      }
+    end
+
+    {
+      "overall" => overall_verdict(checks),
+      "summary" => parsed["summary"].to_s.truncate(400).presence || build_summary(checks),
+      "checks" => checks,
+      "checked_at" => Time.current.iso8601,
+      "model" => config[:model],
+      "provider" => provider.to_s
+    }
+  end
+
+  def justification_prompt(item)
+    payload = item.payload || {}
+    justification = payload["Optional - Override Hours Spent Justification"].to_s
+    hours = payload["Optional - Override Hours Spent"]
+    project = item.project
+    kind = project&.build_review? ? "hardware/build (journaling + timelapse, not Hackatime)" : "software (Hackatime-tracked)"
+
+    <<~PROMPT
+      You are auditing a Hack Club Forge "Override Hours Spent Justification" before it enters the YSWS Unified Database. This text is an INTERNAL reviewer record. Judge ONLY the justification text against the standard below — do not re-review the project itself.
+
+      ## The standard — a compliant justification must
+      1. Specific and verifiable — cite concrete numbers and links another reviewer could independently check.
+      2. Time evidence stated — for software, the Hackatime project name + the date range analysed + a summary of what the data shows; for hardware, journaling + timelapse evidence.
+      3. Hour adjustment documented — if approved hours are lower than claimed, it states the claimed hours, the approved hours, and the reason for the deflation.
+      4. Scope justified — explains what was built and why the scope is consistent with the approved hours.
+      5. Factual internal record — NOT encouragement, praise, or a message addressed to the submitter.
+      6. Independently reproducible — an uninvolved reviewer could follow the links/data and reach the same conclusion.
+
+      ## Project facts
+      - Project type: #{kind}
+      - Override (approved) hours in payload: #{hours.nil? ? '(none)' : hours}
+      - Repo: #{project&.repo_link.presence || '(none)'}
+
+      ## Forge requirements docs (context)
+      #{requirements_docs_text}
+
+      ## The justification text being audited
+      #{justification.strip.presence || '(empty)'}
+
+      ## Output
+      Give a verdict for each of the 6 standards above, echoing a short name for each. Respond in valid JSON only, no markdown fences:
+      {"summary": "one or two sentences on whether this justification is safe to submit to the Unified DB", "checks": [{"name": "Specific and verifiable", "verdict": "pass|fail|uncertain", "reasoning": "one short sentence"}]}
+    PROMPT
+  end
+
+  def requirements_docs_text
+    @requirements_docs_text ||= Dir[Rails.root.join("docs/requirements/*.md")].sort.map do |path|
+      "### #{Pathname.new(path).relative_path_from(Rails.root)}\n\n#{File.read(path)}"
+    end.join("\n\n---\n\n")
+  end
+
   def requirements_for_tier(requirements, tier)
     tier_number = tier.to_s[/\d+/]&.to_i
     requirements.select do |req|

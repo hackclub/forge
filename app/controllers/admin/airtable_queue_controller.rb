@@ -84,6 +84,53 @@ class Admin::AirtableQueueController < Admin::ApplicationController
     end
   end
 
+  def check_justification
+    item = AirtableQueueItem.find(params[:id])
+    result = AiRequirementsChecker.check_justification(item)
+    audit!("airtable.justification_ai_check", target: item.project, metadata: { queue_item_id: item.id, overall: result["overall"] })
+    render json: { result: result }
+  rescue AiRequirementsChecker::Error => e
+    render json: { result: { "overall" => "error", "message" => e.message } }
+  end
+
+  def send_back
+    item = AirtableQueueItem.find(params[:id])
+    project = item.project
+
+    if project.blank?
+      redirect_to admin_airtable_queue_path(item), alert: "Original project is no longer available."
+      return
+    end
+    if item.sent?
+      redirect_to admin_airtable_queue_path(item), alert: "Already sent to Airtable — reverse it from the project page instead."
+      return
+    end
+    unless project.approved?
+      redirect_to admin_airtable_queue_path(item), alert: "Project is not in an approved state."
+      return
+    end
+
+    cascade_target = project.build_review? ? project.linked_project : nil
+
+    Project.transaction do
+      project.airtable_queue_items.where.not(status: :cancelled)
+        .update_all(status: AirtableQueueItem.statuses[:cancelled], updated_at: Time.current)
+      project.update!(
+        status: :pending,
+        reviewer: nil,
+        reviewed_at: nil,
+        review_feedback: nil,
+        approval_justification: nil,
+        streak_at_approval: nil,
+        coins_awarded: nil
+      )
+      cascade_target&.update!(built_at: nil, build_proof_url: nil)
+    end
+
+    audit!("project.review_reversed", target: project, metadata: { reason: "sent_back_from_airtable_queue", queue_item_id: item.id, previous_status: "approved" })
+    redirect_to admin_project_path(project), notice: "Sent back to the review queue. The project is pending re-review."
+  end
+
   def retry
     item = AirtableQueueItem.find(params[:id])
 

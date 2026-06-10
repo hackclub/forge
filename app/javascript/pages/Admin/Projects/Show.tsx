@@ -67,20 +67,12 @@ const statusConfig: Record<
 
 export default function AdminProjectsShow({
   project,
-  ships,
   notes,
   review_history,
   airtable_status,
   can,
 }: {
   project: AdminProjectDetail
-  ships: {
-    id: number
-    status: string
-    reviewer_display_name: string | null
-    approved_seconds: number | null
-    created_at: string
-  }[]
   notes: {
     id: number
     content: string
@@ -151,10 +143,14 @@ export default function AdminProjectsShow({
 
   function addNote() {
     if (!noteContent.trim()) return
-    router.post(`/admin/projects/${project.id}/add_note`, { content: noteContent }, {
-      preserveScroll: true,
-      onSuccess: () => setNoteContent(''),
-    })
+    router.post(
+      `/admin/projects/${project.id}/add_note`,
+      { content: noteContent },
+      {
+        preserveScroll: true,
+        onSuccess: () => setNoteContent(''),
+      },
+    )
   }
 
   function deleteNote(noteId: number) {
@@ -255,7 +251,9 @@ export default function AdminProjectsShow({
 
               <h1 className="text-3xl font-semibold tracking-tight">{project.name}</h1>
 
-              {project.subtitle && <p className="text-base text-muted-foreground leading-relaxed">{project.subtitle}</p>}
+              {project.subtitle && (
+                <p className="text-base text-muted-foreground leading-relaxed">{project.subtitle}</p>
+              )}
 
               <div className="flex flex-wrap items-center gap-3 pt-3 border-t border-border text-sm text-muted-foreground">
                 <span>
@@ -495,7 +493,9 @@ export default function AdminProjectsShow({
                           onClick={() => setDevlogOrder(order)}
                           className={cn(
                             'px-2 py-0.5 text-xs rounded-sm font-medium transition-colors cursor-pointer',
-                            devlogOrder === order ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground',
+                            devlogOrder === order
+                              ? 'bg-primary text-primary-foreground'
+                              : 'text-muted-foreground hover:text-foreground',
                           )}
                         >
                           {order}
@@ -570,28 +570,6 @@ export default function AdminProjectsShow({
               </Card>
             </>
           )}
-
-          {ships.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Ships ({ships.length})</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {ships.map((ship) => (
-                  <Link
-                    key={ship.id}
-                    href={`/admin/ships/${ship.id}`}
-                    className="block rounded-md border border-border bg-background p-3 hover:bg-accent transition-colors"
-                  >
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="capitalize">{ship.status}</span>
-                      <span className="text-muted-foreground text-xs">{ship.created_at}</span>
-                    </div>
-                  </Link>
-                ))}
-              </CardContent>
-            </Card>
-          )}
         </div>
 
         <aside className="col-span-12 lg:col-span-4 space-y-4">
@@ -626,7 +604,8 @@ export default function AdminProjectsShow({
                     <AlertDialogHeader>
                       <AlertDialogTitle>Reverse this review</AlertDialogTitle>
                       <AlertDialogDescription>
-                        Project will return to <strong>pending</strong>. Choose what else to undo. The full action is audited.
+                        Project will return to <strong>pending</strong>. Choose what else to undo. The full action is
+                        audited.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
 
@@ -668,7 +647,9 @@ export default function AdminProjectsShow({
                             <span className="block mt-1 rounded-md border border-amber-500/40 bg-amber-500/10 p-2 text-xs text-amber-700 dark:text-amber-400 flex gap-1.5">
                               <AlertTriangle className="size-3.5 shrink-0 mt-0.5" />
                               <span>
-                                Already in actual Airtable (record <code className="font-mono">{airtable_status.record_id}</code>). Cancelling the queue item won't remove it from the Airtable base — delete there manually.
+                                Already in actual Airtable (record{' '}
+                                <code className="font-mono">{airtable_status.record_id}</code>). Cancelling the queue
+                                item won't remove it from the Airtable base — delete there manually.
                               </span>
                             </span>
                           )}
@@ -685,7 +666,9 @@ export default function AdminProjectsShow({
                           />
                           <span>
                             Notify the builder in Slack
-                            <span className="text-xs text-muted-foreground block">Only available for tier-1 projects with a Slack pitch.</span>
+                            <span className="text-xs text-muted-foreground block">
+                              Only available for tier-1 projects with a Slack pitch.
+                            </span>
                           </span>
                         </label>
                       )}
@@ -728,11 +711,21 @@ export default function AdminProjectsShow({
                     <CheckCircle2 className="size-4" />
                     Approve Pitch
                   </Button>
-                  <Button onClick={() => submitReview('return')} disabled={reviewing} variant="outline" className="w-full">
+                  <Button
+                    onClick={() => submitReview('return')}
+                    disabled={reviewing}
+                    variant="outline"
+                    className="w-full"
+                  >
                     <Undo2 className="size-4" />
                     Return for Changes
                   </Button>
-                  <Button onClick={() => submitReview('reject')} disabled={reviewing} variant="destructive" className="w-full">
+                  <Button
+                    onClick={() => submitReview('reject')}
+                    disabled={reviewing}
+                    variant="destructive"
+                    className="w-full"
+                  >
                     <XCircle className="size-4" />
                     Reject
                   </Button>
@@ -777,7 +770,9 @@ export default function AdminProjectsShow({
                   onChange={(e) => {
                     if (
                       e.target.value !== project.tier &&
-                      confirm(`Change tier from ${project.tier.replace('_', ' ')} to ${e.target.value.replace('_', ' ')}?`)
+                      confirm(
+                        `Change tier from ${project.tier.replace('_', ' ')} to ${e.target.value.replace('_', ' ')}?`,
+                      )
                     ) {
                       router.post(`/admin/projects/${project.id}/change_tier`, { tier: e.target.value })
                     }
@@ -823,7 +818,9 @@ export default function AdminProjectsShow({
               <div className="flex items-center justify-between">
                 <div className="pr-3">
                   <span>Shadow ban</span>
-                  <p className="text-xs text-muted-foreground">Hides hours from metrics and leaderboard. Nothing else changes.</p>
+                  <p className="text-xs text-muted-foreground">
+                    Hides hours from metrics and leaderboard. Nothing else changes.
+                  </p>
                 </div>
                 <button
                   onClick={() => router.post(`/admin/projects/${project.id}/toggle_shadow_ban`)}
