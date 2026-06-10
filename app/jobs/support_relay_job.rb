@@ -59,7 +59,6 @@ class SupportRelayJob < ApplicationJob
     begin
       slack_client.reactions_remove(channel: ticket.channel_id, timestamp: ticket.thread_ts, name: "thinking_face")
     rescue Slack::Web::Api::Errors::NoReaction
-      # not present, ignore
     end
     slack_client.reactions_add(channel: ticket.channel_id, timestamp: ticket.thread_ts, name: "white_check_mark")
     SupportTicketJob.delete_bts_message(ticket)
@@ -76,12 +75,10 @@ class SupportRelayJob < ApplicationJob
     begin
       slack_client.reactions_remove(channel: ticket.channel_id, timestamp: ticket.thread_ts, name: "white_check_mark")
     rescue Slack::Web::Api::Errors::NoReaction
-      # reaction wasn't there, that's fine
     end
     begin
       slack_client.reactions_add(channel: ticket.channel_id, timestamp: ticket.thread_ts, name: "thinking_face")
     rescue Slack::Web::Api::Errors::AlreadyReacted
-      # already there, ignore
     end
     slack_client.chat_postMessage(
       channel: ticket.bts_channel_id,

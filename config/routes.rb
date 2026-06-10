@@ -341,6 +341,8 @@ Rails.application.routes.draw do
           post :cancel
           post :retry
           post :revert_project
+          post :send_back
+          post :check_justification
         end
       end
       resources :hackatime_bans, only: [ :index ] do
@@ -363,12 +365,6 @@ Rails.application.routes.draw do
           post :reply
           post :claim
           post :resolve
-        end
-      end
-      resources :ships, only: [ :index, :show ] do
-        member do
-          post :review
-          post :skip
         end
       end
     end

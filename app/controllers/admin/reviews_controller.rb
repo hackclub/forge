@@ -150,6 +150,9 @@ class Admin::ReviewsController < Admin::ApplicationController
       red_flags: project.red_flags || [],
       green_flags: project.green_flags || [],
       repo_link: project.repo_link,
+      commits_url: commits_url_for(project.repo_link),
+      build_proof_url: project.build_proof_url,
+      submission_requirements: SubmissionRequirements.for_project(project),
       tags: project.tags,
       status: project.status,
       tier: project.tier,
@@ -182,6 +185,16 @@ class Admin::ReviewsController < Admin::ApplicationController
       coins_earned_preview: project.coin_rate.to_f * project.total_hours.to_f,
       devlogs: project.devlogs.order(created_at: :asc).map { |d| serialize_devlog(d) }
     }
+  end
+
+  def commits_url_for(repo_link)
+    return nil if repo_link.blank?
+
+    if (m = repo_link.match(%r{github\.com/([^/]+)/([^/?#]+?)(?:\.git)?/?\z}))
+      "https://github.com/#{m[1]}/#{m[2]}/commits"
+    elsif (m = repo_link.match(%r{gitlab\.com/([^?#]+?)(?:\.git)?/?\z}))
+      "https://gitlab.com/#{m[1]}/-/commits"
+    end
   end
 
   def serialize_devlog(devlog)

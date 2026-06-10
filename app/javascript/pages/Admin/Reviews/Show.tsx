@@ -46,10 +46,11 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/admin/ui/tabs'
 import { cn } from '@/components/admin/lib/cn'
 import AdminReviewTimeline, { type ReviewEvent } from '@/components/admin/AdminReviewTimeline'
+import SubmissionRequirementsChecklist from '@/components/admin/SubmissionRequirementsChecklist'
 import { useReviewHeartbeat, formatSeconds } from '@/hooks/useReviewHeartbeat'
 import { trackReviewEvent } from '@/lib/reviewTracker'
-import { buildJustification, formatJustificationDate } from '@/lib/justificationPreview'
-import type { ProjectStatus, ProjectTier } from '@/types'
+import { buildJustification } from '@/lib/justificationPreview'
+import type { ProjectStatus, ProjectTier, SubmissionRequirement } from '@/types'
 
 interface AiCheckRequirement {
   name: string
@@ -77,6 +78,9 @@ interface ReviewProject {
   red_flags: string[]
   green_flags: string[]
   repo_link: string | null
+  commits_url: string | null
+  build_proof_url: string | null
+  submission_requirements: SubmissionRequirement[]
   tags: string[]
   status: ProjectStatus
   tier: ProjectTier
@@ -448,6 +452,11 @@ export default function AdminReviewsShow({
   }, [project.id, track])
 
   const [reasoning, setReasoning] = useState('')
+  const [hackatimeProject, setHackatimeProject] = useState('')
+  const [timeRange, setTimeRange] = useState('')
+  const [timeSummary, setTimeSummary] = useState('')
+  const [scopeReasoning, setScopeReasoning] = useState('')
+  const [evidence, setEvidence] = useState('')
   const [feedback, setFeedback] = useState('')
   const [overrideHours, setOverrideHours] = useState<string>(
     project.override_hours != null ? String(project.override_hours) : '',
@@ -537,21 +546,44 @@ export default function AdminReviewsShow({
   const deflation = Math.max(0, claimedHours - approvedHours)
   const previewCoins = Math.round(approvedHours * project.coin_rate * 100) / 100
 
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://forge.hackclub.com'
   const justificationPreview = useMemo(
     () =>
       buildJustification({
-        ship_type: project.build_review ? 'build' : 'design',
-        ship_name: project.name,
-        submittion_time: formatJustificationDate(project.created_at_iso),
-        project_approval_time: formatJustificationDate(new Date().toISOString()),
+        kind: project.build_review ? 'build' : 'design',
+        name: project.name,
+        record_label: `project #${project.id}`,
+        submitted_at_iso: project.created_at_iso,
         reviewer_name: reviewer.display_name,
         reviewer_email: reviewer.email || null,
         claimed_hours: claimedHours,
         approved_hours: approvedHours,
-        review_justification: reasoning,
-        forge_admin_link: `${typeof window !== 'undefined' ? window.location.origin : 'https://forge.hackclub.com'}/admin/projects/${project.id}`,
+        repo_link: project.repo_link,
+        devlog_count: project.devlogs.length,
+        public_url: `${origin}/projects/${project.id}`,
+        admin_url: `${origin}/admin/projects/${project.id}`,
+        hackatime_project: hackatimeProject,
+        time_range: timeRange,
+        time_summary: timeSummary,
+        scope_reasoning: scopeReasoning,
+        evidence,
+        assessment: reasoning,
+        deflation_reason: overrideJustification,
       }),
-    [project, reviewer, claimedHours, approvedHours, reasoning],
+    [
+      project,
+      reviewer,
+      claimedHours,
+      approvedHours,
+      origin,
+      hackatimeProject,
+      timeRange,
+      timeSummary,
+      scopeReasoning,
+      evidence,
+      reasoning,
+      overrideJustification,
+    ],
   )
 
   const changeTier = useCallback(
@@ -570,15 +602,20 @@ export default function AdminReviewsShow({
       const payload: Record<string, string | number | null> = { decision }
       if (decision === 'approve') {
         if (!reasoning.trim()) {
-          alert('Reasoning is required when approving — it fills the {review_justification} block of the template.')
+          alert('Reviewer conclusion is required when approving — it is the verifiable record sent to the Unified DB.')
           return
         }
         payload.reasoning = reasoning.trim()
+        payload.hackatime_project = hackatimeProject.trim() || null
+        payload.time_range = timeRange.trim() || null
+        payload.time_summary = timeSummary.trim() || null
+        payload.scope_reasoning = scopeReasoning.trim() || null
+        payload.evidence = evidence.trim() || null
         payload.feedback = feedback.trim() || null
         if (overrideHours.trim() !== '') {
           payload.override_hours = overrideHours.trim()
           if (!overrideJustification.trim()) {
-            alert('Provide an override justification when adjusting hours.')
+            alert('Provide a deflation reason when adjusting hours — it is recorded in the justification.')
             return
           }
           payload.override_hours_justification = overrideJustification.trim()
@@ -597,7 +634,19 @@ export default function AdminReviewsShow({
         onFinish: () => setSubmitting(null),
       })
     },
-    [project.id, reasoning, feedback, overrideHours, overrideJustification, track],
+    [
+      project.id,
+      reasoning,
+      hackatimeProject,
+      timeRange,
+      timeSummary,
+      scopeReasoning,
+      evidence,
+      feedback,
+      overrideHours,
+      overrideJustification,
+      track,
+    ],
   )
 
   return (
@@ -1004,18 +1053,104 @@ export default function AdminReviewsShow({
             <>
               <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Submit Review</h3>
 
-              <div className="space-y-2">
-                <label className="text-xs text-muted-foreground flex items-center gap-1.5">
-                  <ScrollText className="size-3.5" />
-                  Reasoning{' '}
-                  <span className="text-muted-foreground/60">(wraps into justification template on approval)</span>
-                </label>
-                <Textarea
-                  value={reasoning}
-                  onChange={(e) => setReasoning(e.target.value)}
-                  placeholder="Why does this project meet Forge standards? Anything notable about hours/quality?"
-                  className="h-24 text-sm"
-                />
+              <SubmissionRequirementsChecklist requirements={project.submission_requirements} />
+
+              <div className="space-y-3 rounded-md border border-border bg-card p-3">
+                <div className="flex items-center gap-1.5">
+                  <ScrollText className="size-3.5 text-muted-foreground" />
+                  <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    Override Hours Justification
+                  </span>
+                </div>
+                <p className="text-[11px] text-muted-foreground -mt-1">
+                  Internal Unified DB record. REMEMBER if this is not good we will get fined. Someone who does not know hardware should be able to check and understand the justification you gave
+                </p>
+
+                {project.build_review ? (
+                  <div className="space-y-1.5">
+                    <label className="text-xs text-muted-foreground">Time evidence (journal / timelapse)</label>
+                    <Textarea
+                      value={timeSummary}
+                      onChange={(e) => setTimeSummary(e.target.value)}
+                      placeholder="e.g. Timelapse/journal at <journal url> shows x build sessions: soldering, wiring, firmware. Pace consistent with 12h."
+                      className="h-20 text-sm"
+                    />
+                  </div>
+                ) : (
+                  <>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="space-y-1.5">
+                        <label className="text-xs text-muted-foreground">Hackatime project</label>
+                        <Input
+                          value={hackatimeProject}
+                          onChange={(e) => setHackatimeProject(e.target.value)}
+                          placeholder="trivia-game"
+                          className="h-8 text-sm"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-xs text-muted-foreground">Range analyzed</label>
+                        <Input
+                          value={timeRange}
+                          onChange={(e) => setTimeRange(e.target.value)}
+                          placeholder="Feb 3 – Feb 17"
+                          className="h-8 text-sm"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs text-muted-foreground">Hackatime data summary</label>
+                      <Textarea
+                        value={timeSummary}
+                        onChange={(e) => setTimeSummary(e.target.value)}
+                        placeholder="e.g. 14.2h tracked. Heartbeat pattern consistent with active development, no scripted bursts."
+                        className="h-16 text-sm"
+                      />
+                    </div>
+                  </>
+                )}
+
+                <div className="space-y-1.5">
+                  <label className="text-xs text-muted-foreground">Scope assessment</label>
+                  <Textarea
+                    value={scopeReasoning}
+                    onChange={(e) => setScopeReasoning(e.target.value)}
+                    placeholder="What was built and why the scope matches the hours. e.g. custom physics engine + 8 levels, 47 commits over 3 weeks."
+                    className="h-16 text-sm"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs text-muted-foreground flex items-center justify-between">
+                    <span>Supporting evidence (one link per line)</span>
+                    {project.commits_url && isSafeUrl(project.commits_url) && (
+                      <a
+                        href={project.commits_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-foreground hover:underline"
+                      >
+                        commits ↗
+                      </a>
+                    )}
+                  </label>
+                  <Textarea
+                    value={evidence}
+                    onChange={(e) => setEvidence(e.target.value)}
+                    placeholder="https://… devlog — shows incremental progress&#10;https://… timelapse — covers the build"
+                    className="h-16 text-sm"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs text-muted-foreground">Reviewer conclusion (required to approve)</label>
+                  <Textarea
+                    value={reasoning}
+                    onChange={(e) => setReasoning(e.target.value)}
+                    placeholder="Your factual conclusion: do the hours and scope hold up against the evidence above?"
+                    className="h-16 text-sm"
+                  />
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -1102,7 +1237,7 @@ export default function AdminReviewsShow({
                   <Input
                     value={overrideJustification}
                     onChange={(e) => setOverrideJustification(e.target.value)}
-                    placeholder="Why the deflation?"
+                    placeholder="Deflation reason (recorded in the justification)"
                     className="h-8 text-sm"
                   />
                 )}

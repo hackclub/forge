@@ -1,8 +1,5 @@
 class JustificationTemplate
-  ORDINALS = {
-    1 => "first", 2 => "second", 3 => "third", 4 => "fourth", 5 => "fifth",
-    6 => "sixth", 7 => "seventh", 8 => "eighth", 9 => "ninth", 10 => "tenth"
-  }.freeze
+  NOT_PROVIDED = "(not provided)".freeze
 
   TEMPLATE = <<~TEMPLATE.freeze
     This is the %{iteration} %{ship_type} ship of %{ship_name} for Forge. Submitted %{submittion_time}
@@ -15,7 +12,17 @@ class JustificationTemplate
 
     3. A final check was done by Aarav (aarav@hackclub.com) and Souptik (Lead reviewer for forge), who is knowledgeable in hardware, to ensure nothing was missed prior, and that the projects meets our standards in terms of quality.
 
-    %{hours_deflation} hours of deflation was applied to meet our requirements
+    Time evidence:
+    %{time_evidence}
+
+    Scope assessment:
+    %{scope_reasoning}
+
+    Supporting evidence:
+    %{supporting_evidence}
+
+    Hours claimed: %{claimed_hours}. Hours approved: %{approved_hours}.
+    %{hours_deflation} hours of deflation was applied to meet our requirements%{deflation_reason}
 
     The final reviewer was asked to justify why this ship meets the standards of the Unified DB:
 
@@ -26,29 +33,10 @@ class JustificationTemplate
     For any questions, please reach out to aarav@hackclub.com.
   TEMPLATE
 
-  def self.render(ship:, reviewer:, claimed_hours:, approved_hours:, review_justification:)
-    project = ship.project
-    iteration_number = project.ships.order(:created_at).pluck(:id).index(ship.id).to_i + 1
-    iteration = ORDINALS[iteration_number] || "#{iteration_number}th"
-
-    render_text(
-      iteration: iteration,
-      ship_type: ship_type_for(project),
-      ship_name: project.name,
-      submittion_time: ship.created_at.strftime("%B %-d, %Y at %H:%M UTC"),
-      project_approval_time: project.reviewed_at&.strftime("%B %-d, %Y at %H:%M UTC") || "pending",
-      reviewer_name: reviewer.display_name,
-      reviewer_email: reviewer.email,
-      claimed_hours: claimed_hours,
-      approved_hours: approved_hours,
-      review_justification: review_justification,
-      forge_admin_link: admin_ship_url(ship)
-    )
-  end
-
-  def self.render_for_project(project:, reviewer:, claimed_hours:, approved_hours:, review_justification:)
+  def self.render_for_project(project:, reviewer:, claimed_hours:, approved_hours:, fields: {})
     render_text(
       iteration: "first",
+      project: project,
       ship_type: ship_type_for(project),
       ship_name: project.name,
       submittion_time: project.created_at.strftime("%B %-d, %Y at %H:%M UTC"),
@@ -57,14 +45,16 @@ class JustificationTemplate
       reviewer_email: reviewer.email,
       claimed_hours: claimed_hours,
       approved_hours: approved_hours,
-      review_justification: review_justification,
-      forge_admin_link: admin_project_url(project)
+      forge_admin_link: admin_project_url(project),
+      fields: fields.transform_keys(&:to_sym)
     )
   end
 
-  def self.render_text(iteration:, ship_type:, ship_name:, submittion_time:, project_approval_time:, reviewer_name:, reviewer_email:, claimed_hours:, approved_hours:, review_justification:, forge_admin_link:)
+  def self.render_text(iteration:, project:, ship_type:, ship_name:, submittion_time:, project_approval_time:, reviewer_name:, reviewer_email:, claimed_hours:, approved_hours:, forge_admin_link:, fields:)
     deflation = (claimed_hours.to_f - approved_hours.to_f).round(1)
     deflation = 0 if deflation.negative?
+    deflation_reason = fields[:deflation_reason].to_s.strip
+    deflation_suffix = deflation > 0 && deflation_reason.present? ? " — reason: #{deflation_reason}" : ""
 
     format(
       TEMPLATE,
@@ -75,24 +65,59 @@ class JustificationTemplate
       project_approval_time: project_approval_time,
       reviewer_name: reviewer_name,
       reviewer_email: reviewer_email.present? ? " (#{reviewer_email})" : "",
+      time_evidence: time_evidence(ship_type, fields),
+      scope_reasoning: present(fields[:scope_reasoning]),
+      supporting_evidence: supporting_evidence(project, fields),
+      claimed_hours: format_hours(claimed_hours),
+      approved_hours: format_hours(approved_hours),
       hours_deflation: deflation.to_s,
-      review_justification: review_justification.to_s.strip.presence || "(no justification provided)",
+      deflation_reason: deflation_suffix,
+      review_justification: fields[:assessment].to_s.strip.presence || "(no justification provided)",
       forge_admin_link: forge_admin_link
     )
+  end
+
+  def self.time_evidence(ship_type, fields)
+    if ship_type == "build"
+      present(fields[:time_summary])
+    else
+      [ "Hackatime project: #{present(fields[:hackatime_project])}",
+        "Range analyzed: #{present(fields[:time_range])}",
+        present(fields[:time_summary]) ].join("\n")
+    end
+  end
+
+  def self.supporting_evidence(project, fields)
+    count = project.devlogs.count
+    lines = [
+      "- Code repository: #{project.repo_link.presence || '(no repository linked)'}",
+      "- Public project page: #{public_project_url(project)}",
+      "- Devlogs: #{count} #{count == 1 ? 'entry' : 'entries'}"
+    ]
+    fields[:evidence].to_s.split("\n").map(&:strip).reject(&:blank?).each { |line| lines << "- #{line}" }
+    lines.join("\n")
+  end
+
+  def self.present(value)
+    value.to_s.strip.presence || NOT_PROVIDED
+  end
+
+  def self.format_hours(value)
+    rounded = value.to_f.round(1)
+    whole = rounded == rounded.to_i ? rounded.to_i : rounded
+    "#{whole}h"
   end
 
   def self.ship_type_for(project)
     project.build_review? ? "build" : "design"
   end
 
-  def self.admin_ship_url(ship)
-    host = host_root
-    "#{host}/admin/ships/#{ship.id}"
+  def self.public_project_url(project)
+    "#{host_root}/projects/#{project.id}"
   end
 
   def self.admin_project_url(project)
-    host = host_root
-    "#{host}/admin/projects/#{project.id}"
+    "#{host_root}/admin/projects/#{project.id}"
   end
 
   def self.host_root

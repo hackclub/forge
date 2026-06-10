@@ -59,7 +59,6 @@ class Admin::ProjectsController < Admin::ApplicationController
 
   def show
     authorize @project
-    @ships = @project.ships.includes(:reviewer).order(created_at: :desc)
     @notes = @project.project_notes.includes(:author).order(created_at: :desc)
 
     airtable_item = @project.airtable_queue_items.where.not(status: :cancelled).order(created_at: :desc).first
@@ -73,7 +72,6 @@ class Admin::ProjectsController < Admin::ApplicationController
 
     render inertia: "Admin/Projects/Show", props: {
       project: serialize_project_detail(@project),
-      ships: @ships.map { |s| serialize_ship_row(s) },
       notes: @notes.map { |n| serialize_note(n) },
       review_history: @project.review_history.map { |e| serialize_review_event(e) },
       airtable_status: airtable_status,
@@ -327,7 +325,7 @@ class Admin::ProjectsController < Admin::ApplicationController
           reviewer: current_user,
           claimed_hours: @project.devlog_hours,
           approved_hours: approved_hours,
-          review_justification: reasoning.presence || feedback.to_s
+          fields: justification_fields(reasoning: reasoning, feedback: feedback)
         )
         cascade_target = @project.build_review? ? @project.linked_project : nil
         Project.transaction do
@@ -500,6 +498,18 @@ class Admin::ProjectsController < Admin::ApplicationController
     true
   end
 
+  def justification_fields(reasoning:, feedback:)
+    {
+      hackatime_project: params[:hackatime_project],
+      time_range: params[:time_range],
+      time_summary: params[:time_summary],
+      scope_reasoning: params[:scope_reasoning],
+      evidence: params[:evidence],
+      assessment: reasoning.presence || feedback.to_s,
+      deflation_reason: params[:override_hours_justification]
+    }
+  end
+
   def capped_override_hours(project, raw)
     return nil if raw.blank?
 
@@ -667,16 +677,6 @@ class Admin::ProjectsController < Admin::ApplicationController
       target_type: event.target_type,
       target_label: event.target_label,
       created_at: event.created_at.strftime("%b %d, %Y %H:%M")
-    }
-  end
-
-  def serialize_ship_row(ship)
-    {
-      id: ship.id,
-      status: ship.status,
-      reviewer_display_name: ship.reviewer&.display_name,
-      approved_seconds: ship.approved_seconds,
-      created_at: ship.created_at.strftime("%b %d, %Y")
     }
   end
 

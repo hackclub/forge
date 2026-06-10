@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link, router } from '@inertiajs/react'
 import {
   ArrowLeft,
@@ -8,6 +9,8 @@ import {
   Undo2,
   Send,
   RefreshCw,
+  Sparkles,
+  Loader2,
   Table as TableIcon,
   type LucideIcon,
 } from 'lucide-react'
@@ -17,6 +20,22 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/admin/ui/
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/admin/ui/table'
 
 type Status = 'pending' | 'sent' | 'cancelled' | 'failed'
+type Verdict = 'pass' | 'fail' | 'uncertain'
+
+interface JustificationCheckItem {
+  name: string
+  verdict: Verdict
+  reasoning: string
+}
+
+interface JustificationCheck {
+  overall?: Verdict | 'error'
+  summary?: string
+  message?: string
+  checks?: JustificationCheckItem[]
+  model?: string
+  checked_at?: string
+}
 
 interface QueueItemDetail {
   id: number
@@ -36,7 +55,14 @@ interface QueueItemDetail {
   payload: Record<string, unknown>
 }
 
-const statusInfo: Record<Status, { variant: 'default' | 'secondary' | 'outline' | 'destructive' | 'success' | 'warning'; icon: LucideIcon; label: string }> = {
+const statusInfo: Record<
+  Status,
+  {
+    variant: 'default' | 'secondary' | 'outline' | 'destructive' | 'success' | 'warning'
+    icon: LucideIcon
+    label: string
+  }
+> = {
   pending: { variant: 'warning', icon: Clock, label: 'Pending' },
   sent: { variant: 'success', icon: CheckCircle2, label: 'Sent' },
   cancelled: { variant: 'secondary', icon: XCircle, label: 'Cancelled' },
@@ -51,6 +77,12 @@ function renderValue(value: unknown): string {
   return String(value)
 }
 
+function verdictBadge(verdict: Verdict) {
+  if (verdict === 'pass') return <Badge variant="success">Pass</Badge>
+  if (verdict === 'fail') return <Badge variant="destructive">Fail</Badge>
+  return <Badge variant="warning">Uncertain</Badge>
+}
+
 export default function AdminAirtableQueueShow({
   item,
   airtable_enabled,
@@ -61,6 +93,37 @@ export default function AdminAirtableQueueShow({
   const info = statusInfo[item.status]
   const Icon = info.icon
   const fieldKeys = Object.keys(item.payload || {})
+
+  const [checking, setChecking] = useState(false)
+  const [aiResult, setAiResult] = useState<JustificationCheck | null>(null)
+
+  async function runCheck() {
+    setChecking(true)
+    try {
+      const csrf = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? ''
+      const res = await fetch(`/admin/airtable_queue/${item.id}/check_justification`, {
+        method: 'POST',
+        headers: { 'X-CSRF-Token': csrf, Accept: 'application/json' },
+        credentials: 'same-origin',
+      })
+      const data = await res.json()
+      setAiResult(data.result ?? { overall: 'error', message: 'No result returned.' })
+    } catch {
+      setAiResult({ overall: 'error', message: 'Network error. Try again in a moment.' })
+    } finally {
+      setChecking(false)
+    }
+  }
+
+  function sendBack() {
+    if (
+      !confirm(
+        'Send this back to the review queue? The queue item is cancelled and the project returns to pending — its approval, justification and coins are cleared so a reviewer can redo it.',
+      )
+    )
+      return
+    router.post(`/admin/airtable_queue/${item.id}/send_back`)
+  }
 
   function send() {
     if (
@@ -141,7 +204,8 @@ export default function AdminAirtableQueueShow({
                 Inconsistent state
               </p>
               <p className="text-sm">
-                Project is approved but has no pending or sent Airtable record. Revert the approval to keep things in sync.
+                Project is approved but has no pending or sent Airtable record. Revert the approval to keep things in
+                sync.
               </p>
             </div>
             <Button variant="outline" size="sm" onClick={revertProject}>
@@ -205,7 +269,9 @@ export default function AdminAirtableQueueShow({
                   return (
                     <TableRow key={k} className="align-top">
                       <TableCell className="font-medium">{k}</TableCell>
-                      <TableCell className={`font-mono text-xs whitespace-pre-wrap break-words ${empty ? 'text-muted-foreground italic' : ''}`}>
+                      <TableCell
+                        className={`font-mono text-xs whitespace-pre-wrap break-words ${empty ? 'text-muted-foreground italic' : ''}`}
+                      >
                         {empty ? '-' : renderValue(v)}
                       </TableCell>
                     </TableRow>
@@ -214,6 +280,52 @@ export default function AdminAirtableQueueShow({
               )}
             </TableBody>
           </Table>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Sparkles className="size-4" />
+            Justification AI check
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex flex-col md:flex-row gap-2 md:items-center justify-between">
+            <p className="text-sm text-muted-foreground">
+    Verifies if the justification is up to standard using gemini :D
+            </p>
+            <Button variant="outline" size="sm" onClick={runCheck} disabled={checking}>
+              {checking ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
+              {checking ? 'Checking…' : aiResult ? 'Re-run' : 'Run check'}
+            </Button>
+          </div>
+
+          {aiResult?.overall === 'error' ? (
+            <div className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
+              {aiResult.message || 'AI check failed.'}
+            </div>
+          ) : aiResult ? (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-xs uppercase tracking-wide text-muted-foreground">Overall</span>
+                {aiResult.overall && verdictBadge(aiResult.overall)}
+                {aiResult.model && <span className="text-xs text-muted-foreground font-mono">{aiResult.model}</span>}
+              </div>
+              {aiResult.summary && <p className="text-sm">{aiResult.summary}</p>}
+              <div className="space-y-1.5">
+                {(aiResult.checks ?? []).map((c, i) => (
+                  <div key={i} className="rounded-md border border-border p-2 flex items-start gap-2">
+                    {verdictBadge(c.verdict)}
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium">{c.name}</p>
+                      {c.reasoning && <p className="text-xs text-muted-foreground">{c.reasoning}</p>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
         </CardContent>
       </Card>
 
@@ -226,7 +338,11 @@ export default function AdminAirtableQueueShow({
                 Once sent, the record is upserted into Airtable by Forge Project ID.
               </p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
+              <Button variant="outline" size="sm" onClick={sendBack}>
+                <Undo2 className="size-4" />
+                Send back
+              </Button>
               <Button variant="outline" size="sm" onClick={cancel}>
                 <XCircle className="size-4" />
                 Cancel

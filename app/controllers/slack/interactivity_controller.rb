@@ -106,7 +106,6 @@ class Slack::InteractivityController < ApplicationController
         name: "white_check_mark"
       )
     rescue Slack::Web::Api::Errors::NoReaction
-      # not present, ignore
     end
     begin
       slack_client.reactions_add(
@@ -115,7 +114,6 @@ class Slack::InteractivityController < ApplicationController
         name: "thinking_face"
       )
     rescue Slack::Web::Api::Errors::AlreadyReacted
-      # already there, ignore
     end
 
     slack_client.chat_postMessage(
@@ -143,7 +141,6 @@ class Slack::InteractivityController < ApplicationController
         name: "thinking_face"
       )
     rescue Slack::Web::Api::Errors::NoReaction
-      # not present, ignore
     end
     slack_client.reactions_add(
       channel: ticket.channel_id,

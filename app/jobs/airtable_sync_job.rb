@@ -10,12 +10,10 @@ class AirtableSyncJob < ApplicationJob
 
   def self.build_fields(project)
     user = project.user
-    app_url = ENV.fetch("APP_URL", "https://forge.hackclub.com")
-    playable_url = "#{app_url}/projects/#{project.id}"
 
     fields = {
       "Code URL" => project.repo_link,
-      "Playable URL" => playable_url,
+      "Playable URL" => project.repo_link,
       "Description" => project.pitch_text.presence || project.description.presence || project.subtitle,
       "GitHub Username" => github_username(project.repo_link),
       "First Name" => user.first_name,
