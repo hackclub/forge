@@ -92,14 +92,14 @@ module AiRequirementsChecker
     justification = payload["Optional - Override Hours Spent Justification"].to_s
     hours = payload["Optional - Override Hours Spent"]
     project = item.project
-    kind = project&.build_review? ? "build review (journaling + timelapse, not Hackatime)" : "design review (Hackatime-tracked)"
+    kind = project&.build_review? ? "build review" : "design review"
 
     <<~PROMPT
       You are auditing a Hack Club Forge "Override Hours Spent Justification" before it enters the YSWS Unified Database. This text is an INTERNAL reviewer record. Judge ONLY the justification text against the standard below — do not re-review the project itself.
 
       ## The standard — a compliant justification must
       1. Specific and verifiable — cite concrete numbers and links another reviewer could independently check.
-      2. Time evidence stated — for a design review, the Hackatime project name + the date range analysed + a summary of what the data shows; for a build review, journaling + timelapse evidence.
+      2. Time evidence stated — what the journal/devlog entries and GitHub commit history (and timelapse, if provided) show, including the period covered. Forge time is journal-tracked, not Hackatime.
       3. Hour adjustment documented — if approved hours are lower than claimed, it states the claimed hours, the approved hours, and the reason for the deflation.
       4. Scope justified — explains what was built and why the scope is consistent with the approved hours.
       5. Factual internal record — NOT encouragement, praise, or a message addressed to the submitter.

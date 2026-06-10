@@ -13,8 +13,6 @@ export interface JustificationContext {
   devlog_count: number
   public_url: string
   admin_url: string
-  hackatime_project: string
-  time_range: string
   time_summary: string
   scope_reasoning: string
   evidence: string
@@ -31,15 +29,6 @@ function formatHours(value: number): string {
   const rounded = Math.round(value * 10) / 10
   const whole = Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1)
   return `${whole}h`
-}
-
-function timeEvidence(ctx: JustificationContext): string {
-  if (ctx.kind === 'build') return present(ctx.time_summary)
-  return [
-    `Hackatime project: ${present(ctx.hackatime_project)}`,
-    `Range analyzed: ${present(ctx.time_range)}`,
-    present(ctx.time_summary),
-  ].join('\n')
 }
 
 function supportingEvidence(ctx: JustificationContext): string {
@@ -77,7 +66,7 @@ This project was approved at ${approved}
 3. A final check was done by Aarav (aarav@hackclub.com) and Souptik (Lead reviewer for forge), who is knowledgeable in hardware, to ensure nothing was missed prior, and that the projects meets our standards in terms of quality.
 
 Time evidence:
-${timeEvidence(ctx)}
+${present(ctx.time_summary)}
 
 Scope assessment:
 ${present(ctx.scope_reasoning)}

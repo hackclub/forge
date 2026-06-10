@@ -65,7 +65,7 @@ class JustificationTemplate
       project_approval_time: project_approval_time,
       reviewer_name: reviewer_name,
       reviewer_email: reviewer_email.present? ? " (#{reviewer_email})" : "",
-      time_evidence: time_evidence(ship_type, fields),
+      time_evidence: present(fields[:time_summary]),
       scope_reasoning: present(fields[:scope_reasoning]),
       supporting_evidence: supporting_evidence(project, fields),
       claimed_hours: format_hours(claimed_hours),
@@ -75,16 +75,6 @@ class JustificationTemplate
       review_justification: fields[:assessment].to_s.strip.presence || "(no justification provided)",
       forge_admin_link: forge_admin_link
     )
-  end
-
-  def self.time_evidence(ship_type, fields)
-    if ship_type == "build"
-      present(fields[:time_summary])
-    else
-      [ "Hackatime project: #{present(fields[:hackatime_project])}",
-        "Range analyzed: #{present(fields[:time_range])}",
-        present(fields[:time_summary]) ].join("\n")
-    end
   end
 
   def self.supporting_evidence(project, fields)

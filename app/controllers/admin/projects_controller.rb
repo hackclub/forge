@@ -500,8 +500,6 @@ class Admin::ProjectsController < Admin::ApplicationController
 
   def justification_fields(reasoning:, feedback:)
     {
-      hackatime_project: params[:hackatime_project],
-      time_range: params[:time_range],
       time_summary: params[:time_summary],
       scope_reasoning: params[:scope_reasoning],
       evidence: params[:evidence],
