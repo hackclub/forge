@@ -27,7 +27,7 @@ class Admin::ReviewsController < Admin::ApplicationController
 
     render inertia: "Admin/Reviews/Show", props: {
       project: serialize_project_for_review(@project),
-      review_history: @project.review_history.map { |e| serialize_review_event(e) },
+      review_history: @project.admin_review_history.map { |e| serialize_review_event(e) },
       notes: @project.project_notes.includes(:author).order(created_at: :desc).map { |n| serialize_note(n) },
       session: @session ? serialize_session(@session) : nil,
       concurrent_reviewers: concurrent,
@@ -232,6 +232,13 @@ class Admin::ReviewsController < Admin::ApplicationController
       action: event.action,
       stage: meta["stage"],
       feedback: meta["feedback"].presence || meta["reason"].presence,
+      internal_justification: meta["justification"].presence || meta["reasoning"].presence,
+      old_tier: meta["old_tier"],
+      new_tier: meta["new_tier"],
+      approved_hours: meta["approved_hours"],
+      override_hours: meta["override_hours"],
+      coins_awarded: meta["coins_awarded"],
+      refunded_coins: meta["refunded"] ? meta["previous_coins_earned"] : nil,
       reviewer_display_name: event.actor&.display_name,
       reviewer_avatar: event.actor&.avatar,
       target_type: event.target_type,

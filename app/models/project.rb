@@ -197,13 +197,19 @@ class Project < ApplicationRecord
     devlog.approved devlog.returned
   ].freeze
 
-  def review_history
+  ADMIN_REVIEW_EVENT_ACTIONS = (REVIEW_EVENT_ACTIONS + %w[project.tier_changed]).freeze
+
+  def review_history(actions: REVIEW_EVENT_ACTIONS)
     AuditEvent
       .includes(:actor)
-      .where(action: REVIEW_EVENT_ACTIONS)
+      .where(action: actions)
       .where("(target_type = 'Project' AND target_id = :id) OR (metadata @> :meta::jsonb)",
              id: id, meta: { project_id: id }.to_json)
       .order(created_at: :desc)
+  end
+
+  def admin_review_history
+    review_history(actions: ADMIN_REVIEW_EVENT_ACTIONS)
   end
 
   private
