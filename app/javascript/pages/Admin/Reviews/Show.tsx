@@ -452,8 +452,6 @@ export default function AdminReviewsShow({
   }, [project.id, track])
 
   const [reasoning, setReasoning] = useState('')
-  const [hackatimeProject, setHackatimeProject] = useState('')
-  const [timeRange, setTimeRange] = useState('')
   const [timeSummary, setTimeSummary] = useState('')
   const [scopeReasoning, setScopeReasoning] = useState('')
   const [evidence, setEvidence] = useState('')
@@ -562,8 +560,6 @@ export default function AdminReviewsShow({
         devlog_count: project.devlogs.length,
         public_url: `${origin}/projects/${project.id}`,
         admin_url: `${origin}/admin/projects/${project.id}`,
-        hackatime_project: hackatimeProject,
-        time_range: timeRange,
         time_summary: timeSummary,
         scope_reasoning: scopeReasoning,
         evidence,
@@ -576,8 +572,6 @@ export default function AdminReviewsShow({
       claimedHours,
       approvedHours,
       origin,
-      hackatimeProject,
-      timeRange,
       timeSummary,
       scopeReasoning,
       evidence,
@@ -606,8 +600,6 @@ export default function AdminReviewsShow({
           return
         }
         payload.reasoning = reasoning.trim()
-        payload.hackatime_project = hackatimeProject.trim() || null
-        payload.time_range = timeRange.trim() || null
         payload.time_summary = timeSummary.trim() || null
         payload.scope_reasoning = scopeReasoning.trim() || null
         payload.evidence = evidence.trim() || null
@@ -637,8 +629,6 @@ export default function AdminReviewsShow({
     [
       project.id,
       reasoning,
-      hackatimeProject,
-      timeRange,
       timeSummary,
       scopeReasoning,
       evidence,
@@ -1063,52 +1053,19 @@ export default function AdminReviewsShow({
                   </span>
                 </div>
                 <p className="text-[11px] text-muted-foreground -mt-1">
-                  Internal Unified DB record. REMEMBER if this is not good we will get fined. Someone who does not know hardware should be able to check and understand the justification you gave
+                  Internal Unified DB record. REMEMBER if this is not good we will get fined. Someone who does not know
+                  hardware should be able to check and understand the justification you gave
                 </p>
 
-                {project.build_review ? (
-                  <div className="space-y-1.5">
-                    <label className="text-xs text-muted-foreground">Time evidence (journal / timelapse)</label>
-                    <Textarea
-                      value={timeSummary}
-                      onChange={(e) => setTimeSummary(e.target.value)}
-                      placeholder="e.g. Timelapse/journal at <journal url> shows x build sessions: soldering, wiring, firmware. Pace consistent with 12h."
-                      className="h-20 text-sm"
-                    />
-                  </div>
-                ) : (
-                  <>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="space-y-1.5">
-                        <label className="text-xs text-muted-foreground">Hackatime project</label>
-                        <Input
-                          value={hackatimeProject}
-                          onChange={(e) => setHackatimeProject(e.target.value)}
-                          placeholder="trivia-game"
-                          className="h-8 text-sm"
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="text-xs text-muted-foreground">Range analyzed</label>
-                        <Input
-                          value={timeRange}
-                          onChange={(e) => setTimeRange(e.target.value)}
-                          placeholder="Feb 3 – Feb 17"
-                          className="h-8 text-sm"
-                        />
-                      </div>
-                    </div>
-                    <div className="space-y-1.5">
-                      <label className="text-xs text-muted-foreground">Hackatime data summary</label>
-                      <Textarea
-                        value={timeSummary}
-                        onChange={(e) => setTimeSummary(e.target.value)}
-                        placeholder="e.g. 14.2h tracked. Heartbeat pattern consistent with active development, no scripted bursts."
-                        className="h-16 text-sm"
-                      />
-                    </div>
-                  </>
-                )}
+                <div className="space-y-1.5">
+                  <label className="text-xs text-muted-foreground">Time evidence (journal / commits / timelapse)</label>
+                  <Textarea
+                    value={timeSummary}
+                    onChange={(e) => setTimeSummary(e.target.value)}
+                    placeholder="What the journal entries, GitHub commits and (if any) timelapse show, and the period covered. e.g. 9 journal entries Feb 3–17 + 47 commits; pace consistent with the hours."
+                    className="h-20 text-sm"
+                  />
+                </div>
 
                 <div className="space-y-1.5">
                   <label className="text-xs text-muted-foreground">Scope assessment</label>

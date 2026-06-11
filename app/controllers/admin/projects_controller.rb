@@ -73,7 +73,7 @@ class Admin::ProjectsController < Admin::ApplicationController
     render inertia: "Admin/Projects/Show", props: {
       project: serialize_project_detail(@project),
       notes: @notes.map { |n| serialize_note(n) },
-      review_history: @project.review_history.map { |e| serialize_review_event(e) },
+      review_history: @project.admin_review_history.map { |e| serialize_review_event(e) },
       airtable_status: airtable_status,
       can: { review: policy(@project).review?, destroy: policy(@project).destroy?, restore: policy(@project).restore?, reverse: policy(@project).review? && %w[approved returned rejected].include?(@project.status) }
     }
@@ -343,7 +343,15 @@ class Admin::ProjectsController < Admin::ApplicationController
           cascade_target&.update!(built_at: Time.current)
         end
         end_active_review_session(decision: "approved")
-        audit!("project.approved", target: @project, metadata: { feedback: feedback, override_hours: capped, reasoning: reasoning, build_review: @project.build_review })
+        audit!("project.approved", target: @project, metadata: {
+          feedback: feedback,
+          override_hours: capped,
+          reasoning: reasoning,
+          build_review: @project.build_review,
+          justification: justification,
+          approved_hours: approved_hours.to_f,
+          coins_awarded: @project.coins_awarded.to_f
+        })
         if cascade_target
           audit!("project.marked_built", target: cascade_target, metadata: { via: "build_review", build_review_id: @project.id })
         end
@@ -500,8 +508,6 @@ class Admin::ProjectsController < Admin::ApplicationController
 
   def justification_fields(reasoning:, feedback:)
     {
-      hackatime_project: params[:hackatime_project],
-      time_range: params[:time_range],
       time_summary: params[:time_summary],
       scope_reasoning: params[:scope_reasoning],
       evidence: params[:evidence],
@@ -672,6 +678,13 @@ class Admin::ProjectsController < Admin::ApplicationController
       action: event.action,
       stage: meta["stage"],
       feedback: meta["feedback"].presence || meta["reason"].presence,
+      internal_justification: meta["justification"].presence || meta["reasoning"].presence,
+      old_tier: meta["old_tier"],
+      new_tier: meta["new_tier"],
+      approved_hours: meta["approved_hours"],
+      override_hours: meta["override_hours"],
+      coins_awarded: meta["coins_awarded"],
+      refunded_coins: meta["refunded"] ? meta["previous_coins_earned"] : nil,
       reviewer_display_name: event.actor&.display_name,
       reviewer_avatar: event.actor&.avatar,
       target_type: event.target_type,
