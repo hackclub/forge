@@ -73,7 +73,9 @@ class CoinHistory
       end
     end
 
-    @user.projects.kept.approved.each do |project|
+    # Solo projects pay the owner in full; group projects pay each member
+    # their snapshotted ProjectPayout share (mirrors User#coins_earned).
+    @user.projects.kept.approved.where.not(id: ProjectPayout.select(:project_id)).each do |project|
       coins = project.coins_earned
       next if coins.zero?
 
@@ -88,6 +90,25 @@ class CoinHistory
           tier: project.tier,
           rate: project.coin_rate,
           hours: project.total_hours.round(2)
+        }
+      )
+    end
+
+    @user.project_payouts.joins(:project).merge(Project.kept.approved).includes(:project).each do |payout|
+      next if payout.coins.to_f.zero?
+
+      project = payout.project
+      items << Entry.new(
+        at: project.reviewed_at || payout.created_at,
+        type: "earned",
+        amount: payout.coins.to_f,
+        label: "Earned from #{project.name} (your share)",
+        details: {
+          project_id: project.id,
+          project_name: project.name,
+          tier: project.tier,
+          rate: project.coin_rate,
+          hours: payout.hours.to_f
         }
       )
     end

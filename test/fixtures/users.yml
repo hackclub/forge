@@ -59,7 +59,7 @@ one:
   slack_id: MyString
   display_name: MyString
   email: user1@example.com
-  timezone: MyString
+  timezone: UTC
   hca_id: hca_id_1
   roles: ["admin"]
   is_banned: false
@@ -69,7 +69,47 @@ two:
   slack_id: MyString
   display_name: MyString
   email: user2@example.com
-  timezone: MyString
+  timezone: UTC
   hca_id: hca_id_2
+  roles: ["user"]
+  is_banned: false
+
+three:
+  avatar: MyString
+  slack_id: U33333
+  display_name: User Three
+  email: user3@example.com
+  timezone: UTC
+  hca_id: hca_id_3
+  roles: ["user"]
+  is_banned: false
+
+four:
+  avatar: MyString
+  slack_id: U44444
+  display_name: User Four
+  email: user4@example.com
+  timezone: UTC
+  hca_id: hca_id_4
+  roles: ["user"]
+  is_banned: false
+
+five:
+  avatar: MyString
+  slack_id: U55555
+  display_name: User Five
+  email: user5@example.com
+  timezone: UTC
+  hca_id: hca_id_5
+  roles: ["user"]
+  is_banned: false
+
+six:
+  avatar: MyString
+  slack_id: U66666
+  display_name: User Six
+  email: user6@example.com
+  timezone: UTC
+  hca_id: hca_id_6
   roles: ["user"]
   is_banned: false

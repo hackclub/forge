@@ -6,7 +6,7 @@ class DevlogsController < ApplicationController
     authorize @project, :show?
 
     @devlog = @project.devlogs.find(params[:id])
-    can_edit = current_user.present? && policy(@project).update?
+    can_edit = current_user.present? && policy(@devlog).update?
 
     render inertia: "Devlogs/Show", props: {
       project: {
@@ -23,16 +23,20 @@ class DevlogsController < ApplicationController
         time_spent: @devlog.time_spent,
         time_hours: @devlog.time_hours&.to_f,
         lapse_url: @devlog.lapse_url,
-        created_at: @devlog.created_at.strftime("%B %d, %Y")
+        created_at: @devlog.created_at.strftime("%B %d, %Y"),
+        user_id: @devlog.user_id,
+        user_display_name: @devlog.user.display_name,
+        user_avatar: @devlog.user.avatar
       },
       can_edit: can_edit
     }
   end
 
   def create
-    authorize @project, :update?
+    authorize @project, :create_devlog?
 
     @devlog = @project.devlogs.build(devlog_params)
+    @devlog.user = current_user
 
     # Validate submission requirements for web submissions
     requirement_errors = @devlog.submission_requirement_errors
@@ -51,8 +55,8 @@ class DevlogsController < ApplicationController
   end
 
   def update
-    authorize @project, :update?
     @devlog = @project.devlogs.find(params[:id])
+    authorize @devlog
 
     # Validate submission requirements for web submissions
     temp_devlog = @devlog.dup
@@ -77,7 +81,7 @@ class DevlogsController < ApplicationController
 
   def destroy
     @devlog = @project.devlogs.find(params[:id])
-    authorize @project, :update?
+    authorize @devlog
 
     if @project.airtable_sent? && !current_user&.superadmin?
       redirect_to @project, alert: "This devlog can't be deleted - the project has already been sent to Airtable. You can still edit it."
@@ -91,7 +95,7 @@ class DevlogsController < ApplicationController
   end
 
   def upload_image
-    authorize @project, :update?
+    authorize @project, :create_devlog?
 
     file = params[:file]
     unless file.respond_to?(:read)

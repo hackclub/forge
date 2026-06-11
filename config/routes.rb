@@ -449,11 +449,20 @@ Rails.application.routes.draw do
     end
     resources :devlogs, only: [ :show, :create, :update, :destroy ]
     post "devlog_image" => "devlogs#upload_image", as: :devlog_image
+    resources :collaboration_invites, only: [ :create, :destroy ], path: "invites"
+    resources :collaborators, only: [ :destroy ], controller: "project_collaborators"
     resource :view, only: [ :create ], module: :projects, controller: "views"
     resources :reels, only: [ :new, :create ] do
       collection do
         get "", action: :manage, as: ""
       end
+    end
+  end
+
+  resources :collaboration_invites, only: [] do
+    member do
+      post :accept
+      post :decline
     end
   end
 
