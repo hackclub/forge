@@ -13,6 +13,7 @@ import ForgeHud from '@/components/forge/ForgeHud'
 import FireIcon from '@/components/FireIcon'
 import ForgeMusic from '@/components/forge/ForgeMusic'
 import type { DashboardProject } from '@/components/forge/projectStatus'
+import CollaborationInvitesCard, { type PendingCollaborationInvite } from '@/components/CollaborationInvitesCard'
 
 const DEBUG_HOTSPOTS = false
 
@@ -209,9 +210,10 @@ interface ForgeProps {
   projects: DashboardProject[]
   orph_motivation: { approved_count: number; goal: number; dino_image: string }
   coin_balance: number
+  pending_invites: PendingCollaborationInvite[]
 }
 
-export default function ForgeScene({ projects, orph_motivation, coin_balance }: ForgeProps) {
+export default function ForgeScene({ projects, orph_motivation, coin_balance, pending_invites }: ForgeProps) {
   const shared = usePage<SharedProps>().props
   const [open, setOpen] = useState<PopupId | null>(null)
   const lastMeta = useRef(POPUP_META.projects)
@@ -299,7 +301,18 @@ export default function ForgeScene({ projects, orph_motivation, coin_balance }: 
 
         <ForgeHud coinBalance={coin_balance} />
 
+        {pending_invites.length > 0 && (
+          <div className="absolute top-16 left-1/2 -translate-x-1/2 z-20 w-full max-w-xl px-4 hidden md:block">
+            <CollaborationInvitesCard invites={pending_invites} />
+          </div>
+        )}
+
         <div className="absolute inset-0 overflow-y-auto md:hidden">
+          {pending_invites.length > 0 && (
+            <div className="p-4 pb-0">
+              <CollaborationInvitesCard invites={pending_invites} />
+            </div>
+          )}
           <div className="relative">
             <img src="/dashboard.png" alt="The forge workshop" className="max-h-60 w-full object-cover object-center" />
             <div className="absolute inset-0 bg-gradient-to-t from-[#0e0e0e] via-[#0e0e0e]/40 to-transparent" />

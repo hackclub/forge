@@ -66,18 +66,16 @@
 #
 one:
   user: one
-  name: MyString
+  name: Project One
   description: MyText
-  demo_link: MyString
-  repo_link: MyString
-  tags: MyString
-  is_unlisted: false
+  repo_link: https://github.com/example/one
+  tier: tier_4
+  status: 0
 
 two:
   user: two
-  name: MyString
+  name: Project Two
   description: MyText
-  demo_link: MyString
-  repo_link: MyString
-  tags: MyString
-  is_unlisted: false
+  repo_link: https://github.com/example/two
+  tier: tier_4
+  status: 0

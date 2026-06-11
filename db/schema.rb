@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_09_000000) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_11_000003) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -147,6 +147,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_09_000000) do
     t.index ["user_id"], name: "index_coin_adjustments_on_user_id"
   end
 
+  create_table "collaboration_invites", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "invitee_id", null: false
+    t.bigint "inviter_id", null: false
+    t.bigint "project_id", null: false
+    t.integer "status", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.index ["invitee_id"], name: "index_collaboration_invites_on_invitee_id"
+    t.index ["inviter_id"], name: "index_collaboration_invites_on_inviter_id"
+    t.index ["project_id", "invitee_id"], name: "index_collaboration_invites_on_project_invitee_pending", unique: true, where: "(status = 0)"
+    t.index ["project_id"], name: "index_collaboration_invites_on_project_id"
+    t.index ["status"], name: "index_collaboration_invites_on_status"
+  end
+
   create_table "devlogs", force: :cascade do |t|
     t.decimal "approved_hours"
     t.text "content"
@@ -161,8 +175,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_09_000000) do
     t.string "time_spent"
     t.string "title"
     t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
     t.index ["project_id"], name: "index_devlogs_on_project_id"
     t.index ["status"], name: "index_devlogs_on_status"
+    t.index ["user_id"], name: "index_devlogs_on_user_id"
   end
 
   create_table "feature_flags", force: :cascade do |t|
@@ -240,6 +256,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_09_000000) do
     t.index ["user_id"], name: "index_orders_on_user_id"
   end
 
+  create_table "project_collaborators", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "project_id", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["project_id", "user_id"], name: "index_project_collaborators_on_project_id_and_user_id", unique: true
+    t.index ["project_id"], name: "index_project_collaborators_on_project_id"
+    t.index ["user_id"], name: "index_project_collaborators_on_user_id"
+  end
+
   create_table "project_notes", force: :cascade do |t|
     t.bigint "author_id", null: false
     t.text "content", null: false
@@ -248,6 +274,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_09_000000) do
     t.datetime "updated_at", null: false
     t.index ["author_id"], name: "index_project_notes_on_author_id"
     t.index ["project_id"], name: "index_project_notes_on_project_id"
+  end
+
+  create_table "project_payouts", force: :cascade do |t|
+    t.decimal "coins", precision: 10, scale: 2, null: false
+    t.datetime "created_at", null: false
+    t.decimal "guild_multiplier", precision: 5, scale: 3
+    t.decimal "hours", precision: 10, scale: 2, null: false
+    t.bigint "project_id", null: false
+    t.integer "streak_at_approval"
+    t.decimal "streak_multiplier", precision: 5, scale: 3
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["project_id", "user_id"], name: "index_project_payouts_on_project_id_and_user_id", unique: true
+    t.index ["project_id"], name: "index_project_payouts_on_project_id"
+    t.index ["user_id"], name: "index_project_payouts_on_user_id"
   end
 
   create_table "project_views", force: :cascade do |t|
@@ -738,7 +779,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_09_000000) do
   add_foreign_key "badges", "users", column: "awarder_id"
   add_foreign_key "coin_adjustments", "users"
   add_foreign_key "coin_adjustments", "users", column: "actor_id"
+  add_foreign_key "collaboration_invites", "projects"
+  add_foreign_key "collaboration_invites", "users", column: "invitee_id"
+  add_foreign_key "collaboration_invites", "users", column: "inviter_id"
   add_foreign_key "devlogs", "projects"
+  add_foreign_key "devlogs", "users"
   add_foreign_key "devlogs", "users", column: "reviewer_id"
   add_foreign_key "kudos", "projects"
   add_foreign_key "kudos", "users"
@@ -749,8 +794,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_09_000000) do
   add_foreign_key "orders", "users"
   add_foreign_key "orders", "users", column: "assigned_to_id"
   add_foreign_key "orders", "users", column: "reviewer_id"
+  add_foreign_key "project_collaborators", "projects"
+  add_foreign_key "project_collaborators", "users"
   add_foreign_key "project_notes", "projects"
   add_foreign_key "project_notes", "users", column: "author_id"
+  add_foreign_key "project_payouts", "projects"
+  add_foreign_key "project_payouts", "users"
   add_foreign_key "project_views", "projects"
   add_foreign_key "project_views", "users"
   add_foreign_key "projects", "projects", column: "linked_project_id"

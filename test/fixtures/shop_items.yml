@@ -20,8 +20,12 @@
 #  created_at          :datetime         not null
 #  updated_at          :datetime         not null
 #
-one: {}
+one:
+  name: Item One
+  coin_cost: 5.0
 # column: value
 #
-two: {}
+two:
+  name: Item Two
+  coin_cost: 10.0
 # column: value

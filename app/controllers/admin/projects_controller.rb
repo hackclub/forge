@@ -159,7 +159,7 @@ class Admin::ProjectsController < Admin::ApplicationController
     if old_tier == "tier_1" && @project.slack_channel_id.present? && @project.slack_message_ts.present?
       app_url = ENV.fetch("APP_URL", "https://forge.hackclub.com")
       project_url = "#{app_url}/projects/#{@project.id}"
-      user_mention = @project.user.slack_id.present? ? "<@#{@project.user.slack_id}>" : @project.user.display_name
+      user_mention = members_mention(@project)
       reviewer_mention = current_user.slack_id.present? ? "<@#{current_user.slack_id}>" : current_user.display_name
       rate = Project::TIER_COIN_RATES[new_tier]
 
@@ -199,6 +199,8 @@ class Admin::ProjectsController < Admin::ApplicationController
     notify_slack_flag = ActiveModel::Type::Boolean.new.cast(params[:notify_slack])
     cascade_target = (@project.build_review? && previous_status == "approved") ? @project.linked_project : nil
 
+    payouts = @project.project_payouts.includes(:user).to_a
+    refunded_members = []
     Project.transaction do
       @project.update!(
         status: :pending,
@@ -209,14 +211,29 @@ class Admin::ProjectsController < Admin::ApplicationController
         streak_at_approval: nil,
         coins_awarded: nil
       )
+      @project.project_payouts.destroy_all
       cascade_target&.update!(built_at: nil, build_proof_url: nil)
 
-      if refund_requested && previous_coins_earned.to_f.positive?
-        @project.user.coin_adjustments.create!(
-          actor: current_user,
-          amount: -previous_coins_earned.to_f.round(2),
-          reason: "Review reversed for project #{@project.name} (##{@project.id}): #{reason}"
-        )
+      if refund_requested
+        if payouts.any?
+          # Group project: claw back each member's snapshotted share.
+          payouts.each do |payout|
+            next unless payout.coins.to_f.positive?
+
+            payout.user.coin_adjustments.create!(
+              actor: current_user,
+              amount: -payout.coins.to_f.round(2),
+              reason: "Review reversed for project #{@project.name} (##{@project.id}), your share: #{reason}"
+            )
+            refunded_members << { user_id: payout.user_id, coins: payout.coins.to_f }
+          end
+        elsif previous_coins_earned.to_f.positive?
+          @project.user.coin_adjustments.create!(
+            actor: current_user,
+            amount: -previous_coins_earned.to_f.round(2),
+            reason: "Review reversed for project #{@project.name} (##{@project.id}): #{reason}"
+          )
+        end
       end
     end
 
@@ -238,7 +255,7 @@ class Admin::ProjectsController < Admin::ApplicationController
       app_url = ENV.fetch("APP_URL", "https://forge.hackclub.com")
       project_url = "#{app_url}/projects/#{@project.id}"
       reviewer_mention = current_user.slack_id.present? ? "<@#{current_user.slack_id}>" : current_user.display_name
-      user_mention = @project.user.slack_id.present? ? "<@#{@project.user.slack_id}>" : @project.user.display_name
+      user_mention = members_mention(@project)
       msg = ":arrows_counterclockwise: #{user_mention} The review of *#{@project.name}* was reversed by #{reviewer_mention}."
       msg += "\n\n*Reason:*\n> #{reason}"
       msg += "\n\n<#{project_url}|View Project>"
@@ -251,10 +268,11 @@ class Admin::ProjectsController < Admin::ApplicationController
       previous_reviewer_id: previous_reviewer_id,
       previous_reviewed_at: previous_reviewed_at,
       previous_coins_earned: previous_coins_earned,
-      refunded: refund_requested && previous_coins_earned.to_f.positive?,
+      refunded: refund_requested && (refunded_members.any? || previous_coins_earned.to_f.positive?),
+      refunded_members: refunded_members.presence,
       cancelled_airtable: cancel_airtable,
       notified_slack: notify_slack_flag
-    })
+    }.compact)
 
     redirect_to admin_project_path(@project), notice: airtable_warning || "Review reversed. Project is back to pending."
   end
@@ -328,6 +346,7 @@ class Admin::ProjectsController < Admin::ApplicationController
           fields: justification_fields(reasoning: reasoning, feedback: feedback)
         )
         cascade_target = @project.build_review? ? @project.linked_project : nil
+        payout_shares = nil
         Project.transaction do
           @project.update!(
             status: :approved,
@@ -339,7 +358,23 @@ class Admin::ProjectsController < Admin::ApplicationController
             approval_justification: justification,
             streak_at_approval: @project.user.current_streak
           )
-          @project.update_column(:coins_awarded, @project.computed_coins)
+          if @project.group_project?
+            calculator = ProjectPayoutCalculator.new(@project)
+            payout_shares = calculator.shares
+            payout_shares.each do |share|
+              @project.project_payouts.create!(
+                user: share.user,
+                hours: share.hours,
+                coins: share.coins,
+                streak_at_approval: share.streak_at_approval,
+                streak_multiplier: share.streak_multiplier,
+                guild_multiplier: share.guild_multiplier
+              )
+            end
+            @project.update_column(:coins_awarded, calculator.total)
+          else
+            @project.update_column(:coins_awarded, @project.computed_coins)
+          end
           cascade_target&.update!(built_at: Time.current)
         end
         end_active_review_session(decision: "approved")
@@ -350,11 +385,17 @@ class Admin::ProjectsController < Admin::ApplicationController
           build_review: @project.build_review,
           justification: justification,
           approved_hours: approved_hours.to_f,
-          coins_awarded: @project.coins_awarded.to_f
-        })
+          coins_awarded: @project.coins_awarded.to_f,
+          member_breakdown: payout_shares&.map { |s|
+            { user_id: s.user.id, display_name: s.user.display_name, hours: s.hours, coins: s.coins,
+              streak_multiplier: s.streak_multiplier, guild_multiplier: s.guild_multiplier }
+          }
+        }.compact)
         if cascade_target
           audit!("project.marked_built", target: cascade_target, metadata: { via: "build_review", build_review_id: @project.id })
         end
+        # Intentionally owner-based: referral credit goes to the project owner's
+        # referrer even on group projects.
         ReferralEligibility.mark(@project)
         notify_slack_decision(@project, "approved! :tada:", feedback, stage: stage)
         redirect_to admin_review_path(@project), notice: @project.build_review? ? "Build review approved." : "Project approved."
@@ -534,6 +575,11 @@ class Admin::ProjectsController < Admin::ApplicationController
     nil
   end
 
+  # Mentions every team member (owner + collaborators), not just the owner.
+  def members_mention(project)
+    project.members.map { |m| m.slack_id.present? ? "<@#{m.slack_id}>" : m.display_name }.join(" ")
+  end
+
   def notify_slack_decision(project, decision, feedback, stage: :project)
     return unless project.slack_channel_id.present? && project.slack_message_ts.present?
 
@@ -547,7 +593,7 @@ class Admin::ProjectsController < Admin::ApplicationController
     project_url = "#{app_url}/projects/#{project.id}"
 
     reviewer_mention = current_user.slack_id.present? ? "<@#{current_user.slack_id}>" : current_user.display_name
-    user_mention = project.user.slack_id.present? ? "<@#{project.user.slack_id}>" : project.user.display_name
+    user_mention = members_mention(project)
     subject = stage == :pitch ? "pitch for *#{project.name}*" : "project *#{project.name}*"
     msg = "#{emoji} #{user_mention} Your #{subject} has been *#{decision}* by #{reviewer_mention}."
     msg += "\n\n*Reviewer feedback:*\n> #{feedback}" if feedback.present?
@@ -646,6 +692,19 @@ class Admin::ProjectsController < Admin::ApplicationController
       user_display_name: project.user.display_name,
       user_email: project.user.email,
       user_has_address: project.user.address_line1.present?,
+      members: project.members.map { |m|
+        { user_id: m.id, display_name: m.display_name, avatar: m.avatar, is_owner: m.id == project.user_id }
+      },
+      payouts: project.project_payouts.includes(:user).map { |p|
+        {
+          user_id: p.user_id,
+          display_name: p.user.display_name,
+          hours: p.hours.to_f,
+          coins: p.coins.to_f,
+          streak_multiplier: p.streak_multiplier&.to_f,
+          guild_multiplier: p.guild_multiplier&.to_f
+        }
+      },
       created_at: project.created_at.strftime("%b %d, %Y")
     }
   end
@@ -685,6 +744,7 @@ class Admin::ProjectsController < Admin::ApplicationController
       override_hours: meta["override_hours"],
       coins_awarded: meta["coins_awarded"],
       refunded_coins: meta["refunded"] ? meta["previous_coins_earned"] : nil,
+      member_breakdown: meta["member_breakdown"],
       reviewer_display_name: event.actor&.display_name,
       reviewer_avatar: event.actor&.avatar,
       target_type: event.target_type,

@@ -182,9 +182,32 @@ class Admin::ReviewsController < Admin::ApplicationController
       user_email: project.user.email,
       user_avatar: project.user.avatar,
       user_slack_id: project.user.slack_id,
-      coins_earned_preview: project.coin_rate.to_f * project.total_hours.to_f,
-      devlogs: project.devlogs.order(created_at: :asc).map { |d| serialize_devlog(d) }
+      coins_earned_preview: project.group_project? ? ProjectPayoutCalculator.new(project).total : project.coin_rate.to_f * project.total_hours.to_f,
+      is_group_project: project.group_project?,
+      members: serialize_members_for_review(project),
+      devlogs: project.devlogs.includes(:user).order(created_at: :asc).map { |d| serialize_devlog(d) }
     }
+  end
+
+  # Per-member hour attribution + projected coin shares (reflects any saved
+  # override_hours). Only meaningful for group projects but harmless for solo.
+  def serialize_members_for_review(project)
+    shares = ProjectPayoutCalculator.new(project).shares.index_by { |s| s.user.id }
+    project.members.map do |member|
+      share = shares[member.id]
+      {
+        user_id: member.id,
+        display_name: member.display_name,
+        avatar: member.avatar,
+        slack_id: member.slack_id,
+        is_owner: member.id == project.user_id,
+        devlog_hours: project.devlogs.select { |d| d.user_id == member.id }.sum(&:parsed_hours).to_f.round(1),
+        approved_hours: share&.hours,
+        projected_coins: share&.coins,
+        streak_multiplier: share&.streak_multiplier,
+        guild_multiplier: share&.guild_multiplier
+      }
+    end
   end
 
   def commits_url_for(repo_link)
@@ -207,6 +230,9 @@ class Admin::ReviewsController < Admin::ApplicationController
       time_hours: devlog.time_hours&.to_f,
       lapse_url: devlog.lapse_url,
       created_at: devlog.created_at.strftime("%b %d, %Y"),
+      user_id: devlog.user_id,
+      user_display_name: devlog.user.display_name,
+      user_avatar: devlog.user.avatar,
       meets_requirements: devlog.meets_submission_requirements?,
       validation: {
         content_length: details[:content_length],
@@ -239,6 +265,7 @@ class Admin::ReviewsController < Admin::ApplicationController
       override_hours: meta["override_hours"],
       coins_awarded: meta["coins_awarded"],
       refunded_coins: meta["refunded"] ? meta["previous_coins_earned"] : nil,
+      member_breakdown: meta["member_breakdown"],
       reviewer_display_name: event.actor&.display_name,
       reviewer_avatar: event.actor&.avatar,
       target_type: event.target_type,

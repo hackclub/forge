@@ -49,8 +49,16 @@
 #  fk_rails_...  (shop_item_id => shop_items.id)
 #  fk_rails_...  (user_id => users.id)
 #
-one: {}
+one:
+  user: one
+  kind: shop_item
+  coin_cost: 1.0
+  status: 0
 # column: value
 #
-two: {}
+two:
+  user: two
+  kind: shop_item
+  coin_cost: 1.0
+  status: 0
 # column: value
