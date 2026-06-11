@@ -82,6 +82,10 @@ class Project < ApplicationRecord
   has_many :reels, dependent: :destroy
   has_many :review_sessions, dependent: :destroy
   has_many :project_views, dependent: :destroy
+  has_many :project_collaborators, dependent: :destroy
+  has_many :collaborators, through: :project_collaborators, source: :user
+  has_many :collaboration_invites, dependent: :destroy
+  has_many :project_payouts, dependent: :destroy
   has_one_attached :cover_image
 
   after_commit :sync_to_airtable, on: [ :create, :update ], if: -> { approved? && saved_change_to_status? && !airtable_sent? }
@@ -89,6 +93,8 @@ class Project < ApplicationRecord
   after_update_commit :process_cover_image_upload, if: -> { cover_image.attached? && cover_image_url.blank? }
 
   enum :status, { draft: 0, pending: 1, approved: 2, returned: 3, rejected: 4, pitch_approved: 7, pitch_pending: 8 }
+
+  MAX_TEAM_SIZE = 5 # owner + 4 collaborators
 
   TIERS = %w[tier_1 tier_2 tier_3 tier_4].freeze
   BUILD_REVIEW_TIER = "tier_build_review"
@@ -182,12 +188,29 @@ class Project < ApplicationRecord
     computed_coins
   end
 
+  # Solo-project coin computation (owner's multipliers). Group projects bypass
+  # this: their total is the sum of per-member ProjectPayout shares, computed
+  # by ProjectPayoutCalculator at approval time.
   def computed_coins
     return 0.0 unless approved?
 
     multiplier = streak_at_approval ? user.streak_multiplier(streak_at_approval) : user.streak_multiplier
     guild_multiplier = GuildState.multiplier_for(user.guild)
     (total_hours * coin_rate * multiplier * guild_multiplier).round(2)
+  end
+
+  def members
+    [ user ] + collaborators
+  end
+
+  def member?(other)
+    other.present? && (user_id == other.id || project_collaborators.exists?(user_id: other.id))
+  end
+
+  # A project pays out per-member when anyone besides the owner is (or was)
+  # involved — collaborator rows or devlogs authored by someone else.
+  def group_project?
+    project_collaborators.exists? || devlogs.where.not(user_id: user_id).exists?
   end
 
   REVIEW_EVENT_ACTIONS = %w[

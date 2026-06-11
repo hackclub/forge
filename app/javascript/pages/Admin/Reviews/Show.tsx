@@ -25,6 +25,7 @@ import {
   AlertCircle,
   Sparkles,
   Send,
+  Users,
 } from 'lucide-react'
 import ReviewLayout from '@/layouts/ReviewLayout'
 import { Badge } from '@/components/admin/ui/badge'
@@ -111,6 +112,8 @@ interface ReviewProject {
   user_slack_id: string | null
   user_avatar: string
   coins_earned_preview: number
+  is_group_project: boolean
+  members: ReviewMember[]
   devlogs: {
     id: number
     title: string
@@ -119,9 +122,25 @@ interface ReviewProject {
     time_hours: number | null
     lapse_url: string | null
     created_at: string
+    user_id: number
+    user_display_name: string
+    user_avatar: string
     meets_requirements: boolean
     validation: { content_length: number; has_image: boolean }
   }[]
+}
+
+interface ReviewMember {
+  user_id: number
+  display_name: string
+  avatar: string
+  slack_id: string | null
+  is_owner: boolean
+  devlog_hours: number
+  approved_hours: number | null
+  projected_coins: number | null
+  streak_multiplier: number | null
+  guild_multiplier: number | null
 }
 
 interface ReviewSession {
@@ -812,6 +831,60 @@ export default function AdminReviewsShow({
               </div>
             </div>
 
+            {project.is_group_project && (
+              <div className="border-t border-border">
+                <div className="px-3 py-2 flex items-center gap-2">
+                  <Users className="size-3.5 text-muted-foreground" />
+                  <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    Team · payout split by devlog hours, each member's own multipliers
+                  </span>
+                </div>
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="text-muted-foreground border-t border-border">
+                      <th className="text-left font-medium px-3 py-1.5">Member</th>
+                      <th className="text-right font-medium px-3 py-1.5">Devlog hrs</th>
+                      <th className="text-right font-medium px-3 py-1.5">Approved hrs</th>
+                      <th className="text-right font-medium px-3 py-1.5">Streak ×</th>
+                      <th className="text-right font-medium px-3 py-1.5">Guild ×</th>
+                      <th className="text-right font-medium px-3 py-1.5">Coins</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {project.members.map((member) => (
+                      <tr key={member.user_id} className="border-t border-border">
+                        <td className="px-3 py-1.5">
+                          <a
+                            href={`/admin/users/${member.user_id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1.5 hover:underline"
+                          >
+                            <img src={member.avatar} alt="" className="size-4 rounded-full" />
+                            <span>{member.display_name}</span>
+                            {member.is_owner && <Badge variant="outline">Owner</Badge>}
+                          </a>
+                        </td>
+                        <td className="px-3 py-1.5 text-right font-mono">{member.devlog_hours.toFixed(1)}h</td>
+                        <td className="px-3 py-1.5 text-right font-mono">
+                          {member.approved_hours != null ? `${member.approved_hours.toFixed(1)}h` : '—'}
+                        </td>
+                        <td className="px-3 py-1.5 text-right font-mono">
+                          {member.streak_multiplier != null ? member.streak_multiplier.toFixed(2) : '—'}
+                        </td>
+                        <td className="px-3 py-1.5 text-right font-mono">
+                          {member.guild_multiplier != null ? member.guild_multiplier.toFixed(2) : '—'}
+                        </td>
+                        <td className="px-3 py-1.5 text-right font-mono">
+                          {member.projected_coins != null ? `${member.projected_coins.toFixed(2)}c` : '—'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
             {project.override_hours_justification && (
               <div className="px-4 py-2 border-t border-border text-xs">
                 <span className="text-muted-foreground">Existing override: </span>
@@ -875,6 +948,12 @@ export default function AdminReviewsShow({
                     <div key={entry.id} className="rounded-md border border-border bg-card p-3 space-y-2">
                       <div className="flex items-center gap-2 text-xs flex-wrap">
                         <span className="font-semibold text-sm text-foreground">{entry.title}</span>
+                        {project.is_group_project && (
+                          <span className="flex items-center gap-1 text-muted-foreground">
+                            <img src={entry.user_avatar} alt="" className="size-3.5 rounded-full" />
+                            {entry.user_display_name}
+                          </span>
+                        )}
                         <span className="text-muted-foreground">·</span>
                         <span className="text-muted-foreground">{entry.created_at}</span>
                         {entry.time_spent && (

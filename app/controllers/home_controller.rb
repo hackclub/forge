@@ -6,6 +6,11 @@ class HomeController < ApplicationController
 
   def index
     projects = current_user.projects.kept.order(updated_at: :desc).to_a
+    collaborated = current_user.collaborated_projects.kept.order(updated_at: :desc).to_a
+    pending_invites = current_user.collaboration_invites_received.pending
+      .joins(:project).merge(Project.kept)
+      .includes(:project, :inviter)
+      .order(created_at: :desc)
     news_posts = NewsPost.includes(:author).published.limit(3)
     staff_picks = Project.kept.where(hidden: false).includes(:user).staff_picks.limit(3)
     approved_count = Project.kept.where(status: %i[approved pending pitch_approved pitch_pending]).count
@@ -19,21 +24,33 @@ class HomeController < ApplicationController
       },
       coin_balance: current_user.coin_balance,
       stats: {
-        projects_count: projects.size
+        projects_count: projects.size + collaborated.size
       },
       orph_motivation: {
         approved_count: approved_count,
         goal: 100,
         dino_image: random_orph_dino
       },
-      projects: projects.map { |p|
+      projects: (projects + collaborated).map { |p|
         {
           id: p.id,
           name: p.name,
           subtitle: p.subtitle,
           status: p.status,
           cover_image_url: p.cover_image_url,
-          updated_at: p.updated_at.strftime("%b %d, %Y")
+          updated_at: p.updated_at.strftime("%b %d, %Y"),
+          is_collaboration: p.user_id != current_user.id
+        }
+      },
+      pending_invites: pending_invites.map { |invite|
+        {
+          id: invite.id,
+          project_id: invite.project_id,
+          project_name: invite.project.name,
+          project_cover_image_url: invite.project.cover_image_url,
+          inviter_display_name: invite.inviter.display_name,
+          inviter_avatar: invite.inviter.avatar,
+          created_at: invite.created_at.strftime("%b %d, %Y")
         }
       },
       news_posts: news_posts.map { |post|

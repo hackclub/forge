@@ -32,7 +32,7 @@ one:
   target_type: MyString
   target_id: 
   target_label: MyString
-  metadata: 
+  metadata: {}
   ip_address: MyString
 
 two:
@@ -41,5 +41,5 @@ two:
   target_type: MyString
   target_id: 
   target_label: MyString
-  metadata: 
+  metadata: {}
   ip_address: MyString

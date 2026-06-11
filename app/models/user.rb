@@ -89,6 +89,11 @@ class User < ApplicationRecord
   has_many :orders, dependent: :destroy
   has_many :assigned_orders, class_name: "Order", foreign_key: :assigned_to_id, dependent: :nullify, inverse_of: :assigned_to
   has_many :coin_adjustments, dependent: :destroy
+  has_many :project_collaborations, class_name: "ProjectCollaborator", dependent: :destroy
+  has_many :collaborated_projects, through: :project_collaborations, source: :project
+  has_many :project_payouts, dependent: :destroy
+  has_many :collaboration_invites_received, class_name: "CollaborationInvite", foreign_key: :invitee_id, dependent: :destroy, inverse_of: :invitee
+  has_many :collaboration_invites_sent, class_name: "CollaborationInvite", foreign_key: :inviter_id, dependent: :destroy, inverse_of: :inviter
   has_many :referrals_made, class_name: "Referral", foreign_key: :referrer_id, dependent: :destroy, inverse_of: :referrer
   has_one :referral_received, class_name: "Referral", foreign_key: :referred_id, dependent: :destroy, inverse_of: :referred
   has_many :activity_days, class_name: "UserActivityDay", dependent: :destroy
@@ -301,7 +306,12 @@ class User < ApplicationRecord
   end
 
   def coins_earned
-    projects.kept.sum(&:coins_earned)
+    # Legacy path: solo projects (no per-member payout rows) pay the owner the
+    # full project amount. Group projects pay each member their snapshotted
+    # ProjectPayout share instead — including projects this user collaborated on.
+    legacy = projects.kept.where.not(id: ProjectPayout.select(:project_id)).sum(&:coins_earned)
+    shared = project_payouts.joins(:project).merge(Project.kept).sum(:coins).to_f
+    (legacy + shared).round(2)
   end
 
   def coins_spent

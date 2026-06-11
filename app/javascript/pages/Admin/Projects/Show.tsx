@@ -262,9 +262,46 @@ export default function AdminProjectsShow({
                     {project.user_display_name}
                   </Link>
                 </span>
+                {project.members
+                  .filter((m) => !m.is_owner)
+                  .map((m) => (
+                    <span key={m.user_id} className="flex items-center gap-1.5">
+                      <span>+</span>
+                      <Link
+                        href={`/admin/users/${m.user_id}`}
+                        className="flex items-center gap-1 text-foreground hover:underline"
+                      >
+                        <img src={m.avatar} alt="" className="size-4 rounded-full" />
+                        {m.display_name}
+                      </Link>
+                    </span>
+                  ))}
                 <span>·</span>
                 <span>Started {project.created_at}</span>
               </div>
+
+              {project.payouts.length > 0 && (
+                <div className="mt-3 rounded-md border border-border overflow-hidden">
+                  <p className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground bg-muted/50">
+                    Payout split
+                  </p>
+                  <table className="w-full text-xs">
+                    <tbody>
+                      {project.payouts.map((p) => (
+                        <tr key={p.user_id} className="border-t border-border">
+                          <td className="px-3 py-1.5">{p.display_name}</td>
+                          <td className="px-3 py-1.5 text-right font-mono">{p.hours.toFixed(1)}h</td>
+                          <td className="px-3 py-1.5 text-right font-mono text-muted-foreground">
+                            ×{p.streak_multiplier?.toFixed(2) ?? '1.00'} streak · ×
+                            {p.guild_multiplier?.toFixed(2) ?? '1.00'} guild
+                          </td>
+                          <td className="px-3 py-1.5 text-right font-mono">{p.coins.toFixed(2)}c</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </CardContent>
           </Card>
 

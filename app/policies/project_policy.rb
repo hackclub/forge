@@ -3,7 +3,7 @@
 class ProjectPolicy < ApplicationPolicy
   def show?
     return false if record.discarded? && !admin?
-    return true if owner? || user&.staff?
+    return true if member? || user&.staff?
     return false if record.hidden?
 
     true
@@ -38,6 +38,26 @@ class ProjectPolicy < ApplicationPolicy
 
   def review?
     user&.has_permission?("projects")
+  end
+
+  def create_devlog?
+    return false if record.discarded?
+    admin? || member?
+  end
+
+  def manage_team?
+    return false if record.discarded?
+    owner? && !record.build_review?
+  end
+
+  private
+
+  def collaborator?
+    user.present? && record.project_collaborators.exists?(user_id: user.id)
+  end
+
+  def member?
+    owner? || collaborator?
   end
 
   class Scope < ApplicationPolicy::Scope

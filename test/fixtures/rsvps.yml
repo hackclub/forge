@@ -14,7 +14,7 @@
 #  index_rsvps_on_email  (email) UNIQUE
 #
 one:
-  email: MyString
+  email: rsvp1@example.com
 
 two:
-  email: MyString
+  email: rsvp2@example.com
