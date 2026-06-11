@@ -16,24 +16,32 @@
 #  updated_at      :datetime         not null
 #  project_id      :bigint           not null
 #  reviewer_id     :bigint
+#  user_id         :bigint           not null
 #
 # Indexes
 #
 #  index_devlogs_on_project_id  (project_id)
 #  index_devlogs_on_status      (status)
+#  index_devlogs_on_user_id     (user_id)
 #
 # Foreign Keys
 #
 #  fk_rails_...  (project_id => projects.id)
 #  fk_rails_...  (reviewer_id => users.id)
+#  fk_rails_...  (user_id => users.id)
 #
 class Devlog < ApplicationRecord
   has_paper_trail
 
   belongs_to :project
+  belongs_to :user
   belongs_to :reviewer, class_name: "User", optional: true
 
   enum :status, { draft: 0, pending: 1, approved: 2, returned: 3 }
+
+  # Default author is the project owner — covers git-journal sync and any
+  # other creation path that doesn't set an author explicitly.
+  before_validation { self.user ||= project&.user }
 
   validates :title, presence: true
   validates :content, presence: true

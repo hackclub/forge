@@ -1,6 +1,7 @@
 import { Head, Link } from '@inertiajs/react'
 import type { ProjectStatus, NewsPostSummary } from '@/types'
 import ForgeKeeper from '@/components/ForgeKeeper'
+import CollaborationInvitesCard, { type PendingCollaborationInvite } from '@/components/CollaborationInvitesCard'
 
 interface DashboardUser {
   display_name: string
@@ -20,6 +21,7 @@ interface DashboardProject {
   status: ProjectStatus
   cover_image_url: string | null
   updated_at: string
+  is_collaboration: boolean
 }
 
 interface StaffPick {
@@ -43,6 +45,7 @@ interface Props {
   stats: Stats
   orph_motivation: OrphMotivation
   projects: DashboardProject[]
+  pending_invites: PendingCollaborationInvite[]
   news_posts: NewsPostSummary[]
   staff_picks: StaffPick[]
 }
@@ -67,7 +70,7 @@ const STATUS_COLORS: Record<ProjectStatus, string> = {
   pitch_pending: 'bg-amber-500/15 text-amber-400',
 }
 
-export default function HomeIndex({ user, orph_motivation, projects, news_posts, staff_picks }: Props) {
+export default function HomeIndex({ user, orph_motivation, projects, pending_invites, news_posts, staff_picks }: Props) {
   const orphProgress = Math.min(100, (orph_motivation.approved_count / orph_motivation.goal) * 100)
   const orphReached = orph_motivation.approved_count >= orph_motivation.goal
 
@@ -138,6 +141,8 @@ export default function HomeIndex({ user, orph_motivation, projects, news_posts,
           </div>
         </section>
 
+        {pending_invites.length > 0 && <CollaborationInvitesCard invites={pending_invites} />}
+
         <section data-tour="dashboard-projects" className="bg-[#1c1b1b] ghost-border p-8">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-headline font-bold text-[#e5e2e1] tracking-tight">Your projects</h2>
@@ -189,10 +194,17 @@ export default function HomeIndex({ user, orph_motivation, projects, news_posts,
                       <h3 className="font-headline font-bold text-[#e5e2e1] group-hover:text-[#ffb595] transition-colors tracking-tight truncate">
                         {project.name}
                       </h3>
-                      <span
-                        className={`shrink-0 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 ${STATUS_COLORS[project.status]}`}
-                      >
-                        {STATUS_LABELS[project.status]}
+                      <span className="shrink-0 flex items-center gap-1">
+                        {project.is_collaboration && (
+                          <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 bg-sky-500/15 text-sky-400">
+                            Collab
+                          </span>
+                        )}
+                        <span
+                          className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 ${STATUS_COLORS[project.status]}`}
+                        >
+                          {STATUS_LABELS[project.status]}
+                        </span>
                       </span>
                     </div>
                     {project.subtitle && <p className="text-stone-500 text-xs line-clamp-2 mb-4">{project.subtitle}</p>}

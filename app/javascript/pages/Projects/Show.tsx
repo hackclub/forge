@@ -4,7 +4,7 @@ import Markdown from 'react-markdown'
 import rehypeRaw from 'rehype-raw'
 import rehypeSanitize from 'rehype-sanitize'
 import remarkGfm from 'remark-gfm'
-import type { ProjectDetail, ProjectStatus, SharedProps } from '@/types'
+import type { ProjectDetail, ProjectMember, ProjectStatus, SharedProps } from '@/types'
 import ReviewTimeline, { type ReviewEvent } from '@/components/ReviewTimeline'
 
 function isSafeUrl(url: string | null): boolean {
@@ -101,6 +101,10 @@ interface DevlogEntry {
   time_hours: number | null
   lapse_url: string | null
   created_at: string
+  user_id: number
+  user_display_name: string
+  user_avatar: string
+  can_edit: boolean
   meets_requirements: boolean
   validation: {
     content_length: number
@@ -109,6 +113,13 @@ interface DevlogEntry {
     meets_length_requirement: boolean
     meets_image_requirement: boolean
   }
+}
+
+interface PendingInvite {
+  id: number
+  invitee_display_name: string
+  invitee_avatar: string
+  created_at: string
 }
 
 interface ProjectKudo {
@@ -120,6 +131,155 @@ interface ProjectKudo {
   author_is_staff: boolean
   can_destroy: boolean
   created_at: string
+}
+
+function TeamPanel({
+  project,
+  pendingInvites,
+  canManage,
+  canLeave,
+  currentUserId,
+}: {
+  project: ProjectDetail
+  pendingInvites: PendingInvite[]
+  canManage: boolean
+  canLeave: boolean
+  currentUserId: number | null
+}) {
+  const [identifier, setIdentifier] = useState('')
+  const [inviting, setInviting] = useState(false)
+  const teamFull = project.members.length + pendingInvites.length >= project.max_team_size
+
+  function sendInvite(e: React.FormEvent) {
+    e.preventDefault()
+    if (!identifier.trim()) return
+    setInviting(true)
+    router.post(
+      `/projects/${project.id}/invites`,
+      { identifier: identifier.trim() },
+      {
+        preserveScroll: true,
+        onSuccess: () => setIdentifier(''),
+        onFinish: () => setInviting(false),
+      },
+    )
+  }
+
+  function revokeInvite(inviteId: number) {
+    if (!confirm('Revoke this invite?')) return
+    router.delete(`/projects/${project.id}/invites/${inviteId}`, { preserveScroll: true })
+  }
+
+  function removeMember(member: ProjectMember) {
+    if (!member.collaborator_id) return
+    if (!confirm(`Remove ${member.display_name} from the team? Their devlogs stay with the project.`)) return
+    router.delete(`/projects/${project.id}/collaborators/${member.collaborator_id}`, { preserveScroll: true })
+  }
+
+  function leaveProject() {
+    const self = project.members.find((m) => m.id === currentUserId)
+    if (!self?.collaborator_id) return
+    if (!confirm(`Leave ${project.name}? Your devlogs stay with the project.`)) return
+    router.delete(`/projects/${project.id}/collaborators/${self.collaborator_id}`)
+  }
+
+  return (
+    <div className="bg-[#1c1b1b] ghost-border p-6">
+      <div className="flex items-center justify-between mb-4">
+        <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline">Team</h4>
+        <span className="text-[10px] uppercase tracking-[0.15em] text-stone-600">
+          {project.members.length}/{project.max_team_size}
+        </span>
+      </div>
+      <ul className="space-y-3">
+        {project.members.map((member) => (
+          <li key={member.id} className="flex items-center gap-3">
+            <Link href={`/users/${member.id}`} className="flex items-center gap-3 group min-w-0 flex-1">
+              <img src={member.avatar} alt={member.display_name} className="w-8 h-8 border border-white/10 shrink-0" />
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-headline font-bold text-[#e5e2e1] group-hover:text-[#ffb595] transition-colors truncate">
+                  {member.display_name}
+                </p>
+                <p className="text-[9px] uppercase tracking-[0.15em] text-stone-600">
+                  {member.is_owner ? 'Owner' : 'Collaborator'}
+                </p>
+              </div>
+            </Link>
+            {canManage && !member.is_owner && (
+              <button
+                onClick={() => removeMember(member)}
+                className="text-stone-600 hover:text-red-400 transition-colors cursor-pointer shrink-0"
+                aria-label={`Remove ${member.display_name}`}
+              >
+                <span className="material-symbols-outlined text-lg">person_remove</span>
+              </button>
+            )}
+          </li>
+        ))}
+      </ul>
+
+      {canManage && pendingInvites.length > 0 && (
+        <div className="mt-5 pt-5 border-t border-white/5">
+          <p className="text-[10px] uppercase tracking-[0.2em] text-stone-600 mb-3">Pending Invites</p>
+          <ul className="space-y-2">
+            {pendingInvites.map((invite) => (
+              <li key={invite.id} className="flex items-center gap-3">
+                <img src={invite.invitee_avatar} alt="" className="w-6 h-6 border border-white/10 shrink-0 opacity-60" />
+                <span className="text-xs text-stone-400 flex-1 min-w-0 truncate">{invite.invitee_display_name}</span>
+                <button
+                  onClick={() => revokeInvite(invite.id)}
+                  className="text-stone-600 hover:text-red-400 text-[10px] uppercase tracking-[0.15em] font-bold transition-colors cursor-pointer shrink-0"
+                >
+                  Revoke
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {canManage && !teamFull && (
+        <form onSubmit={sendInvite} className="mt-5 pt-5 border-t border-white/5">
+          <label className="block text-[10px] uppercase tracking-[0.2em] text-stone-600 mb-2">
+            Invite a collaborator
+          </label>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
+              placeholder="Email or Slack ID"
+              className="flex-1 min-w-0 bg-[#0e0e0e] border-none px-3 py-2 text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 text-xs"
+            />
+            <button
+              type="submit"
+              disabled={inviting || !identifier.trim()}
+              className="signature-smolder text-[#4c1a00] px-4 py-2 text-[10px] font-bold uppercase tracking-[0.15em] cursor-pointer disabled:opacity-50"
+            >
+              {inviting ? '...' : 'Invite'}
+            </button>
+          </div>
+          <p className="text-[10px] text-stone-600 mt-2">
+            They need a Forge account. Collaborators log their own devlogs and earn their share of coins.
+          </p>
+        </form>
+      )}
+      {canManage && teamFull && (
+        <p className="text-[10px] text-stone-600 mt-4 pt-4 border-t border-white/5">
+          Team is full ({project.max_team_size} members max, counting pending invites).
+        </p>
+      )}
+
+      {canLeave && (
+        <button
+          onClick={leaveProject}
+          className="mt-5 w-full ghost-border text-stone-400 hover:text-red-400 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.15em] transition-colors cursor-pointer"
+        >
+          Leave Project
+        </button>
+      )}
+    </div>
+  )
 }
 
 const statusConfig: Record<ProjectStatus, { label: string; bg: string; text: string; icon: string }> = {
@@ -139,13 +299,23 @@ export default function ProjectsShow({
   review_history,
   can,
   is_admin_view,
+  pending_invites,
 }: {
   project: ProjectDetail
   devlogs: DevlogEntry[]
   kudos: ProjectKudo[]
   review_history: ReviewEvent[]
-  can: { update: boolean; destroy: boolean; submit_for_review: boolean; give_kudos: boolean }
+  can: {
+    update: boolean
+    destroy: boolean
+    submit_for_review: boolean
+    give_kudos: boolean
+    create_devlog: boolean
+    manage_team: boolean
+    leave: boolean
+  }
   is_admin_view: boolean
+  pending_invites: PendingInvite[]
 }) {
   const [kudoContent, setKudoContent] = useState('')
   const [devlogOrder, setDevlogOrder] = useState<'newest' | 'oldest'>('newest')
@@ -622,10 +792,28 @@ export default function ProjectsShow({
               <div>
                 <p className="text-sm font-headline font-bold group-hover:text-[#ffb595] transition-colors">
                   {project.user_display_name}
+                  {project.members.length > 1 && (
+                    <span className="text-stone-500 font-normal"> +{project.members.length - 1}</span>
+                  )}
                 </p>
                 <p className="text-[10px] uppercase tracking-[0.2em] text-stone-600">Started {project.created_at}</p>
               </div>
             </Link>
+            {project.members.length > 1 && (
+              <div className="flex items-center -space-x-2">
+                {project.members
+                  .filter((m) => !m.is_owner)
+                  .map((m) => (
+                    <Link key={m.id} href={`/users/${m.id}`} title={m.display_name}>
+                      <img
+                        src={m.avatar}
+                        alt={m.display_name}
+                        className="w-8 h-8 border border-[#1c1b1b] hover:border-[#ffb595] transition-colors"
+                      />
+                    </Link>
+                  ))}
+              </div>
+            )}
 
             <div className="flex items-center gap-6 ml-auto text-xs flex-wrap">
               {devlogs.length > 0 && totalHours > 0 && (
@@ -920,6 +1108,12 @@ export default function ProjectsShow({
                             </Link>
                           </div>
                           <div className="flex items-center gap-3 mt-1">
+                            {project.members.length > 1 && (
+                              <span className="flex items-center gap-1.5 text-stone-400 text-xs">
+                                <img src={entry.user_avatar} alt="" className="w-4 h-4 border border-white/10" />
+                                {entry.user_display_name}
+                              </span>
+                            )}
                             <span className="text-stone-500 text-xs">{entry.created_at}</span>
                             {entry.time_spent && (
                               <span className="text-[#ffb595] text-xs flex items-center gap-1">
@@ -996,7 +1190,7 @@ export default function ProjectsShow({
                       Export
                     </a>
                   )}
-                  {can.update && (
+                  {can.create_devlog && (
                     <button
                       onClick={() => setShowDevlogForm(!showDevlogForm)}
                       className="signature-smolder text-[#4c1a00] px-5 py-2 text-xs font-bold uppercase tracking-[0.15em] flex items-center gap-2 cursor-pointer"
@@ -1252,6 +1446,12 @@ export default function ProjectsShow({
                                 </Link>
                               </div>
                               <div className="flex items-center gap-3 mt-1 flex-wrap">
+                                {project.members.length > 1 && (
+                                  <span className="flex items-center gap-1.5 text-stone-400 text-xs">
+                                    <img src={entry.user_avatar} alt="" className="w-4 h-4 border border-white/10" />
+                                    {entry.user_display_name}
+                                  </span>
+                                )}
                                 <span className="text-stone-500 text-xs">{entry.created_at}</span>
                                 {entry.time_spent && (
                                   <span className="text-[#ffb595] text-xs flex items-center gap-1">
@@ -1272,7 +1472,7 @@ export default function ProjectsShow({
                                 )}
                               </div>
                             </div>
-                            {can.update && (
+                            {entry.can_edit && (
                               <div className="flex items-center gap-2 shrink-0">
                                 <button
                                   onClick={() => startEditDevlog(entry)}
@@ -1318,7 +1518,16 @@ export default function ProjectsShow({
         </div>
 
         <aside className="col-span-12 lg:col-span-4 space-y-6">
-          {!can.update && (
+          {(can.manage_team || can.leave || project.members.length > 1) && (
+            <TeamPanel
+              project={project}
+              pendingInvites={pending_invites}
+              canManage={can.manage_team}
+              canLeave={can.leave}
+              currentUserId={sharedProps.auth.user?.id ?? null}
+            />
+          )}
+          {!can.update && project.members.length <= 1 && (
             <div className="bg-[#1c1b1b] ghost-border p-6">
               <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">
                 Builder

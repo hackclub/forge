@@ -78,6 +78,14 @@ export interface LinkedProjectSummary {
   name: string
 }
 
+export interface ProjectMember {
+  id: number
+  display_name: string
+  avatar: string
+  is_owner: boolean
+  collaborator_id: number | null
+}
+
 export interface ProjectDetail {
   id: number
   name: string
@@ -101,6 +109,8 @@ export interface ProjectDetail {
   user_id: number
   user_display_name: string
   user_avatar: string
+  members: ProjectMember[]
+  max_team_size: number
   user_has_address: boolean
   user_address: UserAddress | null
   created_at: string
@@ -257,6 +267,15 @@ export interface AdminProjectDetail {
   user_display_name: string
   user_email: string
   user_has_address: boolean
+  members: { user_id: number; display_name: string; avatar: string; is_owner: boolean }[]
+  payouts: {
+    user_id: number
+    display_name: string
+    hours: number
+    coins: number
+    streak_multiplier: number | null
+    guild_multiplier: number | null
+  }[]
   created_at: string
 }
 

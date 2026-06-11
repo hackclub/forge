@@ -11,15 +11,19 @@ class ProjectsController < ApplicationController
 
     render inertia: "Projects/Show", props: {
       project: serialize_project_detail(@project),
-      devlogs: @project.devlogs.map { |d| serialize_devlog(d) },
+      devlogs: @project.devlogs.includes(:user).map { |d| serialize_devlog(d) },
       review_history: can_view_project_review?(@project) ? @project.review_history.map { |e| serialize_review_event(e) } : [],
       is_admin_view: policy(@project).update? && @project.user_id != current_user&.id,
       can: {
         update: policy(@project).update?,
         destroy: policy(@project).destroy?,
         submit_for_review: policy(@project).submit_for_review?,
-        give_kudos: current_user.present? && current_user.id != @project.user_id
+        give_kudos: current_user.present? && !@project.member?(current_user),
+        create_devlog: current_user.present? && policy(@project).create_devlog?,
+        manage_team: current_user.present? && policy(@project).manage_team?,
+        leave: current_user.present? && @project.member?(current_user) && @project.user_id != current_user.id
       },
+      pending_invites: policy(@project).manage_team? ? serialize_pending_invites(@project) : [],
       kudos: @project.kudos.includes(:author).order(created_at: :desc).map { |k| serialize_project_kudo(k) }
     }
   end
@@ -432,6 +436,8 @@ class ProjectsController < ApplicationController
       user_id: project.user_id,
       user_display_name: project.user.display_name,
       user_avatar: project.user.avatar,
+      members: serialize_members(project),
+      max_team_size: Project::MAX_TEAM_SIZE,
       user_has_address: can_view_user_address && project.user.address_line1.present?,
       user_address: can_view_user_address && project.user.address_line1.present? ? {
         address_line1: project.user.address_line1,
@@ -448,7 +454,26 @@ class ProjectsController < ApplicationController
   end
 
   def can_view_project_review?(project)
-    current_user.present? && (current_user.id == project.user_id || current_user.staff?)
+    current_user.present? && (project.member?(current_user) || current_user.staff?)
+  end
+
+  def serialize_members(project)
+    owner = { id: project.user_id, display_name: project.user.display_name, avatar: project.user.avatar, is_owner: true, collaborator_id: nil }
+    collaborators = project.project_collaborators.includes(:user).map do |pc|
+      { id: pc.user_id, display_name: pc.user.display_name, avatar: pc.user.avatar, is_owner: false, collaborator_id: pc.id }
+    end
+    [ owner ] + collaborators
+  end
+
+  def serialize_pending_invites(project)
+    project.collaboration_invites.pending.includes(:invitee).map do |invite|
+      {
+        id: invite.id,
+        invitee_display_name: invite.invitee.display_name,
+        invitee_avatar: invite.invitee.avatar,
+        created_at: invite.created_at.strftime("%b %d, %Y")
+      }
+    end
   end
 
   def serialize_devlog(devlog)
@@ -461,6 +486,10 @@ class ProjectsController < ApplicationController
       time_hours: devlog.time_hours&.to_f,
       lapse_url: devlog.lapse_url,
       created_at: devlog.created_at.strftime("%B %d, %Y"),
+      user_id: devlog.user_id,
+      user_display_name: devlog.user.display_name,
+      user_avatar: devlog.user.avatar,
+      can_edit: current_user.present? && policy(devlog).update?,
       meets_requirements: devlog.meets_submission_requirements?,
       validation: {
         content_length: details[:content_length],

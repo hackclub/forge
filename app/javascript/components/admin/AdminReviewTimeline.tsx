@@ -31,6 +31,9 @@ export interface ReviewEvent {
   override_hours: number | null
   coins_awarded: number | null
   refunded_coins: number | null
+  member_breakdown:
+    | { user_id: number; display_name: string; hours: number; coins: number }[]
+    | null
   reviewer_display_name: string | null
   reviewer_avatar: string | null
   target_type: string | null
@@ -123,6 +126,15 @@ export default function AdminReviewTimeline({
                       <Coins className="size-3 shrink-0" />
                       <span>{funding}</span>
                     </div>
+                  )}
+                  {event.member_breakdown && event.member_breakdown.length > 0 && (
+                    <ul className="mt-1.5 space-y-0.5 text-xs text-muted-foreground">
+                      {event.member_breakdown.map((m) => (
+                        <li key={m.user_id} className="font-mono">
+                          {m.display_name}: {Number(m.hours).toFixed(1)}h → {Number(m.coins).toFixed(2)}c
+                        </li>
+                      ))}
+                    </ul>
                   )}
                   {event.feedback && (
                     <div className="markdown-content text-sm mt-2">
