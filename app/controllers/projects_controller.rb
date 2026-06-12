@@ -361,7 +361,7 @@ class ProjectsController < ApplicationController
         subtitle: @project.subtitle,
         cover_image_url: @project.cover_image_url
       },
-      result: @project.ai_check_result,
+      result: @project.ai_check_result_for_display,
       ran_at: @project.ai_check_ran_at&.iso8601
     }
   end
@@ -369,7 +369,7 @@ class ProjectsController < ApplicationController
   def run_ai_check
     authorize @project, :submit_for_review?
 
-    @project.update!(ai_check_result: { "status" => "queued", "queued_at" => Time.current.iso8601 })
+    @project.update_columns(ai_check_result: { "status" => "queued", "queued_at" => Time.current.iso8601 })
     RunAiRequirementsCheckJob.perform_later(@project.id)
     audit!("project.ai_check_run", target: @project, metadata: { via: "owner" })
 
@@ -378,7 +378,7 @@ class ProjectsController < ApplicationController
 
   def ai_check_status
     authorize @project, :submit_for_review?
-    render json: { result: @project.ai_check_result, ran_at: @project.ai_check_ran_at&.iso8601 }
+    render json: { result: @project.ai_check_result_for_display, ran_at: @project.ai_check_ran_at&.iso8601 }
   end
 
   private

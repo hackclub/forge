@@ -56,6 +56,8 @@ const VERDICT_CONFIG: Record<
   },
 }
 
+const POLL_GIVE_UP_MS = 3 * 60 * 1000
+
 function VerdictPill({ verdict }: { verdict: AiCheckRequirement['verdict'] }) {
   const cfg = VERDICT_CONFIG[verdict]
   return (
@@ -86,6 +88,7 @@ function ProjectsAiCheck({
   const [error, setError] = useState<string | null>(null)
   const startedRef = useRef(false)
   const pollRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const pollDeadlineRef = useRef(0)
 
   const stopPolling = useCallback(() => {
     if (pollRef.current) {
@@ -95,13 +98,21 @@ function ProjectsAiCheck({
   }, [])
 
   const pollStatus = useCallback(async () => {
+    const scheduleNext = (delay: number) => {
+      if (Date.now() > pollDeadlineRef.current) {
+        setError('Still no result after a few minutes — the check looks stuck. Hit retry to run it again.')
+        setRunning(false)
+        return
+      }
+      pollRef.current = setTimeout(pollStatus, delay)
+    }
     try {
       const res = await fetch(`/projects/${project.id}/ai_check_status`, {
         credentials: 'same-origin',
         headers: { Accept: 'application/json' },
       })
       if (!res.ok) {
-        pollRef.current = setTimeout(pollStatus, 2000)
+        scheduleNext(2000)
         return
       }
       const data = await res.json()
@@ -115,12 +126,12 @@ function ProjectsAiCheck({
       }
       if (isInProgress(next)) {
         setRunning(true)
-        pollRef.current = setTimeout(pollStatus, 2000)
+        scheduleNext(2000)
       } else {
         setRunning(false)
       }
     } catch {
-      pollRef.current = setTimeout(pollStatus, 3000)
+      scheduleNext(3000)
     }
   }, [project.id])
 
@@ -143,6 +154,7 @@ function ProjectsAiCheck({
         setRunning(false)
         return
       }
+      pollDeadlineRef.current = Date.now() + POLL_GIVE_UP_MS
       pollRef.current = setTimeout(pollStatus, 1500)
     } catch {
       setError('Network error. Try again in a moment.')
@@ -155,6 +167,7 @@ function ProjectsAiCheck({
     startedRef.current = true
     if (!initialResult || isInProgress(initialResult)) {
       if (isInProgress(initialResult)) {
+        pollDeadlineRef.current = Date.now() + POLL_GIVE_UP_MS
         pollRef.current = setTimeout(pollStatus, 1500)
       } else {
         runCheck()

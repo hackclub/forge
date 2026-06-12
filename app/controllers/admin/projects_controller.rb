@@ -449,7 +449,7 @@ class Admin::ProjectsController < Admin::ApplicationController
   def ai_requirements_check
     authorize @project, :review?
 
-    @project.update!(ai_check_result: { "status" => "queued", "queued_at" => Time.current.iso8601 })
+    @project.update_columns(ai_check_result: { "status" => "queued", "queued_at" => Time.current.iso8601 })
     RunReviewerAiCheckJob.perform_later(@project.id)
     audit!("project.ai_check_run", target: @project, metadata: { via: "reviewer" })
 
@@ -458,7 +458,7 @@ class Admin::ProjectsController < Admin::ApplicationController
 
   def ai_requirements_check_status
     authorize @project, :review?
-    render json: { result: @project.ai_check_result, ran_at: @project.ai_check_ran_at&.iso8601 }
+    render json: { result: @project.ai_check_result_for_display, ran_at: @project.ai_check_ran_at&.iso8601 }
   end
 
   def send_checkpoint_message

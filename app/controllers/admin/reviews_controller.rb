@@ -171,7 +171,7 @@ class Admin::ReviewsController < Admin::ApplicationController
       reviewed_at: project.reviewed_at&.strftime("%b %d, %Y %H:%M UTC"),
       reviewer_display_name: project.reviewer&.display_name,
       review_feedback: project.review_feedback,
-      ai_check_result: project.ai_check_result,
+      ai_check_result: project.ai_check_result_for_display,
       ai_check_ran_at: project.ai_check_ran_at&.strftime("%b %d, %Y %H:%M UTC"),
       from_slack: project.slack_message_ts.present?,
       slack_url: project.slack_channel_id.present? && project.slack_message_ts.present? ? "https://hackclub.slack.com/archives/#{project.slack_channel_id}/p#{project.slack_message_ts.to_s.delete('.')}" : nil,
