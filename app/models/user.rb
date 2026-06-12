@@ -121,10 +121,12 @@ class User < ApplicationRecord
   STREAK_FREEZE_COST = 5
 
   def record_activity!(date = today_in_zone)
+    today = today_in_zone
+    date = today if date > today
     activity_days.find_or_create_by!(active_on: date)
-    apply_streak_freezes!(date)
+    apply_streak_freezes!(today)
   rescue ActiveRecord::RecordNotUnique
-    apply_streak_freezes!(date)
+    apply_streak_freezes!(today)
     nil
   end
 
@@ -136,14 +138,15 @@ class User < ApplicationRecord
     return if last.nil?
 
     gap = (today - last).to_i - 1
-    return if gap <= 0
+    # Only spend freezes when they can bridge the whole gap — a partial fill
+    # can't save the streak and just burns freezes silently.
+    return if gap <= 0 || gap > freezes
 
-    to_fill = [ gap, freezes ].min
     transaction do
-      to_fill.times do |offset|
+      gap.times do |offset|
         activity_days.find_or_create_by!(active_on: today - (offset + 1))
       end
-      decrement!(:streak_freezes, to_fill)
+      decrement!(:streak_freezes, gap)
     end
   end
 

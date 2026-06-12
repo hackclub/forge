@@ -85,6 +85,7 @@ class ApplicationController < ActionController::Base
     return unless last_seen.nil? || last_seen < 1.minute.ago
 
     current_user.update_columns(last_seen_at: now)
+    current_user.apply_streak_freezes!
 
     today = Date.current
     if last_seen.nil? || last_seen.to_date < today
