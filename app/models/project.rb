@@ -31,6 +31,7 @@
 #  repo_link                    :string
 #  review_feedback              :text
 #  reviewed_at                  :datetime
+#  reviewed_commit_sha          :string
 #  shadow_banned                :boolean          default(FALSE), not null
 #  slack_message_ts             :string
 #  staff_pick_at                :datetime

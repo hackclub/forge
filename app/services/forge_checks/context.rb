@@ -88,6 +88,21 @@ module ForgeChecks
       tree.select { |path| path.match?(regex) }
     end
 
+    def head_sha
+      return nil unless github?
+
+      default_branch = github_api("repos/#{github_match[1]}/#{github_match[2]}")&.dig("default_branch")
+      return nil unless default_branch
+
+      github_api("repos/#{github_match[1]}/#{github_match[2]}/branches/#{default_branch}")&.dig("commit", "sha")
+    end
+
+    def compare(base, head)
+      return nil unless github?
+
+      github_api("repos/#{github_match[1]}/#{github_match[2]}/compare/#{base}...#{head}")
+    end
+
     private
 
     def fetch_github_tree(owner, repo)
@@ -126,6 +141,24 @@ module ForgeChecks
       http.open_timeout = 5
       http.read_timeout = 10
       response = http.get(uri.request_uri, "Accept" => "application/json")
+      return nil unless response.is_a?(Net::HTTPSuccess)
+
+      JSON.parse(response.body)
+    rescue StandardError
+      nil
+    end
+
+    def github_api(path)
+      uri = URI("https://api.github.com/#{path}")
+      req = Net::HTTP::Get.new(uri)
+      req["Accept"] = "application/vnd.github+json"
+      token = ENV["GITHUB_TOKEN"].to_s
+      req["Authorization"] = "Bearer #{token}" if token.present?
+      http = Net::HTTP.new(uri.host, uri.port)
+      http.use_ssl = true
+      http.open_timeout = 5
+      http.read_timeout = 10
+      response = http.request(req)
       return nil unless response.is_a?(Net::HTTPSuccess)
 
       JSON.parse(response.body)

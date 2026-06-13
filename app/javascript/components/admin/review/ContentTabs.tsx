@@ -11,6 +11,7 @@ import { cn } from '@/components/admin/lib/cn'
 import AdminReviewTimeline, { type ReviewEvent } from '@/components/admin/AdminReviewTimeline'
 import { AiCheckPanel } from './AiCheckPanel'
 import { RepoTree } from './RepoTree'
+import { ChangesSinceReview } from './ChangesSinceReview'
 import { NotesPanel } from './NotesPanel'
 import type { AiCheckResult, ReviewNote, ReviewProject } from './types'
 
@@ -103,6 +104,7 @@ export function ContentTabs({
         <TabsTrigger value="timeline">Timeline</TabsTrigger>
         <TabsTrigger value="ai_check">AI Check</TabsTrigger>
         <TabsTrigger value="files">Files</TabsTrigger>
+        <TabsTrigger value="changes">Changes</TabsTrigger>
       </TabsList>
 
       <TabsContent value="journal">
@@ -242,6 +244,10 @@ export function ContentTabs({
 
       <TabsContent value="files">
         <RepoTree projectId={project.id} hasRepo={!!project.repo_link} />
+      </TabsContent>
+
+      <TabsContent value="changes">
+        <ChangesSinceReview projectId={project.id} />
       </TabsContent>
     </Tabs>
   )
