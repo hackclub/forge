@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_13_122500) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_13_134704) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -333,6 +333,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_13_122500) do
     t.string "repo_link"
     t.text "review_feedback"
     t.datetime "reviewed_at"
+    t.string "reviewed_commit_sha"
     t.bigint "reviewer_id"
     t.boolean "shadow_banned", default: false, null: false
     t.string "slack_channel_id"

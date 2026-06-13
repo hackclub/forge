@@ -1,6 +1,6 @@
 class Admin::ProjectsController < Admin::ApplicationController
   before_action :require_projects_permission!
-  before_action :set_project, only: [ :show, :review, :destroy, :restore, :toggle_hidden, :toggle_shadow_ban, :toggle_staff_pick, :change_tier, :add_note, :destroy_note, :update_note, :flag_for_review, :unflag_for_review, :mark_unbuilt, :reverse_review, :ai_requirements_check, :ai_requirements_check_status, :repo_tree, :send_checkpoint_message, :send_dm_message ]
+  before_action :set_project, only: [ :show, :review, :destroy, :restore, :toggle_hidden, :toggle_shadow_ban, :toggle_staff_pick, :change_tier, :add_note, :destroy_note, :update_note, :flag_for_review, :unflag_for_review, :mark_unbuilt, :reverse_review, :ai_requirements_check, :ai_requirements_check_status, :repo_tree, :changes_since_review, :send_checkpoint_message, :send_dm_message ]
 
   def index
     scope = policy_scope(Project).includes(:user, :ships)
@@ -427,6 +427,7 @@ class Admin::ProjectsController < Admin::ApplicationController
         # referrer even on group projects.
         ReferralEligibility.mark(@project)
         notify_slack_decision(@project, "approved! :tada:", feedback, stage: stage)
+        RecordReviewedCommitShaJob.perform_later(@project.id)
         redirect_to admin_review_path(@project), notice: @project.build_review? ? "Build review approved." : "Project approved."
       end
     when "return"
@@ -437,6 +438,7 @@ class Admin::ProjectsController < Admin::ApplicationController
       end_active_review_session(decision: "returned")
       audit!("project.returned", target: @project, metadata: { feedback: feedback, stage: stage })
       notify_slack_decision(@project, "returned for changes", feedback, stage: stage)
+      RecordReviewedCommitShaJob.perform_later(@project.id)
       redirect_to admin_review_path(@project), notice: "Project returned to builder."
     when "reject"
       if guard_duplicate_transition!(@project, :rejected, "Project already rejected.")
@@ -446,6 +448,7 @@ class Admin::ProjectsController < Admin::ApplicationController
       end_active_review_session(decision: "rejected")
       audit!("project.rejected", target: @project, metadata: { feedback: feedback, stage: stage })
       notify_slack_decision(@project, "rejected", feedback, stage: stage)
+      RecordReviewedCommitShaJob.perform_later(@project.id)
       redirect_to admin_review_path(@project), notice: "Project rejected."
     when "draft"
       if guard_duplicate_transition!(@project, :draft, "Project already in draft.")
@@ -527,6 +530,65 @@ class Admin::ProjectsController < Admin::ApplicationController
       blob_base: blob_base_for(ctx),
       error: nil
     }
+  end
+
+  def changes_since_review
+    authorize @project, :review?
+
+    ctx = ForgeChecks::Context.new(@project)
+    base = @project.reviewed_commit_sha
+
+    if @project.repo_link.blank?
+      render json: { available: false, reason: "no_repo" }
+      return
+    end
+    unless ctx.github?
+      render json: { available: false, reason: "unsupported_host" }
+      return
+    end
+    if base.blank?
+      render json: { available: false, reason: "no_baseline" }
+      return
+    end
+
+    head = ctx.head_sha
+    if head.blank?
+      render json: { available: false, reason: "error", message: "Couldn't read the repository's latest commit." }
+      return
+    end
+    if head == base
+      render json: { available: true, base_sha: base, head_sha: head, total_commits: 0, files: [], commits: [], html_url: nil }
+      return
+    end
+
+    cache_key = [ "admin/changes_since_review", @project.id, base, head ]
+    Rails.cache.delete(cache_key) if params[:refresh].present?
+    data = Rails.cache.read(cache_key)
+
+    if data.nil?
+      cmp = ctx.compare(base, head)
+      if cmp.nil?
+        render json: { available: false, reason: "error", message: "Couldn't fetch the diff (rate limit or private repo)." }
+        return
+      end
+      data = {
+        "base_sha" => base,
+        "head_sha" => head,
+        "ahead_by" => cmp["ahead_by"],
+        "total_commits" => cmp["total_commits"] || Array(cmp["commits"]).size,
+        "html_url" => cmp["html_url"],
+        "files" => Array(cmp["files"]).first(100).map { |f|
+          { "filename" => f["filename"], "status" => f["status"], "additions" => f["additions"], "deletions" => f["deletions"] }
+        },
+        "commits" => Array(cmp["commits"]).last(20).reverse.map { |c|
+          { "sha" => c["sha"].to_s[0, 7], "message" => c.dig("commit", "message").to_s.split("\n").first,
+            "author" => c.dig("commit", "author", "name") }
+        }
+      }
+      Rails.cache.write(cache_key, data, expires_in: 10.minutes)
+    end
+
+    render json: { available: true }.merge(data)
   end
 
   def send_checkpoint_message

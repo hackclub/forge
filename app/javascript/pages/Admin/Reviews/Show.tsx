@@ -32,7 +32,7 @@ import type {
 } from '@/components/admin/review/types'
 import type { ReviewEvent } from '@/components/admin/AdminReviewTimeline'
 
-const TAB_VALUES = ['journal', 'readme', 'pitch', 'description', 'notes', 'timeline', 'ai_check', 'files']
+const TAB_VALUES = ['journal', 'readme', 'pitch', 'description', 'notes', 'timeline', 'ai_check', 'files', 'changes']
 
 function openExternal(url: string) {
   window.open(url, '_blank', 'noopener,noreferrer')
