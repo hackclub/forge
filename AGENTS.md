@@ -141,3 +141,11 @@ The UI uses a dark theme with warm orange/stone accents. NOT the gold/medieval t
 - **Inputs:** `bg-[#0e0e0e] border-none focus:ring-1 focus:ring-[#ca5924]/30`
 - **Status colors:** emerald for approved, amber for pending, orange for returned, red for rejected, stone for draft
 - **Danger zones:** `border border-red-500/20` with red-tinted buttons
+# Conventions
+
+## Writing
+- Keep PR descriptions short and sharp. State the problem and the fix, no filler.
+- Same for commit messages — concise, human, to the point.
+
+## Code
+- Don't add comments to generated code. Let the code speak for itself; only comment when something is genuinely non-obvious and would trip up the next reader.

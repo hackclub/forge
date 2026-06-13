@@ -15,7 +15,6 @@ class ApplicationController < ActionController::Base
 
   rescue_from Pundit::NotAuthorizedError, with: :user_not_authorized
 
-  # Only allow modern browsers supporting webp images, web push, badges, import maps, CSS nesting, and CSS :has.
   allow_browser versions: :modern
 
   inertia_share auth: -> {
@@ -92,7 +91,6 @@ class ApplicationController < ActionController::Base
       UserLoginDay.find_or_create_by!(user_id: current_user.id, login_on: today)
     end
   rescue ActiveRecord::RecordNotUnique
-    # concurrent request raced us; row exists, nothing to do
   rescue StandardError => e
     Rails.logger.warn("track_user_activity failed: #{e.class}: #{e.message}")
   end
