@@ -32,8 +32,7 @@ interface ChangesResponse {
 const REASON_TEXT: Record<string, string> = {
   no_repo: 'No repository linked.',
   unsupported_host: 'Changes view is only available for GitHub repositories.',
-  no_baseline:
-    'No earlier review to compare against yet — the baseline commit is recorded when you make a decision (approve / return / reject).',
+  no_baseline: 'No earlier review to compare against yet — this is the first time it has been reviewed.',
 }
 
 function statusColor(status: string): string {
