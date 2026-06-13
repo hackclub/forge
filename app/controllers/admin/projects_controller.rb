@@ -547,6 +547,16 @@ class Admin::ProjectsController < Admin::ApplicationController
       return
     end
     if base.blank?
+      decided_at = last_review_decision_at(@project)
+      if decided_at
+        base = ctx.commit_sha_before(decided_at)
+        if base.blank?
+          render json: { available: false, reason: "error", message: "Couldn't find the commit from the last review (rate limit?)." }
+          return
+        end
+      end
+    end
+    if base.blank?
       render json: { available: false, reason: "no_baseline" }
       return
     end
@@ -775,6 +785,13 @@ class Admin::ProjectsController < Admin::ApplicationController
     elsif ctx.gitlab?
       "https://gitlab.com/#{ctx.gitlab_match[1]}/-/blob/HEAD/"
     end
+  end
+
+  def last_review_decision_at(project)
+    project.review_history(
+      actions: %w[project.approved project.returned project.rejected
+                  project.build_approved project.build_returned project.build_rejected]
+    ).pick(:created_at)
   end
 
   def serialize_project_row(project)

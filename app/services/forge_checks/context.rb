@@ -103,6 +103,16 @@ module ForgeChecks
       github_api("repos/#{github_match[1]}/#{github_match[2]}/compare/#{base}...#{head}")
     end
 
+    def commit_sha_before(timestamp)
+      return nil unless github? && timestamp
+
+      iso = CGI.escape(timestamp.utc.iso8601)
+      commits = github_api("repos/#{github_match[1]}/#{github_match[2]}/commits?until=#{iso}&per_page=1")
+      return nil unless commits.is_a?(Array)
+
+      commits.first&.dig("sha")
+    end
+
     private
 
     def fetch_github_tree(owner, repo)
