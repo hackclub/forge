@@ -1,6 +1,6 @@
 class Admin::ReviewsController < Admin::ApplicationController
   before_action :require_pending_reviews_permission!
-  before_action :set_project, only: [ :show, :skip, :track ]
+  before_action :set_project, only: [ :show, :skip, :track, :claim ]
 
   TRACKABLE_BUTTONS = %w[
     end_session skip next_project view_project
@@ -10,15 +10,48 @@ class Admin::ReviewsController < Admin::ApplicationController
     open_devlog toggle_readme
   ].freeze
 
+  def index
+    base = policy_scope(Project).kept.where(status: :pending)
+    queue = base.not_flagged_for_review
+
+    scope =
+      case params[:filter]
+      when "flagged" then base.flagged_for_review
+      when "design" then queue.where(build_review: false)
+      when "build" then queue.where(build_review: true)
+      else queue
+      end
+    scope = scope.includes(:user)
+    scope = scope.search(params[:query]) if params[:query].present?
+
+    @pagy, @projects = pagy(scope.order(Arel.sql("COALESCE(submitted_at, created_at) ASC")))
+
+    claims = ReviewSession.active.fresh
+      .where(project_id: @projects.map(&:id))
+      .includes(:reviewer)
+      .group_by(&:project_id)
+
+    render inertia: "Admin/Reviews/Queue", props: {
+      projects: @projects.map { |p| serialize_review_queue_row(p, claims[p.id]) },
+      pagy: pagy_props(@pagy),
+      query: params[:query].to_s,
+      filter: params[:filter].to_s,
+      metrics: ReviewQueueMetrics.new(queue).as_json,
+      first_pending_id: @projects.first&.id
+    }
+  end
+
   def show
     authorize @project, :review?
 
     @session = ensure_session(@project) if @project.pending?
     concurrent = concurrent_active_reviewers(@project)
+    claim = claim_state(@project)
 
     next_pending_id = policy_scope(Project)
       .kept
       .where(status: :pending)
+      .not_flagged_for_review
       .where.not(id: @project.id)
       .order(Arel.sql("COALESCE(submitted_at, created_at) ASC"))
       .limit(1)
@@ -33,12 +66,14 @@ class Admin::ReviewsController < Admin::ApplicationController
       concurrent_reviewers: concurrent,
       next_pending_id: next_pending_id,
       reviewer: {
+        id: current_user.id,
         display_name: current_user.display_name,
         email: current_user.email,
         is_superadmin: current_user.superadmin?,
         slack_id: current_user.slack_id
       },
-      can: { review: policy(@project).review? },
+      can: { review: policy(@project).review?, claim: claim[:locked_by].nil? || current_user.superadmin? },
+      claim: claim,
       session_stats: current_user.superadmin? ? session_stats(@project) : nil,
       checkpoint_channel_configured: ENV["FORGE_CHECKPOINT_CHANNEL_ID"].to_s.strip.present?
     }
@@ -78,14 +113,75 @@ class Admin::ReviewsController < Admin::ApplicationController
     head :no_content
   end
 
+  def claim
+    authorize @project, :review?
+
+    holder = ReviewSession.active.for_project(@project).fresh
+      .where.not(reviewer_id: current_user.id)
+      .order(:started_at)
+      .includes(:reviewer)
+      .first
+
+    if holder && !current_user.superadmin?
+      redirect_to admin_review_path(@project),
+        alert: "#{holder.reviewer.display_name} is actively reviewing this — coordinate before taking over."
+      return
+    end
+
+    ReviewSession.active.for_project(@project).where.not(reviewer_id: current_user.id).find_each do |s|
+      previous_reviewer_id = s.reviewer_id
+      s.end!(decision: nil)
+      audit!("review.claim_taken_over", target: @project, metadata: { from_reviewer_id: previous_reviewer_id })
+    end
+    ensure_session(@project)
+
+    redirect_to admin_review_path(@project), notice: "You've taken over this review."
+  end
+
   private
+
+  def claim_state(project)
+    holder = ReviewSession.active.for_project(project).fresh
+      .includes(:reviewer)
+      .order(:started_at)
+      .first
+
+    if holder.nil? || holder.reviewer_id == current_user.id
+      { locked_by: nil, can_take_over: false }
+    else
+      {
+        locked_by: {
+          name: holder.reviewer.display_name,
+          avatar: holder.reviewer.avatar,
+          since: holder.started_at.iso8601
+        },
+        can_take_over: current_user.superadmin?
+      }
+    end
+  end
+
+  def serialize_review_queue_row(project, sessions)
+    holder = sessions&.min_by(&:started_at)
+    {
+      id: project.id,
+      name: project.name,
+      user_id: project.user_id,
+      user_display_name: project.user.display_name,
+      tier: project.tier,
+      is_build_review: project.build_review,
+      waiting_since_iso: (project.submitted_at || project.created_at).iso8601,
+      claimed_by: holder ? { name: holder.reviewer.display_name, avatar: holder.reviewer.avatar } : nil,
+      flagged: project.flagged_for_review?,
+      flag_reason: project.flag_reason
+    }
+  end
 
   def require_pending_reviews_permission!
     require_permission!("pending_reviews")
   end
 
   def set_project
-    @project = Project.find(params[:id])
+    @project = Project.includes(:user, :linked_project, :build_review_for_project, :ships).find(params[:id])
   end
 
   def ensure_session(project)
@@ -151,6 +247,8 @@ class Admin::ReviewsController < Admin::ApplicationController
       green_flags: project.green_flags || [],
       repo_link: project.repo_link,
       commits_url: commits_url_for(project.repo_link),
+      devlog_mode: project.devlog_mode,
+      git_journal_url: git_journal_url_for(project),
       build_proof_url: project.build_proof_url,
       submission_requirements: SubmissionRequirements.for_project(project),
       tags: project.tags,
@@ -185,7 +283,37 @@ class Admin::ReviewsController < Admin::ApplicationController
       coins_earned_preview: project.group_project? ? ProjectPayoutCalculator.new(project).total : project.coin_rate.to_f * project.total_hours.to_f,
       is_group_project: project.group_project?,
       members: serialize_members_for_review(project),
-      devlogs: project.devlogs.includes(:user).order(created_at: :asc).map { |d| serialize_devlog(d) }
+      devlogs: project.devlogs.includes(:user).order(created_at: :asc).map { |d| serialize_devlog(d) },
+      sibling: sibling_review_summary(project),
+      ships: project.ships.sort_by(&:created_at).reverse.map { |s| serialize_ship(s) },
+      flagged_for_review: project.flagged_for_review?,
+      flag_reason: project.flag_reason,
+      flagged_by_name: project.flagged_by&.display_name
+    }
+  end
+
+  def sibling_review_summary(project)
+    sibling = project.build_review? ? project.linked_project : project.build_review_for_project
+    return nil unless sibling
+
+    {
+      id: sibling.id,
+      kind: project.build_review? ? "design" : "build",
+      name: sibling.name,
+      status: sibling.status,
+      pending: sibling.pending?,
+      reviewed_at: sibling.reviewed_at&.strftime("%b %d, %Y"),
+      reviewer_name: sibling.reviewer&.display_name
+    }
+  end
+
+  def serialize_ship(ship)
+    {
+      id: ship.id,
+      status: ship.status,
+      demo_link: ship.frozen_demo_link,
+      repo_link: ship.frozen_repo_link,
+      created_at: ship.created_at.strftime("%b %d, %Y")
     }
   end
 
@@ -220,6 +348,20 @@ class Admin::ReviewsController < Admin::ApplicationController
     end
   end
 
+  def git_journal_url_for(project)
+    link = project.repo_link.to_s
+    return nil if link.blank?
+
+    branch = project.journal_branch.presence || "main"
+    if (m = link.match(%r{github\.com/([^/]+)/([^/]+?)(?:\.git)?(?:/|$)}))
+      "https://github.com/#{m[1]}/#{m[2]}/blob/#{branch}/JOURNAL.md"
+    elsif (m = link.match(%r{gitlab\.com/([^/]+)/([^/]+?)(?:\.git)?(?:/|$)}))
+      "https://gitlab.com/#{m[1]}/#{m[2]}/-/blob/#{branch}/JOURNAL.md"
+    elsif (m = link.match(%r{codeberg\.org/([^/]+)/([^/]+?)(?:\.git)?(?:/|$)}))
+      "https://codeberg.org/#{m[1]}/#{m[2]}/src/branch/#{branch}/JOURNAL.md"
+    end
+  end
+
   def serialize_devlog(devlog)
     details = devlog.requirement_validation_details
     {
@@ -245,8 +387,10 @@ class Admin::ReviewsController < Admin::ApplicationController
     {
       id: note.id,
       content: note.content,
+      author_id: note.author_id,
       author_name: note.author.display_name,
       author_avatar: note.author.avatar,
+      edited: note.updated_at > note.created_at + 1.second,
       created_at: note.created_at.strftime("%b %d, %Y %H:%M")
     }
   end

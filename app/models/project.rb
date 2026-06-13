@@ -15,6 +15,8 @@
 #  description                  :text
 #  devlog_mode                  :string
 #  discarded_at                 :datetime
+#  flag_reason                  :text
+#  flagged_for_review_at        :datetime
 #  green_flags                  :string           default([]), is an Array
 #  hidden                       :boolean          default(FALSE), not null
 #  journal_branch               :string
@@ -41,6 +43,7 @@
 #  views_count                  :integer          default(0), not null
 #  created_at                   :datetime         not null
 #  updated_at                   :datetime         not null
+#  flagged_by_id                :bigint
 #  linked_project_id            :bigint
 #  reviewer_id                  :bigint
 #  slack_channel_id             :string
@@ -49,6 +52,8 @@
 # Indexes
 #
 #  index_projects_on_discarded_at                         (discarded_at)
+#  index_projects_on_flagged_by_id                        (flagged_by_id)
+#  index_projects_on_flagged_for_review_at                (flagged_for_review_at)
 #  index_projects_on_linked_project_id_for_build_reviews  (linked_project_id) UNIQUE WHERE (build_review = true)
 #  index_projects_on_staff_pick_at                        (staff_pick_at)
 #  index_projects_on_status                               (status)
@@ -58,6 +63,7 @@
 #
 # Foreign Keys
 #
+#  fk_rails_...  (flagged_by_id => users.id)
 #  fk_rails_...  (linked_project_id => projects.id)
 #  fk_rails_...  (reviewer_id => users.id)
 #  fk_rails_...  (user_id => users.id)
@@ -72,6 +78,7 @@ class Project < ApplicationRecord
 
   belongs_to :user
   belongs_to :reviewer, class_name: "User", optional: true
+  belongs_to :flagged_by, class_name: "User", optional: true
   belongs_to :linked_project, class_name: "Project", optional: true
   has_one :build_review_for_project, class_name: "Project", foreign_key: :linked_project_id, dependent: :nullify, inverse_of: :linked_project
   has_many :ships, dependent: :destroy
@@ -116,6 +123,8 @@ class Project < ApplicationRecord
   scope :reviewable, -> { where(status: :pending) }
   scope :staff_picks, -> { where.not(staff_pick_at: nil).order(staff_pick_at: :desc) }
   scope :build_reviews, -> { where(build_review: true) }
+  scope :flagged_for_review, -> { where.not(flagged_for_review_at: nil) }
+  scope :not_flagged_for_review, -> { where(flagged_for_review_at: nil) }
   # Shadow-banned projects stay fully visible everywhere, but their hours are
   # excluded from the public leaderboard and admin metrics aggregates.
   scope :not_shadow_banned, -> { where(shadow_banned: false) }
@@ -137,6 +146,10 @@ class Project < ApplicationRecord
 
   def staff_pick?
     staff_pick_at.present?
+  end
+
+  def flagged_for_review?
+    flagged_for_review_at.present?
   end
 
   def built?

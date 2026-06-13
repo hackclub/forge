@@ -1,6 +1,6 @@
 class Admin::ProjectsController < Admin::ApplicationController
   before_action :require_projects_permission!
-  before_action :set_project, only: [ :show, :review, :destroy, :restore, :toggle_hidden, :toggle_shadow_ban, :toggle_staff_pick, :change_tier, :add_note, :destroy_note, :mark_unbuilt, :reverse_review, :ai_requirements_check, :ai_requirements_check_status, :send_checkpoint_message, :send_dm_message ]
+  before_action :set_project, only: [ :show, :review, :destroy, :restore, :toggle_hidden, :toggle_shadow_ban, :toggle_staff_pick, :change_tier, :add_note, :destroy_note, :update_note, :flag_for_review, :unflag_for_review, :mark_unbuilt, :reverse_review, :ai_requirements_check, :ai_requirements_check_status, :repo_tree, :send_checkpoint_message, :send_dm_message ]
 
   def index
     scope = policy_scope(Project).includes(:user, :ships)
@@ -36,24 +36,6 @@ class Admin::ProjectsController < Admin::ApplicationController
       counts: status_counts,
       page_title: "Pitch Reviews",
       hide_filters: true
-    }
-  end
-
-  def reviews
-    scope = policy_scope(Project).includes(:user).kept.where(status: :pending)
-    scope = scope.search(params[:query]) if params[:query].present?
-    @pagy, @projects = pagy(scope.order(Arel.sql("COALESCE(submitted_at, created_at) ASC")))
-
-    render inertia: "Admin/Projects/Index", props: {
-      projects: @projects.map { |p| serialize_project_row(p) },
-      pagy: pagy_props(@pagy),
-      query: params[:query].to_s,
-      status_filter: "pending",
-      counts: status_counts,
-      page_title: "Project Reviews",
-      hide_filters: true,
-      review_mode: true,
-      first_pending_id: @projects.first&.id
     }
   end
 
@@ -296,7 +278,27 @@ class Admin::ProjectsController < Admin::ApplicationController
 
     note = @project.project_notes.create!(content: params[:content], author: current_user)
     audit!("project.note_added", target: @project, metadata: { note_id: note.id, content: note.content })
-    redirect_to admin_project_path(@project), notice: "Note added."
+    redirect_back fallback_location: admin_project_path(@project), notice: "Note added."
+  end
+
+  def update_note
+    authorize @project, :review?
+
+    note = @project.project_notes.find(params[:note_id])
+    unless note.author_id == current_user.id || current_user.superadmin?
+      redirect_back fallback_location: admin_project_path(@project), alert: "You can only edit your own notes."
+      return
+    end
+
+    content = params[:content].to_s
+    if content.strip.blank?
+      redirect_back fallback_location: admin_project_path(@project), alert: "Note cannot be empty."
+      return
+    end
+
+    note.update!(content: content)
+    audit!("project.note_edited", target: @project, metadata: { note_id: note.id, content: note.content })
+    redirect_back fallback_location: admin_project_path(@project), notice: "Note updated."
   end
 
   def destroy_note
@@ -305,7 +307,34 @@ class Admin::ProjectsController < Admin::ApplicationController
     note = @project.project_notes.find(params[:note_id])
     audit!("project.note_destroyed", target: @project, metadata: { note_id: note.id, content: note.content })
     note.destroy
-    redirect_to admin_project_path(@project), notice: "Note deleted."
+    redirect_back fallback_location: admin_project_path(@project), notice: "Note deleted."
+  end
+
+  def flag_for_review
+    authorize @project, :review?
+
+    reason = params[:reason].to_s.strip
+    if reason.blank?
+      redirect_back fallback_location: admin_review_path(@project), alert: "A reason is required to flag a project."
+      return
+    end
+
+    @project.update!(flagged_for_review_at: Time.current, flag_reason: reason, flagged_by: current_user)
+    audit!("project.flagged_for_review", target: @project, metadata: { reason: reason })
+    redirect_back fallback_location: admin_review_path(@project), notice: "Project flagged and pulled from the queue."
+  end
+
+  def unflag_for_review
+    authorize @project, :review?
+
+    unless current_user.superadmin?
+      redirect_back fallback_location: admin_review_path(@project), alert: "Only superadmins can clear a review flag."
+      return
+    end
+
+    @project.update!(flagged_for_review_at: nil, flag_reason: nil, flagged_by: nil)
+    audit!("project.unflagged_for_review", target: @project)
+    redirect_back fallback_location: admin_review_path(@project), notice: "Flag cleared; project is back in the queue."
   end
 
   def review
@@ -459,6 +488,45 @@ class Admin::ProjectsController < Admin::ApplicationController
   def ai_requirements_check_status
     authorize @project, :review?
     render json: { result: @project.ai_check_result_for_display, ran_at: @project.ai_check_ran_at&.iso8601 }
+  end
+
+  def repo_tree
+    authorize @project, :review?
+
+    ctx = ForgeChecks::Context.new(@project)
+    source = ctx.github? ? "github" : (ctx.gitlab? ? "gitlab" : nil)
+    unless ctx.supported_repo?
+      render json: { paths: [], source: nil, blob_base: nil, fetched_at: nil, error: nil }
+      return
+    end
+
+    cache_key = [ "admin/repo_tree", @project.id, @project.repo_link ]
+    Rails.cache.delete(cache_key) if params[:refresh].present?
+    cached = Rails.cache.read(cache_key)
+
+    if cached.nil?
+      paths = ctx.repo_tree
+      if paths
+        cached = { "paths" => paths, "fetched_at" => Time.current.iso8601 }
+        Rails.cache.write(cache_key, cached, expires_in: 30.minutes)
+      end
+    end
+
+    if cached.nil?
+      render json: {
+        paths: [], source: source, blob_base: blob_base_for(ctx), fetched_at: nil,
+        error: "Couldn't fetch the repository tree (rate limit or private repo). Try again."
+      }
+      return
+    end
+
+    render json: {
+      paths: cached["paths"] || [],
+      fetched_at: cached["fetched_at"],
+      source: source,
+      blob_base: blob_base_for(ctx),
+      error: nil
+    }
   end
 
   def send_checkpoint_message
@@ -637,6 +705,14 @@ class Admin::ProjectsController < Admin::ApplicationController
 
   def set_project
     @project = Project.find(params[:id])
+  end
+
+  def blob_base_for(ctx)
+    if ctx.github?
+      "https://github.com/#{ctx.github_match[1]}/#{ctx.github_match[2]}/blob/HEAD/"
+    elsif ctx.gitlab?
+      "https://gitlab.com/#{ctx.gitlab_match[1]}/-/blob/HEAD/"
+    end
   end
 
   def serialize_project_row(project)

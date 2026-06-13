@@ -16,10 +16,12 @@
 #
 # Indexes
 #
-#  index_review_sessions_on_ended_at                    (ended_at)
-#  index_review_sessions_on_project_id                  (project_id)
-#  index_review_sessions_on_project_id_and_reviewer_id  (project_id,reviewer_id)
-#  index_review_sessions_on_reviewer_id                 (reviewer_id)
+#  index_review_sessions_active_heartbeat                 (project_id,last_heartbeat_at) WHERE (ended_at IS NULL)
+#  index_review_sessions_on_ended_at                      (ended_at)
+#  index_review_sessions_on_project_id                    (project_id)
+#  index_review_sessions_on_project_id_and_reviewer_id    (project_id,reviewer_id)
+#  index_review_sessions_on_reviewer_id                   (reviewer_id)
+#  index_review_sessions_one_active_per_reviewer_project  (project_id,reviewer_id) UNIQUE WHERE (ended_at IS NULL)
 #
 # Foreign Keys
 #
@@ -30,9 +32,12 @@ class ReviewSession < ApplicationRecord
   belongs_to :project
   belongs_to :reviewer, class_name: "User"
 
+  CLAIM_TTL = 5.minutes
+
   scope :active, -> { where(ended_at: nil) }
   scope :ended, -> { where.not(ended_at: nil) }
   scope :completed, -> { where.not(decision: nil) }
+  scope :fresh, -> { where("last_heartbeat_at >= ?", CLAIM_TTL.ago) }
   scope :for_reviewer, ->(user) { where(reviewer_id: user.id) }
   scope :for_project, ->(project) { where(project_id: project.id) }
 

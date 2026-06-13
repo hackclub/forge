@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_11_000003) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_13_122500) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -315,6 +315,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_11_000003) do
     t.text "description"
     t.string "devlog_mode"
     t.datetime "discarded_at"
+    t.text "flag_reason"
+    t.bigint "flagged_by_id"
+    t.datetime "flagged_for_review_at"
     t.string "green_flags", default: [], array: true
     t.boolean "hidden", default: false, null: false
     t.string "journal_branch"
@@ -345,6 +348,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_11_000003) do
     t.bigint "user_id", null: false
     t.integer "views_count", default: 0, null: false
     t.index ["discarded_at"], name: "index_projects_on_discarded_at"
+    t.index ["flagged_by_id"], name: "index_projects_on_flagged_by_id"
+    t.index ["flagged_for_review_at"], name: "index_projects_on_flagged_for_review_at"
     t.index ["linked_project_id"], name: "index_projects_on_linked_project_id_for_build_reviews", unique: true, where: "(build_review = true)"
     t.index ["staff_pick_at"], name: "index_projects_on_staff_pick_at"
     t.index ["status"], name: "index_projects_on_status"
@@ -481,7 +486,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_11_000003) do
     t.datetime "started_at", null: false
     t.datetime "updated_at", null: false
     t.index ["ended_at"], name: "index_review_sessions_on_ended_at"
+    t.index ["project_id", "last_heartbeat_at"], name: "index_review_sessions_active_heartbeat", where: "(ended_at IS NULL)"
     t.index ["project_id", "reviewer_id"], name: "index_review_sessions_on_project_id_and_reviewer_id"
+    t.index ["project_id", "reviewer_id"], name: "index_review_sessions_one_active_per_reviewer_project", unique: true, where: "(ended_at IS NULL)"
     t.index ["project_id"], name: "index_review_sessions_on_project_id"
     t.index ["reviewer_id"], name: "index_review_sessions_on_reviewer_id"
   end
@@ -804,6 +811,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_11_000003) do
   add_foreign_key "project_views", "users"
   add_foreign_key "projects", "projects", column: "linked_project_id"
   add_foreign_key "projects", "users"
+  add_foreign_key "projects", "users", column: "flagged_by_id"
   add_foreign_key "projects", "users", column: "reviewer_id"
   add_foreign_key "reel_comments", "reel_comments", column: "parent_id", on_delete: :cascade
   add_foreign_key "reel_comments", "reels"
