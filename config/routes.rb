@@ -235,10 +235,11 @@ Rails.application.routes.draw do
     namespace :admin do
       get "/" => "static_pages#index", as: :root
       get "pitches" => "projects#pitches", as: :pitches
-      get "reviews" => "projects#reviews", as: :reviews
+      get "reviews" => "reviews#index", as: :reviews
       get "reviews/:id" => "reviews#show", as: :review
       post "reviews/:id/skip" => "reviews#skip", as: :skip_review
       post "reviews/:id/track" => "reviews#track", as: :track_review
+      post "reviews/:id/claim" => "reviews#claim", as: :claim_review
       resources :review_sessions, only: [] do
         member do
           patch :heartbeat
@@ -258,9 +259,13 @@ Rails.application.routes.draw do
           post :reverse_review
           post :ai_requirements_check
           get :ai_requirements_check_status
+          get :repo_tree
           post :send_checkpoint_message
           post :send_dm_message
           delete "notes/:note_id" => "projects#destroy_note", as: :destroy_note
+          patch "notes/:note_id" => "projects#update_note", as: :update_note
+          post :flag_for_review
+          post :unflag_for_review
         end
       end
       resources :users, only: [ :index, :show, :destroy ] do
