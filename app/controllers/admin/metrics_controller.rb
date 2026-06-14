@@ -1,4 +1,6 @@
 class Admin::MetricsController < Admin::ApplicationController
+  COIN_USD_VALUE = 1.0
+
   def index
     days = (params[:days].presence || 30).to_i.clamp(7, 180)
     today = Date.current
@@ -129,6 +131,18 @@ class Admin::MetricsController < Admin::ApplicationController
       .where(project_id: pending_queue_projects.select(:id))
       .sum(:time_hours).to_f.round(1)
 
+    fulfilled_shop_orders = Order.where(kind: "shop_item", status: :fulfilled)
+    shop_coin_value_usd = (fulfilled_shop_orders.sum(:coin_cost).to_f * COIN_USD_VALUE).round(2)
+    shop_item_cost_usd = Order.joins(:shop_item)
+      .where(kind: "shop_item", status: :fulfilled)
+      .sum(Arel.sql("COALESCE(shop_items.internal_price_usd, 0) * orders.quantity")).to_f.round(2)
+    shop_economy = {
+      coin_value_usd: shop_coin_value_usd,
+      item_cost_usd: shop_item_cost_usd,
+      margin_usd: (shop_coin_value_usd - shop_item_cost_usd).round(2),
+      orders_count: fulfilled_shop_orders.count
+    }
+
     render inertia: "Admin/Metrics/Index", props: {
       range_days: days,
       summary: {
@@ -168,7 +182,8 @@ class Admin::MetricsController < Admin::ApplicationController
       referral_economy: referral_economy,
       reel_economy: reel_economy,
       location_distribution: location_distribution,
-      reviews: review_stats
+      reviews: review_stats,
+      shop_economy: shop_economy
     }
   end
 
