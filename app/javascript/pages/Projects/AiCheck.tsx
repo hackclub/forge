@@ -85,7 +85,9 @@ function ProjectsAiCheck({
   const [ranAt, setRanAt] = useState<string | null>(initialRanAt)
   const [running, setRunning] = useState(isInProgress(initialResult))
   const [submitting, setSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(
+    initialResult?.status === 'error' ? initialResult.message || 'The AI check hit an error.' : null,
+  )
   const startedRef = useRef(false)
   const pollRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const pollDeadlineRef = useRef(0)
@@ -232,39 +234,62 @@ function ProjectsAiCheck({
           <h1 className="text-4xl font-headline font-bold text-[#e5e2e1] tracking-tight">Pre Submission Check</h1>
         </div>
         <p className="text-stone-400 text-sm leading-relaxed mb-8 max-w-2xl">
-          Before a human reviewer takes a look, Orph will run your project through the Forge requirements. Most rejections
-          could've been fixed in 5 minutes — let's catch the easy stuff first.
+          Before a human reviewer takes a look, Orph will run your project through the Forge requirements. Most
+          rejections could've been fixed in 5 minutes — let's catch the easy stuff first.
         </p>
 
         <div className="bg-[#1c1b1b] ghost-border p-6 mb-5">
           <div className="flex items-center gap-3">
             {project.cover_image_url && (
-              <img src={project.cover_image_url} alt="" className="w-12 h-12 object-cover shrink-0 border border-white/10" />
+              <img
+                src={project.cover_image_url}
+                alt=""
+                className="w-12 h-12 object-cover shrink-0 border border-white/10"
+              />
             )}
             <div className="min-w-0 flex-1">
               <p className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-1">Checking</p>
               <p className="font-headline font-bold text-[#e5e2e1] text-lg truncate">{project.name}</p>
-              {project.subtitle && (
-                <p className="text-stone-500 text-xs truncate mt-0.5">{project.subtitle}</p>
-              )}
+              {project.subtitle && <p className="text-stone-500 text-xs truncate mt-0.5">{project.subtitle}</p>}
             </div>
           </div>
         </div>
 
         {error && (
-          <div className="bg-red-500/10 border border-red-500/20 px-5 py-3 mb-5 text-red-300 text-sm flex items-start gap-2">
-            <span className="material-symbols-outlined text-base shrink-0 mt-0.5">error</span>
-            <div className="flex-1">
-              <p className="font-bold mb-1">AI check failed</p>
-              <p className="text-xs text-red-300/80">{error}</p>
+          <div className="bg-red-500/10 border border-red-500/20 p-5 mb-5 text-red-300 text-sm">
+            <div className="flex items-start gap-2">
+              <span className="material-symbols-outlined text-base shrink-0 mt-0.5">error</span>
+              <div className="flex-1">
+                <p className="font-bold mb-1">The AI check didn&apos;t finish</p>
+                <p className="text-xs text-red-300/80">{error}</p>
+              </div>
             </div>
-            <button
-              onClick={runCheck}
-              disabled={running}
-              className="text-xs font-bold uppercase tracking-[0.15em] text-red-300 hover:text-red-100 cursor-pointer shrink-0"
-            >
-              Retry
-            </button>
+            <div className="flex flex-col sm:flex-row gap-3 mt-4">
+              <button
+                onClick={runCheck}
+                disabled={running}
+                className="ghost-border bg-[#0e0e0e] hover:bg-[#2a2a2a] text-stone-300 hover:text-[#ffb595] py-3 px-4 text-xs font-bold uppercase tracking-[0.15em] flex items-center justify-center gap-2 transition-colors cursor-pointer disabled:opacity-50"
+              >
+                <span className={`material-symbols-outlined text-base ${running ? 'animate-spin' : ''}`}>
+                  {running ? 'progress_activity' : 'refresh'}
+                </span>
+                {running ? 'Re-checking…' : 'Re-run check'}
+              </button>
+              <button
+                onClick={submitForReview}
+                disabled={submitting || running}
+                className="flex-1 signature-smolder text-[#4c1a00] py-3 px-4 text-xs font-bold uppercase tracking-[0.15em] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              >
+                <span className="material-symbols-outlined text-base">{submitting ? 'progress_activity' : 'send'}</span>
+                {submitting ? 'Submitting…' : 'Submit for review anyway'}
+              </button>
+              <Link
+                href={`/projects/${project.id}`}
+                className="ghost-border bg-[#0e0e0e] hover:bg-[#2a2a2a] text-stone-300 hover:text-[#e5e2e1] py-3 px-4 text-xs font-bold uppercase tracking-[0.15em] flex items-center justify-center gap-2 transition-colors cursor-pointer"
+              >
+                Back
+              </Link>
+            </div>
           </div>
         )}
 

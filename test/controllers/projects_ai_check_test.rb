@@ -41,7 +41,6 @@ class ProjectsAiCheckTest < ActionDispatch::IntegrationTest
     project.update_columns(ai_check_result: { "status" => "running", "started_at" => 20.minutes.ago.iso8601 })
     sign_in_as(owner)
 
-    # Send as XHR (like Inertia) so the birthday-reauth/guild redirects are skipped.
     assert_enqueued_with(job: RunAiRequirementsCheckJob, args: [ project.id ]) do
       get ai_check_project_path(project), headers: { "X-Requested-With" => "XMLHttpRequest" }
     end

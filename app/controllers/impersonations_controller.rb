@@ -1,8 +1,3 @@
-# Lets a user-admin act as another (non-staff) user for support — submitting or
-# fixing things on their behalf. The real admin's id is parked in
-# session[:impersonator_id]. Spending the user's coins is blocked (see
-# Authentication#block_money_actions_while_impersonating!); admin actions stay
-# unreachable since the impersonated user isn't staff.
 class ImpersonationsController < ApplicationController
   before_action :require_impersonation_permission!, only: :create
 
@@ -24,7 +19,6 @@ class ImpersonationsController < ApplicationController
       return
     end
 
-    # Audit as the real admin (current_user is still the admin here).
     audit!("user.impersonation_started", target: target, metadata: { impersonated_user_id: target.id })
 
     session[:impersonator_id] = current_user.id

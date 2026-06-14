@@ -175,9 +175,6 @@ class Project < ApplicationRecord
 
   AI_CHECK_STALE_AFTER = 10.minutes
 
-  # A check that's been queued/running longer than the stale window — almost always
-  # a zombie from a worker that died or hung. The stored row stays "running" forever
-  # (the display flip below is read-only), so callers use this to kick a fresh run.
   def ai_check_stale?
     result = ai_check_result
     return false unless result.is_a?(Hash) && %w[queued running].include?(result["status"])

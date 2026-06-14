@@ -18,9 +18,6 @@ class ImpersonationsControllerTest < ActionDispatch::IntegrationTest
     make_user(roles: [ "admin" ], permissions: [ "users" ])
   end
 
-  # No state in session and none in params → the controller's CSRF check passes
-  # (nil == nil), so we can drive the OAuth callback directly. exchange_hca_token
-  # is swapped by hand (minitest 6 ships no stub) to return our test user.
   def sign_in_as(user)
     original = User.method(:exchange_hca_token)
     User.define_singleton_method(:exchange_hca_token) { |*_| user }
@@ -57,7 +54,6 @@ class ImpersonationsControllerTest < ActionDispatch::IntegrationTest
       post shop_orders_path, params: { kind: "direct_grant", amount_usd: 5 }, headers: { "Accept" => "application/json" }
     end
     assert_response :forbidden
-    # Session is untouched — still impersonating.
     assert_equal target.id, session[:user_id]
     assert_equal admin.id, session[:impersonator_id]
   end
@@ -68,8 +64,6 @@ class ImpersonationsControllerTest < ActionDispatch::IntegrationTest
     sign_in_as(admin)
     post impersonate_path(target)
 
-    # A non-coin-spending shop action (and, by extension, submitting/editing) is
-    # not blocked by the money guard — it falls through to the controller.
     patch shop_region_path, params: { region: "us" }
     assert_not_equal 403, response.status
   end
