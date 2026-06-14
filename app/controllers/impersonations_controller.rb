@@ -1,7 +1,8 @@
-# Lets a user-admin browse the app as another (non-staff) user for QA/support.
-# The real admin's id is parked in session[:impersonator_id]; the session is
-# read-only while impersonating (see Authentication#block_writes_while_impersonating!),
-# so no actions — money or otherwise — can be taken as the impersonated user.
+# Lets a user-admin act as another (non-staff) user for support — submitting or
+# fixing things on their behalf. The real admin's id is parked in
+# session[:impersonator_id]. Spending the user's coins is blocked (see
+# Authentication#block_money_actions_while_impersonating!); admin actions stay
+# unreachable since the impersonated user isn't staff.
 class ImpersonationsController < ApplicationController
   before_action :require_impersonation_permission!, only: :create
 
