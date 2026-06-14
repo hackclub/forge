@@ -24,6 +24,7 @@ interface Summary {
   hours_today: number
   hours_range_total: number
   avg_hours_per_day: number
+  pending_queue_hours: number
 }
 
 interface Referrals {
@@ -137,7 +138,17 @@ function formatDuration(s: number): string {
   return `${s}s`
 }
 
-function Stat({ label, value, hint, accent }: { label: string; value: string | number; hint?: string; accent?: boolean }) {
+function Stat({
+  label,
+  value,
+  hint,
+  accent,
+}: {
+  label: string
+  value: string | number
+  hint?: string
+  accent?: boolean
+}) {
   return (
     <Card>
       <CardContent className="p-4">
@@ -215,9 +226,18 @@ export default function AdminMetricsIndex({
         <Stat label="Total users" value={summary.total_users} hint="all signups" />
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <Stat label="Hours logged today" value={`${summary.hours_today}h`} hint="builder devlog time today" accent />
-        <Stat label={`Hours in ${range_days}d`} value={`${summary.hours_range_total}h`} hint="total devlog time in range" />
+        <Stat
+          label="Hours in pending queue"
+          value={`${summary.pending_queue_hours}h`}
+          hint="devlog hours awaiting review"
+        />
+        <Stat
+          label={`Hours in ${range_days}d`}
+          value={`${summary.hours_range_total}h`}
+          hint="total devlog time in range"
+        />
         <Stat label="Avg/day" value={`${summary.avg_hours_per_day}h`} hint={`mean across ${range_days} days`} />
       </div>
 
@@ -286,7 +306,9 @@ export default function AdminMetricsIndex({
       </Card>
 
       <div className="space-y-2">
-        <h2 className="text-sm font-semibold tracking-wide uppercase text-muted-foreground">Referrals — last {range_days} days</h2>
+        <h2 className="text-sm font-semibold tracking-wide uppercase text-muted-foreground">
+          Referrals — last {range_days} days
+        </h2>
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
           <Stat label="Total" value={referrals.total} />
           <Stat label="Approved" value={referrals.approved} accent />
@@ -297,7 +319,9 @@ export default function AdminMetricsIndex({
       </div>
 
       <div className="space-y-2">
-        <h2 className="text-sm font-semibold tracking-wide uppercase text-muted-foreground">Coin payouts — last {range_days} days</h2>
+        <h2 className="text-sm font-semibold tracking-wide uppercase text-muted-foreground">
+          Coin payouts — last {range_days} days
+        </h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <Stat label="Net payouts" value={payouts.total} hint="positive − negative" />
           <Stat label="Awards only" value={payouts.positive_only} accent />
@@ -307,11 +331,21 @@ export default function AdminMetricsIndex({
       </div>
 
       <div className="space-y-2">
-        <h2 className="text-sm font-semibold tracking-wide uppercase text-muted-foreground">Reviews — last {range_days} days</h2>
+        <h2 className="text-sm font-semibold tracking-wide uppercase text-muted-foreground">
+          Reviews — last {range_days} days
+        </h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <Stat label="Reviews completed" value={reviews.completed} hint="decisions made in range" accent />
-          <Stat label="Avg review time" value={formatDuration(reviews.avg_active_seconds)} hint="active (heartbeat) time per review" />
-          <Stat label="Avg open → decision" value={formatDuration(reviews.avg_wall_seconds)} hint="reviewer opened until decided" />
+          <Stat
+            label="Avg review time"
+            value={formatDuration(reviews.avg_active_seconds)}
+            hint="active (heartbeat) time per review"
+          />
+          <Stat
+            label="Avg open → decision"
+            value={formatDuration(reviews.avg_wall_seconds)}
+            hint="reviewer opened until decided"
+          />
           <Stat
             label="Avg submit → decision"
             value={formatDuration(reviews.avg_turnaround_seconds)}
@@ -407,7 +441,10 @@ export default function AdminMetricsIndex({
                   {location_distribution.users.countries_represented} countries
                 </span>
               </div>
-              <CountryBars rows={location_distribution.users.by_country} total={location_distribution.users.with_country} />
+              <CountryBars
+                rows={location_distribution.users.by_country}
+                total={location_distribution.users.with_country}
+              />
             </div>
             <div>
               <div className="flex items-baseline justify-between mb-2">
@@ -415,8 +452,8 @@ export default function AdminMetricsIndex({
                   Visits by country (IP geocoded)
                 </h3>
                 <span className="text-[11px] text-muted-foreground">
-                  {location_distribution.visits.total} visits ·{' '}
-                  {location_distribution.visits.countries_represented} countries
+                  {location_distribution.visits.total} visits · {location_distribution.visits.countries_represented}{' '}
+                  countries
                 </span>
               </div>
               <CountryBars rows={location_distribution.visits.by_country} total={location_distribution.visits.total} />
