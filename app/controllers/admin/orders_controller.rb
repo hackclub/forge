@@ -4,24 +4,24 @@ class Admin::OrdersController < Admin::ApplicationController
 
   def index
     scope = Order.includes(:user, :project, :shop_item, :reviewer, :assigned_to).order(created_at: :desc)
-    scope = scope.where(status: params[:status]) if params[:status].present?
+    if params.key?(:status)
+      scope = scope.where(status: params[:status]) if params[:status].present?
+    else
+      scope = scope.where(status: :pending)
+    end
     scope = scope.where(kind: params[:kind]) if params[:kind].present?
     scope = scope.where(region: params[:region]) if params[:region].present?
-    if current_user.fulfillment? && !params.key?(:assigned_to)
-      scope = scope.where(assigned_to_id: current_user.id)
-    elsif params[:assigned_to] == "me"
-      scope = scope.where(assigned_to_id: current_user.id)
-    end
+    scope = scope.where(assigned_to_id: current_user.id) if params[:assigned_to] == "me"
     @pagy, @orders = pagy(scope, limit: 50)
 
     render inertia: "Admin/Orders/Index", props: {
       orders: @orders.map { |o| serialize_row(o) },
       pagy: pagy_props(@pagy),
       filters: {
-        status: params[:status].to_s,
+        status: params.key?(:status) ? params[:status].to_s : "pending",
         kind: params[:kind].to_s,
         region: params[:region].to_s,
-        assigned_to: (current_user.fulfillment? && !params.key?(:assigned_to)) ? "me" : params[:assigned_to].to_s
+        assigned_to: params[:assigned_to].to_s
       },
       counts: {
         all: Order.count,
