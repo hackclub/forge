@@ -31,6 +31,8 @@ export default function ProjectsForm({
     tier: project.tier,
     devlog_mode: project.devlog_mode || '',
     linked_project_id: project.linked_project_id ?? '',
+    uses_ai: project.uses_ai,
+    ai_usage: project.ai_usage,
   })
 
   async function handleImport() {
@@ -68,6 +70,8 @@ export default function ProjectsForm({
         tags: Array.isArray(data.tags) ? data.tags.slice(0, 5) : form.data.tags,
         tier: form.data.tier,
         devlog_mode: form.data.devlog_mode,
+        uses_ai: form.data.uses_ai,
+        ai_usage: form.data.ai_usage,
       })
 
       setShowImport(false)
@@ -206,6 +210,41 @@ export default function ProjectsForm({
             className="w-full bg-[#0e0e0e] border-none rounded-lg px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600"
             placeholder="https://github.com/..."
           />
+        </div>
+
+        <div className="ghost-border bg-[#1c1b1b] p-5 space-y-3">
+          <label className="flex items-start gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={form.data.uses_ai}
+              onChange={(e) => form.setData('uses_ai', e.target.checked)}
+              className="mt-1 size-4 accent-[#ca5924] shrink-0"
+            />
+            <span>
+              <span className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-400">Made with AI</span>
+              <span className="block text-stone-500 text-xs mt-1 normal-case tracking-normal">
+                Declare this if AI was more than ~20% of your project. It just adds a transparency badge — no penalty.
+              </span>
+            </span>
+          </label>
+          {form.data.uses_ai && (
+            <div>
+              <label
+                htmlFor="ai_usage"
+                className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2"
+              >
+                What did you use AI for?
+              </label>
+              <textarea
+                id="ai_usage"
+                value={form.data.ai_usage}
+                onChange={(e) => form.setData('ai_usage', e.target.value)}
+                rows={3}
+                className="w-full bg-[#0e0e0e] border-none rounded-lg px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600"
+                placeholder="e.g. generated boilerplate firmware, helped debug the PCB layout, wrote docs…"
+              />
+            </div>
+          )}
         </div>
 
         {isBuildReview && method === 'post' && (
