@@ -224,7 +224,11 @@ function TeamPanel({
           <ul className="space-y-2">
             {pendingInvites.map((invite) => (
               <li key={invite.id} className="flex items-center gap-3">
-                <img src={invite.invitee_avatar} alt="" className="w-6 h-6 border border-white/10 shrink-0 opacity-60" />
+                <img
+                  src={invite.invitee_avatar}
+                  alt=""
+                  className="w-6 h-6 border border-white/10 shrink-0 opacity-60"
+                />
                 <span className="text-xs text-stone-400 flex-1 min-w-0 truncate">{invite.invitee_display_name}</span>
                 <button
                   onClick={() => revokeInvite(invite.id)}
@@ -721,6 +725,12 @@ export default function ProjectsShow({
                 Built {project.built_at}
               </span>
             )}
+            {project.uses_ai && (
+              <span className="bg-violet-500/10 text-violet-300 px-3 py-1 text-[10px] uppercase font-bold tracking-widest flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-sm">auto_awesome</span>
+                Made with AI
+              </span>
+            )}
           </div>
 
           <h1 className="text-5xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-3 leading-none">
@@ -778,6 +788,16 @@ export default function ProjectsShow({
               Add Description
             </button>
           ) : null}
+
+          {project.uses_ai && project.ai_usage && (
+            <div className="ghost-border bg-violet-500/5 p-4 mb-4 max-w-2xl">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-violet-300/80 font-bold mb-1 flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-sm">auto_awesome</span>
+                AI usage
+              </p>
+              <p className="text-sm text-stone-300 leading-relaxed whitespace-pre-wrap">{project.ai_usage}</p>
+            </div>
+          )}
 
           <div className="flex flex-wrap items-center gap-4 pt-5 border-t border-white/5">
             <Link

@@ -5,6 +5,7 @@
 #  id                           :bigint           not null, primary key
 #  ai_check_ran_at              :datetime
 #  ai_check_result              :jsonb
+#  ai_usage                     :text
 #  approval_justification       :text
 #  budget                       :text
 #  build_proof_url              :string
@@ -41,6 +42,7 @@
 #  subtitle                     :string
 #  tags                         :string           default([]), not null, is an Array
 #  tier                         :string           default("tier_4"), not null
+#  uses_ai                      :boolean          default(FALSE), not null
 #  views_count                  :integer          default(0), not null
 #  created_at                   :datetime         not null
 #  updated_at                   :datetime         not null

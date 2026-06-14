@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_13_134704) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_14_123213) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -304,6 +304,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_13_134704) do
   create_table "projects", force: :cascade do |t|
     t.datetime "ai_check_ran_at"
     t.jsonb "ai_check_result"
+    t.text "ai_usage"
     t.text "approval_justification"
     t.text "budget"
     t.string "build_proof_url"
@@ -347,6 +348,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_13_134704) do
     t.string "tier", default: "tier_4", null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
+    t.boolean "uses_ai", default: false, null: false
     t.integer "views_count", default: 0, null: false
     t.index ["discarded_at"], name: "index_projects_on_discarded_at"
     t.index ["flagged_by_id"], name: "index_projects_on_flagged_by_id"

@@ -37,14 +37,14 @@ class ProjectsController < ApplicationController
       render inertia: "Projects/AdvancedPitch", props: {}
     when "tier_2", "tier_3", "tier_4"
       render inertia: "Projects/Form", props: {
-        project: { name: "", subtitle: "", repo_link: "", tags: [], tier: params[:tier] },
+        project: { name: "", subtitle: "", repo_link: "", tags: [], tier: params[:tier], uses_ai: false, ai_usage: "" },
         title: "New Project",
         submit_url: projects_path,
         method: "post"
       }
     when Project::BUILD_REVIEW_TIER
       render inertia: "Projects/Form", props: {
-        project: { name: "", subtitle: "", repo_link: "", tags: [], tier: Project::BUILD_REVIEW_TIER, build_review: true, linked_project_id: nil },
+        project: { name: "", subtitle: "", repo_link: "", tags: [], tier: Project::BUILD_REVIEW_TIER, build_review: true, linked_project_id: nil, uses_ai: false, ai_usage: "" },
         title: "New Build Review",
         submit_url: projects_path,
         method: "post",
@@ -85,7 +85,9 @@ class ProjectsController < ApplicationController
         repo_link: @project.repo_link.to_s,
         tags: @project.tags,
         tier: @project.tier,
-        devlog_mode: @project.devlog_mode
+        devlog_mode: @project.devlog_mode,
+        uses_ai: @project.uses_ai,
+        ai_usage: @project.ai_usage.to_s
       },
       title: "Edit Project",
       submit_url: project_path(@project),
@@ -401,7 +403,7 @@ class ProjectsController < ApplicationController
   end
 
   def project_params
-    params.expect(project: [ :name, :subtitle, :repo_link, :tier, :devlog_mode, :linked_project_id, tags: [] ])
+    params.expect(project: [ :name, :subtitle, :repo_link, :tier, :devlog_mode, :linked_project_id, :uses_ai, :ai_usage, tags: [] ])
   end
 
   def linkable_projects_for(user)
@@ -428,6 +430,8 @@ class ProjectsController < ApplicationController
       journal_branch: project.journal_branch,
       status: project.status,
       devlog_mode: project.devlog_mode,
+      uses_ai: project.uses_ai,
+      ai_usage: project.ai_usage,
       review_feedback: can_view_private_project_data ? project.review_feedback : nil,
       tier: project.tier,
       coin_rate: project.coin_rate,

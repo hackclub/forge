@@ -103,6 +103,8 @@ export interface ProjectDetail {
   status: ProjectStatus
   devlog_mode: 'website' | 'git' | null
   review_feedback: string | null
+  uses_ai: boolean
+  ai_usage: string | null
   tier: ProjectTier
   coin_rate: number
   from_slack: boolean
@@ -135,6 +137,8 @@ export interface ProjectForm {
   devlog_mode?: string | null
   build_review?: boolean
   linked_project_id?: number | null
+  uses_ai: boolean
+  ai_usage: string
 }
 
 export interface AdminUserRow {
