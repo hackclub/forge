@@ -101,6 +101,7 @@ class GuildsController < ApplicationController
       icon: theme[:icon],
       member_count: member_count,
       multiplier: state&.multiplier&.to_f || 1.0,
+      referrals_week: state&.referrals_week || 0,
       prize_pool_coins: state&.prize_pool_coins.to_f,
       computed_at: state&.computed_at&.strftime("%b %d, %Y")
     }

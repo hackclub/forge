@@ -14,13 +14,7 @@ interface Row {
   computed_at: string | null
 }
 
-type SortKey =
-  | 'multiplier'
-  | 'member_count'
-  | 'members_active_week'
-  | 'referrals_week'
-  | 'prize_pool_coins'
-  | 'referrals_total'
+type SortKey = 'multiplier' | 'members_active_week' | 'referrals_week' | 'prize_pool_coins' | 'referrals_total'
 
 const ACCENT: Record<string, string> = {
   rivendell: 'text-emerald-300',
@@ -32,7 +26,6 @@ const ACCENT: Record<string, string> = {
 const COLUMNS: { key: SortKey; label: string }[] = [
   { key: 'prize_pool_coins', label: 'Pool (7d)' },
   { key: 'multiplier', label: 'Multiplier' },
-  { key: 'member_count', label: 'Members' },
   { key: 'members_active_week', label: 'Active (7d)' },
   { key: 'referrals_week', label: 'Referrals (7d)' },
   { key: 'referrals_total', label: 'Referrals (all)' },
@@ -129,7 +122,6 @@ export default function GuildsLeaderboard({ mine, rows }: { mine: string | null;
                       {row.prize_pool_coins.toFixed(2)}c
                     </td>
                     <td className="text-right px-4 py-3 text-stone-300 tabular-nums">{row.multiplier.toFixed(2)}×</td>
-                    <td className="text-right px-4 py-3 text-[#e5e2e1] tabular-nums">{row.member_count}</td>
                     <td className="text-right px-4 py-3 text-stone-300 tabular-nums">{row.members_active_week}</td>
                     <td className="text-right px-4 py-3 text-stone-300 tabular-nums">{row.referrals_week}</td>
                     <td className="text-right px-4 py-3 text-stone-300 tabular-nums">{row.referrals_total}</td>
