@@ -7,7 +7,12 @@ class RunReviewerAiCheckJob < ApplicationJob
 
     project.update_columns(ai_check_result: { "status" => "running", "started_at" => Time.current.iso8601, "job_id" => job_id })
 
-    FetchReadmeJob.perform_now(project.id) if project.repo_link.present?
+    if project.repo_link.present?
+      # Fetch README text only — skip the slow per-image CDN mirroring on the
+      # check's critical path, then mirror images in the background for rendering.
+      FetchReadmeJob.perform_now(project.id, mirror: false)
+      FetchReadmeJob.perform_later(project.id) if HcCdnService.enabled?
+    end
     project.reload
 
     result = AiRequirementsChecker.run(project)
