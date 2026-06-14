@@ -84,6 +84,8 @@ export interface ReviewProject {
   repo_link: string | null
   commits_url: string | null
   devlog_mode: 'website' | 'git' | null
+  uses_ai: boolean
+  ai_usage: string | null
   git_journal_url: string | null
   build_proof_url: string | null
   submission_requirements: SubmissionRequirement[]

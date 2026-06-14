@@ -47,6 +47,14 @@ export function ProjectOverviewCard({
               ) : (
                 <span>{`${project.tier.replace('_', ' ')}${project.budget ? ` · ${project.budget}` : ''}`}</span>
               )}
+              {project.uses_ai && (
+                <>
+                  <span>·</span>
+                  <Badge className="bg-violet-500/15 text-violet-700 dark:text-violet-300 border border-violet-500/30">
+                    Made with AI
+                  </Badge>
+                </>
+              )}
               {project.linked_project && (
                 <>
                   <span>·</span>
@@ -105,6 +113,13 @@ export function ProjectOverviewCard({
         <div className="px-4 py-2 border-t border-border text-xs">
           <span className="text-muted-foreground">Existing override: </span>
           <span>{project.override_hours_justification}</span>
+        </div>
+      )}
+
+      {project.uses_ai && project.ai_usage && (
+        <div className="px-4 py-2 border-t border-border text-xs">
+          <span className="text-muted-foreground">AI usage: </span>
+          <span className="whitespace-pre-wrap">{project.ai_usage}</span>
         </div>
       )}
     </div>
