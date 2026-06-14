@@ -16,6 +16,7 @@ import {
   Lock,
   Unlock,
   ArrowRight,
+  Eye,
 } from 'lucide-react'
 import { Badge } from '@/components/admin/ui/badge'
 import { Button } from '@/components/admin/ui/button'
@@ -112,7 +113,7 @@ export default function AdminUsersShow({
   coins: CoinSummary
   coin_adjustments: CoinAdjustment[]
   hackatime: HackatimeInfo | null
-  can: { destroy: boolean; restore: boolean }
+  can: { destroy: boolean; restore: boolean; impersonate: boolean }
   available_roles: string[]
   available_permissions: string[]
   available_regions: Record<string, string>
@@ -198,6 +199,11 @@ export default function AdminUsersShow({
     )
   }
 
+  function impersonate() {
+    if (!confirm(`View the site as ${user.display_name}? You'll be in read-only mode until you stop.`)) return
+    router.post(`/impersonate/${user.id}`)
+  }
+
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center gap-4 text-center sm:text-left">
@@ -219,6 +225,12 @@ export default function AdminUsersShow({
           </div>
           <p className="text-sm text-muted-foreground mt-1">{user.email}</p>
         </div>
+        {can.impersonate && (
+          <Button variant="outline" onClick={impersonate} className="sm:ml-auto shrink-0">
+            <Eye className="size-4" />
+            View as user
+          </Button>
+        )}
       </div>
 
       {user.is_banned && (

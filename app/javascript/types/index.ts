@@ -23,8 +23,15 @@ export interface NewsPostSummary {
   author_name: string
 }
 
+export interface Impersonation {
+  viewing_as: string | null
+  impersonator: string | null
+  stop_path: string
+}
+
 export interface SharedProps {
   auth: { user: User | null }
+  impersonation: Impersonation | null
   flash: FlashData
   sign_in_path: string
   sign_out_path: string

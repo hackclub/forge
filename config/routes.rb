@@ -392,6 +392,9 @@ Rails.application.routes.draw do
   get "auth/hca/callback" => "auth#create", as: :hca_callback
   delete "auth/signout" => "auth#destroy", as: :signout
 
+  post "impersonate/:user_id" => "impersonations#create", as: :impersonate
+  delete "impersonate" => "impersonations#destroy", as: :stop_impersonating
+
   get "sorry" => "bans#show", as: :sorry
 
   get "home" => "home#index", as: :home
