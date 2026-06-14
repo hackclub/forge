@@ -12,7 +12,6 @@ class ProjectsAiCheckTest < ActionDispatch::IntegrationTest
       timezone: "UTC",
       slack_id: "S#{token}",
       hca_id: "H#{token}",
-      birthday: Date.new(2000, 1, 1),
       roles: [ "user" ]
     }.merge(attrs))
   end
@@ -42,8 +41,9 @@ class ProjectsAiCheckTest < ActionDispatch::IntegrationTest
     project.update_columns(ai_check_result: { "status" => "running", "started_at" => 20.minutes.ago.iso8601 })
     sign_in_as(owner)
 
+    # Send as XHR (like Inertia) so the birthday-reauth/guild redirects are skipped.
     assert_enqueued_with(job: RunAiRequirementsCheckJob, args: [ project.id ]) do
-      get ai_check_project_path(project)
+      get ai_check_project_path(project), headers: { "X-Requested-With" => "XMLHttpRequest" }
     end
     assert_response :success
     assert_equal "queued", project.reload.ai_check_result["status"]
@@ -56,7 +56,7 @@ class ProjectsAiCheckTest < ActionDispatch::IntegrationTest
     sign_in_as(owner)
 
     assert_no_enqueued_jobs(only: RunAiRequirementsCheckJob) do
-      get ai_check_project_path(project)
+      get ai_check_project_path(project), headers: { "X-Requested-With" => "XMLHttpRequest" }
     end
     assert_equal "running", project.reload.ai_check_result["status"]
   end
