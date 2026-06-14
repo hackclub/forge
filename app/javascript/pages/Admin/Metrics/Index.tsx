@@ -80,6 +80,13 @@ interface ShopEconomy {
   orders_count: number
 }
 
+interface Budget {
+  balance_usd: number
+  incoming_usd: number
+  total_raised_usd: number
+  org_url: string
+}
+
 interface ReviewStats {
   completed: number
   avg_active_seconds: number
@@ -182,6 +189,7 @@ export default function AdminMetricsIndex({
   location_distribution,
   reviews,
   shop_economy,
+  budget,
 }: {
   range_days: number
   summary: Summary
@@ -197,6 +205,7 @@ export default function AdminMetricsIndex({
   location_distribution: LocationDistribution
   reviews: ReviewStats
   shop_economy: ShopEconomy
+  budget: Budget | null
 }) {
   const max = Math.max(1, ...daily.map((d) => d.count))
   const maxHours = Math.max(1, ...daily_hours.map((d) => d.hours))
@@ -361,6 +370,34 @@ export default function AdminMetricsIndex({
             hint={`builder submit until decided · n=${reviews.turnaround_sample}`}
           />
         </div>
+      </div>
+
+      <div className="space-y-2">
+        <h2 className="text-sm font-semibold tracking-wide uppercase text-muted-foreground">Budget — HCB</h2>
+        {budget ? (
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            <Stat
+              label="Available budget"
+              value={`$${budget.balance_usd.toLocaleString()}`}
+              hint="real HCB funds · excludes coins"
+              accent
+            />
+            <Stat
+              label="Incoming (pending)"
+              value={`$${budget.incoming_usd.toLocaleString()}`}
+              hint="transfers not yet settled"
+            />
+            <Stat
+              label="Total raised"
+              value={`$${budget.total_raised_usd.toLocaleString()}`}
+              hint="lifetime into HCB"
+            />
+          </div>
+        ) : (
+          <Card>
+            <CardContent className="p-4 text-sm text-muted-foreground">Couldn&apos;t reach HCB right now.</CardContent>
+          </Card>
+        )}
       </div>
 
       <div className="space-y-2">
