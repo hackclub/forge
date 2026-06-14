@@ -73,6 +73,13 @@ interface ReelEconomy {
   total_coins: number
 }
 
+interface ShopEconomy {
+  coin_value_usd: number
+  item_cost_usd: number
+  margin_usd: number
+  orders_count: number
+}
+
 interface ReviewStats {
   completed: number
   avg_active_seconds: number
@@ -174,6 +181,7 @@ export default function AdminMetricsIndex({
   reel_economy,
   location_distribution,
   reviews,
+  shop_economy,
 }: {
   range_days: number
   summary: Summary
@@ -188,6 +196,7 @@ export default function AdminMetricsIndex({
   reel_economy: ReelEconomy
   location_distribution: LocationDistribution
   reviews: ReviewStats
+  shop_economy: ShopEconomy
 }) {
   const max = Math.max(1, ...daily.map((d) => d.count))
   const maxHours = Math.max(1, ...daily_hours.map((d) => d.hours))
@@ -351,6 +360,24 @@ export default function AdminMetricsIndex({
             value={formatDuration(reviews.avg_turnaround_seconds)}
             hint={`builder submit until decided · n=${reviews.turnaround_sample}`}
           />
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <h2 className="text-sm font-semibold tracking-wide uppercase text-muted-foreground">Shop economy — all time</h2>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          <Stat
+            label="Shop margin"
+            value={`$${shop_economy.margin_usd}`}
+            hint="coin value − item cost (fulfilled)"
+            accent
+          />
+          <Stat
+            label="Coin value redeemed"
+            value={`$${shop_economy.coin_value_usd}`}
+            hint={`${shop_economy.orders_count} fulfilled · $1/coin`}
+          />
+          <Stat label="Item cost (ours)" value={`$${shop_economy.item_cost_usd}`} hint="what those items cost us" />
         </div>
       </div>
 
