@@ -24,6 +24,8 @@ module HcCdnService
     response = Faraday.new do |f|
       f.request :multipart
     end.post(UPLOAD_ENDPOINT) do |req|
+      req.options.open_timeout = 5
+      req.options.timeout = 30
       req.headers["Authorization"] = "Bearer #{token}"
       req.body = { file: upload_io }
     end
@@ -45,6 +47,8 @@ module HcCdnService
     return nil if url.blank?
 
     response = Faraday.post(ENDPOINT) do |req|
+      req.options.open_timeout = 5
+      req.options.timeout = 20
       req.headers["Authorization"] = "Bearer #{token}"
       req.headers["Content-Type"] = "application/json"
       req.body = { url: url }.to_json
