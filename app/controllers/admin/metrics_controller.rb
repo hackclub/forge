@@ -124,6 +124,11 @@ class Admin::MetricsController < Admin::ApplicationController
 
     review_stats = review_metrics(start_date.beginning_of_day..today.end_of_day)
 
+    pending_queue_projects = Project.kept.where(status: :pending).not_flagged_for_review
+    pending_queue_hours = Devlog.joins(:project)
+      .where(project_id: pending_queue_projects.select(:id))
+      .sum(:time_hours).to_f.round(1)
+
     render inertia: "Admin/Metrics/Index", props: {
       range_days: days,
       summary: {
@@ -134,7 +139,8 @@ class Admin::MetricsController < Admin::ApplicationController
         average_dau: avg_dau,
         hours_today: hours_today,
         hours_range_total: hours_range_total.round(1),
-        avg_hours_per_day: avg_hours_per_day
+        avg_hours_per_day: avg_hours_per_day,
+        pending_queue_hours: pending_queue_hours
       },
       daily: daily,
       daily_hours: daily_hours,
