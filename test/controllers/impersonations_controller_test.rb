@@ -47,18 +47,31 @@ class ImpersonationsControllerTest < ActionDispatch::IntegrationTest
     assert_nil session[:impersonator_id]
   end
 
-  test "state-changing requests are blocked while impersonating" do
+  test "spending the user's coins is blocked while impersonating" do
     admin = admin_with_users_permission
     target = make_user
-    other = make_user
     sign_in_as(admin)
     post impersonate_path(target)
 
-    post impersonate_path(other), headers: { "Accept" => "application/json" }
+    assert_no_difference -> { Order.count } do
+      post shop_orders_path, params: { kind: "direct_grant", amount_usd: 5 }, headers: { "Accept" => "application/json" }
+    end
     assert_response :forbidden
-    # Session is untouched — still impersonating the original target.
+    # Session is untouched — still impersonating.
     assert_equal target.id, session[:user_id]
     assert_equal admin.id, session[:impersonator_id]
+  end
+
+  test "non-money actions are allowed while impersonating" do
+    admin = admin_with_users_permission
+    target = make_user
+    sign_in_as(admin)
+    post impersonate_path(target)
+
+    # A non-coin-spending shop action (and, by extension, submitting/editing) is
+    # not blocked by the money guard — it falls through to the controller.
+    patch shop_region_path, params: { region: "us" }
+    assert_not_equal 403, response.status
   end
 
   test "cannot impersonate staff members" do

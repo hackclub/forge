@@ -17,7 +17,7 @@ export default function ImpersonationBanner() {
         {impersonation.impersonator && (
           <span className="hidden sm:inline text-fuchsia-200/80"> · you are {impersonation.impersonator}</span>
         )}
-        <span className="ml-2 hidden md:inline text-xs text-fuchsia-200/70">read-only — changes are blocked</span>
+        <span className="ml-2 hidden md:inline text-xs text-fuchsia-200/70">acting on their behalf · can't spend their coins</span>
       </span>
       <button
         onClick={stop}
