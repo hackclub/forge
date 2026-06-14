@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Head, Link, router } from '@inertiajs/react'
-import { ArrowLeft, AlertTriangle, Info, Check, X, CheckCircle2 } from 'lucide-react'
+import { ArrowLeft, AlertTriangle, Info, Check, X, CheckCircle2, ExternalLink } from 'lucide-react'
 import { Badge } from '@/components/admin/ui/badge'
 import { Button } from '@/components/admin/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/admin/ui/card'
@@ -71,6 +71,16 @@ export default function AdminOrdersShow({
   const [reviewNotes, setReviewNotes] = useState('')
   const [grantLink, setGrantLink] = useState('')
 
+  const grantAmountUsd =
+    order.kind === 'direct_grant'
+      ? order.amount_usd
+      : order.internal_price_usd != null
+        ? order.internal_price_usd * order.quantity
+        : null
+  const hcbGrantParams = new URLSearchParams({ email: order.user_email })
+  if (grantAmountUsd != null) hcbGrantParams.set('amount_cents', String(Math.round(grantAmountUsd * 100)))
+  const hcbGrantUrl = `https://hcb.hackclub.com/forge/card-grants/new?${hcbGrantParams.toString()}`
+
   function approve() {
     router.post(`/admin/orders/${order.id}/approve`, { review_notes: reviewNotes })
   }
@@ -111,9 +121,7 @@ export default function AdminOrdersShow({
                 <Card
                   key={idx}
                   className={
-                    w.severity === 'warning'
-                      ? 'border-amber-500/40 bg-amber-500/5'
-                      : 'border-border bg-muted/40'
+                    w.severity === 'warning' ? 'border-amber-500/40 bg-amber-500/5' : 'border-border bg-muted/40'
                   }
                 >
                   <CardContent className="p-3 flex items-start gap-2 text-sm">
@@ -178,7 +186,11 @@ export default function AdminOrdersShow({
           </CardHeader>
           <CardContent className="space-y-2">
             <Link href={`/users/${order.user_id}`} className="flex items-center gap-3 hover:underline">
-              <img src={order.user_avatar} alt={order.user_display_name} className="size-10 rounded-full border border-border" />
+              <img
+                src={order.user_avatar}
+                alt={order.user_display_name}
+                className="size-10 rounded-full border border-border"
+              />
               <span className="font-medium">{order.user_display_name}</span>
             </Link>
             <p className="text-sm text-muted-foreground">
@@ -209,7 +221,9 @@ export default function AdminOrdersShow({
                 <p className="text-xs text-muted-foreground uppercase tracking-wide mb-2">Assigned to</p>
                 <select
                   value={order.assigned_to_id?.toString() || ''}
-                  onChange={(e) => router.post(`/admin/orders/${order.id}/reassign`, { assigned_to_id: e.target.value })}
+                  onChange={(e) =>
+                    router.post(`/admin/orders/${order.id}/reassign`, { assigned_to_id: e.target.value })
+                  }
                   className="w-full h-9 rounded-md border border-border bg-background px-3 text-sm cursor-pointer"
                 >
                   <option value="">Unassigned</option>
@@ -311,7 +325,15 @@ export default function AdminOrdersShow({
               <CardTitle>Mark fulfilled</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <p className="text-sm text-muted-foreground">Issue the HCB grant manually or paste the tracking link!</p>
+              <p className="text-sm text-muted-foreground">
+                Open HCB with the amount and recipient prefilled, create the grant, then paste the link back here.
+              </p>
+              <Button asChild variant="outline">
+                <a href={hcbGrantUrl} target="_blank" rel="noopener noreferrer">
+                  <ExternalLink className="size-4" />
+                  Create HCB grant (prefilled)
+                </a>
+              </Button>
               <Input
                 type="url"
                 value={grantLink}
@@ -332,7 +354,12 @@ export default function AdminOrdersShow({
               <CardTitle>Grant link</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              <a href={order.hcb_grant_link} target="_blank" rel="noopener" className="text-sm break-all hover:underline">
+              <a
+                href={order.hcb_grant_link}
+                target="_blank"
+                rel="noopener"
+                className="text-sm break-all hover:underline"
+              >
                 {order.hcb_grant_link}
               </a>
               {order.fulfilled_at && <p className="text-xs text-muted-foreground">Fulfilled on {order.fulfilled_at}</p>}
