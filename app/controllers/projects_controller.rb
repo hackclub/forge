@@ -354,6 +354,11 @@ class ProjectsController < ApplicationController
   def ai_check
     authorize @project, :submit_for_review?
 
+    # Self-heal a zombie check: if the stored result is stale (a worker died or hung),
+    # kick a fresh run so the page recovers on its own instead of showing "stalled"
+    # forever. Runs server-side on a GET, so it works even while impersonating.
+    enqueue_ai_check!(via: "auto_restart") if @project.ai_check_stale?
+
     render inertia: "Projects/AiCheck", props: {
       project: {
         id: @project.id,
@@ -369,10 +374,7 @@ class ProjectsController < ApplicationController
   def run_ai_check
     authorize @project, :submit_for_review?
 
-    @project.update_columns(ai_check_result: { "status" => "queued", "queued_at" => Time.current.iso8601 })
-    RunAiRequirementsCheckJob.perform_later(@project.id)
-    audit!("project.ai_check_run", target: @project, metadata: { via: "owner" })
-
+    enqueue_ai_check!(via: "owner")
     render json: { status: "queued" }
   end
 
@@ -382,6 +384,12 @@ class ProjectsController < ApplicationController
   end
 
   private
+
+  def enqueue_ai_check!(via:)
+    @project.update_columns(ai_check_result: { "status" => "queued", "queued_at" => Time.current.iso8601 })
+    RunAiRequirementsCheckJob.perform_later(@project.id)
+    audit!("project.ai_check_run", target: @project, metadata: { via: via })
+  end
 
   def fetch_json(url)
     uri = URI(url)
