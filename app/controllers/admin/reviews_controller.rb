@@ -248,6 +248,8 @@ class Admin::ReviewsController < Admin::ApplicationController
       repo_link: project.repo_link,
       commits_url: commits_url_for(project.repo_link),
       devlog_mode: project.devlog_mode,
+      uses_ai: project.uses_ai,
+      ai_usage: project.ai_usage,
       git_journal_url: git_journal_url_for(project),
       build_proof_url: project.build_proof_url,
       submission_requirements: SubmissionRequirements.for_project(project),
