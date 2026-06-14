@@ -175,14 +175,21 @@ class Project < ApplicationRecord
 
   AI_CHECK_STALE_AFTER = 10.minutes
 
-  def ai_check_result_for_display
+  # A check that's been queued/running longer than the stale window — almost always
+  # a zombie from a worker that died or hung. The stored row stays "running" forever
+  # (the display flip below is read-only), so callers use this to kick a fresh run.
+  def ai_check_stale?
     result = ai_check_result
-    return result unless result.is_a?(Hash) && %w[queued running].include?(result["status"])
+    return false unless result.is_a?(Hash) && %w[queued running].include?(result["status"])
 
     stamped_at = Time.zone.parse((result["started_at"] || result["queued_at"]).to_s)
-    return result if stamped_at && stamped_at > AI_CHECK_STALE_AFTER.ago
+    stamped_at.nil? || stamped_at <= AI_CHECK_STALE_AFTER.ago
+  end
 
-    result.merge("status" => "error", "message" => "This check stalled before finishing — run it again.")
+  def ai_check_result_for_display
+    return ai_check_result unless ai_check_stale?
+
+    ai_check_result.merge("status" => "error", "message" => "This check stalled before finishing — run it again.")
   end
 
   def advanced?
