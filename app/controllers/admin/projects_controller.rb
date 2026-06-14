@@ -536,7 +536,6 @@ class Admin::ProjectsController < Admin::ApplicationController
     authorize @project, :review?
 
     ctx = ForgeChecks::Context.new(@project)
-    base = @project.reviewed_commit_sha
 
     if @project.repo_link.blank?
       render json: { available: false, reason: "no_repo" }
@@ -546,14 +545,15 @@ class Admin::ProjectsController < Admin::ApplicationController
       render json: { available: false, reason: "unsupported_host" }
       return
     end
-    if base.blank?
-      decided_at = last_review_decision_at(@project)
-      if decided_at
-        base = ctx.commit_sha_before(decided_at)
-        if base.blank?
-          render json: { available: false, reason: "error", message: "Couldn't find the commit from the last review (rate limit?)." }
-          return
-        end
+
+    decided_at = last_review_decision_at(@project)
+    since = decided_at&.strftime("%b %-d, %Y")
+    base = @project.reviewed_commit_sha
+    if base.blank? && decided_at
+      base = ctx.commit_sha_before(decided_at)
+      if base.blank?
+        render json: { available: false, reason: "error", message: "Couldn't find the commit from the last review (rate limit?)." }
+        return
       end
     end
     if base.blank?
@@ -567,7 +567,7 @@ class Admin::ProjectsController < Admin::ApplicationController
       return
     end
     if head == base
-      render json: { available: true, base_sha: base, head_sha: head, total_commits: 0, files: [], commits: [], html_url: nil }
+      render json: { available: true, since: since, base_sha: base, head_sha: head, total_commits: 0, files: [], html_url: nil }
       return
     end
 
@@ -588,17 +588,19 @@ class Admin::ProjectsController < Admin::ApplicationController
         "total_commits" => cmp["total_commits"] || Array(cmp["commits"]).size,
         "html_url" => cmp["html_url"],
         "files" => Array(cmp["files"]).first(100).map { |f|
-          { "filename" => f["filename"], "status" => f["status"], "additions" => f["additions"], "deletions" => f["deletions"] }
-        },
-        "commits" => Array(cmp["commits"]).last(20).reverse.map { |c|
-          { "sha" => c["sha"].to_s[0, 7], "message" => c.dig("commit", "message").to_s.split("\n").first,
-            "author" => c.dig("commit", "author", "name") }
+          {
+            "filename" => f["filename"],
+            "status" => f["status"],
+            "additions" => f["additions"],
+            "deletions" => f["deletions"],
+            "patch" => f["patch"]&.to_s&.slice(0, 20_000)
+          }
         }
       }
       Rails.cache.write(cache_key, data, expires_in: 10.minutes)
     end
 
-    render json: { available: true }.merge(data)
+    render json: { available: true, since: since }.merge(data)
   end
 
   def send_checkpoint_message

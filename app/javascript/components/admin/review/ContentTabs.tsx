@@ -3,7 +3,7 @@ import Markdown from 'react-markdown'
 import rehypeRaw from 'rehype-raw'
 import rehypeSanitize from 'rehype-sanitize'
 import remarkGfm from 'remark-gfm'
-import { Check, Clock, Copy, RefreshCw } from 'lucide-react'
+import { ArrowUpDown, Check, Clock, Copy, RefreshCw } from 'lucide-react'
 import { Badge } from '@/components/admin/ui/badge'
 import { Button } from '@/components/admin/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/admin/ui/tabs'
@@ -92,6 +92,8 @@ export function ContentTabs({
   const origin = typeof window !== 'undefined' ? window.location.origin : 'https://forge.hackclub.com'
   const isGitJournal = project.devlog_mode === 'git'
   const journalUrl = isGitJournal ? (project.git_journal_url ?? project.repo_link ?? null) : null
+  const [journalNewestFirst, setJournalNewestFirst] = useState(false)
+  const orderedDevlogs = journalNewestFirst ? [...project.devlogs].reverse() : project.devlogs
 
   return (
     <Tabs value={value} onValueChange={onValueChange} className="w-full">
@@ -108,16 +110,18 @@ export function ContentTabs({
       </TabsList>
 
       <TabsContent value="journal">
-        {journalUrl && (
-          <div className="mb-2">
-            <CopyJournalButton url={journalUrl} label="Copy JOURNAL.md link" />
-          </div>
-        )}
+        <div className="mb-2 flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => setJournalNewestFirst((v) => !v)}>
+            <ArrowUpDown className="size-3.5" />
+            {journalNewestFirst ? 'Newest first' : 'Oldest first'}
+          </Button>
+          {journalUrl && <CopyJournalButton url={journalUrl} label="Copy JOURNAL.md link" />}
+        </div>
         {project.devlogs.length === 0 ? (
           <p className="text-sm text-muted-foreground p-3">No devlog entries yet.</p>
         ) : (
           <div className="space-y-2">
-            {project.devlogs.map((entry) => (
+            {orderedDevlogs.map((entry) => (
               <div
                 key={entry.id}
                 className="rounded-md border border-border bg-card p-3 space-y-2 hover:bg-muted/20 transition-colors"
