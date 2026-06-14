@@ -183,7 +183,8 @@ class Admin::MetricsController < Admin::ApplicationController
       reel_economy: reel_economy,
       location_distribution: location_distribution,
       reviews: review_stats,
-      shop_economy: shop_economy
+      shop_economy: shop_economy,
+      budget: HcbService.summary
     }
   end
 
