@@ -85,8 +85,6 @@ function ProjectsAiCheck({
   const [ranAt, setRanAt] = useState<string | null>(initialRanAt)
   const [running, setRunning] = useState(isInProgress(initialResult))
   const [submitting, setSubmitting] = useState(false)
-  // Seed the error from the initial result so an already-errored/stalled check
-  // shows an actionable card on load instead of a blank page.
   const [error, setError] = useState<string | null>(
     initialResult?.status === 'error' ? initialResult.message || 'The AI check hit an error.' : null,
   )

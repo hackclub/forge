@@ -354,9 +354,6 @@ class ProjectsController < ApplicationController
   def ai_check
     authorize @project, :submit_for_review?
 
-    # Self-heal a zombie check: if the stored result is stale (a worker died or hung),
-    # kick a fresh run so the page recovers on its own instead of showing "stalled"
-    # forever. Runs server-side on a GET, so it works even while impersonating.
     enqueue_ai_check!(via: "auto_restart") if @project.ai_check_stale?
 
     render inertia: "Projects/AiCheck", props: {

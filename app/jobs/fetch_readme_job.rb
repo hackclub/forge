@@ -4,14 +4,8 @@ class FetchReadmeJob < ApplicationJob
   README_CANDIDATES = %w[README.md readme.md README.MD Readme.md README.markdown README.rst README.txt README].freeze
   OPEN_TIMEOUT = 5
   READ_TIMEOUT = 10
-  # Cap how many README images we mirror to the CDN in one pass so a wildly
-  # image-heavy README can't tie a worker up for minutes.
   MAX_MIRRORED_IMAGES = 25
 
-  # mirror: false fetches and caches the raw README text only, skipping the
-  # per-image CDN round-trips. The AI pre-submission check uses this path — it
-  # only needs the README text, and the mirroring is slow enough on image-heavy
-  # repos to stall the check. Image mirroring still runs on the default path.
   def perform(project_id, mirror: true)
     project = Project.find_by(id: project_id)
     return unless project&.repo_link.present?

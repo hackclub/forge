@@ -1,7 +1,6 @@
 require "test_helper"
 
 class FetchReadmeJobTest < ActiveSupport::TestCase
-  # Minitest 6 ships no mock/stub, so swap the module methods by hand and restore.
   def with_cdn(enabled:, mirror:)
     orig_enabled = HcCdnService.method(:enabled?)
     orig_mirror = HcCdnService.method(:mirror)
@@ -24,7 +23,6 @@ class FetchReadmeJobTest < ActiveSupport::TestCase
     end
 
     assert_equal FetchReadmeJob::MAX_MIRRORED_IMAGES, calls, "should stop mirroring past the cap"
-    # Images past the cap keep their original URL rather than being mirrored.
     assert_includes result, "https://example.com/#{FetchReadmeJob::MAX_MIRRORED_IMAGES + 1}.png"
   end
 

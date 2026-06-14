@@ -22,9 +22,6 @@ createInertiaApp({
       return page
     }
 
-    // Wrap each page's layout exactly once (modules are eager-cached, so guard
-    // against re-wrapping on repeat navigations) so the impersonation banner
-    // renders globally — inside the Inertia tree, on every page.
     if (!page.default.__wrapped) {
       const userLayout = page.default.layout
       const baseLayout =

@@ -45,7 +45,6 @@ module Authentication
     @current_user
   end
 
-  # The real signed-in admin when impersonating; otherwise just current_user.
   def true_user
     return current_user unless impersonating?
 
@@ -56,10 +55,6 @@ module Authentication
     session[:impersonator_id].present?
   end
 
-  # While impersonating, an admin may act on the user's behalf (submit projects,
-  # edit, log devlogs) but must NEVER spend the user's coins. Shop orders are the
-  # only user-facing money action; admin money actions stay unreachable because
-  # the impersonated user isn't staff.
   def block_money_actions_while_impersonating!
     return unless impersonating?
     return unless controller_name == "shop" && action_name == "create"
