@@ -7,7 +7,8 @@ module Authentication
       before_action :set_current_user
       before_action :authenticate_user!
       before_action :redirect_banned_user!
-      helper_method :current_user, :user_signed_in?
+      before_action :block_writes_while_impersonating!
+      helper_method :current_user, :user_signed_in?, :true_user, :impersonating?
   end
 
   class_methods do
@@ -42,6 +43,36 @@ module Authentication
 
   def current_user
     @current_user
+  end
+
+  # The real signed-in admin when impersonating; otherwise just current_user.
+  def true_user
+    return current_user unless impersonating?
+
+    @true_user ||= User.find_by(id: session[:impersonator_id])
+  end
+
+  def impersonating?
+    session[:impersonator_id].present?
+  end
+
+  # While impersonating, the session is strictly read/QA: block every state-changing
+  # request (anything but GET/HEAD) so an admin can never act as the impersonated user
+  # — no orders, coin spends, submissions, profile edits, nothing. The only writes
+  # allowed are stopping impersonation and signing out.
+  def block_writes_while_impersonating!
+    return unless impersonating?
+    return if request.get? || request.head?
+    return if controller_name == "impersonations" && action_name == "destroy"
+    return if controller_name == "auth" && action_name == "destroy"
+
+    if request.format.json? || request.xhr?
+      head :forbidden
+    else
+      redirect_back fallback_location: root_path,
+                    status: :see_other,
+                    alert: "You're viewing as another user — stop impersonating to make changes."
+    end
   end
 
   def redirect_banned_user!

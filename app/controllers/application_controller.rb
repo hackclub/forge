@@ -37,6 +37,15 @@ class ApplicationController < ActionController::Base
       }
     }
   }
+  inertia_share impersonation: -> {
+    next nil unless impersonating?
+
+    {
+      viewing_as: current_user&.display_name,
+      impersonator: true_user&.display_name,
+      stop_path: stop_impersonating_path
+    }
+  }
   inertia_share flash: -> { flash.to_hash }
   inertia_share maintenance_mode: -> { FeatureFlag.enabled?("maintenance_mode") }
   inertia_share reels_enabled: -> { reels_enabled? }
@@ -78,6 +87,7 @@ class ApplicationController < ActionController::Base
 
   def track_user_activity
     return unless user_signed_in?
+    return if impersonating?
 
     now = Time.current
     last_seen = current_user.last_seen_at
@@ -97,6 +107,7 @@ class ApplicationController < ActionController::Base
 
   def track_ahoy_visit
     return unless user_signed_in?
+    return if impersonating?
     return if session[:ahoy_tracked_user] == current_user.id
 
     if ahoy.visit && ahoy.visit.user_id != current_user.id
@@ -114,6 +125,7 @@ class ApplicationController < ActionController::Base
 
   def prompt_birthday_reauth!
     return unless user_signed_in?
+    return if impersonating?
     return unless request.get? || request.head?
     return if request.xhr? || request.format.json?
     return if current_user.birthday.present?
@@ -126,6 +138,7 @@ class ApplicationController < ActionController::Base
 
   def prompt_guild_choice!
     return unless user_signed_in?
+    return if impersonating?
     return unless guilds_enabled?
     return if current_user.joined_guild?
     return if current_user.onboarded_at.nil?
