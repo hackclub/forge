@@ -254,6 +254,7 @@ Rails.application.routes.draw do
           post :toggle_shadow_ban
           post :toggle_staff_pick
           post :change_tier
+          post :convert_review_type
           post :add_note
           post :mark_unbuilt
           post :reverse_review

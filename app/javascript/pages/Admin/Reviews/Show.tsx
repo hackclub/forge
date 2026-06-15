@@ -305,6 +305,18 @@ export default function AdminReviewsShow({
     [project.id, project.tier, track],
   )
 
+  const convertReviewType = useCallback(() => {
+    const toBuild = !project.build_review
+    if (
+      !confirm(
+        `Convert this to a ${toBuild ? 'build' : 'design'} review? It moves to the ${toBuild ? 'build' : 'design'} queue.`,
+      )
+    )
+      return
+    track('convert_review_type', { to: toBuild ? 'build' : 'design' })
+    router.post(`/admin/projects/${project.id}/convert_review_type`, {}, { preserveScroll: true })
+  }, [project.id, project.build_review, track])
+
   const submit = useCallback(
     (decision: 'approve' | 'return' | 'reject' | 'draft') => {
       track(`${decision}_clicked`)
@@ -623,6 +635,7 @@ export default function AdminReviewsShow({
                 onRejectOpenChange={setRejectOpen}
                 onSubmit={submit}
                 onChangeTier={changeTier}
+                onConvertReviewType={convertReviewType}
                 onOpenCheckpoint={openCheckpoint}
                 onOpenDm={openDm}
                 onTrack={track}

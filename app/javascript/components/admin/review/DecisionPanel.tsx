@@ -54,6 +54,7 @@ export function DecisionPanel({
   onRejectOpenChange,
   onSubmit,
   onChangeTier,
+  onConvertReviewType,
   onOpenCheckpoint,
   onOpenDm,
   onTrack,
@@ -74,6 +75,7 @@ export function DecisionPanel({
   onRejectOpenChange: (open: boolean) => void
   onSubmit: (decision: 'approve' | 'return' | 'reject' | 'draft') => void
   onChangeTier: (tier: string) => void
+  onConvertReviewType: () => void
   onOpenCheckpoint: () => void
   onOpenDm: () => void
   onTrack: (button: string, metadata?: Record<string, unknown>) => void
@@ -221,6 +223,14 @@ export function DecisionPanel({
           )}
         </div>
       )}
+
+      <button
+        type="button"
+        onClick={onConvertReviewType}
+        className="w-full h-9 rounded-md border border-border bg-background px-3 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors cursor-pointer"
+      >
+        {project.build_review ? 'Convert to design review' : 'Convert to build review'}
+      </button>
 
       <Separator />
 
