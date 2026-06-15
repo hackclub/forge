@@ -15,6 +15,22 @@ interface DailyHoursPoint {
   hours: number
 }
 
+interface GoalPoint {
+  date: string
+  label: string
+  cumulative: number
+}
+
+interface HoursGoal {
+  target: number
+  total_logged: number
+  remaining: number
+  percent: number
+  avg_per_day: number
+  days_to_goal: number
+  progression: GoalPoint[]
+}
+
 interface Summary {
   total_users: number
   active_in_range: number
@@ -24,6 +40,8 @@ interface Summary {
   hours_today: number
   hours_range_total: number
   avg_hours_per_day: number
+  avg_hours_per_person: number
+  approved_hours_range: number
   pending_queue_hours: number
 }
 
@@ -179,6 +197,7 @@ export default function AdminMetricsIndex({
   summary,
   daily,
   daily_hours,
+  hours_goal,
   streak_buckets,
   referrals,
   payouts,
@@ -195,6 +214,7 @@ export default function AdminMetricsIndex({
   summary: Summary
   daily: DailyPoint[]
   daily_hours: DailyHoursPoint[]
+  hours_goal: HoursGoal
   streak_buckets: Record<string, number>
   referrals: Referrals
   payouts: Payouts
@@ -211,6 +231,7 @@ export default function AdminMetricsIndex({
   const maxHours = Math.max(1, ...daily_hours.map((d) => d.hours))
   const ranges = [7, 30, 60, 90, 180]
   const bucketMax = Math.max(1, ...Object.values(streak_buckets))
+  const rateMax = Math.max(1, ...tier_breakdown.map((t) => Math.max(t.base_rate, t.effective_rate)))
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
@@ -244,7 +265,7 @@ export default function AdminMetricsIndex({
         <Stat label="Total users" value={summary.total_users} hint="all signups" />
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         <Stat label="Hours logged today" value={`${summary.hours_today}h`} hint="builder devlog time today" accent />
         <Stat
           label="Hours in pending queue"
@@ -256,7 +277,17 @@ export default function AdminMetricsIndex({
           value={`${summary.hours_range_total}h`}
           hint="total devlog time in range"
         />
+        <Stat
+          label={`Hours approved in ${range_days}d`}
+          value={`${summary.approved_hours_range}h`}
+          hint="reviewer-approved devlog time"
+        />
         <Stat label="Avg/day" value={`${summary.avg_hours_per_day}h`} hint={`mean across ${range_days} days`} />
+        <Stat
+          label="Avg/person"
+          value={`${summary.avg_hours_per_person}h`}
+          hint={`per builder active in ${range_days}d`}
+        />
       </div>
 
       <Card>
@@ -287,6 +318,66 @@ export default function AdminMetricsIndex({
           <div className="flex justify-between text-[10px] text-muted-foreground mt-2 font-mono">
             <span>{daily_hours[0]?.label}</span>
             <span>{daily_hours[daily_hours.length - 1]?.label}</span>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Hours goal — {hours_goal.target.toLocaleString()}h logged</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+            <Stat
+              label="Logged so far"
+              value={`${hours_goal.total_logged.toLocaleString()}h`}
+              hint={`${hours_goal.percent}% of goal`}
+              accent
+            />
+            <Stat label="Remaining" value={`${hours_goal.remaining.toLocaleString()}h`} hint="to reach goal" />
+            <Stat label="Current pace" value={`${hours_goal.avg_per_day}h`} hint={`avg/day over ${range_days}d`} />
+            <Stat
+              label="Est. to goal"
+              value={hours_goal.days_to_goal > 0 ? `${hours_goal.days_to_goal}d` : '—'}
+              hint={hours_goal.days_to_goal > 0 ? 'at current pace' : 'goal reached or no pace'}
+            />
+          </div>
+
+          <div className="mb-1 flex justify-between text-[11px] text-muted-foreground font-mono">
+            <span>{hours_goal.percent}%</span>
+            <span>{hours_goal.target.toLocaleString()}h</span>
+          </div>
+          <div className="bg-muted h-3 overflow-hidden rounded mb-6">
+            <div className="h-full bg-emerald-500 rounded" style={{ width: `${Math.min(100, hours_goal.percent)}%` }} />
+          </div>
+
+          <p className="text-xs text-muted-foreground mb-3">
+            Cumulative hours logged over the last {range_days} days, scaled to the {hours_goal.target.toLocaleString()}h
+            goal.
+          </p>
+          <div className="flex items-end gap-1 h-48">
+            {hours_goal.progression.map((d) => {
+              const pct = Math.min(100, (d.cumulative / hours_goal.target) * 100)
+              return (
+                <div
+                  key={d.date}
+                  className="flex-1 h-full flex flex-col justify-end items-center group relative min-w-0"
+                  title={`${d.label}: ${d.cumulative.toLocaleString()}h (${((d.cumulative / hours_goal.target) * 100).toFixed(1)}%)`}
+                >
+                  <span className="invisible group-hover:visible absolute -top-6 text-[10px] font-mono bg-background border border-border rounded px-1 z-10 whitespace-nowrap">
+                    {d.cumulative.toLocaleString()}h
+                  </span>
+                  <div
+                    className="w-full rounded-t-sm bg-emerald-500/60 group-hover:bg-emerald-500 transition-colors min-h-[1px]"
+                    style={{ height: `${pct}%` }}
+                  />
+                </div>
+              )
+            })}
+          </div>
+          <div className="flex justify-between text-[10px] text-muted-foreground mt-2 font-mono">
+            <span>{hours_goal.progression[0]?.label}</span>
+            <span>{hours_goal.progression[hours_goal.progression.length - 1]?.label}</span>
           </div>
         </CardContent>
       </Card>
@@ -486,6 +577,42 @@ export default function AdminMetricsIndex({
               </TableRow>
             </TableBody>
           </Table>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Coin rate by tier</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-xs text-muted-foreground mb-3">
+            Effective coins per hour earned (bar) against the base rate (marker) for each tier.
+          </p>
+          <div className="space-y-2">
+            {tier_breakdown.map((t) => {
+              const pct = (t.effective_rate / rateMax) * 100
+              const basePct = (t.base_rate / rateMax) * 100
+              return (
+                <div key={t.tier} className="flex items-center gap-3">
+                  <span className="text-xs font-mono w-28 shrink-0 truncate" title={t.tier}>
+                    {t.tier}
+                  </span>
+                  <div className="flex-1 bg-muted h-4 overflow-hidden rounded relative">
+                    <div className="h-full bg-amber-500/70 rounded" style={{ width: `${pct}%` }} />
+                    <div
+                      className="absolute top-0 h-full w-0.5 bg-foreground/50"
+                      style={{ left: `${basePct}%` }}
+                      title={`base ${t.base_rate}`}
+                    />
+                  </div>
+                  <span className="text-xs font-medium w-12 text-right tabular-nums">{t.effective_rate}</span>
+                  <span className="text-[10px] text-muted-foreground w-16 text-right tabular-nums">
+                    base {t.base_rate}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
         </CardContent>
       </Card>
 

@@ -37,6 +37,36 @@ class Admin::MetricsController < Admin::ApplicationController
     hours_range_total = daily_hours.sum { |d| d[:hours] }
     avg_hours_per_day = daily_hours.size.positive? ? (hours_range_total / daily_hours.size).round(1) : 0
 
+    builders_in_range = Devlog
+      .joins(:project)
+      .where(projects: { shadow_banned: false })
+      .where(devlogs: { created_at: start_date.beginning_of_day..today.end_of_day })
+      .distinct.count(:user_id)
+    avg_hours_per_person = builders_in_range.positive? ? (hours_range_total / builders_in_range).round(1) : 0
+
+    approved_hours_range = Devlog
+      .joins(:project)
+      .where(projects: { shadow_banned: false })
+      .approved
+      .where(devlogs: { reviewed_at: start_date.beginning_of_day..today.end_of_day })
+      .sum(Arel.sql("COALESCE(devlogs.approved_hours, devlogs.time_hours)")).to_f.round(1)
+
+    hours_goal_target = 20_000
+    total_hours_logged = Devlog
+      .joins(:project)
+      .where(projects: { shadow_banned: false })
+      .sum(:time_hours).to_f.round(1)
+    hours_goal_remaining = (hours_goal_target - total_hours_logged).round(1)
+    hours_goal_percent = hours_goal_target.positive? ? ((total_hours_logged / hours_goal_target) * 100).round(1) : 0
+
+    baseline_hours = (total_hours_logged - hours_range_total).round(1)
+    running_hours = baseline_hours
+    goal_progression = daily_hours.map do |d|
+      running_hours = (running_hours + d[:hours]).round(1)
+      { date: d[:date], label: d[:label], cumulative: running_hours }
+    end
+    days_to_goal = hours_goal_remaining > 0 && avg_hours_per_day.positive? ? (hours_goal_remaining / avg_hours_per_day).ceil : 0
+
     streaks = UserActivityDay.joins(:user).where(active_on: (today - 1)..today).distinct.pluck(:user_id).map do |uid|
       User.find(uid).current_streak
     end
@@ -154,10 +184,21 @@ class Admin::MetricsController < Admin::ApplicationController
         hours_today: hours_today,
         hours_range_total: hours_range_total.round(1),
         avg_hours_per_day: avg_hours_per_day,
+        avg_hours_per_person: avg_hours_per_person,
+        approved_hours_range: approved_hours_range,
         pending_queue_hours: pending_queue_hours
       },
       daily: daily,
       daily_hours: daily_hours,
+      hours_goal: {
+        target: hours_goal_target,
+        total_logged: total_hours_logged,
+        remaining: hours_goal_remaining,
+        percent: hours_goal_percent,
+        avg_per_day: avg_hours_per_day,
+        days_to_goal: days_to_goal,
+        progression: goal_progression
+      },
       streak_buckets: streak_buckets,
       referrals: {
         total: referrals_total,
