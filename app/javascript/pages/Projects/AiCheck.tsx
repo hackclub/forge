@@ -302,6 +302,13 @@ function ProjectsAiCheck({
               {result?.status === 'running' ? 'Scanning your project…' : 'Queued — starting in a moment…'}
             </p>
             <p className="text-stone-500 text-xs">This usually takes 30-60 seconds.</p>
+            <button
+              onClick={submitForReview}
+              disabled={submitting}
+              className="mt-5 text-stone-500 hover:text-[#ffb595] text-xs font-bold uppercase tracking-[0.15em] underline underline-offset-4 cursor-pointer disabled:opacity-50"
+            >
+              {submitting ? 'Submitting…' : 'Taking too long? Submit for review anyway'}
+            </button>
           </div>
         )}
 
