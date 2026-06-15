@@ -1,6 +1,6 @@
 class Admin::ProjectsController < Admin::ApplicationController
   before_action :require_projects_permission!
-  before_action :set_project, only: [ :show, :review, :destroy, :restore, :toggle_hidden, :toggle_shadow_ban, :toggle_staff_pick, :change_tier, :add_note, :destroy_note, :update_note, :flag_for_review, :unflag_for_review, :mark_unbuilt, :reverse_review, :ai_requirements_check, :ai_requirements_check_status, :repo_tree, :changes_since_review, :send_checkpoint_message, :send_dm_message ]
+  before_action :set_project, only: [ :show, :review, :destroy, :restore, :toggle_hidden, :toggle_shadow_ban, :toggle_staff_pick, :change_tier, :convert_review_type, :add_note, :destroy_note, :update_note, :flag_for_review, :unflag_for_review, :mark_unbuilt, :reverse_review, :ai_requirements_check, :ai_requirements_check_status, :repo_tree, :changes_since_review, :send_checkpoint_message, :send_dm_message ]
 
   def index
     scope = policy_scope(Project).includes(:user, :ships)
