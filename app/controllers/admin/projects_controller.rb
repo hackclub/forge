@@ -158,6 +158,22 @@ class Admin::ProjectsController < Admin::ApplicationController
     redirect_to admin_project_path(@project), notice: "Tier changed from #{old_tier.tr('_', ' ')} to #{new_tier.tr('_', ' ')}."
   end
 
+  def convert_review_type
+    authorize @project, :review?
+
+    if @project.build_review?
+      @project.update!(build_review: false, tier: Project::TIERS.last, linked_project_id: nil)
+      audit!("project.review_type_changed", target: @project, metadata: { to: "design" })
+      redirect_to admin_review_path(@project), notice: "Converted to a design review."
+    else
+      @project.update!(build_review: true, tier: Project::BUILD_REVIEW_TIER, linked_project_id: nil)
+      audit!("project.review_type_changed", target: @project, metadata: { to: "build" })
+      redirect_to admin_review_path(@project), notice: "Converted to a build review."
+    end
+  rescue ActiveRecord::RecordInvalid => e
+    redirect_to admin_review_path(@project), alert: "Couldn't convert: #{e.record.errors.full_messages.to_sentence}"
+  end
+
   def reverse_review
     authorize @project, :review?
 
