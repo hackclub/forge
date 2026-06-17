@@ -6,15 +6,9 @@ module AiRequirementsChecker
   module_function
 
   PROVIDERS = {
-    "hackclub" => {
-      endpoint: "https://ai.hackclub.com/proxy/v1/chat/completions",
-      model: "google/gemini-3-flash-preview",
-      api_key_env: "HACKCLUB_AI_API_KEY",
-      label: "Hack Club AI"
-    },
     "google" => {
       endpoint: "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
-      model: "gemini-3-flash-preview",
+      model: "gemini-2.5-flash-lite",
       api_key_env: "GEMINI_API_KEY",
       label: "Google Gemini"
     }
