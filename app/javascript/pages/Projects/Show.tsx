@@ -617,7 +617,7 @@ export default function ProjectsShow({
   const isPending = project.status === 'pending'
   const isReturned = project.status === 'returned'
   const isBuildingPhase =
-    isPitchApproved || isApproved || isPending || isReturned || (project.status === 'draft' && isNormalTier)
+    isPitchApproved || isApproved || isPending || isReturned || (project.status === 'draft' && (isNormalTier || devlogs.length > 0))
   const isGitMode = project.devlog_mode === 'git'
   const isWebMode = project.devlog_mode === 'website'
   const canLog = isBuildingPhase
