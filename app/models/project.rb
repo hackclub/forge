@@ -132,8 +132,8 @@ class Project < ApplicationRecord
   # excluded from the public leaderboard and admin metrics aggregates.
   scope :not_shadow_banned, -> { where(shadow_banned: false) }
 
-  def self.fair_feed
-    all.sort_by { |p| -p.feed_score }
+  def self.fair_feed(scope = all)
+    scope.to_a.sort_by { |p| -p.feed_score }
   end
 
   def feed_score
