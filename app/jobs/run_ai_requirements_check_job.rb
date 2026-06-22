@@ -20,8 +20,13 @@ class RunAiRequirementsCheckJob < ApplicationJob
     )
   rescue ForgeCheckService::Error, AiRequirementsChecker::Error => e
     project&.update_columns(ai_check_result: { "status" => "error", "message" => e.message, "errored_at" => Time.current.iso8601, "job_id" => job_id })
+    Rails.logger.error("[AiCheck] project=#{project_id} job=#{job_id} #{e.class}: #{e.message}")
+    Sentry.capture_exception(e) if defined?(Sentry)
+    raise
   rescue StandardError => e
     project&.update_columns(ai_check_result: { "status" => "error", "message" => "The check hit an unexpected error (#{e.class.name}) — run it again.", "errored_at" => Time.current.iso8601, "job_id" => job_id })
+    Rails.logger.error("[AiCheck] project=#{project_id} job=#{job_id} #{e.class}: #{e.message}")
+    Sentry.capture_exception(e) if defined?(Sentry)
     raise
   end
 end
