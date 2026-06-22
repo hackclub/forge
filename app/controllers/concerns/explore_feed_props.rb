@@ -8,7 +8,7 @@ module ExploreFeedProps
   def explore_feed_props
     filter = FILTERS.include?(params[:filter]) ? params[:filter] : "all"
 
-    scope = Project.kept.where(hidden: false).includes(:user, :ships)
+    scope = Project.kept.where(hidden: false).not_shadow_banned.includes(:user, :ships)
     scope = scope.search(params[:query]) if params[:query].present?
     scope = case filter
     when "in_progress" then scope.where(status: :approved, built_at: nil)
