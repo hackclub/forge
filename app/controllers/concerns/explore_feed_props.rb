@@ -16,7 +16,7 @@ module ExploreFeedProps
     else                    scope
     end
 
-    ranked = scope.fair_feed
+    ranked = Project.fair_feed(scope)
     ranked = ranked.partition { |p| p.cover_image_url.present? }.flatten
 
     pagy_obj, projects = pagy(ranked)
