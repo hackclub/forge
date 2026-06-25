@@ -56,7 +56,7 @@ const VERDICT_CONFIG: Record<
   },
 }
 
-const POLL_GIVE_UP_MS = 3 * 60 * 1000
+const POLL_GIVE_UP_MS = 9 * 60 * 1000
 
 function VerdictPill({ verdict }: { verdict: AiCheckRequirement['verdict'] }) {
   const cfg = VERDICT_CONFIG[verdict]

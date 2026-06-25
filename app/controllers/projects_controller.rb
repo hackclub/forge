@@ -379,6 +379,7 @@ class ProjectsController < ApplicationController
 
   def ai_check_status
     authorize @project, :submit_for_review?
+    enqueue_ai_check!(via: "auto_restart") if @project.ai_check_stale?
     render json: { result: @project.ai_check_result_for_display, ran_at: @project.ai_check_ran_at&.iso8601 }
   end
 
