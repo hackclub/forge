@@ -497,15 +497,13 @@ class Admin::ProjectsController < Admin::ApplicationController
   def ai_requirements_check
     authorize @project, :review?
 
-    @project.update_columns(ai_check_result: { "status" => "queued", "queued_at" => Time.current.iso8601 })
-    RunReviewerAiCheckJob.perform_later(@project.id)
-    audit!("project.ai_check_run", target: @project, metadata: { via: "reviewer" })
-
+    enqueue_reviewer_ai_check!(via: "reviewer")
     render json: { status: "queued" }
   end
 
   def ai_requirements_check_status
     authorize @project, :review?
+    enqueue_reviewer_ai_check!(via: "auto_restart") if @project.ai_check_stale?
     render json: { result: @project.ai_check_result_for_display, ran_at: @project.ai_check_ran_at&.iso8601 }
   end
 
@@ -686,6 +684,12 @@ class Admin::ProjectsController < Admin::ApplicationController
   end
 
   private
+
+  def enqueue_reviewer_ai_check!(via:)
+    @project.update_columns(ai_check_result: { "status" => "queued", "queued_at" => Time.current.iso8601 })
+    RunReviewerAiCheckJob.perform_later(@project.id)
+    audit!("project.ai_check_run", target: @project, metadata: { via: via })
+  end
 
   def end_active_review_session(decision:)
     return unless current_user

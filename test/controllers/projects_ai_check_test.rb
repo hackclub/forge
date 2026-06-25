@@ -59,4 +59,30 @@ class ProjectsAiCheckTest < ActionDispatch::IntegrationTest
     end
     assert_equal "running", project.reload.ai_check_result["status"]
   end
+
+  test "polling status restarts a stale zombie check" do
+    owner = make_user
+    project = Project.create!(user: owner, name: "Zombie", tier: "tier_4", status: :draft)
+    project.update_columns(ai_check_result: { "status" => "running", "started_at" => 20.minutes.ago.iso8601 })
+    sign_in_as(owner)
+
+    assert_enqueued_with(job: RunAiRequirementsCheckJob, args: [ project.id ]) do
+      get ai_check_status_project_path(project), headers: { "Accept" => "application/json" }
+    end
+    assert_response :success
+    assert_equal "queued", project.reload.ai_check_result["status"]
+    assert_equal "queued", response.parsed_body.dig("result", "status")
+  end
+
+  test "polling status leaves a fresh check alone" do
+    owner = make_user
+    project = Project.create!(user: owner, name: "Fresh", tier: "tier_4", status: :draft)
+    project.update_columns(ai_check_result: { "status" => "running", "started_at" => 1.minute.ago.iso8601 })
+    sign_in_as(owner)
+
+    assert_no_enqueued_jobs(only: RunAiRequirementsCheckJob) do
+      get ai_check_status_project_path(project), headers: { "Accept" => "application/json" }
+    end
+    assert_equal "running", project.reload.ai_check_result["status"]
+  end
 end

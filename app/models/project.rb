@@ -175,7 +175,7 @@ class Project < ApplicationRecord
     draft? || returned? || pitch_approved?
   end
 
-  AI_CHECK_STALE_AFTER = 10.minutes
+  AI_CHECK_STALE_AFTER = 4.minutes
 
   def ai_check_stale?
     result = ai_check_result
