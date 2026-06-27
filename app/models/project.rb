@@ -110,10 +110,10 @@ class Project < ApplicationRecord
   BUILD_REVIEW_TIER = "tier_build_review"
   ALL_TIERS = (TIERS + [ BUILD_REVIEW_TIER ]).freeze
   TIER_COIN_RATES = {
-    "tier_1" => 7.0,
-    "tier_2" => 5.5,
-    "tier_3" => 4.5,
-    "tier_4" => 4.0,
+    "tier_1" => 7.5,
+    "tier_2" => 6.5,
+    "tier_3" => 5.5,
+    "tier_4" => 5.0,
     BUILD_REVIEW_TIER => 5.0
   }.freeze
 
