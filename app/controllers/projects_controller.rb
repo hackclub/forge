@@ -420,7 +420,7 @@ class ProjectsController < ApplicationController
 
   def serialize_project_detail(project)
     can_view_private_project_data = can_view_project_review?(project)
-    can_view_user_address = can_view_private_project_data
+    can_view_user_address = current_user.present? && (current_user.id == project.user_id || current_user.staff?)
 
     {
       id: project.id,
