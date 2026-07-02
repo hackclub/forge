@@ -2,6 +2,15 @@ class Admin::ProjectsController < Admin::ApplicationController
   before_action :require_projects_permission!
   before_action :set_project, only: [ :show, :review, :destroy, :restore, :toggle_hidden, :toggle_shadow_ban, :toggle_staff_pick, :change_tier, :add_note, :destroy_note, :update_note, :flag_for_review, :unflag_for_review, :mark_unbuilt, :reverse_review, :ai_requirements_check, :ai_requirements_check_status, :repo_tree, :changes_since_review, :send_checkpoint_message, :send_dm_message ]
 
+  SORTS = %w[recent tier].freeze
+
+  TIER_SORT_SQL = "CASE tier " \
+    "WHEN 'tier_1' THEN 1 " \
+    "WHEN 'tier_2' THEN 2 " \
+    "WHEN 'tier_3' THEN 3 " \
+    "WHEN 'tier_4' THEN 4 " \
+    "ELSE 5 END"
+
   def index
     scope = policy_scope(Project).includes(:user, :ships)
     scope = params[:status] == "deleted" ? scope.discarded : scope.kept
@@ -11,12 +20,19 @@ class Admin::ProjectsController < Admin::ApplicationController
     elsif params[:status].present? && params[:status] != "deleted"
       scope = scope.where(status: params[:status])
     end
-    @pagy, @projects = pagy(scope.order(created_at: :desc))
+    sort = SORTS.include?(params[:sort]) ? params[:sort] : "recent"
+    scope = if sort == "tier"
+      scope.order(Arel.sql(TIER_SORT_SQL)).order(created_at: :desc)
+    else
+      scope.order(created_at: :desc)
+    end
+    @pagy, @projects = pagy(scope)
 
     render inertia: "Admin/Projects/Index", props: {
       projects: @projects.map { |p| serialize_project_row(p) },
       pagy: pagy_props(@pagy),
       query: params[:query].to_s,
+      sort: sort,
       status_filter: params[:status].to_s,
       counts: status_counts,
       page_title: "All Projects"
@@ -821,6 +837,7 @@ class Admin::ProjectsController < Admin::ApplicationController
       id: project.id,
       name: project.name,
       status: project.status,
+      tier: project.tier,
       user_id: project.user_id,
       user_display_name: project.user.display_name,
       ships_count: project.ships.size,

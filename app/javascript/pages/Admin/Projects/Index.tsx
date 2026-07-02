@@ -8,7 +8,7 @@ import { Input } from '@/components/admin/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/admin/ui/table'
 import AdminPagination from '@/components/admin/AdminPagination'
 import { cn } from '@/components/admin/lib/cn'
-import type { AdminProjectRow, PagyProps, ProjectStatus } from '@/types'
+import type { AdminProjectRow, PagyProps, ProjectStatus, ProjectTier } from '@/types'
 
 const statusConfig: Record<ProjectStatus, { label: string; variant: 'default' | 'secondary' | 'outline' | 'destructive' | 'success' | 'warning' }> = {
   draft: { label: 'Draft', variant: 'secondary' },
@@ -31,10 +31,26 @@ const filters = [
   { key: 'deleted', label: 'Deleted' },
 ]
 
+type Sort = 'recent' | 'tier'
+
+const sortOptions: { key: Sort; label: string }[] = [
+  { key: 'recent', label: 'Recent' },
+  { key: 'tier', label: 'Tier' },
+]
+
+const TIER_LABELS: Record<ProjectTier, string> = {
+  tier_1: 'Tier 1',
+  tier_2: 'Tier 2',
+  tier_3: 'Tier 3',
+  tier_4: 'Tier 4',
+  tier_build_review: 'Build Review',
+}
+
 export default function AdminProjectsIndex({
   projects,
   pagy,
   query,
+  sort = 'recent',
   status_filter,
   counts,
   page_title,
@@ -45,6 +61,7 @@ export default function AdminProjectsIndex({
   projects: AdminProjectRow[]
   pagy: PagyProps
   query: string
+  sort?: Sort
   status_filter: string
   counts: Record<string, number>
   page_title?: string
@@ -57,11 +74,15 @@ export default function AdminProjectsIndex({
 
   function search(e: React.FormEvent) {
     e.preventDefault()
-    router.get(basePath, { query: searchQuery, status: hide_filters ? undefined : status_filter }, { preserveState: true })
+    router.get(basePath, { query: searchQuery, status: hide_filters ? undefined : status_filter, sort }, { preserveState: true })
   }
 
   function filterByStatus(status: string) {
-    router.get('/admin/projects', { query: searchQuery, status }, { preserveState: true })
+    router.get('/admin/projects', { query: searchQuery, status, sort }, { preserveState: true })
+  }
+
+  function sortBy(nextSort: Sort) {
+    router.get('/admin/projects', { query: searchQuery, status: status_filter, sort: nextSort }, { preserveState: true })
   }
 
   return (
@@ -127,6 +148,28 @@ export default function AdminProjectsIndex({
         </div>
       )}
 
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-xs uppercase tracking-wide text-muted-foreground">Sort</span>
+        {sortOptions.map((option) => {
+          const isActive = sort === option.key
+          return (
+            <button
+              key={option.key}
+              type="button"
+              onClick={() => sortBy(option.key)}
+              className={cn(
+                'inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-md border transition-colors cursor-pointer',
+                isActive
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'border-border bg-background text-muted-foreground hover:bg-accent hover:text-foreground',
+              )}
+            >
+              {option.label}
+            </button>
+          )
+        })}
+      </div>
+
       <Card>
         <CardHeader>
           <CardTitle>{projects.length} project{projects.length === 1 ? '' : 's'}</CardTitle>
@@ -144,6 +187,7 @@ export default function AdminProjectsIndex({
                   <TableHead>Title</TableHead>
                   <TableHead>Author</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Tier</TableHead>
                   <TableHead>Ships</TableHead>
                   <TableHead>Created</TableHead>
                   <TableHead className="w-20"></TableHead>
@@ -171,6 +215,7 @@ export default function AdminProjectsIndex({
                       <TableCell>
                         <Badge variant={sc.variant}>{sc.label}</Badge>
                       </TableCell>
+                      <TableCell className="text-muted-foreground text-sm">{TIER_LABELS[project.tier]}</TableCell>
                       <TableCell className="font-mono text-sm">{project.ships_count}</TableCell>
                       <TableCell className="text-muted-foreground text-sm">{project.created_at}</TableCell>
                       <TableCell className="text-right">

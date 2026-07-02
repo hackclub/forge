@@ -213,6 +213,7 @@ export interface AdminProjectRow {
   id: number
   name: string
   status: ProjectStatus
+  tier: ProjectTier
   user_id: number
   user_display_name: string
   ships_count: number
