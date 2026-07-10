@@ -816,10 +816,10 @@ export default function AdminProjectsShow({
                   }}
                   className="w-full h-9 rounded-md border border-border bg-background px-3 text-sm text-foreground cursor-pointer"
                 >
-                  <option value="tier_4">Tier 4 - 4c/hr</option>
-                  <option value="tier_3">Tier 3 - 4.5c/hr</option>
-                  <option value="tier_2">Tier 2 - 5.5c/hr</option>
-                  <option value="tier_1">Tier 1 - 7c/hr</option>
+                  <option value="tier_4">Tier 4 - 5.0c/hr</option>
+                  <option value="tier_3">Tier 3 - 5.5c/hr</option>
+                  <option value="tier_2">Tier 2 - 6.5c/hr</option>
+                  <option value="tier_1">Tier 1 - 7.5c/hr</option>
                 </select>
                 {project.from_slack && project.tier !== 'tier_1' && (
                   <p className="text-amber-600 dark:text-amber-400 text-xs mt-2">
