@@ -14,9 +14,9 @@ There's no set date right now, but expect it to last at least until October 2026
 
 ## How much funding can I get?
 
-Theoretically unlimited! Depending on the compexity of your project (the tier), you can earn between 4c to 7c per hour. You can then exchance these coins for funding where 1c = 1 USD.
+Theoretically unlimited! Depending on the complexity of your project (the tier), you can earn between 5.0c to 7.5c per hour. You can then exchange these coins for funding where 1c = 1 USD.
 
-# What kind of projects can I make?
+## What kind of projects can I make?
 
 You can make anything related to hardware where you put majority of the work in making the hardware side of the project. This includes things like keyboards, 3D printers and custom pcbs. Projects like home servers where you are mainly working on the software aspect are not allowed for Forge. If you are ever unsure of what your project may be considered as, ask in #forge on the Hack Club slack
 
@@ -90,7 +90,7 @@ You're free to use it to experiment with layouts and make design decisions, but 
 
 ## Can I journal research?
 
-Yes!
+Yes! **IMPORTANT:** Please log your research journals using [lapse](https://lapse.hackclub.com)!
 
 ## Can I use auto-routing software?
 
