@@ -286,9 +286,9 @@ export default function ProjectsForm({
               onChange={(e) => form.setData('tier', e.target.value as ProjectTier)}
               className="w-full bg-[#0e0e0e] border-none rounded-lg px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30"
             >
-              <option value="tier_4">Tier 4 - 4c/hr (Basic, $0–50)</option>
-              <option value="tier_3">Tier 3 - 4.5c/hr (Standard, $0–100)</option>
-              <option value="tier_2">Tier 2 - 5.5c/hr (Bigger, $0–200)</option>
+              <option value="tier_4">Tier 4 - 5.0c/hr (Basic, $0–50)</option>
+              <option value="tier_3">Tier 3 - 5.5c/hr (Standard, $0–100)</option>
+              <option value="tier_2">Tier 2 - 6.5c/hr (Bigger, $0–200)</option>
             </select>
             <p className="text-stone-600 text-xs mt-2">
               Higher tiers earn more coins per hour but are expected to be more ambitious.

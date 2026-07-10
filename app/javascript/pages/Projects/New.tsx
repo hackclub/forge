@@ -12,7 +12,7 @@ const TIERS: TierOption[] = [
   {
     tier: 'tier_4',
     label: 'Tier 4',
-    rate: '4c / hour',
+    rate: '5.0c / hour',
     description:
       'Basic project. The simplest starting point for things like PCB Buisness Cards, LED timers, DIY Mouse. Should be $0-50',
     pitch: false,
@@ -20,21 +20,21 @@ const TIERS: TierOption[] = [
   {
     tier: 'tier_3',
     label: 'Tier 3',
-    rate: '4.5c / hour',
+    rate: '5.5c / hour',
     description: 'Standard projects such as a macropad on wheels, custom bluetooth speakers, Devboard. Around $0-100',
     pitch: false,
   },
   {
     tier: 'tier_2',
     label: 'Tier 2',
-    rate: '5.5c / hour',
+    rate: '6.5c / hour',
     description: 'Bigger builds. Eg DIY game console, Full Split Keyboard, Custom Flipper Zero. Around $0-200',
     pitch: false,
   },
   {
     tier: 'tier_1',
     label: 'Tier 1',
-    rate: '7c / hour',
+    rate: '7.5c / hour',
     description:
       'Advanced project ($200+).Requires a Slack pitch. Eg a DIY 3d printer, Battlebot with custom attachements. For projects $0-200+',
     pitch: true,
@@ -61,7 +61,7 @@ const PATHS: Path[] = [
     key: 'build_review',
     label: 'Build Review',
     description:
-      'Already funded? Submit build time on an existing project. Earns 5c / hour. A lapse link on each journal is highly recommended.',
+      'Already funded? Submit build time on an existing project. Earns 5.0c / hour. A lapse link on each journal is highly recommended.',
     href: '/projects/new?tier=tier_build_review',
     highlight: true,
   },

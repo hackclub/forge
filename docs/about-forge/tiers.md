@@ -1,16 +1,16 @@
-| title | The Tier System |
+| title | The Tier and Streak System |
 | description | The Tier System |
 | --- | --- |
 
-# The Tier System
+# The Tier and Streak System
 
-Forge projects are funded based on both the time you spent on it, as well as the quality of the project.
+Forge projects are funded based on both the time you spent on it, as well as the quality of the project. Bonuses are applied if you maintain streaks by actively journalling every day!
 
 ## Tiers
 
 The following are just guidelines. We can't promise what tier a project you build will get before you start building, as it also depends on your implementation of it. Your final tier and coin payout will be determined by your reviewer.
 
-### Tier 1 (7c/hour):
+### Tier 1 (7.5c/hour):
 The best of the best!
 
 Tier 1 projects are ambitious, polished and unique, the sort of work that could become a product or a showcase piece. 
@@ -26,7 +26,7 @@ Examples:
 
 
 
-### Tier 2 (5.5c/hour):
+### Tier 2 (6.5c/hour):
 
 Tier 2 projects are still substantial and well executed but slightly narrower in scope than Tier 1. These projects usually include multiple components (software + hardware, firmware + mechanics, or nontrivial electronics).
 
@@ -39,7 +39,7 @@ Examples:
 - Full split keyboard (polished!)
 - Single board computer
 
-### Tier 3 (4.5c/hour):
+### Tier 3 (5.5c/hour):
 
 Tier 3 is for smaller but meaningful projects, and can be a good starting point for learning new skills with some background knowledge.
 
@@ -52,7 +52,7 @@ Examples:
 - Custom devboard 
 - Modular keyboard
 
-### Tier 4 (4c/hour):
+### Tier 4 (5.0c/hour):
 
 Tier 4 covers small experiments to get started with electronics, or to experiment with new ideas or tools.
 
@@ -63,3 +63,15 @@ Examples:
 - Hackpad (but put your original twist on it!)
 
 
+## Streaks
+
+Streaks are applied as a multiplier to your usual payout when submitting. To increase a streak, journal at least once per day!
+
+| Days | Streak Multiplier|
+| --- | --- |
+| 3+ | 1.02x |
+| 7+ | 1.05x |
+| 14+ | 1.1x |
+| 30+ | 1.15x |
+| 60+ | 1.2x |
+| 100+ | 1.25x |

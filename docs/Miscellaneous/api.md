@@ -156,7 +156,7 @@ GET /api/v1/users/:id
 
 | Tier | Coin Rate | Description |
 |------|-----------|-------------|
-| `tier_1` | 7c/hr | Advanced ($200+), requires Slack pitch |
-| `tier_2` | 5.5c/hr | Bigger builds ($0–200) |
-| `tier_3` | 4.5c/hr | Standard ($0–100) |
-| `tier_4` | 4c/hr | Basic ($0–50) |
+| `tier_1` | 7.5c/hr | Advanced ($200+), requires Slack pitch |
+| `tier_2` | 6.5c/hr | Bigger builds ($0–200) |
+| `tier_3` | 5.5c/hr | Standard ($0–100) |
+| `tier_4` | 5.0c/hr | Basic ($0–50) |
