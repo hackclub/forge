@@ -1636,7 +1636,38 @@ export default function ProjectsShow({
               Link Repository
             </button>
           )}
-          {can.update && !is_admin_view && totalHours > 0 && project.status !== 'rejected' && (
+          {can.update && !is_admin_view && project.payout && (
+            <div className="bg-[#1c1b1b] ghost-border p-6">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="material-symbols-outlined text-[#ffb595] text-base">paid</span>
+                <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline">
+                  {project.payout.team_total !== null ? 'Your Payout' : 'Payout'}
+                </h4>
+              </div>
+              <p className="text-4xl font-headline font-bold text-[#ffb595] tracking-tight">
+                {project.payout.coins.toFixed(2)}
+                <span className="text-xl text-stone-500 ml-1">c</span>
+              </p>
+              <div className="mt-3 space-y-1 text-xs text-stone-500">
+                <p>
+                  {project.payout.hours}h approved
+                  {project.payout.logged_hours !== project.payout.hours &&
+                    ` (${project.payout.logged_hours}h logged)`}{' '}
+                  × {project.coin_rate}c/h
+                </p>
+                {project.payout.streak_multiplier !== null && project.payout.streak_multiplier !== 1 && (
+                  <p>× {project.payout.streak_multiplier} streak multiplier</p>
+                )}
+                {project.payout.guild_multiplier !== null && project.payout.guild_multiplier !== 1 && (
+                  <p>× {project.payout.guild_multiplier} guild multiplier</p>
+                )}
+                {project.payout.team_total !== null && (
+                  <p>Team total: {project.payout.team_total.toFixed(2)}c</p>
+                )}
+              </div>
+            </div>
+          )}
+          {can.update && !is_admin_view && totalHours > 0 && project.status !== 'rejected' && !project.payout && (
             <div className="bg-[#1c1b1b] ghost-border p-6">
               <div className="flex items-center gap-2 mb-3">
                 <span className="material-symbols-outlined text-[#ffb595] text-base">paid</span>
