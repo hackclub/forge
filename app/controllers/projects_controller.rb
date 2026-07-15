@@ -436,6 +436,7 @@ class ProjectsController < ApplicationController
       review_feedback: can_view_private_project_data ? project.review_feedback : nil,
       tier: project.tier,
       coin_rate: project.coin_rate,
+      payout: can_view_private_project_data ? serialize_payout(project) : nil,
       from_slack: project.slack_message_ts.present?,
       cover_image_url: project.cover_image_url,
       built_at: project.built_at&.strftime("%b %d, %Y"),
@@ -465,6 +466,31 @@ class ProjectsController < ApplicationController
 
   def can_view_project_review?(project)
     current_user.present? && (project.member?(current_user) || current_user.staff?)
+  end
+
+  def serialize_payout(project)
+    return nil unless project.approved?
+
+    share = current_user && project.project_payouts.find_by(user_id: current_user.id)
+    if share
+      {
+        hours: share.hours.to_f,
+        logged_hours: project.devlogs.where(user_id: current_user.id).sum(&:parsed_hours).to_f.round(2),
+        coins: share.coins.to_f,
+        streak_multiplier: share.streak_multiplier&.to_f,
+        guild_multiplier: share.guild_multiplier&.to_f,
+        team_total: project.coins_earned
+      }
+    else
+      {
+        hours: project.total_hours.to_f.round(2),
+        logged_hours: project.devlog_hours.to_f.round(2),
+        coins: project.coins_earned,
+        streak_multiplier: project.streak_at_approval && project.user.streak_multiplier(project.streak_at_approval),
+        guild_multiplier: nil,
+        team_total: nil
+      }
+    end
   end
 
   def serialize_members(project)

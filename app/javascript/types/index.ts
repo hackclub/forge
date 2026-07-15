@@ -93,6 +93,15 @@ export interface ProjectMember {
   collaborator_id: number | null
 }
 
+export interface ProjectPayout {
+  hours: number
+  logged_hours: number
+  coins: number
+  streak_multiplier: number | null
+  guild_multiplier: number | null
+  team_total: number | null
+}
+
 export interface ProjectDetail {
   id: number
   name: string
@@ -107,6 +116,7 @@ export interface ProjectDetail {
   ai_usage: string | null
   tier: ProjectTier
   coin_rate: number
+  payout: ProjectPayout | null
   from_slack: boolean
   cover_image_url: string | null
   built_at: string | null
