@@ -1,4 +1,101 @@
 import { Link, router, Head } from '@inertiajs/react'
+import { useEffect, useRef, useState } from 'react'
+
+const PFP_SIZE = 1024
+
+function loadImage(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.onload = () => resolve(img)
+    img.onerror = () => reject(new Error(`Failed to load ${src}`))
+    img.src = src
+  })
+}
+
+function ForgePfpSection({ avatar }: { avatar: string }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
+
+  useEffect(() => {
+    let cancelled = false
+
+    Promise.all([loadImage('/settings/avatar_proxy'), loadImage('/forge_pfp_overlay.png')])
+      .then(([pfp, overlay]) => {
+        if (cancelled) return
+        const canvas = canvasRef.current
+        const ctx = canvas?.getContext('2d')
+        if (!canvas || !ctx) throw new Error('canvas unavailable')
+
+        canvas.width = PFP_SIZE
+        canvas.height = PFP_SIZE
+        const scale = Math.max(PFP_SIZE / pfp.width, PFP_SIZE / pfp.height)
+        const w = pfp.width * scale
+        const h = pfp.height * scale
+        ctx.drawImage(pfp, (PFP_SIZE - w) / 2, (PFP_SIZE - h) / 2, w, h)
+        ctx.drawImage(overlay, 0, 0, PFP_SIZE, PFP_SIZE)
+        setStatus('ready')
+      })
+      .catch(() => {
+        if (!cancelled) setStatus('error')
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  function download() {
+    canvasRef.current?.toBlob(blob => {
+      if (!blob) return
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'forge_pfp.png'
+      a.click()
+      URL.revokeObjectURL(url)
+    }, 'image/png')
+  }
+
+  return (
+    <section className="bg-[#1c1b1b] ghost-border p-6 md:p-8 mb-6">
+      <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">Forge PFP</h2>
+      <div className="flex flex-col sm:flex-row sm:items-center gap-6">
+        <div className="flex items-center gap-3 shrink-0">
+          <img src={avatar} alt="Current avatar" className="w-24 h-24 border border-white/10" />
+          <span className="material-symbols-outlined text-stone-500">arrow_forward</span>
+          <div className="relative w-24 h-24">
+            <canvas ref={canvasRef} className="w-24 h-24 border border-white/10" />
+            {status === 'loading' && (
+              <div className="absolute inset-0 flex items-center justify-center bg-[#0e0e0e] border border-white/10">
+                <span className="material-symbols-outlined text-stone-600 animate-spin text-lg">progress_activity</span>
+              </div>
+            )}
+          </div>
+        </div>
+        <div className="min-w-0">
+          {status === 'error' ? (
+            <p className="text-stone-500 text-sm">Couldn't load your avatar. Refresh the page to try again.</p>
+          ) : (
+            <>
+              <p className="text-stone-400 text-sm mb-4">
+                Forge-ify your Slack pfp! Download it, then set it as your profile photo on
+                Slack :D
+              </p>
+              <button
+                onClick={download}
+                disabled={status !== 'ready'}
+                className="signature-smolder text-[#4c1a00] font-bold px-4 py-2 uppercase tracking-wider text-[10px] inline-flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-default"
+              >
+                <span className="material-symbols-outlined text-sm">download</span>
+                Download Forge PFP
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    </section>
+  )
+}
 
 interface Address {
   address_line1: string | null
@@ -70,6 +167,8 @@ export default function SettingsShow({
             </Link>
           </div>
         </section>
+
+        <ForgePfpSection avatar={user.avatar} />
 
         <section className="bg-[#1c1b1b] ghost-border p-6 md:p-8">
           <div className="flex items-center justify-between gap-3 mb-4">
