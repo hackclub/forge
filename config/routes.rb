@@ -400,6 +400,7 @@ Rails.application.routes.draw do
 
   get "home" => "home#index", as: :home
   get "settings" => "settings#show", as: :settings
+  get "settings/avatar_proxy" => "settings#avatar_proxy", as: :settings_avatar_proxy
   post "onboarding/complete" => "onboarding#complete", as: :complete_onboarding
   post "onboarding/restart" => "onboarding#restart", as: :restart_onboarding
   post "forge_keeper/chat" => "forge_keeper#chat", as: :forge_keeper_chat
