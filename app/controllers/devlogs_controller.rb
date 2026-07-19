@@ -101,20 +101,26 @@ class DevlogsController < ApplicationController
       return
     end
 
-    cdn_url = HcCdnService.upload(io: file.tempfile, filename: file.original_filename, content_type: file.content_type)
+    filename = sanitized_filename(file.original_filename)
+    cdn_url = HcCdnService.upload(io: file.tempfile, filename: filename, content_type: file.content_type)
 
     if cdn_url.present?
       url = cdn_url
     else
-      blob = ActiveStorage::Blob.create_and_upload!(io: file, filename: file.original_filename, content_type: file.content_type)
+      blob = ActiveStorage::Blob.create_and_upload!(io: file, filename: filename, content_type: file.content_type)
       app_url = ENV.fetch("APP_URL") { Rails.env.development? ? "http://localhost:3000" : "https://forge.hackclub.com" }
       url = Rails.application.routes.url_helpers.rails_blob_url(blob, host: app_url)
     end
 
-    render json: { url: url, markdown: "![#{file.original_filename}](#{url})" }
+    render json: { url: url, markdown: "![#{filename}](#{url})" }
   end
 
   private
+
+  def sanitized_filename(original)
+    name = original.to_s.gsub(/[^\w.\-]+/, "_").delete_prefix("_").delete_suffix("_")
+    name.presence || "image.png"
+  end
 
   def set_project
     @project = Project.find(params[:project_id])

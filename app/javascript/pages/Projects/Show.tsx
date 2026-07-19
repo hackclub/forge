@@ -518,50 +518,72 @@ export default function ProjectsShow({
 
   const contentRef = useRef('')
 
-  function handleImagePaste(
-    e: React.ClipboardEvent<HTMLTextAreaElement>,
+  function uploadImagesIntoContent(
+    files: File[],
+    textarea: HTMLTextAreaElement,
     setContent: (val: string) => void,
     currentContent: string,
   ) {
-    const items = e.clipboardData?.items
-    if (!items) return
+    const placeholders = files.map((file, i) => `![Uploading ${file.name || `image-${i + 1}`}...]()`)
+    const before = currentContent.slice(0, textarea.selectionStart)
+    const after = currentContent.slice(textarea.selectionEnd)
+    const withPlaceholders = before + placeholders.join('\n') + after
+    setContent(withPlaceholders)
+    contentRef.current = withPlaceholders
 
-    for (const item of Array.from(items)) {
-      if (!item.type.startsWith('image/')) continue
-      e.preventDefault()
-      const file = item.getAsFile()
-      if (!file) return
-
-      const textarea = e.currentTarget
-      const start = textarea.selectionStart
-      const placeholder = `![Uploading ${file.name}...]()`
-      const before = currentContent.slice(0, start)
-      const after = currentContent.slice(textarea.selectionEnd)
-      const withPlaceholder = before + placeholder + after
-      setContent(withPlaceholder)
-      contentRef.current = withPlaceholder
-
+    const csrfToken = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content
+    files.forEach((file, i) => {
       const formData = new FormData()
       formData.append('file', file)
-      const csrfToken = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content
       fetch(`/projects/${project.id}/devlog_image`, {
         method: 'POST',
         headers: csrfToken ? { 'X-CSRF-Token': csrfToken } : {},
         body: formData,
       })
-        .then((res) => res.json())
+        .then((res) => (res.ok ? res.json() : Promise.reject(new Error(`Upload failed with ${res.status}`))))
         .then((data) => {
-          const updated = contentRef.current.replace(placeholder, data.markdown)
+          if (typeof data.markdown !== 'string') throw new Error('Malformed upload response')
+          const updated = contentRef.current.replace(placeholders[i], () => data.markdown)
           contentRef.current = updated
           setContent(updated)
         })
         .catch(() => {
-          const updated = contentRef.current.replace(placeholder, `![upload failed]()`)
+          const updated = contentRef.current.replace(placeholders[i], '![upload failed]()')
           contentRef.current = updated
           setContent(updated)
         })
-      return
-    }
+    })
+  }
+
+  function handleImagePaste(
+    e: React.ClipboardEvent<HTMLTextAreaElement>,
+    setContent: (val: string) => void,
+    currentContent: string,
+  ) {
+    const files = Array.from(e.clipboardData?.items ?? [])
+      .filter((item) => item.type.startsWith('image/'))
+      .map((item) => item.getAsFile())
+      .filter((file): file is File => file !== null)
+    if (files.length === 0) return
+
+    e.preventDefault()
+    uploadImagesIntoContent(files, e.currentTarget, setContent, currentContent)
+  }
+
+  function handleImageDrop(
+    e: React.DragEvent<HTMLTextAreaElement>,
+    setContent: (val: string) => void,
+    currentContent: string,
+  ) {
+    const files = Array.from(e.dataTransfer?.files ?? []).filter((file) => file.type.startsWith('image/'))
+    if (files.length === 0) return
+
+    e.preventDefault()
+    uploadImagesIntoContent(files, e.currentTarget, setContent, currentContent)
+  }
+
+  function allowImageDrop(e: React.DragEvent<HTMLTextAreaElement>) {
+    if (e.dataTransfer.types.includes('Files')) e.preventDefault()
   }
 
   function linkRepo(e: React.FormEvent) {
@@ -1260,9 +1282,21 @@ export default function ProjectsShow({
                             devlogForm.data.content,
                           )
                         }
+                        onDragOver={allowImageDrop}
+                        onDrop={(e) =>
+                          handleImageDrop(
+                            e,
+                            (v) => {
+                              devlogForm.setData('content', v)
+                              const { errors } = validateDevlogContent(v)
+                              setDevlogValidationErrors(errors)
+                            },
+                            devlogForm.data.content,
+                          )
+                        }
                         rows={8}
                         className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 text-sm resize-y font-mono"
-                        placeholder="What did you work on? Paste images directly..."
+                        placeholder="What did you work on? Paste or drop images directly..."
                         required
                       />
                     </DevlogContentEditor>
@@ -1386,6 +1420,18 @@ export default function ProjectsShow({
                                 }}
                                 onPaste={(e) =>
                                   handleImagePaste(
+                                    e,
+                                    (v) => {
+                                      editDevlogForm.setData('content', v)
+                                      const { errors } = validateDevlogContent(v)
+                                      setEditDevlogValidationErrors(errors)
+                                    },
+                                    editDevlogForm.data.content,
+                                  )
+                                }
+                                onDragOver={allowImageDrop}
+                                onDrop={(e) =>
+                                  handleImageDrop(
                                     e,
                                     (v) => {
                                       editDevlogForm.setData('content', v)
