@@ -113,6 +113,22 @@ class Admin::MetricsController < Admin::ApplicationController
     total_coins_all = tier_breakdown.sum { |t| t[:total_coins] }
     avg_coins_per_hour = total_hours_all.positive? ? (total_coins_all / total_hours_all).round(2) : 0
 
+    kept_user_ids = User.kept.select(:id)
+    balance_earned = Project.kept.approved
+      .where.not(id: ProjectPayout.select(:project_id))
+      .where(user_id: kept_user_ids)
+      .includes(:devlogs, :user)
+      .sum(&:coins_earned) +
+      ProjectPayout.joins(:project).merge(Project.kept).where(user_id: kept_user_ids).sum(:coins).to_f
+    balance_adjustments = CoinAdjustment.where(user_id: kept_user_ids).sum(:amount).to_f
+    balance_spent = Order.where(status: %i[pending approved fulfilled], user_id: kept_user_ids).sum(:coin_cost).to_f
+    coins_in_accounts = {
+      earned: balance_earned.round(2),
+      adjustments: balance_adjustments.round(2),
+      spent: balance_spent.round(2),
+      balance: (balance_earned + balance_adjustments - balance_spent).round(2)
+    }
+
     approved_referrals_count = Referral.approved.count
     referral_per_unit = Referral::PAYOUT_AMOUNT + Referral::PRIZE_POOL_CONTRIBUTION
     referral_economy = {
@@ -218,7 +234,8 @@ class Admin::MetricsController < Admin::ApplicationController
         total_hours: total_hours_all.round(1),
         total_coins: total_coins_all.round(2),
         avg_coins_per_hour: avg_coins_per_hour,
-        grand_total: (total_coins_all + referral_economy[:total_coins] + reel_economy[:total_coins]).round(2)
+        grand_total: (total_coins_all + referral_economy[:total_coins] + reel_economy[:total_coins]).round(2),
+        in_accounts: coins_in_accounts
       },
       referral_economy: referral_economy,
       reel_economy: reel_economy,

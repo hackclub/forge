@@ -74,6 +74,12 @@ interface CoinEconomy {
   total_coins: number
   avg_coins_per_hour: number
   grand_total: number
+  in_accounts: {
+    earned: number
+    adjustments: number
+    spent: number
+    balance: number
+  }
 }
 
 interface ReferralEconomy {
@@ -575,8 +581,26 @@ export default function AdminMetricsIndex({
                 <TableCell className="font-semibold">{coin_economy.grand_total}</TableCell>
                 <TableCell className="text-muted-foreground">—</TableCell>
               </TableRow>
+              <TableRow className="bg-muted/40">
+                <TableCell className="font-medium uppercase text-xs tracking-wide">In accounts now</TableCell>
+                <TableCell className="text-muted-foreground">—</TableCell>
+                <TableCell className="text-muted-foreground">—</TableCell>
+                <TableCell className="text-muted-foreground">—</TableCell>
+                <TableCell
+                  className="font-semibold"
+                  title={`earned ${coin_economy.in_accounts.earned} + adjustments ${coin_economy.in_accounts.adjustments} − spent ${coin_economy.in_accounts.spent}`}
+                >
+                  {coin_economy.in_accounts.balance}
+                </TableCell>
+                <TableCell className="text-muted-foreground">—</TableCell>
+              </TableRow>
             </TableBody>
           </Table>
+          <p className="text-xs text-muted-foreground mt-2">
+            In accounts now = current combined user balances: {coin_economy.in_accounts.earned} earned +{' '}
+            {coin_economy.in_accounts.adjustments} adjustments − {coin_economy.in_accounts.spent} spent (pending
+            orders included).
+          </p>
         </CardContent>
       </Card>
 
