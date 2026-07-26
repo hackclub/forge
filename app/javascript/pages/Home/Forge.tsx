@@ -81,7 +81,7 @@ const OBJECTS: ForgeObject[] = [
   {
     id: 'shop',
     label: 'Shop',
-    overlay: '/table.png',
+    overlay: '/table.png?v=2',
     icon: 'storefront',
     tour: 'nav-shop',
     x: 29,
@@ -288,7 +288,7 @@ export default function ForgeScene({ projects, orph_motivation, coin_balance, pe
           style={{ transform: 'scale(1.03) translate3d(var(--px, 0), var(--py, 0), 0)', willChange: 'transform' }}
         >
           <img
-            src="/dashboard.png"
+            src="/dashboard.png?v=2"
             alt="The forge workshop"
             draggable={false}
             className="pointer-events-none absolute inset-0 h-full w-full select-none object-fill"
@@ -314,7 +314,7 @@ export default function ForgeScene({ projects, orph_motivation, coin_balance, pe
             </div>
           )}
           <div className="relative">
-            <img src="/dashboard.png" alt="The forge workshop" className="max-h-60 w-full object-cover object-center" />
+            <img src="/dashboard.png?v=2" alt="The forge workshop" className="max-h-60 w-full object-cover object-center" />
             <div className="absolute inset-0 bg-gradient-to-t from-[#0e0e0e] via-[#0e0e0e]/40 to-transparent" />
             <h1 className="absolute bottom-3 left-4 font-headline text-2xl font-bold tracking-tight text-[#e5e2e1]">
               The Forge
@@ -630,7 +630,7 @@ function ForgeEditor() {
 
   return (
     <div className="fixed inset-0 overflow-hidden bg-[#0e0e0e]">
-      <img src="/dashboard.png" alt="" className="pointer-events-none absolute inset-0 h-full w-full object-fill" />
+      <img src="/dashboard.png?v=2" alt="" className="pointer-events-none absolute inset-0 h-full w-full object-fill" />
 
       {objs.map((o, i) =>
         o.points ? (
@@ -886,7 +886,7 @@ function TourEditor() {
 
   return (
     <div className="fixed inset-0 overflow-hidden bg-[#0e0e0e]">
-      <img src="/dashboard.png" alt="" className="pointer-events-none absolute inset-0 h-full w-full object-fill" />
+      <img src="/dashboard.png?v=2" alt="" className="pointer-events-none absolute inset-0 h-full w-full object-fill" />
       {boxes.map((b, i) => (
         <div
           key={b.id}
