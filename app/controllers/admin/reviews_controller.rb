@@ -11,7 +11,18 @@ class Admin::ReviewsController < Admin::ApplicationController
   ].freeze
 
   def index
-    base = policy_scope(Project).kept.where(status: :pending)
+    allowed = current_user.allowed_review_tiers
+    raise ActionController::RoutingError, "Not Found" if allowed.empty?
+
+    if params[:tier].blank?
+      redirect_to admin_tier_reviews_path(tier_slug(allowed.first), query: params[:query].presence, filter: params[:filter].presence)
+      return
+    end
+
+    tier = tier_from_slug(params[:tier])
+    raise ActionController::RoutingError, "Not Found" unless allowed.include?(tier)
+
+    base = policy_scope(Project).kept.where(status: :pending).for_review_tier(tier)
     queue = base.not_flagged_for_review
 
     scope =
@@ -36,6 +47,8 @@ class Admin::ReviewsController < Admin::ApplicationController
       pagy: pagy_props(@pagy),
       query: params[:query].to_s,
       filter: params[:filter].to_s,
+      tier: tier_slug(tier),
+      allowed_tiers: allowed.map { |t| tier_slug(t) },
       metrics: ReviewQueueMetrics.new(queue).as_json,
       first_pending_id: @projects.first&.id
     }
@@ -51,6 +64,7 @@ class Admin::ReviewsController < Admin::ApplicationController
     next_pending_id = policy_scope(Project)
       .kept
       .where(status: :pending)
+      .for_review_tier(@project.review_tier)
       .not_flagged_for_review
       .where.not(id: @project.id)
       .order(Arel.sql("COALESCE(submitted_at, created_at) ASC"))
@@ -65,6 +79,7 @@ class Admin::ReviewsController < Admin::ApplicationController
       session: @session ? serialize_session(@session) : nil,
       concurrent_reviewers: concurrent,
       next_pending_id: next_pending_id,
+      queue_path: admin_tier_reviews_path(tier_slug(@project.review_tier)),
       reviewer: {
         id: current_user.id,
         display_name: current_user.display_name,
@@ -85,6 +100,7 @@ class Admin::ReviewsController < Admin::ApplicationController
     next_id = policy_scope(Project)
       .kept
       .where(status: :pending)
+      .for_review_tier(@project.review_tier)
       .where.not(id: @project.id)
       .order(Arel.sql("COALESCE(submitted_at, created_at) ASC"))
       .limit(1)
@@ -94,7 +110,7 @@ class Admin::ReviewsController < Admin::ApplicationController
     if next_id
       redirect_to admin_review_path(next_id)
     else
-      redirect_to admin_reviews_path, notice: "No more pending projects."
+      redirect_to admin_tier_reviews_path(tier_slug(@project.review_tier)), notice: "No more pending projects."
     end
   end
 
@@ -178,6 +194,14 @@ class Admin::ReviewsController < Admin::ApplicationController
 
   def require_pending_reviews_permission!
     require_permission!("pending_reviews")
+  end
+
+  def tier_slug(tier)
+    tier.sub("tier_", "t")
+  end
+
+  def tier_from_slug(slug)
+    slug.to_s.sub("t", "tier_")
   end
 
   def set_project

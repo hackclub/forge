@@ -20,6 +20,7 @@ export function ReviewTopBar({
   project,
   session,
   nextPendingId,
+  queuePath,
   onTrack,
   onShowHelp,
   notesCount,
@@ -32,6 +33,7 @@ export function ReviewTopBar({
   project: ReviewProject
   session: ReviewSession | null
   nextPendingId: number | null
+  queuePath: string
   onTrack: (button: string, metadata?: Record<string, unknown>) => void
   onShowHelp: () => void
   notesCount: number
@@ -56,7 +58,7 @@ export function ReviewTopBar({
   return (
     <div className="z-40 bg-gradient-to-b from-card to-card/60 border-b border-border px-4 py-2 flex items-center gap-2 shrink-0 flex-wrap">
       <Button variant="outline" size="sm" asChild onClick={() => onTrack('end_session')}>
-        <Link href="/admin/reviews">
+        <Link href={queuePath}>
           <ArrowLeft className="size-4" />
           End Session
         </Link>

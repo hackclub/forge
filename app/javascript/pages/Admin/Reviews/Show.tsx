@@ -43,6 +43,7 @@ export default function AdminReviewsShow({
   session,
   concurrent_reviewers,
   next_pending_id,
+  queue_path,
   reviewer,
   review_history,
   notes,
@@ -55,6 +56,7 @@ export default function AdminReviewsShow({
   session: ReviewSession | null
   concurrent_reviewers: ConcurrentReviewer[]
   next_pending_id: number | null
+  queue_path: string
   reviewer: Reviewer
   review_history: ReviewEvent[]
   notes: ReviewNote[]
@@ -472,8 +474,8 @@ export default function AdminReviewsShow({
   }, [next_pending_id, track])
   const onEndSession = useCallback(() => {
     track('end_session')
-    router.visit('/admin/reviews')
-  }, [track])
+    router.visit(queue_path)
+  }, [track, queue_path])
 
   const takeOver = useCallback(() => {
     setTakingOver(true)
@@ -542,6 +544,7 @@ export default function AdminReviewsShow({
         project={project}
         session={session}
         nextPendingId={next_pending_id}
+        queuePath={queue_path}
         onTrack={track}
         onShowHelp={() => setHelpOpen(true)}
         notesCount={notes.length}

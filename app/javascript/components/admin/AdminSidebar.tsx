@@ -35,6 +35,10 @@ interface AdminStats {
   pending_ships: number
   pending_pitches: number
   pending_project_reviews: number
+  pending_reviews_tier_1: number
+  pending_reviews_tier_2: number
+  pending_reviews_tier_3: number
+  pending_reviews_tier_4: number
   projects: number
   users: number
   pending_orders: number
@@ -45,6 +49,10 @@ interface AdminPermissions {
   is_admin: boolean
   is_superadmin: boolean
   pending_reviews: boolean
+  review_tier_1: boolean
+  review_tier_2: boolean
+  review_tier_3: boolean
+  review_tier_4: boolean
   projects: boolean
   users: boolean
   ships: boolean
@@ -76,7 +84,10 @@ function buildSections(): { items: NavItem[] }[] {
     },
     {
       items: [
-        { label: 'Project Reviews', href: '/admin/reviews', icon: ClipboardCheck, statKey: 'pending_project_reviews', permission: 'pending_reviews' },
+        { label: 'T1 Reviews', href: '/admin/reviews/t1', icon: ClipboardCheck, statKey: 'pending_reviews_tier_1', permission: 'review_tier_1' },
+        { label: 'T2 Reviews', href: '/admin/reviews/t2', icon: ClipboardCheck, statKey: 'pending_reviews_tier_2', permission: 'review_tier_2' },
+        { label: 'T3 Reviews', href: '/admin/reviews/t3', icon: ClipboardCheck, statKey: 'pending_reviews_tier_3', permission: 'review_tier_3' },
+        { label: 'T4 Reviews', href: '/admin/reviews/t4', icon: ClipboardCheck, statKey: 'pending_reviews_tier_4', permission: 'review_tier_4' },
         { label: 'Pitch Reviews', href: '/admin/pitches', icon: Lightbulb, statKey: 'pending_pitches', permission: 'pending_reviews' },
       ],
     },
@@ -179,6 +190,10 @@ export default function AdminSidebar({
     is_admin: auth.user?.is_admin ?? false,
     is_superadmin: auth.user?.is_superadmin ?? false,
     pending_reviews: false,
+    review_tier_1: false,
+    review_tier_2: false,
+    review_tier_3: false,
+    review_tier_4: false,
     projects: false,
     users: false,
     ships: false,

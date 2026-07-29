@@ -123,7 +123,12 @@ class Project < ApplicationRecord
   validate :build_review_consistency
   validate :linked_project_must_be_approved_and_owned
 
+  # Build reviews carry tier_build_review, so for review routing they inherit
+  # the tier of the design project they're linked to (tier_4 when unlinked).
+  REVIEW_TIER_SQL = "CASE WHEN projects.build_review THEN COALESCE((SELECT linked.tier FROM projects linked WHERE linked.id = projects.linked_project_id), 'tier_4') ELSE projects.tier END".freeze
+
   scope :reviewable, -> { where(status: :pending) }
+  scope :for_review_tier, ->(tier) { where("#{REVIEW_TIER_SQL} = ?", tier) }
   scope :staff_picks, -> { where.not(staff_pick_at: nil).order(staff_pick_at: :desc) }
   scope :build_reviews, -> { where(build_review: true) }
   scope :flagged_for_review, -> { where.not(flagged_for_review_at: nil) }
@@ -197,6 +202,12 @@ class Project < ApplicationRecord
 
   def normal?
     tier != "tier_1"
+  end
+
+  def review_tier
+    return tier unless build_review?
+
+    linked_project&.tier || TIERS.last
   end
 
   def coin_rate
