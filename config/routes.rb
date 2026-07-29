@@ -236,6 +236,7 @@ Rails.application.routes.draw do
       get "/" => "static_pages#index", as: :root
       get "pitches" => "projects#pitches", as: :pitches
       get "reviews" => "reviews#index", as: :reviews
+      get "reviews/:tier" => "reviews#index", as: :tier_reviews, constraints: { tier: /t[1-4]/ }
       get "reviews/:id" => "reviews#show", as: :review
       post "reviews/:id/skip" => "reviews#skip", as: :skip_review
       post "reviews/:id/track" => "reviews#track", as: :track_review

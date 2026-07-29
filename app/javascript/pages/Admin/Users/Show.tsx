@@ -29,6 +29,10 @@ import type { AdminUserDetail, UserNote, KudoEntry, HackatimeInfo, SharedProps }
 
 const permissionLabels: Record<string, string> = {
   pending_reviews: 'Pitch Reviews',
+  review_tier_1: 'T1 Reviews',
+  review_tier_2: 'T2 Reviews',
+  review_tier_3: 'T3 Reviews',
+  review_tier_4: 'T4 Reviews',
   projects: 'Projects',
   users: 'Users',
   ships: 'Build Reviews',

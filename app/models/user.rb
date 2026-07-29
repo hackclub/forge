@@ -278,6 +278,10 @@ class User < ApplicationRecord
 
   AVAILABLE_PERMISSIONS = %w[
     pending_reviews
+    review_tier_1
+    review_tier_2
+    review_tier_3
+    review_tier_4
     projects
     users
     ships
@@ -295,13 +299,17 @@ class User < ApplicationRecord
 
   ROLE_DEFAULT_PERMISSIONS = {
     "admin" => AVAILABLE_PERMISSIONS - %w[superadmin],
-    "reviewer" => %w[pending_reviews projects ships hackatime],
+    "reviewer" => %w[pending_reviews review_tier_1 review_tier_2 review_tier_3 review_tier_4 projects ships hackatime],
     "support" => %w[projects users support],
     "fulfillment" => %w[projects ships orders]
   }.freeze
 
   def has_permission?(perm)
     permissions.include?(perm.to_s)
+  end
+
+  def allowed_review_tiers
+    Project::TIERS.select { |tier| has_permission?("review_#{tier}") }
   end
 
   def superadmin?

@@ -37,7 +37,7 @@ class ProjectPolicy < ApplicationPolicy
   end
 
   def review?
-    user&.has_permission?("projects")
+    user&.has_permission?("projects") && user.has_permission?("review_#{record.review_tier}")
   end
 
   def create_devlog?

@@ -39,6 +39,8 @@ export default function AdminReviewsQueue({
   pagy,
   query,
   filter,
+  tier,
+  allowed_tiers,
   metrics,
   first_pending_id,
 }: {
@@ -46,6 +48,8 @@ export default function AdminReviewsQueue({
   pagy: PagyProps
   query: string
   filter: string
+  tier: string
+  allowed_tiers: string[]
   metrics: QueueMetrics
   first_pending_id: number | null
 }) {
@@ -59,21 +63,39 @@ export default function AdminReviewsQueue({
 
   function submitSearch(e: React.FormEvent) {
     e.preventDefault()
-    router.get('/admin/reviews', { query: searchQuery, filter: filter || undefined }, { preserveState: true })
+    router.get(`/admin/reviews/${tier}`, { query: searchQuery, filter: filter || undefined }, { preserveState: true })
   }
 
   function applyFilter(key: string) {
-    router.get('/admin/reviews', { query: searchQuery || undefined, filter: key || undefined }, { preserveState: true })
+    router.get(`/admin/reviews/${tier}`, { query: searchQuery || undefined, filter: key || undefined }, { preserveState: true })
   }
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Review Queue</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Tier {tier.slice(1)} Review Queue</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Oldest submissions first. Open one to start a timed review session — keyboard shortcuts make it fast.
           </p>
+          {allowed_tiers.length > 1 && (
+            <div className="flex gap-2 mt-3">
+              {allowed_tiers.map((t) => (
+                <Link
+                  key={t}
+                  href={`/admin/reviews/${t}`}
+                  className={cn(
+                    'inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md border transition-colors',
+                    t === tier
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'border-border bg-background text-muted-foreground hover:bg-accent hover:text-foreground',
+                  )}
+                >
+                  {t.toUpperCase()}
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
         {first_pending_id && (
           <Button asChild>
