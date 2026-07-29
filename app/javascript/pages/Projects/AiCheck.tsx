@@ -412,7 +412,7 @@ function ProjectsAiCheck({
               </div>
               {hasFails && (
                 <p className="text-red-400/80 text-[10px] uppercase tracking-[0.15em] mt-3 text-center">
-                  Submissions with failing checks are likely to be returned to the back of the queue.
+                  We recommend fixing the failing checks before submitting as it could lead to your submission being rejected. You can ignore the failing checks if you think your submission is compliant.
                 </p>
               )}
             </div>
