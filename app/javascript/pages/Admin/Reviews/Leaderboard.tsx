@@ -108,19 +108,13 @@ export default function AdminReviewsLeaderboard({
                   </TableCell>
                   <TableCell className="text-right font-semibold">{row.total}</TableCell>
                   <TableCell className="text-right">
-                    <Badge className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
-                      {row.approved}
-                    </Badge>
+                    <Badge variant="success">{row.approved}</Badge>
                   </TableCell>
                   <TableCell className="text-right">
-                    <Badge className="bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30">
-                      {row.returned}
-                    </Badge>
+                    <Badge variant="warning">{row.returned}</Badge>
                   </TableCell>
                   <TableCell className="text-right">
-                    <Badge className="bg-red-500/15 text-red-700 dark:text-red-300 border border-red-500/30">
-                      {row.rejected}
-                    </Badge>
+                    <Badge variant="danger">{row.rejected}</Badge>
                   </TableCell>
                   <TableCell className="text-right">
                     <Badge variant="outline">{row.pitches}</Badge>
