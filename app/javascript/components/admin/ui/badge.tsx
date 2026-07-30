@@ -1,7 +1,7 @@
 import type { HTMLAttributes } from 'react'
 import { cn } from '../lib/cn'
 
-type Variant = 'default' | 'secondary' | 'outline' | 'destructive' | 'success' | 'warning'
+type Variant = 'default' | 'secondary' | 'outline' | 'destructive' | 'success' | 'warning' | 'danger'
 
 export interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
   variant?: Variant
@@ -14,6 +14,7 @@ const VARIANT_CLASSES: Record<Variant, string> = {
   destructive: 'bg-destructive text-destructive-foreground border border-transparent',
   success: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-transparent',
   warning: 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-transparent',
+  danger: 'bg-red-500/15 text-red-700 dark:text-red-400 border border-transparent',
 }
 
 export function Badge({ variant = 'default', className, ...props }: BadgeProps) {
