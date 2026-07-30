@@ -1,22 +1,12 @@
-require "net/http"
 require "json"
 require "digest"
 
 module AiRequirementsChecker
   module_function
 
-  PROVIDERS = {
-    "google" => {
-      endpoint: "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
-      model: "gemini-2.5-flash-lite",
-      api_key_env: "GEMINI_API_KEY",
-      label: "Google Gemini"
-    }
-  }.freeze
-  DEFAULT_PROVIDER = "google".freeze
-  EVALUATION_TIMEOUT = 90
-  RATE_LIMIT_RETRIES = 4
-  RETRYABLE_CODES = [ 429, 500, 502, 503, 504 ].freeze
+  DEFAULT_MODEL = "claude-opus-4-8".freeze
+  EVALUATION_TIMEOUT = 120
+  MAX_RETRIES = 4
 
   DOC_GLOBS = [
     Rails.root.join("docs/requirements/*.md"),
@@ -25,40 +15,96 @@ module AiRequirementsChecker
 
   class Error < StandardError; end
 
-  def run(project, provider: ENV.fetch("AI_REQUIREMENTS_PROVIDER", DEFAULT_PROVIDER))
-    base = PROVIDERS[provider.to_s] || raise(Error, "Unknown AI provider: #{provider}")
-    raise Error, "#{base[:label]} API key is not configured" if ENV[base[:api_key_env]].to_s.empty?
+  VERDICT_SCHEMA = { type: "string", enum: %w[pass fail uncertain] }.freeze
 
-    config = base.merge(model: ENV.fetch("AI_REQUIREMENTS_MODEL", base[:model]))
+  REQUIREMENT_LIST_SCHEMA = {
+    type: "object",
+    properties: {
+      requirements: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            name: { type: "string" },
+            source: { type: "string" },
+            criterion: { type: "string" },
+            tiers: { type: "array", items: { type: "integer" } }
+          },
+          required: %w[name source criterion tiers],
+          additionalProperties: false
+        }
+      }
+    },
+    required: %w[requirements],
+    additionalProperties: false
+  }.freeze
 
-    requirements = list_requirements(config)
+  EVALUATION_SCHEMA = {
+    type: "object",
+    properties: {
+      results: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            name: { type: "string" },
+            verdict: VERDICT_SCHEMA,
+            reasoning: { type: "string" }
+          },
+          required: %w[name verdict reasoning],
+          additionalProperties: false
+        }
+      }
+    },
+    required: %w[results],
+    additionalProperties: false
+  }.freeze
+
+  JUSTIFICATION_SCHEMA = {
+    type: "object",
+    properties: {
+      summary: { type: "string" },
+      checks: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            name: { type: "string" },
+            verdict: VERDICT_SCHEMA,
+            reasoning: { type: "string" }
+          },
+          required: %w[name verdict reasoning],
+          additionalProperties: false
+        }
+      }
+    },
+    required: %w[summary checks],
+    additionalProperties: false
+  }.freeze
+
+  def run(project)
+    ensure_configured!
+
+    requirements = list_requirements
     raise Error, "Could not extract any requirements from the rubric." if requirements.empty?
 
     requirements = requirements_for_tier(requirements, project.tier)
-    evaluated = evaluate_all(requirements, project, config)
+    evaluated = evaluate_all(requirements, project)
 
     {
       "summary" => build_summary(evaluated),
       "overall" => overall_verdict(evaluated),
       "requirements" => evaluated,
       "checked_at" => Time.current.iso8601,
-      "model" => config[:model],
-      "provider" => provider.to_s
+      "model" => model,
+      "provider" => "anthropic"
     }
   end
 
-  # Keep tiers an explicit subset of a requirement only when the docs gate it
-  # (e.g. pitches are Tier 1 only). An empty array means "applies to every tier".
-  def check_justification(item, provider: ENV.fetch("AI_REQUIREMENTS_PROVIDER", DEFAULT_PROVIDER))
-    base = PROVIDERS[provider.to_s] || raise(Error, "Unknown AI provider: #{provider}")
-    raise Error, "#{base[:label]} API key is not configured" if ENV[base[:api_key_env]].to_s.empty?
+  def check_justification(item)
+    ensure_configured!
 
-    config = base.merge(model: ENV.fetch("AI_REQUIREMENTS_MODEL", base[:model]))
-    response = post_chat(justification_prompt(item), config)
-    raise_for_response!(response, config)
-
-    content = JSON.parse(response.body).dig("choices", 0, "message", "content").to_s
-    parsed = extract_json(content) || {}
+    parsed = complete_json(justification_prompt(item), schema: JUSTIFICATION_SCHEMA)
     checks = Array(parsed["checks"]).filter_map do |row|
       next unless row.is_a?(Hash)
       name = row["name"].to_s.strip
@@ -76,8 +122,8 @@ module AiRequirementsChecker
       "summary" => parsed["summary"].to_s.truncate(400).presence || build_summary(checks),
       "checks" => checks,
       "checked_at" => Time.current.iso8601,
-      "model" => config[:model],
-      "provider" => provider.to_s
+      "model" => model,
+      "provider" => "anthropic"
     }
   end
 
@@ -111,8 +157,7 @@ module AiRequirementsChecker
       #{justification.strip.presence || '(empty)'}
 
       ## Output
-      Give a verdict for each of the 6 standards above, echoing a short name for each. Respond in valid JSON only, no markdown fences:
-      {"summary": "one or two sentences on whether this justification is safe to submit to the Unified DB", "checks": [{"name": "Specific and verifiable", "verdict": "pass|fail|uncertain", "reasoning": "one short sentence"}]}
+      Give a verdict for each of the 6 standards above, echoing a short name for each. The summary should be one or two sentences on whether this justification is safe to submit to the Unified DB; each reasoning should be one short sentence.
     PROMPT
   end
 
@@ -130,18 +175,14 @@ module AiRequirementsChecker
     end
   end
 
-  def list_requirements(config)
-    Rails.cache.fetch([ "ai_requirements_checker", "requirement_list", "v2", docs_digest, config[:model] ], expires_in: 12.hours) do
-      fetch_requirement_list(config)
+  def list_requirements
+    Rails.cache.fetch([ "ai_requirements_checker", "requirement_list", "v3", docs_digest, model ], expires_in: 12.hours) do
+      fetch_requirement_list
     end
   end
 
-  def fetch_requirement_list(config)
-    response = post_chat(list_requirements_prompt, config)
-    raise_for_response!(response, config)
-
-    content = JSON.parse(response.body).dig("choices", 0, "message", "content").to_s
-    parsed = extract_json(content) || {}
+  def fetch_requirement_list
+    parsed = complete_json(list_requirements_prompt, schema: REQUIREMENT_LIST_SCHEMA)
     Array(parsed["requirements"]).first(20).filter_map do |req|
       next unless req.is_a?(Hash)
       name = req["name"].to_s.strip
@@ -156,13 +197,10 @@ module AiRequirementsChecker
     end
   end
 
-  def evaluate_all(requirements, project, config)
+  def evaluate_all(requirements, project)
     project_context = project_context_text(project)
-    response = post_chat(evaluate_all_prompt(requirements, project_context), config)
-    return requirements.map { |req| uncertain_result(req, "Couldn't reach the AI (#{response&.code}).") } unless response.is_a?(Net::HTTPSuccess)
+    parsed = complete_json(evaluate_all_prompt(requirements, project_context), schema: EVALUATION_SCHEMA)
 
-    content = JSON.parse(response.body).dig("choices", 0, "message", "content").to_s
-    parsed = extract_json(content) || {}
     by_name = Array(parsed["results"]).each_with_object({}) do |row, acc|
       next unless row.is_a?(Hash)
 
@@ -181,9 +219,8 @@ module AiRequirementsChecker
         "reasoning" => row["reasoning"].to_s.truncate(400)
       }
     end
-  rescue Net::ReadTimeout, Net::OpenTimeout
-    requirements.map { |req| uncertain_result(req, "Check timed out — please verify yourself.") }
-  rescue SocketError, Errno::ECONNREFUSED, Errno::ECONNRESET, OpenSSL::SSL::SSLError, JSON::ParserError
+  rescue Error => e
+    Rails.logger.error("[AiRequirementsChecker] evaluate_all degraded: #{e.message}")
     requirements.map { |req| uncertain_result(req, "Couldn't get a clean answer from the AI — please verify yourself.") }
   end
 
@@ -241,9 +278,6 @@ module AiRequirementsChecker
         - source: the doc filename it came from (e.g. "submitting.md")
         - criterion: one sentence describing exactly what the project must have or do to pass this requirement
         - tiers: project tiers this requirement applies to, as numbers 1-4. Use an empty array [] when it applies to every tier. ONLY list specific tiers when the docs explicitly gate it (e.g. "you are only required to pitch for Tier 1 projects" → [1]). Note tier 1 is the most advanced, tier 4 the simplest.
-
-      Respond in valid JSON only, no markdown fences:
-      {"requirements": [{"name": "...", "source": "...", "criterion": "...", "tiers": []}]}
     PROMPT
   end
 
@@ -299,60 +333,53 @@ module AiRequirementsChecker
       Devlog hours and format: each devlog above shows the hours the builder logged ("Xh logged"). Treat that as the builder's stated time spent. A "website" devlog states its time in that structured field, NOT as a journal sentence — so for website mode, count logged hours as satisfying any "time spent / duration stated" requirement, and do not fail it for missing a "Total time spent: X hours" phrase. Journal-format requirements (YAML frontmatter, dated entry headers, the "Total time spent" phrasing) only apply to "git" journal mode; for "website" mode, mark those "pass".
 
       ## Output
-      Return a verdict for every requirement, echoing back its exact `name`. Respond in valid JSON only, no markdown fences:
-      {"results": [{"name": "...", "verdict": "pass|fail|uncertain", "reasoning": "one short sentence, on the builder's side"}]}
+      Return a verdict for every requirement, echoing back its exact `name`. Keep each reasoning to one short sentence, on the builder's side.
     PROMPT
   end
 
-  def raise_for_response!(response, config)
-    return if response.is_a?(Net::HTTPSuccess)
-    detail = extract_upstream_error(response.body).to_s.truncate(200)
-    raise Error, "#{config[:label]} request failed (#{response.code})#{detail.present? ? ": #{detail}" : ''}"
-  end
+  def complete_json(prompt, schema:)
+    ensure_configured!
 
-  def post_chat(prompt, config)
-    uri = URI(config[:endpoint])
-    body = { model: config[:model], messages: [ { role: "user", content: prompt } ] }.to_json
+    response = client.messages.create(
+      model: model,
+      max_tokens: 16_000,
+      thinking: { type: :adaptive },
+      output_config: { format_: { type: :json_schema, schema: schema } },
+      messages: [ { role: "user", content: prompt } ]
+    )
 
-    attempt = 0
-    response = nil
-    loop do
-      http = Net::HTTP.new(uri.host, uri.port)
-      http.use_ssl = true
-      http.open_timeout = 10
-      http.read_timeout = EVALUATION_TIMEOUT
-
-      req = Net::HTTP::Post.new(uri)
-      req["Content-Type"] = "application/json"
-      req["Authorization"] = "Bearer #{ENV[config[:api_key_env]]}"
-      req.body = body
-      response = http.request(req)
-
-      break unless RETRYABLE_CODES.include?(response.code.to_i) && attempt < RATE_LIMIT_RETRIES
-
-      retry_after = response["Retry-After"].to_f
-      delay = retry_after.positive? ? retry_after : (2**attempt) + rand
-      sleep [ delay, 10 ].min
-      attempt += 1
+    if response.stop_reason == :refusal
+      raise Error, "Claude declined this request — please verify yourself."
+    end
+    if response.stop_reason == :max_tokens
+      raise Error, "Claude's response was cut off before it finished — run the check again."
     end
 
-    response
+    text = response.content.filter_map { |block| block.text if block.type == :text }.join
+    JSON.parse(text)
+  rescue Anthropic::Errors::RateLimitError
+    raise Error, "The Claude API is rate limited right now — try again in a minute."
+  rescue Anthropic::Errors::APIStatusError => e
+    raise Error, "Claude API request failed (#{e.status}): #{e.message.to_s.truncate(200)}"
+  rescue Anthropic::Errors::APIConnectionError => e
+    raise Error, "Couldn't reach the Claude API: #{e.message.to_s.truncate(200)}"
+  rescue JSON::ParserError
+    raise Error, "Claude returned a response that couldn't be parsed — run the check again."
   end
 
-  def extract_json(text)
-    match = text.match(/\{[\s\S]*\}/)
-    return nil unless match
-
-    JSON.parse(match[0])
-  rescue JSON::ParserError
-    nil
+  def ensure_configured!
+    raise Error, "Claude API key is not configured (set ANTHROPIC_API_KEY)." if ENV["ANTHROPIC_API_KEY"].to_s.empty?
   end
 
-  def extract_upstream_error(body)
-    parsed = JSON.parse(body.to_s)
-    parsed.dig("error", "message") || parsed["error"] || parsed["message"] || body.to_s
-  rescue JSON::ParserError
-    body.to_s
+  def model
+    ENV.fetch("AI_REQUIREMENTS_MODEL", DEFAULT_MODEL)
+  end
+
+  def client
+    @client ||= Anthropic::Client.new(
+      max_retries: MAX_RETRIES,
+      timeout: EVALUATION_TIMEOUT
+    )
   end
 
   def normalize_verdict(value)
