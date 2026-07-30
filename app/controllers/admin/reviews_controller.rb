@@ -54,6 +54,48 @@ class Admin::ReviewsController < Admin::ApplicationController
     }
   end
 
+  LEADERBOARD_DECISION_ACTIONS = %w[project.approved project.returned project.rejected project.pitch_approved].freeze
+
+  def leaderboard
+    week_start = leaderboard_week_start
+    week_range = week_start.in_time_zone.all_week
+
+    decisions = AuditEvent
+      .where(action: LEADERBOARD_DECISION_ACTIONS, target_type: "Project", created_at: week_range)
+      .where.not(actor_id: nil)
+      .group(:actor_id, :action)
+      .count
+    active_seconds = ReviewSession.where(started_at: week_range).group(:reviewer_id).sum(:active_seconds)
+
+    reviewers = User.where(id: (decisions.keys.map(&:first) + active_seconds.keys).uniq).index_by(&:id)
+
+    rows = reviewers.values.map do |user|
+      by_action = LEADERBOARD_DECISION_ACTIONS.index_with { |action| decisions[[ user.id, action ]].to_i }
+      {
+        user_id: user.id,
+        display_name: user.display_name,
+        avatar: user.avatar,
+        approved: by_action["project.approved"],
+        returned: by_action["project.returned"],
+        rejected: by_action["project.rejected"],
+        pitches: by_action["project.pitch_approved"],
+        total: by_action.values.sum,
+        active_seconds: active_seconds[user.id].to_i
+      }
+    end
+    rows = rows.sort_by { |r| [ -r[:total], -r[:active_seconds] ] }
+
+    this_week = Time.zone.today.beginning_of_week
+
+    render inertia: "Admin/Reviews/Leaderboard", props: {
+      rows: rows,
+      week_label: "#{week_start.strftime('%b %-d')} – #{week_start.end_of_week.strftime('%b %-d, %Y')}",
+      is_current_week: week_start == this_week,
+      prev_week: (week_start - 1.week).iso8601,
+      next_week: week_start < this_week ? (week_start + 1.week).iso8601 : nil
+    }
+  end
+
   def show
     authorize @project, :review?
 
@@ -202,6 +244,12 @@ class Admin::ReviewsController < Admin::ApplicationController
 
   def tier_from_slug(slug)
     slug.to_s.sub("t", "tier_")
+  end
+
+  def leaderboard_week_start
+    Date.iso8601(params[:week].to_s).beginning_of_week
+  rescue Date::Error
+    Time.zone.today.beginning_of_week
   end
 
   def set_project

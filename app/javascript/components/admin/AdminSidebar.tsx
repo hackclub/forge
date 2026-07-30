@@ -23,6 +23,7 @@ import {
   Sun,
   Moon,
   TableProperties,
+  Trophy,
   PlayCircle,
   DollarSign,
   FileText,
@@ -89,6 +90,7 @@ function buildSections(): { items: NavItem[] }[] {
         { label: 'T3 Reviews', href: '/admin/reviews/t3', icon: ClipboardCheck, statKey: 'pending_reviews_tier_3', permission: 'review_tier_3' },
         { label: 'T4 Reviews', href: '/admin/reviews/t4', icon: ClipboardCheck, statKey: 'pending_reviews_tier_4', permission: 'review_tier_4' },
         { label: 'Pitch Reviews', href: '/admin/pitches', icon: Lightbulb, statKey: 'pending_pitches', permission: 'pending_reviews' },
+        { label: 'Leaderboard', href: '/admin/reviews/leaderboard', icon: Trophy, permission: 'pending_reviews' },
       ],
     },
     {
