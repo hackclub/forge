@@ -362,7 +362,7 @@ module AiRequirementsChecker
   rescue Anthropic::Errors::AuthenticationError
     raise Error, "The Claude API rejected the configured credentials — reauth Claude from the admin panel."
   rescue Anthropic::Errors::RateLimitError
-    raise Error, "The Claude API is rate limited right now — try again in a minute."
+    raise Error, "The Claude API is rate limited right now — the account may have hit its usage window. Try again later."
   rescue Anthropic::Errors::APIStatusError => e
     raise Error, "Claude API request failed (#{e.status}): #{e.message.to_s.truncate(200)}"
   rescue Anthropic::Errors::APIConnectionError => e
