@@ -345,7 +345,8 @@ module AiRequirementsChecker
       max_tokens: 16_000,
       thinking: { type: :adaptive },
       output_config: { format_: { type: :json_schema, schema: schema } },
-      messages: [ { role: "user", content: prompt } ]
+      messages: [ { role: "user", content: prompt } ],
+      request_options: request_options
     )
 
     if response.stop_reason == :refusal
@@ -368,7 +369,13 @@ module AiRequirementsChecker
   end
 
   def ensure_configured!
-    raise Error, "Claude API key is not configured (set ANTHROPIC_API_KEY)." if ENV["ANTHROPIC_API_KEY"].to_s.empty?
+    return if ENV["ANTHROPIC_API_KEY"].present? || ENV["ANTHROPIC_AUTH_TOKEN"].present?
+    raise Error, "Claude API credentials are not configured (set ANTHROPIC_API_KEY or ANTHROPIC_AUTH_TOKEN)."
+  end
+
+  def request_options
+    return {} if ENV["ANTHROPIC_API_KEY"].present?
+    { extra_headers: { "anthropic-beta" => "oauth-2025-04-20" } }
   end
 
   def model
