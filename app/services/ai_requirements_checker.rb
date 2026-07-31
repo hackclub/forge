@@ -5,6 +5,7 @@ module AiRequirementsChecker
   module_function
 
   DEFAULT_MODEL = "claude-opus-4-8".freeze
+  AUTH_TOKEN_SETTING = "anthropic_auth_token".freeze
   EVALUATION_TIMEOUT = 120
   MAX_RETRIES = 4
 
@@ -368,13 +369,48 @@ module AiRequirementsChecker
     raise Error, "Claude returned a response that couldn't be parsed — run the check again."
   end
 
+  def test_connection!(token_override = nil)
+    ensure_configured! unless token_override
+
+    count = client(token_override: token_override).messages.count_tokens(
+      model: model,
+      messages: [ { role: "user", content: "ping" } ],
+      request_options: token_override ? oauth_request_options : request_options
+    )
+    count.input_tokens
+  rescue Anthropic::Errors::AuthenticationError
+    raise Error, "The Claude API rejected these credentials — the token is invalid or expired."
+  rescue Anthropic::Errors::APIStatusError => e
+    raise Error, "Claude API request failed (#{e.status}): #{e.message.to_s.truncate(200)}"
+  rescue Anthropic::Errors::APIConnectionError => e
+    raise Error, "Couldn't reach the Claude API: #{e.message.to_s.truncate(200)}"
+  end
+
+  def credential_source
+    return "env_api_key" if env_api_key
+    return "admin_token" if AppSetting.get(AUTH_TOKEN_SETTING).present?
+    return "env_auth_token" if ENV["ANTHROPIC_AUTH_TOKEN"].present?
+    "none"
+  end
+
   def ensure_configured!
-    return if ENV["ANTHROPIC_API_KEY"].present? || ENV["ANTHROPIC_AUTH_TOKEN"].present?
-    raise Error, "Claude API credentials are not configured (set ANTHROPIC_API_KEY or ANTHROPIC_AUTH_TOKEN)."
+    return if env_api_key || auth_token
+    raise Error, "Claude API credentials are not configured — set ANTHROPIC_API_KEY, or reauth Claude from the admin panel."
+  end
+
+  def env_api_key
+    ENV["ANTHROPIC_API_KEY"].presence
+  end
+
+  def auth_token
+    AppSetting.get(AUTH_TOKEN_SETTING).presence || ENV["ANTHROPIC_AUTH_TOKEN"].presence
   end
 
   def request_options
-    return {} if ENV["ANTHROPIC_API_KEY"].present?
+    env_api_key ? {} : oauth_request_options
+  end
+
+  def oauth_request_options
     { extra_headers: { "anthropic-beta" => "oauth-2025-04-20" } }
   end
 
@@ -382,11 +418,14 @@ module AiRequirementsChecker
     ENV.fetch("AI_REQUIREMENTS_MODEL", DEFAULT_MODEL)
   end
 
-  def client
-    @client ||= Anthropic::Client.new(
-      max_retries: MAX_RETRIES,
-      timeout: EVALUATION_TIMEOUT
-    )
+  def client(token_override: nil)
+    if token_override
+      Anthropic::Client.new(auth_token: token_override, max_retries: MAX_RETRIES, timeout: EVALUATION_TIMEOUT)
+    elsif env_api_key
+      Anthropic::Client.new(api_key: env_api_key, max_retries: MAX_RETRIES, timeout: EVALUATION_TIMEOUT)
+    else
+      Anthropic::Client.new(auth_token: auth_token, max_retries: MAX_RETRIES, timeout: EVALUATION_TIMEOUT)
+    end
   end
 
   def normalize_verdict(value)
