@@ -341,14 +341,15 @@ module AiRequirementsChecker
   def complete_json(prompt, schema:)
     ensure_configured!
 
-    response = client.messages.create(
+    params = {
       model: model,
       max_tokens: 16_000,
-      thinking: { type: :adaptive },
       output_config: { format_: { type: :json_schema, schema: schema } },
       messages: [ { role: "user", content: prompt } ],
       request_options: request_options
-    )
+    }
+    params[:thinking] = { type: :adaptive } if adaptive_thinking?
+    response = client.messages.create(**params)
 
     if response.stop_reason == :refusal
       raise Error, "Claude declined this request — please verify yourself."
@@ -359,8 +360,10 @@ module AiRequirementsChecker
 
     text = response.content.filter_map { |block| block.text if block.type == :text }.join
     JSON.parse(text)
+  rescue Anthropic::Errors::AuthenticationError
+    raise Error, "The Claude API rejected the configured credentials — reauth Claude from the admin panel."
   rescue Anthropic::Errors::RateLimitError
-    raise Error, "The Claude API is rate limited right now — try again in a minute."
+    raise Error, "The Claude API is rate limited right now — the account may have hit its usage window. Try again later."
   rescue Anthropic::Errors::APIStatusError => e
     raise Error, "Claude API request failed (#{e.status}): #{e.message.to_s.truncate(200)}"
   rescue Anthropic::Errors::APIConnectionError => e
@@ -416,6 +419,15 @@ module AiRequirementsChecker
 
   def model
     ENV.fetch("AI_REQUIREMENTS_MODEL", DEFAULT_MODEL)
+  end
+
+  def adaptive_thinking?
+    Rails.cache.fetch([ "ai_requirements_checker", "adaptive_thinking", model ], expires_in: 12.hours) do
+      info = client.models.retrieve(model, request_options: request_options)
+      info.capabilities&.thinking&.types&.adaptive&.supported == true
+    end
+  rescue StandardError
+    false
   end
 
   def client(token_override: nil)
