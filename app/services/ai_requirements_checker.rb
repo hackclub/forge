@@ -359,6 +359,8 @@ module AiRequirementsChecker
 
     text = response.content.filter_map { |block| block.text if block.type == :text }.join
     JSON.parse(text)
+  rescue Anthropic::Errors::AuthenticationError
+    raise Error, "The Claude API rejected the configured credentials — reauth Claude from the admin panel."
   rescue Anthropic::Errors::RateLimitError
     raise Error, "The Claude API is rate limited right now — try again in a minute."
   rescue Anthropic::Errors::APIStatusError => e
