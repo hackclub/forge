@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_29_082158) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_31_095720) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -102,6 +102,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_29_082158) do
     t.index ["project_id"], name: "index_airtable_queue_items_on_project_id"
     t.index ["sent_by_id"], name: "index_airtable_queue_items_on_sent_by_id"
     t.index ["status"], name: "index_airtable_queue_items_on_status"
+  end
+
+  create_table "app_settings", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "key", null: false
+    t.datetime "updated_at", null: false
+    t.text "value"
+    t.index ["key"], name: "index_app_settings_on_key", unique: true
   end
 
   create_table "audit_events", force: :cascade do |t|
@@ -342,6 +350,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_29_082158) do
     t.datetime "staff_pick_at"
     t.integer "status", default: 0, null: false
     t.integer "streak_at_approval"
+    t.jsonb "streaks_at_submission", default: {}, null: false
     t.datetime "submitted_at"
     t.string "subtitle"
     t.string "tags", default: [], null: false, array: true

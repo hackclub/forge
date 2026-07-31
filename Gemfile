@@ -44,6 +44,9 @@ gem "pg", "~> 1.5"
 # Rack middleware for blocking & throttling
 gem "rack-attack", "~> 6.7"
 
+# Claude API client for the AI project checks
+gem "anthropic"
+
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"

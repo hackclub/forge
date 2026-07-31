@@ -121,6 +121,8 @@ class Admin::AuditLogController < Admin::ApplicationController
     "user.kudo_added" => "Gave kudos to",
     "user.kudo_destroyed" => "Removed kudos from",
     "user.coins_adjusted" => "Adjusted coins for",
+    "claude.reauthed" => "Reauthed the Claude API",
+    "claude.token_cleared" => "Cleared the saved Claude token",
     "feature_flag.created" => "Created feature flag",
     "feature_flag.toggled" => "Toggled feature flag",
     "feature_flag.destroyed" => "Deleted feature flag",
