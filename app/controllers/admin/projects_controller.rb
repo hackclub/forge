@@ -712,9 +712,10 @@ class Admin::ProjectsController < Admin::ApplicationController
   def justification_fields(reasoning:, feedback:)
     {
       time_summary: params[:time_summary],
-      scope_reasoning: params[:scope_reasoning],
+      technical_features: params[:technical_features],
       evidence: params[:evidence],
       assessment: reasoning.presence || feedback.to_s,
+      additional_justification: params[:additional_justification],
       deflation_reason: params[:override_hours_justification]
     }
   end

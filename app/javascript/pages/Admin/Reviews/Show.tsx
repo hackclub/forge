@@ -20,7 +20,7 @@ import { isSafeUrl } from '@/components/admin/review/helpers'
 import { useReviewHeartbeat } from '@/hooks/useReviewHeartbeat'
 import { useReviewShortcuts } from '@/hooks/useReviewShortcuts'
 import { trackReviewEvent } from '@/lib/reviewTracker'
-import { buildJustification } from '@/lib/justificationPreview'
+import { buildJustification, buildTimeEvidence } from '@/lib/justificationPreview'
 import type {
   AiCheckResult,
   ConcurrentReviewer,
@@ -160,8 +160,9 @@ export default function AdminReviewsShow({
   }, [project.id, track])
 
   const [reasoning, setReasoning] = useState('')
-  const [timeSummary, setTimeSummary] = useState('')
-  const [scopeReasoning, setScopeReasoning] = useState('')
+  const [timeSummary, setTimeSummary] = useState(() => buildTimeEvidence(project))
+  const [technicalFeatures, setTechnicalFeatures] = useState('')
+  const [additionalJustification, setAdditionalJustification] = useState('')
   const [evidence, setEvidence] = useState('')
   const [feedback, setFeedback] = useState('')
   const [overrideHours, setOverrideHours] = useState<string>(
@@ -180,7 +181,7 @@ export default function AdminReviewsShow({
   const [activeTab, setActiveTab] = useState('journal')
   const [helpOpen, setHelpOpen] = useState(false)
   const [rejectOpen, setRejectOpen] = useState(false)
-  const [invalidField, setInvalidField] = useState<'conclusion' | 'feedback' | 'override' | null>(null)
+  const [invalidField, setInvalidField] = useState<'conclusion' | 'technical' | 'feedback' | 'override' | null>(null)
   const [takingOver, setTakingOver] = useState(false)
   const [flagOpen, setFlagOpen] = useState(false)
   const [flagReason, setFlagReason] = useState('')
@@ -275,12 +276,14 @@ export default function AdminReviewsShow({
         approved_hours: approvedHours,
         repo_link: project.repo_link,
         devlog_count: project.devlogs.length,
+        timelapse_urls: [...new Set(project.devlogs.map((d) => (d.lapse_url ?? '').trim()).filter(Boolean))],
         public_url: `${origin}/projects/${project.id}`,
         admin_url: `${origin}/admin/projects/${project.id}`,
         time_summary: timeSummary,
-        scope_reasoning: scopeReasoning,
+        technical_features: technicalFeatures,
         evidence,
         assessment: reasoning,
+        additional_justification: additionalJustification,
         deflation_reason: overrideJustification,
       }),
     [
@@ -290,9 +293,10 @@ export default function AdminReviewsShow({
       approvedHours,
       origin,
       timeSummary,
-      scopeReasoning,
+      technicalFeatures,
       evidence,
       reasoning,
+      additionalJustification,
       overrideJustification,
     ],
   )
@@ -324,12 +328,13 @@ export default function AdminReviewsShow({
       track(`${decision}_clicked`)
       const payload: Record<string, string | number | null> = { decision }
       if (decision === 'approve') {
-        if (!reasoning.trim()) {
+        if (!reasoning.trim() || !technicalFeatures.trim()) {
           return
         }
         payload.reasoning = reasoning.trim()
         payload.time_summary = timeSummary.trim() || null
-        payload.scope_reasoning = scopeReasoning.trim() || null
+        payload.technical_features = technicalFeatures.trim() || null
+        payload.additional_justification = additionalJustification.trim() || null
         payload.evidence = evidence.trim() || null
         payload.feedback = feedback.trim() || null
         if (overrideHours.trim() !== '') {
@@ -356,7 +361,8 @@ export default function AdminReviewsShow({
       project.id,
       reasoning,
       timeSummary,
-      scopeReasoning,
+      technicalFeatures,
+      additionalJustification,
       evidence,
       feedback,
       overrideHours,
@@ -366,17 +372,18 @@ export default function AdminReviewsShow({
   )
 
   const approveReason = useMemo<string | null>(() => {
-    if (!reasoning.trim()) return 'Add a reviewer conclusion to approve'
+    if (!technicalFeatures.trim()) return 'List the specific technical features to approve'
+    if (!reasoning.trim()) return 'Explain why the hours match the work to approve'
     if (overrideHours.trim() !== '' && !overrideJustification.trim())
       return 'Add a deflation reason for the hours override'
     return null
-  }, [reasoning, overrideHours, overrideJustification])
+  }, [technicalFeatures, reasoning, overrideHours, overrideJustification])
   const returnReason = useMemo<string | null>(
     () => (!feedback.trim() ? 'Add feedback to the builder' : null),
     [feedback],
   )
 
-  const flash = useCallback((field: 'conclusion' | 'feedback' | 'override') => {
+  const flash = useCallback((field: 'conclusion' | 'technical' | 'feedback' | 'override') => {
     setInvalidField(field)
     window.setTimeout(() => setInvalidField(null), 1200)
   }, [])
@@ -409,7 +416,10 @@ export default function AdminReviewsShow({
   const handleApprove = useCallback(() => {
     if (!can.claim) return
     if (approveReason) {
-      if (!reasoning.trim()) {
+      if (!technicalFeatures.trim()) {
+        document.getElementById('review-technical')?.focus()
+        flash('technical')
+      } else if (!reasoning.trim()) {
         focusReasoning()
         flash('conclusion')
       } else {
@@ -419,7 +429,7 @@ export default function AdminReviewsShow({
       return
     }
     submit('approve')
-  }, [can.claim, approveReason, reasoning, focusReasoning, flash, submit])
+  }, [can.claim, approveReason, technicalFeatures, reasoning, focusReasoning, flash, submit])
 
   const handleReturn = useCallback(() => {
     if (!can.claim) return
@@ -457,14 +467,27 @@ export default function AdminReviewsShow({
       submit('return')
       return
     }
-    if (!reasoning.trim()) {
+    if (!technicalFeatures.trim()) {
+      document.getElementById('review-technical')?.focus()
+      flash('technical')
+    } else if (!reasoning.trim()) {
       focusReasoning()
       flash('conclusion')
     } else {
       focusFeedback()
       flash('feedback')
     }
-  }, [can.claim, approveReason, returnReason, reasoning, submit, focusReasoning, focusFeedback, flash])
+  }, [
+    can.claim,
+    approveReason,
+    returnReason,
+    technicalFeatures,
+    reasoning,
+    submit,
+    focusReasoning,
+    focusFeedback,
+    flash,
+  ])
 
   const onSkip = useCallback(() => {
     if (next_pending_id) {
@@ -615,8 +638,10 @@ export default function AdminReviewsShow({
                   setReasoning,
                   timeSummary,
                   setTimeSummary,
-                  scopeReasoning,
-                  setScopeReasoning,
+                  technicalFeatures,
+                  setTechnicalFeatures,
+                  additionalJustification,
+                  setAdditionalJustification,
                   evidence,
                   setEvidence,
                   feedback,

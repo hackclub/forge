@@ -11,12 +11,14 @@ export interface JustificationContext {
   approved_hours: number
   repo_link: string | null
   devlog_count: number
+  timelapse_urls: string[]
   public_url: string
   admin_url: string
   time_summary: string
-  scope_reasoning: string
+  technical_features: string
   evidence: string
   assessment: string
+  additional_justification: string
   deflation_reason: string
 }
 
@@ -37,12 +39,43 @@ function supportingEvidence(ctx: JustificationContext): string {
     `- Public project page: ${ctx.public_url}`,
     `- Devlogs: ${ctx.devlog_count} ${ctx.devlog_count === 1 ? 'entry' : 'entries'}`,
   ]
+  if (ctx.timelapse_urls.length > 0) lines.push(`- Timelapse links: ${ctx.timelapse_urls.join(', ')}`)
   ;(ctx.evidence ?? '')
     .split('\n')
     .map((l) => l.trim())
     .filter(Boolean)
     .forEach((l) => lines.push(`- ${l}`))
   return lines.join('\n')
+}
+
+export function buildTimeEvidence(project: {
+  devlogs: { created_at_iso: string; lapse_url: string | null }[]
+  devlog_hours: number
+  commits_url: string | null
+}): string {
+  if (project.devlogs.length === 0) return ''
+
+  const dates = project.devlogs
+    .map((d) => new Date(d.created_at_iso).getTime())
+    .filter((t) => Number.isFinite(t))
+    .sort((a, b) => a - b)
+  const fmt = (t: number) =>
+    new Date(t).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
+  const range =
+    dates.length === 0
+      ? ''
+      : fmt(dates[0]) === fmt(dates[dates.length - 1])
+        ? ` on ${fmt(dates[0])}`
+        : ` from ${fmt(dates[0])} to ${fmt(dates[dates.length - 1])}`
+
+  const count = project.devlogs.length
+  const timelapses = project.devlogs.filter((d) => (d.lapse_url ?? '').trim()).length
+  const parts = [
+    `${count} journal ${count === 1 ? 'entry' : 'entries'}${range}, ${formatHours(project.devlog_hours)} logged.`,
+  ]
+  if (timelapses > 0) parts.push(`${timelapses} timelapse ${timelapses === 1 ? 'link' : 'links'} attached.`)
+  if (project.commits_url) parts.push(`Commits: ${project.commits_url}`)
+  return parts.join(' ')
 }
 
 export function buildJustification(ctx: JustificationContext): string {
@@ -52,6 +85,8 @@ export function buildJustification(ctx: JustificationContext): string {
   const deflationReason = (ctx.deflation_reason ?? '').trim()
   const deflationSuffix = deflationRaw > 0 && deflationReason ? ` — reason: ${deflationReason}` : ''
   const reasoning = (ctx.assessment ?? '').trim() || '(no justification provided)'
+  const additional = (ctx.additional_justification ?? '').trim()
+  const additionalBlock = additional ? `\nAdditional justification:\n${additional}\n` : ''
   const submitted = formatJustificationDate(ctx.submitted_at_iso)
   const approved = formatJustificationDate(new Date().toISOString())
 
@@ -68,8 +103,8 @@ This project was approved at ${approved}
 Time evidence:
 ${present(ctx.time_summary)}
 
-Scope assessment:
-${present(ctx.scope_reasoning)}
+Specific technical features:
+${present(ctx.technical_features)}
 
 Supporting evidence:
 ${supportingEvidence(ctx)}
@@ -80,7 +115,7 @@ ${deflation} hours of deflation was applied to meet our requirements${deflationS
 The final reviewer was asked to justify why this ship meets the standards of the Unified DB:
 
 ${reasoning}
-
+${additionalBlock}
 !! To inspect the full review for this ship, including timelapses & journals, see: ${ctx.admin_url}
 
 For any questions, please reach out to aarav@hackclub.com.
