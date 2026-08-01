@@ -446,6 +446,7 @@ class Admin::ReviewsController < Admin::ApplicationController
       time_hours: devlog.time_hours&.to_f,
       lapse_url: devlog.lapse_url,
       created_at: devlog.created_at.strftime("%b %d, %Y"),
+      created_at_iso: devlog.created_at.iso8601,
       user_id: devlog.user_id,
       user_display_name: devlog.user.display_name,
       user_avatar: devlog.user.avatar,

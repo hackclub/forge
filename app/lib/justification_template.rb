@@ -15,8 +15,8 @@ class JustificationTemplate
     Time evidence:
     %{time_evidence}
 
-    Scope assessment:
-    %{scope_reasoning}
+    Specific technical features:
+    %{technical_features}
 
     Supporting evidence:
     %{supporting_evidence}
@@ -27,7 +27,7 @@ class JustificationTemplate
     The final reviewer was asked to justify why this ship meets the standards of the Unified DB:
 
     %{review_justification}
-
+    %{additional_justification}
     !! To inspect the full review for this ship, including timelapses & journals, see: %{forge_admin_link}
 
     For any questions, please reach out to aarav@hackclub.com.
@@ -66,15 +66,23 @@ class JustificationTemplate
       reviewer_name: reviewer_name,
       reviewer_email: reviewer_email.present? ? " (#{reviewer_email})" : "",
       time_evidence: present(fields[:time_summary]),
-      scope_reasoning: present(fields[:scope_reasoning]),
+      technical_features: present(fields[:technical_features]),
       supporting_evidence: supporting_evidence(project, fields),
       claimed_hours: format_hours(claimed_hours),
       approved_hours: format_hours(approved_hours),
       hours_deflation: deflation.to_s,
       deflation_reason: deflation_suffix,
       review_justification: fields[:assessment].to_s.strip.presence || "(no justification provided)",
+      additional_justification: additional_justification(fields),
       forge_admin_link: forge_admin_link
     )
+  end
+
+  def self.additional_justification(fields)
+    text = fields[:additional_justification].to_s.strip
+    return "" if text.blank?
+
+    "\nAdditional justification:\n#{text}\n"
   end
 
   def self.supporting_evidence(project, fields)
@@ -84,6 +92,8 @@ class JustificationTemplate
       "- Public project page: #{public_project_url(project)}",
       "- Devlogs: #{count} #{count == 1 ? 'entry' : 'entries'}"
     ]
+    lapse_urls = project.devlogs.map(&:lapse_url).map(&:presence).compact.uniq
+    lines << "- Timelapse links: #{lapse_urls.join(', ')}" if lapse_urls.any?
     fields[:evidence].to_s.split("\n").map(&:strip).reject(&:blank?).each { |line| lines << "- #{line}" }
     lines.join("\n")
   end

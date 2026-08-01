@@ -39,6 +39,7 @@ export interface ReviewDevlog {
   time_hours: number | null
   lapse_url: string | null
   created_at: string
+  created_at_iso: string
   user_id: number
   user_display_name: string
   user_avatar: string

@@ -24,8 +24,10 @@ export interface DecisionPanelState {
   setReasoning: (v: string) => void
   timeSummary: string
   setTimeSummary: (v: string) => void
-  scopeReasoning: string
-  setScopeReasoning: (v: string) => void
+  technicalFeatures: string
+  setTechnicalFeatures: (v: string) => void
+  additionalJustification: string
+  setAdditionalJustification: (v: string) => void
   evidence: string
   setEvidence: (v: string) => void
   feedback: string
@@ -70,7 +72,7 @@ export function DecisionPanel({
   justificationPreview: string
   approveReason: string | null
   returnReason: string | null
-  invalidField: 'conclusion' | 'feedback' | 'override' | null
+  invalidField: 'conclusion' | 'technical' | 'feedback' | 'override' | null
   rejectOpen: boolean
   onRejectOpenChange: (open: boolean) => void
   onSubmit: (decision: 'approve' | 'return' | 'reject' | 'draft') => void
@@ -85,8 +87,10 @@ export function DecisionPanel({
     setReasoning,
     timeSummary,
     setTimeSummary,
-    scopeReasoning,
-    setScopeReasoning,
+    technicalFeatures,
+    setTechnicalFeatures,
+    additionalJustification,
+    setAdditionalJustification,
     evidence,
     setEvidence,
     feedback,
@@ -119,22 +123,30 @@ export function DecisionPanel({
         </p>
 
         <div className="space-y-1.5">
-          <label className="text-xs text-muted-foreground">Time evidence (journal / commits / timelapse)</label>
+          <label className="text-xs text-muted-foreground">
+            Time evidence{' '}
+            <span className="text-muted-foreground/60">
+              (auto-filled from devlogs — edit if the journal shows more)
+            </span>
+          </label>
           <Textarea
             value={timeSummary}
             onChange={(e) => setTimeSummary(e.target.value)}
-            placeholder="What the journal entries, GitHub commits and (if any) timelapse show, and the period covered. e.g. 9 journal entries Feb 3–17 + 47 commits; pace consistent with the hours."
+            placeholder="9 journal entries Feb 3–17, 12.4h logged; pace consistent with the hours."
             className="h-20 text-sm"
           />
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-xs text-muted-foreground">Scope assessment</label>
+          <label className="text-xs text-muted-foreground">
+            Specific technical features <span className="text-muted-foreground/60">(required to approve)</span>
+          </label>
           <Textarea
-            value={scopeReasoning}
-            onChange={(e) => setScopeReasoning(e.target.value)}
-            placeholder="What was built and why the scope matches the hours. e.g. custom physics engine + 8 levels, 47 commits over 3 weeks."
-            className="h-16 text-sm"
+            id="review-technical"
+            value={technicalFeatures}
+            onChange={(e) => setTechnicalFeatures(e.target.value)}
+            placeholder='Concrete implementation work only, e.g. "custom ESP32 PCB with USB-C charging, CAD case in Fusion, PID motor firmware". Not just languages or "cool project".'
+            className={cn('h-16 text-sm', invalidField === 'technical' && 'ring-2 ring-red-500/60')}
           />
         </div>
 
@@ -161,13 +173,27 @@ export function DecisionPanel({
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-xs text-muted-foreground">Reviewer conclusion (required to approve)</label>
+          <label className="text-xs text-muted-foreground">
+            Why do the hours match the work? <span className="text-muted-foreground/60">(required to approve)</span>
+          </label>
           <Textarea
             id="review-conclusion"
             value={reasoning}
             onChange={(e) => setReasoning(e.target.value)}
-            placeholder="Your factual conclusion: do the hours and scope hold up against the evidence above?"
+            placeholder="Cite what you checked: journal pace, commit history, timelapse coverage — a stranger should reach the same conclusion from your links."
             className={cn('h-16 text-sm', invalidField === 'conclusion' && 'ring-2 ring-red-500/60')}
+          />
+        </div>
+
+        <div className="space-y-1.5">
+          <label className="text-xs text-muted-foreground">
+            Anything suspicious or needing extra context? <span className="text-muted-foreground/60">(optional)</span>
+          </label>
+          <Textarea
+            value={additionalJustification}
+            onChange={(e) => setAdditionalJustification(e.target.value)}
+            placeholder="Only for odd cases: AI-heavy code, hours spread strangely, reused work — say what you saw and why it's still fine."
+            className="h-14 text-sm"
           />
         </div>
       </div>
