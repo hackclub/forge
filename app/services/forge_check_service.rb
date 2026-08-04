@@ -11,7 +11,6 @@ module ForgeCheckService
     ForgeChecks::ReadmeDescribesProject,
     ForgeChecks::ReadmeHasImages,
     ForgeChecks::ReadmeHasBomTable,
-    ForgeChecks::BomCsvInRepo,
     ForgeChecks::HasHardwareDesignFiles,
     ForgeChecks::HasFirmwareFiles,
     ForgeChecks::HasJournalEntries,
