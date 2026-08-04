@@ -32,7 +32,16 @@ class FetchReadmeJob < ApplicationJob
     http.use_ssl = uri.scheme == "https"
     http.open_timeout = OPEN_TIMEOUT
     http.read_timeout = READ_TIMEOUT
-    http.get(uri.request_uri)
+    request = Net::HTTP::Get.new(uri.request_uri)
+    if uri.host == "api.github.com"
+      token = ENV["GITHUB_TOKEN"].to_s
+      request["Authorization"] = "Bearer #{token}" if token.present?
+    end
+    response = http.request(request)
+    if uri.host == "api.github.com" && !response.is_a?(Net::HTTPSuccess)
+      Rails.logger.warn("FetchReadmeJob: #{response.code} from #{uri.host}#{uri.path}")
+    end
+    response
   end
 
   def fetch_github(owner, repo)
