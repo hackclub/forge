@@ -382,8 +382,8 @@ class User < ApplicationRecord
       raise StandardError, "No identity data in HCA response"
     end
 
-    if determine_is_adult(identity)
-      raise StandardError, "Sorry, Forge is for teen builders (under 19). You're not eligible to participate."
+    if ysws_ineligible?(identity)
+      raise StandardError, "Sorry, Forge is for YSWS-eligible teen builders. You're not eligible to participate."
     end
 
     hca_id = identity["id"]
@@ -577,6 +577,13 @@ class User < ApplicationRecord
         break
       end
     end
+  end
+
+  def self.ysws_ineligible?(identity)
+    status = identity["verification_status"].to_s
+    return true if status == "ineligible"
+
+    status == "verified" && identity["ysws_eligible"] != true
   end
 
   def self.determine_is_adult(identity)
