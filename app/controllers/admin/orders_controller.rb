@@ -40,7 +40,8 @@ class Admin::OrdersController < Admin::ApplicationController
       order: serialize_detail(@order),
       warnings: build_warnings(@order),
       regions: HasRegion::REGIONS,
-      fulfillment_users: fulfillment_users_list
+      fulfillment_users: fulfillment_users_list,
+      previous_grants: previous_grants(@order)
     }
   end
 
@@ -187,6 +188,25 @@ class Admin::OrdersController < Admin::ApplicationController
     end
 
     warnings
+  end
+
+  def previous_grants(order)
+    Order.fulfilled
+      .where(user_id: order.user_id)
+      .where.not(id: order.id)
+      .where.not(hcb_grant_link: [ nil, "" ])
+      .includes(:project, :shop_item)
+      .order(fulfilled_at: :desc)
+      .map { |o|
+        {
+          id: o.id,
+          kind_label: o.kind_label,
+          project_name: o.project&.name,
+          amount_usd: o.amount_usd&.to_f,
+          hcb_grant_link: o.hcb_grant_link,
+          fulfilled_at: o.fulfilled_at&.strftime("%b %d, %Y")
+        }
+      }
   end
 
   def ungranted_projects(user)
