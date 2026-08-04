@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Head, Link, router } from '@inertiajs/react'
-import { ArrowLeft, AlertTriangle, Info, Check, X, CheckCircle2, ExternalLink } from 'lucide-react'
+import { ArrowLeft, AlertTriangle, Info, Check, X, CheckCircle2, ExternalLink, Search } from 'lucide-react'
 import { Badge } from '@/components/admin/ui/badge'
 import { Button } from '@/components/admin/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/admin/ui/card'
@@ -44,6 +44,15 @@ interface Warning {
   message: string
 }
 
+interface PreviousGrant {
+  id: number
+  kind_label: string
+  project_name: string | null
+  amount_usd: number | null
+  hcb_grant_link: string
+  fulfilled_at: string | null
+}
+
 function statusBadge(status: OrderDetail['status']) {
   switch (status) {
     case 'approved':
@@ -62,14 +71,24 @@ export default function AdminOrdersShow({
   warnings,
   regions,
   fulfillment_users,
+  previous_grants,
 }: {
   order: OrderDetail
   warnings: Warning[]
   regions: Record<string, string>
   fulfillment_users: { id: number; display_name: string }[]
+  previous_grants: PreviousGrant[]
 }) {
   const [reviewNotes, setReviewNotes] = useState('')
   const [grantLink, setGrantLink] = useState('')
+  const [grantSearch, setGrantSearch] = useState('')
+
+  const filteredGrants = previous_grants.filter((g) => {
+    const query = grantSearch.trim().toLowerCase()
+    if (!query) return true
+    return [g.kind_label, g.project_name, g.hcb_grant_link, g.fulfilled_at]
+      .some((field) => field?.toLowerCase().includes(query))
+  })
 
   const grantAmountUsd =
     order.kind === 'direct_grant'
@@ -288,6 +307,59 @@ export default function AdminOrdersShow({
                 <div className="flex items-center gap-2">
                   <span className="text-muted-foreground text-xs">Cost incl. shipping:</span>
                   <span className="font-semibold">${order.internal_price_usd}</span>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {previous_grants.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Grant lookup</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Grants already given to {order.user_display_name}.
+              </p>
+              <div className="relative">
+                <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={grantSearch}
+                  onChange={(e) => setGrantSearch(e.target.value)}
+                  placeholder="Search by item, project or link..."
+                  className="pl-9"
+                />
+              </div>
+              {filteredGrants.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No grants match your search.</p>
+              ) : (
+                <div className="divide-y divide-border">
+                  {filteredGrants.map((g) => (
+                    <div key={g.id} className="py-2 flex items-start justify-between gap-3 min-w-0">
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium">
+                          {g.kind_label}
+                          {g.amount_usd != null && <span className="text-muted-foreground"> · ${g.amount_usd}</span>}
+                        </p>
+                        {g.project_name && <p className="text-xs text-muted-foreground">{g.project_name}</p>}
+                        <a
+                          href={g.hcb_grant_link}
+                          target="_blank"
+                          rel="noopener"
+                          className="text-xs break-all hover:underline"
+                        >
+                          {g.hcb_grant_link}
+                        </a>
+                      </div>
+                      <div className="text-right shrink-0">
+                        {g.fulfilled_at && <p className="text-xs text-muted-foreground">{g.fulfilled_at}</p>}
+                        <Link href={`/admin/orders/${g.id}`} className="text-xs hover:underline">
+                          Order #{g.id}
+                        </Link>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </CardContent>
