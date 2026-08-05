@@ -3,6 +3,7 @@ class HomeController < ApplicationController
   include ExploreFeedProps
   include LeaderboardProps
   include DocsProps
+  include GuidesProps
 
   def index
     projects = current_user.projects.kept.order(updated_at: :desc).to_a
@@ -76,7 +77,8 @@ class HomeController < ApplicationController
       shop: InertiaRails.optional { shop_props },
       explore: InertiaRails.optional { explore_feed_props },
       leaderboard: InertiaRails.optional { leaderboard_props },
-      docs: InertiaRails.optional { docs_props(params[:doc]) }
+      docs: InertiaRails.optional { docs_props(params[:doc]) },
+      guides: InertiaRails.optional { guides_props(params[:guide]) }
     }
   end
 

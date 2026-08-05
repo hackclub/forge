@@ -364,6 +364,11 @@ Rails.application.routes.draw do
       get "airtable_sync" => "airtable_sync#index", as: :airtable_sync
       post "airtable_sync/recheck" => "airtable_sync#recheck", as: :airtable_sync_recheck
       post "airtable_sync/requeue/:project_id" => "airtable_sync#requeue", as: :airtable_sync_requeue
+      get "slack_pings" => "slack_pings#index", as: :slack_pings
+      post "slack_pings/weekly_ping" => "slack_pings#weekly_ping", as: :slack_pings_weekly_ping
+      post "slack_pings/leaderboard" => "slack_pings#leaderboard", as: :slack_pings_leaderboard
+      post "slack_pings/streak_breaks" => "slack_pings#streak_breaks", as: :slack_pings_streak_breaks
+      post "slack_pings/invites" => "slack_pings#invites", as: :slack_pings_invites
       resources :review_audits, only: [ :index, :show ]
       get "audit_log" => "audit_log#index", as: :audit_log
       get "audit_log/:id" => "audit_log#show", as: :audit_log_entry
@@ -485,6 +490,7 @@ Rails.application.routes.draw do
 
   get "docs" => "markdown#show", as: :docs
   get "docs/*slug" => "markdown#show", as: :doc
+  get "guides/:slug/files/*path" => "guides_files#show", as: :guide_file, format: false
 
   namespace :api do
     namespace :v1 do

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_31_095720) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_05_213016) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -676,6 +676,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_31_095720) do
     t.index ["key"], name: "index_solid_queue_semaphores_on_key", unique: true
   end
 
+  create_table "streak_break_notices", force: :cascade do |t|
+    t.date "broke_on", null: false
+    t.datetime "created_at", null: false
+    t.integer "streak_length", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["user_id", "broke_on"], name: "index_streak_break_notices_on_user_id_and_broke_on", unique: true
+    t.index ["user_id"], name: "index_streak_break_notices_on_user_id"
+  end
+
   create_table "support_tickets", force: :cascade do |t|
     t.string "bts_channel_id", null: false
     t.string "bts_message_ts"
@@ -853,6 +863,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_31_095720) do
   add_foreign_key "solid_queue_ready_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_recurring_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_scheduled_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
+  add_foreign_key "streak_break_notices", "users"
   add_foreign_key "user_activity_days", "users"
   add_foreign_key "user_login_days", "users"
   add_foreign_key "user_notes", "users"

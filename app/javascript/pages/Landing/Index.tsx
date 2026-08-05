@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Head } from '@inertiajs/react'
 import FireIcon from '@/components/FireIcon'
+import ForgeMusic, { LANDING_TRACKS } from '@/components/forge/ForgeMusic'
 
 function LandingParallaxBg({ zooming }: { zooming: boolean }) {
   const parallaxRef = useRef<HTMLDivElement | null>(null)
@@ -276,6 +277,8 @@ export default function LandingIndex() {
   return (
     <>
       <Head title="Forge" />
+
+      <ForgeMusic tracks={LANDING_TRACKS} position="bottom-4 left-4" />
 
       <div className={`min-h-screen bg-[#0e0e0e] text-[#e5e2e1] relative overflow-hidden flex flex-col ${zooming ? 'landing-zooming' : ''}`}>
         <LandingParallaxBg zooming={zooming} />

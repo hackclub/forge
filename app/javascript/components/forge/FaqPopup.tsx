@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { router, usePage } from '@inertiajs/react'
 import { ForgeLoading } from './useForgeData'
+import GuidesView from './GuidesView'
 
 type SidebarNode = {
   type: 'folder' | 'page'
@@ -103,7 +104,60 @@ function DocsSidebar({
   )
 }
 
+type ResourcesView = 'chooser' | 'guides' | 'docs'
+
 export default function FaqPopup() {
+  const [view, setView] = useState<ResourcesView>('chooser')
+
+  if (view === 'guides') return <GuidesView onBack={() => setView('chooser')} />
+  if (view === 'docs') return <DocsView onBack={() => setView('chooser')} />
+  return <ResourceChooser onSelect={setView} />
+}
+
+function ResourceChooser({ onSelect }: { onSelect: (view: ResourcesView) => void }) {
+  const options = [
+    {
+      view: 'guides' as const,
+      icon: 'route',
+      title: 'Guides',
+      description: 'Interactive step-by-step walkthroughs, with files you can view and download along the way.',
+    },
+    {
+      view: 'docs' as const,
+      icon: 'menu_book',
+      title: 'Forge Docs',
+      description: 'The rulebook — how Forge works, project requirements, shipping, and the FAQ.',
+    },
+  ]
+
+  return (
+    <div className="space-y-6">
+      <p className="text-sm text-stone-400">What are you looking for?</p>
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+        {options.map((option) => (
+          <button
+            key={option.view}
+            type="button"
+            onClick={() => onSelect(option.view)}
+            className="group flex cursor-pointer flex-col items-start gap-3 bg-[#1c1b1b] p-6 text-left ghost-border corner-accents transition-colors hover:bg-[#2a2a2a]"
+          >
+            <span className="material-symbols-outlined text-4xl text-[#ca5924]">{option.icon}</span>
+            <h3 className="font-headline text-xl font-bold text-[#e5e2e1] transition-colors group-hover:text-[#ffb595]">
+              {option.title}
+            </h3>
+            <p className="text-sm text-stone-500">{option.description}</p>
+            <span className="mt-auto inline-flex items-center gap-1.5 pt-2 text-[10px] font-bold uppercase tracking-[0.15em] text-stone-500 transition-colors group-hover:text-[#ffb595]">
+              Open
+              <span className="material-symbols-outlined text-sm">arrow_forward</span>
+            </span>
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function DocsView({ onBack }: { onBack: () => void }) {
   const live = (usePage().props as Record<string, unknown>).docs as DocsData | undefined
   const [cached, setCached] = useState<DocsData | null>(live ?? null)
   const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set())
@@ -149,23 +203,33 @@ export default function FaqPopup() {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[200px_minmax(0,1fr)]">
-      <aside className="lg:max-h-[70vh] lg:overflow-y-auto lg:pr-1">
-        <div className="mb-3 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500">Resources</div>
-        <DocsSidebar
-          nodes={data.sidebar_tree}
-          currentPath={data.current_path}
-          collapsed={collapsed}
-          onToggle={toggleFolder}
-          onSelect={loadDoc}
-        />
-      </aside>
+    <div className="space-y-4">
+      <button
+        type="button"
+        onClick={onBack}
+        className="inline-flex cursor-pointer items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-stone-500 transition-colors hover:text-[#ffb595]"
+      >
+        <span className="material-symbols-outlined text-sm">arrow_back</span>
+        Resources
+      </button>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[200px_minmax(0,1fr)]">
+        <aside className="lg:max-h-[70vh] lg:overflow-y-auto lg:pr-1">
+          <div className="mb-3 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500">Forge Docs</div>
+          <DocsSidebar
+            nodes={data.sidebar_tree}
+            currentPath={data.current_path}
+            collapsed={collapsed}
+            onToggle={toggleFolder}
+            onSelect={loadDoc}
+          />
+        </aside>
 
-      <div
-        className="markdown-content min-w-0"
-        onClick={onContentClick}
-        dangerouslySetInnerHTML={{ __html: data.content_html }}
-      />
+        <div
+          className="markdown-content min-w-0"
+          onClick={onContentClick}
+          dangerouslySetInnerHTML={{ __html: data.content_html }}
+        />
+      </div>
     </div>
   )
 }

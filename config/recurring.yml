@@ -48,3 +48,24 @@ production:
     class: ComputeGuildMultipliersJob
     queue: background
     schedule: every Sunday at 0:00
+
+  contributors_weekly_ping:
+    class: SlackContributorsPingJob
+    queue: background
+    schedule: "0 18 * * 3 America/New_York"
+
+  contributors_channel_invites:
+    class: SlackContributorsInviteJob
+    queue: background
+    schedule: every day at 9am
+
+  streak_break_check:
+    class: StreakBreakCheckJob
+    queue: background
+    schedule: every hour at minute 20
+
+  streak_leaderboard:
+    class: SlackStreakLeaderboardJob
+    queue: background
+    args: [ true ]
+    schedule: "0 10 * * * America/New_York"

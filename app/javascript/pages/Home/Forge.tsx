@@ -131,7 +131,7 @@ const OBJECTS: ForgeObject[] = [
   },
   {
     id: 'explore',
-    label: 'Explore',
+    label: 'Explore/Reels',
     overlay: '/shield.png',
     icon: 'explore',
     tour: 'nav-explore',

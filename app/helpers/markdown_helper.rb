@@ -115,6 +115,20 @@ module MarkdownHelper
     Rails.cache.fetch(key) { render_markdown(cleaned, base_url: base_url) }
   end
 
+  def strip_front_matter_table(text)
+    lines = text.lines
+    i = 0
+    i += 1 while i < lines.length && lines[i].strip.empty?
+    return text unless i < lines.length && lines[i].lstrip.start_with?("|")
+    j = i
+    while j < lines.length
+      line = lines[j]
+      break unless line.lstrip.start_with?("|") || line.strip.empty?
+      j += 1
+    end
+    (lines[j..] || []).join.lstrip
+  end
+
   def docs_metadata(base:, url_prefix:, default_index_title: "")
     paths = Dir.glob(base.join("**/*.md").to_s)
     config_paths = Dir.glob(base.join("**/config.yaml").to_s)
@@ -327,20 +341,6 @@ module MarkdownHelper
 
   def humanize_sidebar_name(name)
     name.to_s.tr("-_", " ").split.map(&:capitalize).join(" ")
-  end
-
-  def strip_front_matter_table(text)
-    lines = text.lines
-    i = 0
-    i += 1 while i < lines.length && lines[i].strip.empty?
-    return text unless i < lines.length && lines[i].lstrip.start_with?("|")
-    j = i
-    while j < lines.length
-      line = lines[j]
-      break unless line.lstrip.start_with?("|") || line.strip.empty?
-      j += 1
-    end
-    (lines[j..] || []).join.lstrip
   end
 
   def parse_guide_metadata(path)
