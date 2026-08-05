@@ -11,7 +11,7 @@ class SlackStreakLeaderboardJob < ApplicationJob
       return
     end
 
-    channel = ENV.fetch("SLACK_FORGE_CHANNEL_ID", nil)
+    channel = ENV.fetch("SLACK_STREAKS_CHANNEL_ID", nil)
     return if channel.blank?
 
     entries = leaderboard_entries

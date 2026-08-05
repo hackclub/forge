@@ -5,7 +5,7 @@ class Admin::SlackPingsController < Admin::ApplicationController
     stats = ContributorStats.weekly_summary
     render inertia: "Admin/SlackPings/Index", props: {
       contributors_channel_configured: ENV["SLACK_CONTRIBUTORS_CHANNEL_ID"].present?,
-      forge_channel_configured: ENV["SLACK_FORGE_CHANNEL_ID"].present?,
+      streaks_channel_configured: ENV["SLACK_STREAKS_CHANNEL_ID"].present?,
       stats_preview: ContributorStats.slack_message(stats),
       recent_breaks: StreakBreakNotice.includes(:user).order(created_at: :desc).limit(15).map { |notice|
         {
