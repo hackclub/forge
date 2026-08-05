@@ -76,55 +76,54 @@ export default function ExplorePopup() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="space-y-5">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-center gap-3">
-          <p className="text-sm text-stone-400">Discover what other forgers are working on.</p>
+          <div className="flex bg-[#141313] ghost-border">
+            {FILTERS.map((f) => {
+              const active = data.filter === f.key
+              return (
+                <button
+                  key={f.key}
+                  type="button"
+                  onClick={() => load({ query: data.query, filter: f.key, page: 1 })}
+                  className={
+                    active
+                      ? 'signature-smolder cursor-pointer px-4 py-2 text-[11px] font-bold uppercase tracking-[0.15em] text-[#4c1a00]'
+                      : 'cursor-pointer px-4 py-2 text-[11px] font-bold uppercase tracking-[0.15em] text-stone-500 transition-colors hover:text-[#e5e2e1]'
+                  }
+                >
+                  {f.label}
+                </button>
+              )
+            })}
+          </div>
           {reelsEnabled && (
             <Link
               href="/reels"
-              className="inline-flex shrink-0 items-center gap-1.5 bg-[#1c1b1b] px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-stone-400 ghost-border transition-colors hover:text-[#ffb595]"
+              className="inline-flex shrink-0 items-center gap-1.5 self-stretch bg-[#141313] px-4 text-[11px] font-bold uppercase tracking-[0.15em] text-stone-500 ghost-border transition-colors hover:text-[#ffb595]"
             >
-              <span className="material-symbols-outlined text-sm">play_circle</span>
+              <span className="material-symbols-outlined text-base">play_circle</span>
               Reels
             </Link>
           )}
         </div>
-        <form onSubmit={search} className="flex w-full gap-2 sm:w-auto">
+        <form onSubmit={search} className="flex w-full lg:w-80">
           <input
             type="search"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             placeholder="Search projects..."
-            className="w-full bg-[#0e0e0e] px-4 py-2 text-sm text-[#e5e2e1] ghost-border placeholder:text-stone-600 focus:outline-none focus:ring-1 focus:ring-[#ca5924]/30 sm:w-64"
+            className="min-w-0 flex-1 bg-[#0e0e0e] px-4 py-2 text-sm text-[#e5e2e1] ghost-border placeholder:text-stone-600 focus:outline-none focus:ring-1 focus:ring-[#ca5924]/30"
           />
           <button
             type="submit"
-            className="shrink-0 bg-[#2a2a2a] px-5 py-2 text-sm font-medium text-[#e5e2e1] ghost-border transition-colors hover:bg-[#3a3939]"
+            aria-label="Search"
+            className="flex shrink-0 cursor-pointer items-center bg-[#2a2a2a] px-3.5 text-stone-300 ghost-border transition-colors hover:bg-[#3a3939] hover:text-[#e5e2e1]"
           >
-            Search
+            <span className="material-symbols-outlined text-lg">search</span>
           </button>
         </form>
-      </div>
-
-      <div className="flex flex-wrap gap-2">
-        {FILTERS.map((f) => {
-          const active = data.filter === f.key
-          return (
-            <button
-              key={f.key}
-              type="button"
-              onClick={() => load({ query: data.query, filter: f.key, page: 1 })}
-              className={
-                active
-                  ? 'signature-smolder cursor-pointer px-4 py-1.5 text-xs font-bold uppercase tracking-[0.15em] text-[#4c1a00]'
-                  : 'cursor-pointer bg-[#1c1b1b] px-4 py-1.5 text-xs font-bold uppercase tracking-[0.15em] text-stone-400 ghost-border transition-colors hover:bg-[#2a2a2a] hover:text-[#e5e2e1]'
-              }
-            >
-              {f.label}
-            </button>
-          )
-        })}
       </div>
 
       {data.projects.length > 0 ? (
@@ -133,54 +132,64 @@ export default function ExplorePopup() {
             {data.projects.map((project) => (
               <div
                 key={project.id}
-                className="group flex flex-col bg-[#1c1b1b] p-1 ghost-border transition-colors hover:bg-[#2a2a2a]"
+                className="group flex flex-col overflow-hidden bg-[#1c1b1b] ghost-border transition-colors duration-200 hover:bg-[#242322]"
               >
                 <Link href={`/projects/${project.id}`} className="block">
-                  <div className="mb-3 flex aspect-[16/10] items-center justify-center overflow-hidden bg-[#0e0e0e]">
+                  <div className="relative aspect-[16/10] overflow-hidden bg-[#0e0e0e]">
                     {project.cover_image_url ? (
-                      <img src={project.cover_image_url} alt={project.name} className="h-full w-full object-cover" />
-                    ) : (
                       <img
-                        src="/orph-building.png"
+                        src={project.cover_image_url}
                         alt={project.name}
-                        className="max-h-[90%] max-w-[90%] object-contain"
+                        className="h-full w-full object-cover transition-transform duration-300 ease-out group-hover:scale-[1.03]"
                       />
+                    ) : (
+                      <div className="flex h-full items-center justify-center">
+                        <img
+                          src="/orph-building.png"
+                          alt={project.name}
+                          className="max-h-[80%] max-w-[80%] object-contain opacity-80"
+                        />
+                      </div>
                     )}
+                    <div className="pointer-events-none absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-black/60 to-transparent" />
+                    <span
+                      className={
+                        project.built
+                          ? 'absolute left-2.5 top-2.5 border border-emerald-400/25 bg-emerald-950/85 px-2 py-1 text-[9px] font-bold uppercase tracking-[0.2em] text-emerald-300'
+                          : 'absolute left-2.5 top-2.5 border border-[#ca5924]/30 bg-[#1c120b]/85 px-2 py-1 text-[9px] font-bold uppercase tracking-[0.2em] text-[#ffb595]'
+                      }
+                    >
+                      {project.built ? 'Built' : 'In Progress'}
+                    </span>
+                    <span
+                      className="absolute bottom-2 right-2.5 inline-flex items-center gap-1 text-[11px] font-medium text-stone-200"
+                      title="Views"
+                    >
+                      <span className="material-symbols-outlined text-sm leading-none">visibility</span>
+                      {project.views_count.toLocaleString()}
+                    </span>
                   </div>
-                  <div className="px-4">
-                    <div className="mb-2 flex items-center justify-between">
-                      <span
-                        className={
-                          project.built
-                            ? 'bg-emerald-900/40 px-2.5 py-0.5 text-[10px] uppercase tracking-widest text-emerald-300'
-                            : 'bg-[#353534] px-2.5 py-0.5 text-[10px] uppercase tracking-widest text-stone-500'
-                        }
-                      >
-                        {project.built ? 'Built' : 'In Progress'}
-                      </span>
-                      <span className="inline-flex items-center gap-1 text-xs text-stone-500" title="Views">
-                        <span className="material-symbols-outlined text-sm leading-none">visibility</span>
-                        {project.views_count.toLocaleString()}
-                      </span>
-                    </div>
-                    <h3 className="mb-1 break-words font-headline text-lg font-medium transition-colors group-hover:text-[#ffb595]">
+                  <div className="px-4 pb-3.5 pt-3.5">
+                    <h3 className="break-words font-headline text-lg font-medium leading-snug text-[#e5e2e1] transition-colors group-hover:text-[#ffb595]">
                       {project.name}
                     </h3>
                     {project.subtitle && (
-                      <p className="mb-3 line-clamp-2 break-words text-sm text-stone-500">{project.subtitle}</p>
+                      <p className="mt-1.5 line-clamp-2 break-words text-sm leading-relaxed text-stone-500">
+                        {project.subtitle}
+                      </p>
                     )}
                   </div>
                 </Link>
                 <Link
                   href={`/users/${project.user_id}`}
-                  className="mt-auto flex items-center gap-2 px-4 pb-4 pt-1 text-stone-400 transition-colors hover:text-[#ffb595]"
+                  className="mt-auto flex items-center gap-2 border-t border-white/5 px-4 py-2.5 text-stone-500 transition-colors hover:text-[#ffb595]"
                 >
                   <img
                     src={project.user_avatar}
                     alt={project.user_display_name}
-                    className="h-6 w-6 rounded-full border border-white/10"
+                    className="h-5 w-5 rounded-full border border-white/10"
                   />
-                  <span className="text-xs">{project.user_display_name}</span>
+                  <span className="truncate text-xs">{project.user_display_name}</span>
                 </Link>
               </div>
             ))}

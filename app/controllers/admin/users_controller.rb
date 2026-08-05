@@ -282,6 +282,9 @@ class Admin::UsersController < Admin::ApplicationController
     added_roles.each { |role| @user.apply_default_permissions_for_role(role) }
     @user.save!
     audit!("user.roles_updated", target: @user, metadata: { added: added_roles, removed: removed_roles, current: new_roles })
+    if (added_roles & SlackContributorsInviteJob::CONTRIBUTOR_ROLES).any?
+      SlackContributorsInviteJob.perform_later(@user.id)
+    end
     redirect_to admin_user_path(@user), notice: "Roles updated."
   end
 

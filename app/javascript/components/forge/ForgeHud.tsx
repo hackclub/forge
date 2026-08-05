@@ -52,24 +52,6 @@ export default function ForgeHud({ coinBalance }: { coinBalance: number }) {
 
   return (
     <>
-      {user.is_staff && (
-        <Link
-          href="/admin"
-          title="Admin dashboard"
-          className="group absolute left-4 top-4 z-30 flex items-center gap-1.5 bg-[#1c1b1b]/90 px-3 py-2 corner-accents ghost-border transition-colors hover:bg-[#2a2a2a]"
-        >
-          <span
-            className="material-symbols-outlined text-lg text-[#ca5924]"
-            style={{ fontVariationSettings: "'FILL' 1" }}
-          >
-            admin_panel_settings
-          </span>
-          <span className="font-headline text-[11px] font-bold uppercase tracking-wider text-stone-300 group-hover:text-[#ffb595]">
-            Admin
-          </span>
-        </Link>
-      )}
-
       <Link
         href="/settings"
         title="Settings"
@@ -90,6 +72,26 @@ export default function ForgeHud({ coinBalance }: { coinBalance: number }) {
           </p>
         </div>
       </Link>
+
+      {user.is_staff && (
+        <div className="absolute bottom-16 right-4 z-30 md:bottom-4">
+          <Link
+            href="/admin"
+            title="Admin dashboard"
+            className="group flex items-center gap-1.5 bg-[#1c1b1b]/90 px-3 py-2 corner-accents ghost-border transition-colors hover:bg-[#2a2a2a]"
+          >
+            <span
+              className="material-symbols-outlined text-lg text-[#ca5924]"
+              style={{ fontVariationSettings: "'FILL' 1" }}
+            >
+              admin_panel_settings
+            </span>
+            <span className="font-headline text-[11px] font-bold uppercase tracking-wider text-stone-300 group-hover:text-[#ffb595]">
+              Admin
+            </span>
+          </Link>
+        </div>
+      )}
 
       <div className="absolute right-5 top-4 z-30 hidden items-center gap-4 md:flex xl:gap-5">
         <Counter img="/fire.png" value={user.current_streak} label="Day streak" />
