@@ -163,7 +163,25 @@ class Admin::OrdersController < Admin::ApplicationController
       reviewer_name: order.reviewer&.display_name,
       reviewed_at: order.reviewed_at&.strftime("%b %d, %Y %H:%M"),
       fulfilled_at: order.fulfilled_at&.strftime("%b %d, %Y %H:%M"),
-      created_at: order.created_at.strftime("%b %d, %Y %H:%M")
+      created_at: order.created_at.strftime("%b %d, %Y %H:%M"),
+      shipping_address: shipping_address(order)
+    }
+  end
+
+  def shipping_address(order)
+    return nil unless order.shop_item?
+
+    user = order.user
+    return nil if user.address_line1.blank?
+
+    {
+      address_line1: user.address_line1,
+      address_line2: user.address_line2,
+      city: user.city,
+      state: user.state,
+      postal_code: user.postal_code,
+      country: user.country,
+      phone_number: user.phone_number
     }
   end
 

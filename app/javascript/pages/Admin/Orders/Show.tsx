@@ -37,6 +37,17 @@ interface OrderDetail {
   reviewed_at: string | null
   fulfilled_at: string | null
   created_at: string
+  shipping_address: ShippingAddress | null
+}
+
+interface ShippingAddress {
+  address_line1: string
+  address_line2: string | null
+  city: string | null
+  state: string | null
+  postal_code: string | null
+  country: string | null
+  phone_number: string | null
 }
 
 interface Warning {
@@ -253,6 +264,35 @@ export default function AdminOrdersShow({
                   ))}
                 </select>
               </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {order.kind === 'shop_item' && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Shipping address</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {order.shipping_address ? (
+                <div className="text-sm space-y-0.5">
+                  <p>{order.shipping_address.address_line1}</p>
+                  {order.shipping_address.address_line2 && <p>{order.shipping_address.address_line2}</p>}
+                  <p>
+                    {[order.shipping_address.city, order.shipping_address.state, order.shipping_address.postal_code]
+                      .filter(Boolean)
+                      .join(', ')}
+                  </p>
+                  {order.shipping_address.country && <p>{order.shipping_address.country}</p>}
+                  {order.shipping_address.phone_number && (
+                    <p className="text-muted-foreground pt-1">Phone: {order.shipping_address.phone_number}</p>
+                  )}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  No address on file. Ask {order.user_display_name} to set their address in HCA before shipping.
+                </p>
+              )}
             </CardContent>
           </Card>
         )}
