@@ -3,7 +3,6 @@ import { useEffect, useMemo, useState } from 'react'
 import type { SharedProps } from '@/types'
 
 interface Milestone {
-  threshold: number
   name: string
   reached: boolean
   visual_position: number
@@ -11,7 +10,6 @@ interface Milestone {
 
 interface EmberEntry {
   id: number
-  hours: number
   created_at: string
   user: { id: number; display_name: string; avatar: string | null }
   project: { id: number; name: string }
@@ -26,8 +24,6 @@ interface GuildRow {
 }
 
 interface RelightStats {
-  goal_hours: number
-  total_hours: number
   percent: number
   visual_percent: number
   starts_at: string
@@ -109,16 +105,15 @@ export default function Index({ stats, my_hours }: { stats: RelightStats; my_hou
             Relight the Forge
           </h1>
           <p className="text-stone-400 text-sm sm:text-base mb-6">
-            The great fire has gone cold. Every hour you build feeds the flame &mdash; together we need{' '}
-            <span className="text-[#e3b24c] font-bold">{stats.goal_hours.toLocaleString()} hours</span> to bring the
-            forge roaring back to life.
+            The great fire has gone cold. Every hour you build feeds the flame &mdash; keep stoking, and together
+            we&apos;ll bring the forge <span className="text-[#e3b24c] font-bold">roaring back to life</span>.
           </p>
           <p className="text-2xl sm:text-3xl font-headline text-[#ca5924]">
             {relit ? 'The Forge burns once more.' : (currentMilestone?.name ?? 'Cold Coals')}
           </p>
           {!relit && nextMilestone && (
             <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-stone-500 mt-2">
-              Next: {nextMilestone.name} at {nextMilestone.threshold.toLocaleString()}h
+              Next: {nextMilestone.name}
             </p>
           )}
         </div>
@@ -127,9 +122,9 @@ export default function Index({ stats, my_hours }: { stats: RelightStats; my_hou
       <div className="max-w-5xl mx-auto px-6 py-10 space-y-8">
         <section className="bg-[#1c1b1b] ghost-border p-6 sm:p-8">
           <div className="flex items-center justify-between mb-3">
-            <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-stone-500">Hours fed to the flame</p>
+            <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-stone-500">The relighting</p>
             <span className="text-[10px] uppercase tracking-[0.3em] font-bold text-[#ffb595]">
-              {Math.floor(stats.percent)}%
+              {Math.floor(stats.percent)}% relit
             </span>
           </div>
           <div className="h-3 bg-[#0e0e0e] ghost-border overflow-hidden">
@@ -138,19 +133,14 @@ export default function Index({ stats, my_hours }: { stats: RelightStats; my_hou
               style={{ width: `${stats.percent}%` }}
             />
           </div>
-          <div className="flex items-center justify-between mt-2">
-            <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-500">
-              {stats.total_hours.toLocaleString()} / {stats.goal_hours.toLocaleString()} raw hours
-            </span>
-            <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">
-              The flame above burns ahead of the raw count &mdash; early hours light it fastest
-            </span>
-          </div>
+          <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600 mt-2 text-right">
+            The flame above burns ahead of this count &mdash; early fuel lights it fastest
+          </p>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 mt-8">
             {stats.milestones.map((m) => (
               <div
-                key={m.threshold}
+                key={m.name}
                 className={`ghost-border p-3 text-center ${m.reached ? 'bg-[#ca5924]/10' : 'bg-[#0e0e0e]'}`}
               >
                 <span
@@ -163,9 +153,6 @@ export default function Index({ stats, my_hours }: { stats: RelightStats; my_hou
                   className={`font-headline text-sm mt-1 ${m.reached ? 'text-[#e5e2e1]' : 'text-stone-600'}`}
                 >
                   {m.name}
-                </p>
-                <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-500 mt-1">
-                  {m.threshold.toLocaleString()}h
                 </p>
               </div>
             ))}
@@ -206,10 +193,9 @@ export default function Index({ stats, my_hours }: { stats: RelightStats; my_hou
                     )}
                     <div className="min-w-0 flex-1">
                       <p className="text-sm text-stone-200 truncate">
-                        <span className="font-bold">{entry.user.display_name}</span> fed the forge{' '}
-                        <span className="text-[#ffb595] font-bold">{entry.hours}h</span>
+                        <span className="font-bold">{entry.user.display_name}</span> stoked the forge with{' '}
+                        <span className="text-[#ffb595] font-bold">{entry.project.name}</span>
                       </p>
-                      <p className="text-xs text-stone-500 truncate">{entry.project.name}</p>
                     </div>
                     <span className="text-[10px] uppercase tracking-wider font-bold text-stone-600 shrink-0">
                       {timeAgo(entry.created_at)}

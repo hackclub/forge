@@ -27,7 +27,10 @@ class RelightStatsTest < ActiveSupport::TestCase
     make_devlog(user, hours: 9, project_attrs: { shadow_banned: true })
     make_devlog(user, hours: 11, project_attrs: { discarded_at: Time.current })
 
-    assert_equal 3.0, RelightStats.new.shared_props[:total_hours]
+    props = RelightStats.new.shared_props
+    assert_equal 0.02, props[:percent]
+    assert_not props.key?(:total_hours)
+    assert_not props.key?(:goal_hours)
   end
 
   test "visual percent follows the curve" do
@@ -54,7 +57,7 @@ class RelightStatsTest < ActiveSupport::TestCase
     assert_equal 1, feed.length
     entry = feed.first
     assert_equal devlog.id, entry[:id]
-    assert_equal 2.5, entry[:hours]
+    assert_not entry.key?(:hours)
     assert_equal user.display_name, entry[:user][:display_name]
     assert_equal devlog.project.name, entry[:project][:name]
   end

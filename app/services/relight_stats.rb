@@ -42,8 +42,6 @@ class RelightStats
   def shared_props
     total = total_hours
     {
-      goal_hours: GOAL_HOURS,
-      total_hours: total.round(1),
       percent: (total / GOAL_HOURS * 100).clamp(0, 100).round(2),
       visual_percent: self.class.curved_percent(total),
       starts_at: START_AT.iso8601,
@@ -77,10 +75,11 @@ class RelightStats
 
   def milestones(total)
     MILESTONES.map { |m|
-      m.merge(
+      {
+        name: m[:name],
         reached: total >= m[:threshold],
         visual_position: self.class.curved_percent(m[:threshold].to_f)
-      )
+      }
     }
   end
 
@@ -94,7 +93,6 @@ class RelightStats
       .map { |d|
         {
           id: d.id,
-          hours: d.time_hours.to_f,
           created_at: d.created_at.iso8601,
           user: { id: d.user.id, display_name: d.user.display_name, avatar: d.user.avatar },
           project: { id: d.project.id, name: d.project.name }
