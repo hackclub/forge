@@ -5,7 +5,7 @@ class StreakBreakCheckJob < ApplicationJob
   MAX_RANDOM_DELAY = 50.minutes
 
   def perform(randomize = true)
-    channel = ENV.fetch("SLACK_FORGE_CHANNEL_ID", nil)
+    channel = ENV.fetch("SLACK_STREAKS_CHANNEL_ID", nil)
     return if channel.blank?
 
     recently_active = UserActivityDay.where(active_on: 4.days.ago.to_date..).select(:user_id)

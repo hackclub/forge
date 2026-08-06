@@ -15,12 +15,12 @@ interface StreakBreak {
 
 export default function AdminSlackPingsIndex({
   contributors_channel_configured,
-  forge_channel_configured,
+  streaks_channel_configured,
   stats_preview,
   recent_breaks,
 }: {
   contributors_channel_configured: boolean
-  forge_channel_configured: boolean
+  streaks_channel_configured: boolean
   stats_preview: string
   recent_breaks: StreakBreak[]
 }) {
@@ -38,16 +38,16 @@ export default function AdminSlackPingsIndex({
       icon: Trophy,
       title: 'Streak leaderboard',
       description:
-        'Posts the daily streak leaderboard (streaks + coins) to the main forge channel. Also runs automatically every day at a randomized time.',
-      enabled: forge_channel_configured,
+        'Posts the daily streak leaderboard (streaks + coins) to #forge. Also runs automatically every day at a randomized time.',
+      enabled: streaks_channel_configured,
     },
     {
       path: '/admin/slack_pings/streak_breaks',
       icon: HeartCrack,
       title: 'Streak break check',
       description:
-        'Checks for freshly broken streaks and announces them in the main forge channel immediately (the hourly check posts at randomized times).',
-      enabled: forge_channel_configured,
+        'Checks for freshly broken streaks and announces them in #forge immediately (the hourly check posts at randomized times).',
+      enabled: streaks_channel_configured,
     },
     {
       path: '/admin/slack_pings/invites',
@@ -71,11 +71,11 @@ export default function AdminSlackPingsIndex({
         </p>
       </div>
 
-      {(!contributors_channel_configured || !forge_channel_configured) && (
+      {(!contributors_channel_configured || !streaks_channel_configured) && (
         <Card className="border-destructive/40 bg-destructive/5">
           <CardContent className="p-3 text-sm text-destructive">
             {!contributors_channel_configured && <p>`SLACK_CONTRIBUTORS_CHANNEL_ID` is not set — contributor pings and invites are disabled.</p>}
-            {!forge_channel_configured && <p>`SLACK_FORGE_CHANNEL_ID` is not set — streak announcements are disabled.</p>}
+            {!streaks_channel_configured && <p>`SLACK_STREAKS_CHANNEL_ID` is not set — streak announcements are disabled.</p>}
           </CardContent>
         </Card>
       )}
