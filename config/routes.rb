@@ -422,6 +422,7 @@ Rails.application.routes.draw do
 
   get "explore" => "explore#index", as: :explore
   get "leaderboard" => "leaderboard#index", as: :leaderboard
+  get "relight" => "relight#index", as: :relight
   get "referrals" => "referrals#index", as: :referrals
   get "shop" => "shop#index", as: :shop
   post "shop/orders" => "shop#create", as: :shop_orders

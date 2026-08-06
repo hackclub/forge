@@ -28,6 +28,14 @@ const navItems: NavItem[] = [
   },
   { href: '/guilds', label: 'Guilds', icon: 'shield', authOnly: true, tour: undefined, flag: 'guilds_enabled' },
   {
+    href: '/relight',
+    label: 'Relight',
+    icon: 'local_fire_department',
+    authOnly: true,
+    tour: undefined,
+    flag: 'relight_enabled',
+  },
+  {
     href: '/news',
     label: 'News',
     icon: 'campaign',

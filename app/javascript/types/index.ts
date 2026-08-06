@@ -38,6 +38,7 @@ export interface SharedProps {
   maintenance_mode: boolean
   reels_enabled: boolean
   guilds_enabled: boolean
+  relight_enabled: boolean
   forge_ui_enabled: boolean
   errors: Record<string, string[]>
   [key: string]: unknown
