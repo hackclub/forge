@@ -33,7 +33,7 @@ class StreakBreakCheckJob < ApplicationJob
 
     StreakBreakNotice.create!(user: user, broke_on: yesterday, streak_length: streak)
 
-    text = ":broken_heart: <@#{user.slack_id}> broke their #{streak}-day streak. The forge grows cold — feed it some hours!"
+    text = ":broken_heart: <@#{user.slack_id}> broke their #{streak} day streak :shocked:. The forge slowly dies, FEED IT HOURS TO REKINDLE THE ANCIENT FORGE"
     wait = randomize ? rand(0..MAX_RANDOM_DELAY.to_i).seconds : 0.seconds
     SlackChannelMessageJob.set(wait: wait).perform_later(channel: channel, text: text)
   rescue ActiveRecord::RecordNotUnique
