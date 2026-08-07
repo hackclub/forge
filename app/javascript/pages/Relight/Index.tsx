@@ -76,7 +76,7 @@ export default function Index({ stats, my_hours }: { stats: RelightStats; my_hou
     <div className="min-h-screen text-stone-200">
       <Head title="Relight the Forge" />
 
-      <section className="relative min-h-[80vh] overflow-hidden bg-[#0e0e0e] flex items-center justify-center">
+      <div className="fixed inset-0 pointer-events-none">
         <div
           className="absolute inset-0"
           style={{ ...fireLayer, filter: 'grayscale(1) brightness(0.35)', opacity: 0.5 }}
@@ -90,13 +90,15 @@ export default function Index({ stats, my_hours }: { stats: RelightStats; my_hou
           }}
         />
         <div
-          className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#ca5924]/20 to-transparent pointer-events-none"
+          className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#ca5924]/20 to-transparent"
           style={{ height: `${Math.max(revealed, 8)}%`, transition: 'height 1.2s ease-out' }}
         />
         {embers.map((e, i) => (
           <span key={i} className="forge-ember" style={e} />
         ))}
+      </div>
 
+      <section className="relative min-h-[80vh] flex items-center justify-center">
         <div className="relative z-10 text-center px-6 max-w-3xl mx-auto">
           <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-stone-500 mb-3">
             A community quest &middot; {stats.days_remaining} days remaining
@@ -105,8 +107,8 @@ export default function Index({ stats, my_hours }: { stats: RelightStats; my_hou
             Relight the Forge
           </h1>
           <p className="text-stone-400 text-sm sm:text-base mb-6">
-            The great fire has gone cold. Every hour you build feeds the flame &mdash; keep stoking, and together
-            we&apos;ll bring the forge <span className="text-[#e3b24c] font-bold">roaring back to life</span>.
+            The great forge has gone cold. Every project you build feeds the flame. Your job as a community is to keep feeding the fire and then together
+            we&apos;ll bring the forge <span className="text-[#e3b24c] font-bold">roaring back to life</span>!
           </p>
           <p className="text-2xl sm:text-3xl font-headline text-[#ca5924]">
             {relit ? 'The Forge burns once more.' : (currentMilestone?.name ?? 'Cold Coals')}
@@ -119,7 +121,7 @@ export default function Index({ stats, my_hours }: { stats: RelightStats; my_hou
         </div>
       </section>
 
-      <div className="max-w-5xl mx-auto px-6 py-10 space-y-8">
+      <div className="relative max-w-5xl mx-auto px-6 py-10 space-y-8">
         <section className="bg-[#1c1b1b] ghost-border p-6 sm:p-8">
           <div className="flex items-center justify-between mb-3">
             <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-stone-500">The relighting</p>
