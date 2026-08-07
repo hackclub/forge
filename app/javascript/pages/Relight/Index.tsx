@@ -5,7 +5,6 @@ import type { SharedProps } from '@/types'
 interface Milestone {
   name: string
   reached: boolean
-  visual_position: number
 }
 
 interface EmberEntry {
@@ -25,7 +24,6 @@ interface GuildRow {
 
 interface RelightStats {
   percent: number
-  visual_percent: number
   starts_at: string
   ends_at: string
   days_remaining: number
@@ -47,18 +45,18 @@ export default function Index({ stats, my_hours }: { stats: RelightStats; my_hou
   const [revealed, setRevealed] = useState(0)
 
   useEffect(() => {
-    const frame = requestAnimationFrame(() => setRevealed(stats.visual_percent))
+    const frame = requestAnimationFrame(() => setRevealed(stats.percent))
     return () => cancelAnimationFrame(frame)
-  }, [stats.visual_percent])
+  }, [stats.percent])
 
   const embers = useMemo(
     () =>
-      Array.from({ length: 6 + Math.round(stats.visual_percent / 8) }, () => ({
+      Array.from({ length: 6 + Math.round(stats.percent / 8) }, () => ({
         left: `${5 + Math.random() * 90}%`,
         animationDelay: `${Math.random() * 4}s`,
         animationDuration: `${2.5 + Math.random() * 3}s`,
       })),
-    [stats.visual_percent]
+    [stats.percent]
   )
 
   const currentMilestone = [...stats.milestones].reverse().find((m) => m.reached)
@@ -137,10 +135,6 @@ export default function Index({ stats, my_hours }: { stats: RelightStats; my_hou
               style={{ width: `${stats.percent}%` }}
             />
           </div>
-          <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600 mt-2 text-right">
-            The flame above burns ahead of this count &mdash; early fuel lights it fastest
-          </p>
-
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 mt-8">
             {stats.milestones.map((m) => (
               <div
@@ -197,7 +191,7 @@ export default function Index({ stats, my_hours }: { stats: RelightStats; my_hou
                     )}
                     <div className="min-w-0 flex-1">
                       <p className="text-sm text-stone-200 truncate">
-                        <span className="font-bold">{entry.user.display_name}</span> stoked the forge with{' '}
+                        <span className="font-bold">{entry.user.display_name}</span> FED the forge with{' '}
                         <span className="text-[#ffb595] font-bold">{entry.project.name}</span>
                       </p>
                     </div>

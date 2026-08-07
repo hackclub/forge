@@ -2,7 +2,6 @@ class RelightStats
   GOAL_HOURS = 15_000.0
   START_AT = Time.utc(2026, 8, 7)
   END_AT = Time.utc(2026, 11, 7)
-  CURVE_EXPONENT = 0.55
   CACHE_KEY = "relight/shared/v1".freeze
   CACHE_TTL = 1.minute
   FEED_LIMIT = 12
@@ -33,17 +32,10 @@ class RelightStats
       .sum(:time_hours).to_f.round(1)
   end
 
-  def self.curved_percent(hours)
-    return 0.0 unless hours.positive?
-
-    (((hours / GOAL_HOURS)**CURVE_EXPONENT) * 100).clamp(0, 100).round(2)
-  end
-
   def shared_props
     total = total_hours
     {
       percent: (total / GOAL_HOURS * 100).clamp(0, 100).round(2),
-      visual_percent: self.class.curved_percent(total),
       starts_at: START_AT.iso8601,
       ends_at: END_AT.iso8601,
       days_remaining: days_remaining,
@@ -75,11 +67,7 @@ class RelightStats
 
   def milestones(total)
     MILESTONES.map { |m|
-      {
-        name: m[:name],
-        reached: total >= m[:threshold],
-        visual_position: self.class.curved_percent(m[:threshold].to_f)
-      }
+      { name: m[:name], reached: total >= m[:threshold] }
     }
   end
 

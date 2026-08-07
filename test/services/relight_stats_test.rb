@@ -33,12 +33,6 @@ class RelightStatsTest < ActiveSupport::TestCase
     assert_not props.key?(:goal_hours)
   end
 
-  test "visual percent follows the curve" do
-    assert_equal 0.0, RelightStats.curved_percent(0.0)
-    assert_in_delta 22.55, RelightStats.curved_percent(1_000.0), 0.1
-    assert_equal 100.0, RelightStats.curved_percent(15_000.0)
-  end
-
   test "milestones flag reached thresholds" do
     user = make_user
     make_devlog(user, hours: 1_200)
@@ -46,7 +40,6 @@ class RelightStatsTest < ActiveSupport::TestCase
     milestones = RelightStats.new.shared_props[:milestones]
     reached = milestones.select { |m| m[:reached] }.map { |m| m[:name] }
     assert_equal [ "Cold Coals", "First Embers" ], reached
-    assert milestones.all? { |m| m.key?(:visual_position) }
   end
 
   test "ember feed serializes recent devlogs" do
