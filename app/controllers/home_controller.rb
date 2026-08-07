@@ -24,6 +24,7 @@ class HomeController < ApplicationController
         created_at: current_user.created_at.strftime("%B %d, %Y")
       },
       coin_balance: current_user.coin_balance,
+      relight_percent: relight_enabled? ? RelightStats.shared_props[:percent] : nil,
       stats: {
         projects_count: projects.size + collaborated.size
       },
