@@ -1,7 +1,7 @@
 class RelightStats
   GOAL_HOURS = 15_000.0
-  START_AT = Time.utc(2026, 8, 10)
-  END_AT = Time.utc(2026, 11, 10)
+  START_AT = Time.utc(2026, 8, 7)
+  END_AT = Time.utc(2026, 11, 7)
   CURVE_EXPONENT = 0.55
   CACHE_KEY = "relight/shared/v1".freeze
   CACHE_TTL = 1.minute
