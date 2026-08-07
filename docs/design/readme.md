@@ -30,6 +30,6 @@ To start writing your README, you can start with an overview of your project tha
 * Known Issues (if any)  
 * Credits (Don’t forget this, if you used any open-source firmware or others' work)
 
-You can ignore things that arent applicable to your project
+You can ignore things that aren't applicable to your project
 
 For learning more about Markdown, I'd recommend [this guide](https://gist.github.com/cuonggt/9b7d08a597b167299f0d).
