@@ -70,7 +70,7 @@ class ApplicationController < ActionController::Base
   end
 
   def forge_ui_enabled?
-    current_user&.has_role?("forge_ui") || current_user&.admin?
+    FeatureFlag.enabled?("forge_ui") || current_user&.has_role?("forge_ui") || current_user&.admin?
   end
 
   def require_guilds_enabled!
