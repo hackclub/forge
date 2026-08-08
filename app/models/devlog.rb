@@ -20,6 +20,7 @@
 #
 # Indexes
 #
+#  index_devlogs_on_created_at  (created_at)
 #  index_devlogs_on_project_id  (project_id)
 #  index_devlogs_on_status      (status)
 #  index_devlogs_on_user_id     (user_id)

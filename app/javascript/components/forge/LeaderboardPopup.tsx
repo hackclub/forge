@@ -71,6 +71,22 @@ function GuildLeaderboardTable({ rows, mine }: { rows: GuildRow[]; mine: string 
           )
         })}
       </div>
+      <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+        <Link
+          href="/guilds"
+          className="flex flex-1 items-center justify-center gap-2 px-4 py-2 text-xs font-bold uppercase tracking-wider signature-smolder text-[#4c1a00]"
+        >
+          <span className="material-symbols-outlined text-base">shield</span>
+          Your guild
+        </Link>
+        <Link
+          href="/referrals"
+          className="flex flex-1 items-center justify-center gap-2 bg-[#1c1b1b] px-4 py-2 text-xs font-bold uppercase tracking-wider text-stone-300 ghost-border transition-colors hover:bg-[#2a2a2a] hover:text-[#ffb595]"
+        >
+          <span className="material-symbols-outlined text-base">group_add</span>
+          Invite friends
+        </Link>
+      </div>
     </div>
   )
 }

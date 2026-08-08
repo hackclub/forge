@@ -50,6 +50,7 @@ class ApplicationController < ActionController::Base
   inertia_share maintenance_mode: -> { FeatureFlag.enabled?("maintenance_mode") }
   inertia_share reels_enabled: -> { reels_enabled? }
   inertia_share guilds_enabled: -> { guilds_enabled? }
+  inertia_share relight_enabled: -> { relight_enabled? }
   inertia_share forge_ui_enabled: -> { forge_ui_enabled? }
   inertia_share sign_in_path: -> { signin_path }
   inertia_share sign_out_path: -> { signout_path }
@@ -69,11 +70,19 @@ class ApplicationController < ActionController::Base
   end
 
   def forge_ui_enabled?
-    current_user&.has_role?("forge_ui") || current_user&.admin?
+    FeatureFlag.enabled?("forge_ui") || current_user&.has_role?("forge_ui") || current_user&.admin?
   end
 
   def require_guilds_enabled!
     raise ActionController::RoutingError, "Not Found" unless guilds_enabled?
+  end
+
+  def relight_enabled?
+    FeatureFlag.enabled?("relight") || current_user&.admin?
+  end
+
+  def require_relight_enabled!
+    raise ActionController::RoutingError, "Not Found" unless relight_enabled?
   end
 
   private
@@ -144,7 +153,7 @@ class ApplicationController < ActionController::Base
     return if current_user.onboarded_at.nil?
     return unless request.get? || request.head?
     return if request.xhr? || request.format.json?
-    return if request.path.start_with?("/auth/", "/signin", "/signout", "/sorry", "/admin", "/guilds/choose")
+    return if request.path.start_with?("/auth/", "/signin", "/signout", "/sorry", "/admin", "/guilds/choose", "/relight")
 
     redirect_to new_guild_choice_path
   end

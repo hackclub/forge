@@ -1,201 +1,255 @@
 # == Route Map
 #
 # Routes for application:
-#                                   Prefix Verb   URI Pattern                                                                                       Controller#Action
-#                                          GET    /(*path)(.:format)                                                                                redirect(301) {host: "127.0.0.1"}
-#                               admin_root GET    /admin(.:format)                                                                                  admin/static_pages#index
-#                            admin_pitches GET    /admin/pitches(.:format)                                                                          admin/projects#pitches
-#                            admin_reviews GET    /admin/reviews(.:format)                                                                          admin/projects#reviews
-#                     review_admin_project POST   /admin/projects/:id/review(.:format)                                                              admin/projects#review
-#                    restore_admin_project POST   /admin/projects/:id/restore(.:format)                                                             admin/projects#restore
-#              toggle_hidden_admin_project POST   /admin/projects/:id/toggle_hidden(.:format)                                                       admin/projects#toggle_hidden
-#          toggle_staff_pick_admin_project POST   /admin/projects/:id/toggle_staff_pick(.:format)                                                   admin/projects#toggle_staff_pick
-#                change_tier_admin_project POST   /admin/projects/:id/change_tier(.:format)                                                         admin/projects#change_tier
-#                   add_note_admin_project POST   /admin/projects/:id/add_note(.:format)                                                            admin/projects#add_note
-#               destroy_note_admin_project DELETE /admin/projects/:id/notes/:note_id(.:format)                                                      admin/projects#destroy_note
-#                           admin_projects GET    /admin/projects(.:format)                                                                         admin/projects#index
-#                            admin_project GET    /admin/projects/:id(.:format)                                                                     admin/projects#show
-#                                          DELETE /admin/projects/:id(.:format)                                                                     admin/projects#destroy
-#                  update_roles_admin_user PATCH  /admin/users/:id/update_roles(.:format)                                                           admin/users#update_roles
-#            update_permissions_admin_user PATCH  /admin/users/:id/update_permissions(.:format)                                                     admin/users#update_permissions
-#                       restore_admin_user POST   /admin/users/:id/restore(.:format)                                                                admin/users#restore
-#                           ban_admin_user POST   /admin/users/:id/ban(.:format)                                                                    admin/users#ban
-#                         unban_admin_user POST   /admin/users/:id/unban(.:format)                                                                  admin/users#unban
-#                      add_note_admin_user POST   /admin/users/:id/add_note(.:format)                                                               admin/users#add_note
-#                  destroy_note_admin_user DELETE /admin/users/:id/notes/:note_id(.:format)                                                         admin/users#destroy_note
-#                      add_kudo_admin_user POST   /admin/users/:id/add_kudo(.:format)                                                               admin/users#add_kudo
-#                  destroy_kudo_admin_user DELETE /admin/users/:id/kudos/:kudo_id(.:format)                                                         admin/users#destroy_kudo
-#                     add_badge_admin_user POST   /admin/users/:id/add_badge(.:format)                                                              admin/users#add_badge
-#                 destroy_badge_admin_user DELETE /admin/users/:id/badges/:badge_id(.:format)                                                       admin/users#destroy_badge
-#                  adjust_coins_admin_user POST   /admin/users/:id/adjust_coins(.:format)                                                           admin/users#adjust_coins
-#                  coin_history_admin_user GET    /admin/users/:id/coin_history(.:format)                                                           admin/users#coin_history
-#          toggle_shop_unlocked_admin_user POST   /admin/users/:id/toggle_shop_unlocked(.:format)                                                   admin/users#toggle_shop_unlocked
-#     toggle_maintenance_bypass_admin_user POST   /admin/users/:id/toggle_maintenance_bypass(.:format)                                              admin/users#toggle_maintenance_bypass
-#        generate_referral_code_admin_user POST   /admin/users/:id/generate_referral_code(.:format)                                                 admin/users#generate_referral_code
-#    update_fulfillment_regions_admin_user PATCH  /admin/users/:id/update_fulfillment_regions(.:format)                                             admin/users#update_fulfillment_regions
-#                              admin_users GET    /admin/users(.:format)                                                                            admin/users#index
-#                               admin_user GET    /admin/users/:id(.:format)                                                                        admin/users#show
-#                                          DELETE /admin/users/:id(.:format)                                                                        admin/users#destroy
-#                toggle_admin_feature_flag POST   /admin/feature_flags/:id/toggle(.:format)                                                         admin/feature_flags#toggle
-#                      admin_feature_flags GET    /admin/feature_flags(.:format)                                                                    admin/feature_flags#index
-#                                          POST   /admin/feature_flags(.:format)                                                                    admin/feature_flags#create
-#                       admin_feature_flag DELETE /admin/feature_flags/:id(.:format)                                                                admin/feature_flags#destroy
-#                approve_admin_reel_payout POST   /admin/reel_payouts/:id/approve(.:format)                                                         admin/reel_payouts#approve
-#                 reject_admin_reel_payout POST   /admin/reel_payouts/:id/reject(.:format)                                                          admin/reel_payouts#reject
-#                       admin_reel_payouts GET    /admin/reel_payouts(.:format)                                                                     admin/reel_payouts#index
-#                     toggle_admin_reel_ad POST   /admin/reel_ads/:id/toggle(.:format)                                                              admin/reel_ads#toggle
-#                           admin_reel_ads GET    /admin/reel_ads(.:format)                                                                         admin/reel_ads#index
-#                                          POST   /admin/reel_ads(.:format)                                                                         admin/reel_ads#create
-#                            admin_reel_ad PATCH  /admin/reel_ads/:id(.:format)                                                                     admin/reel_ads#update
-#                                          PUT    /admin/reel_ads/:id(.:format)                                                                     admin/reel_ads#update
-#                                          DELETE /admin/reel_ads/:id(.:format)                                                                     admin/reel_ads#destroy
-#                   toggle_admin_news_post POST   /admin/news_posts/:id/toggle(.:format)                                                            admin/news_posts#toggle
-#                         admin_news_posts GET    /admin/news_posts(.:format)                                                                       admin/news_posts#index
-#                                          POST   /admin/news_posts(.:format)                                                                       admin/news_posts#create
-#                          admin_news_post PATCH  /admin/news_posts/:id(.:format)                                                                   admin/news_posts#update
-#                                          PUT    /admin/news_posts/:id(.:format)                                                                   admin/news_posts#update
-#                                          DELETE /admin/news_posts/:id(.:format)                                                                   admin/news_posts#destroy
-#                      approve_admin_order POST   /admin/orders/:id/approve(.:format)                                                               admin/orders#approve
-#                       reject_admin_order POST   /admin/orders/:id/reject(.:format)                                                                admin/orders#reject
-#                      fulfill_admin_order POST   /admin/orders/:id/fulfill(.:format)                                                               admin/orders#fulfill
-#                     reassign_admin_order POST   /admin/orders/:id/reassign(.:format)                                                              admin/orders#reassign
-#                             admin_orders GET    /admin/orders(.:format)                                                                           admin/orders#index
-#                              admin_order GET    /admin/orders/:id(.:format)                                                                       admin/orders#show
-#                         admin_shop_items GET    /admin/shop_items(.:format)                                                                       admin/shop_items#index
-#                                          POST   /admin/shop_items(.:format)                                                                       admin/shop_items#create
-#                          admin_shop_item PATCH  /admin/shop_items/:id(.:format)                                                                   admin/shop_items#update
-#                                          PUT    /admin/shop_items/:id(.:format)                                                                   admin/shop_items#update
-#                                          DELETE /admin/shop_items/:id(.:format)                                                                   admin/shop_items#destroy
-#                       export_admin_rsvps GET    /admin/rsvps/export(.:format)                                                                     admin/rsvps#export
-#                              admin_rsvps GET    /admin/rsvps(.:format)                                                                            admin/rsvps#index
-#                               admin_rsvp DELETE /admin/rsvps/:id(.:format)                                                                        admin/rsvps#destroy
-#               approve_all_admin_referral POST   /admin/referrals/:id/approve_all(.:format)                                                        admin/referrals#approve_all
-#              approve_one_admin_referrals POST   /admin/referrals/approve/:referral_id(.:format)                                                   admin/referrals#approve_one
-#        force_approve_all_admin_referrals POST   /admin/referrals/force_approve_all(.:format)                                                      admin/referrals#force_approve_all
-#              draw_winner_admin_referrals POST   /admin/referrals/draw_winner(.:format)                                                            admin/referrals#draw_winner
-#               reset_pool_admin_referrals POST   /admin/referrals/reset_pool(.:format)                                                             admin/referrals#reset_pool
-#                          admin_referrals GET    /admin/referrals(.:format)                                                                        admin/referrals#index
-#                           admin_referral GET    /admin/referrals/:id(.:format)                                                                    admin/referrals#show
-#    send_to_airtable_admin_airtable_queue POST   /admin/airtable_queue/:id/send_to_airtable(.:format)                                              admin/airtable_queue#send_to_airtable
-#              cancel_admin_airtable_queue POST   /admin/airtable_queue/:id/cancel(.:format)                                                        admin/airtable_queue#cancel
-#               retry_admin_airtable_queue POST   /admin/airtable_queue/:id/retry(.:format)                                                         admin/airtable_queue#retry
-#               admin_airtable_queue_index GET    /admin/airtable_queue(.:format)                                                                   admin/airtable_queue#index
-#                     admin_airtable_queue GET    /admin/airtable_queue/:id(.:format)                                                               admin/airtable_queue#show
-#                            admin_metrics GET    /admin/metrics(.:format)                                                                          admin/metrics#index
-#                          admin_audit_log GET    /admin/audit_log(.:format)                                                                        admin/audit_log#index
-#                    admin_audit_log_entry GET    /admin/audit_log/:id(.:format)                                                                    admin/audit_log#show
-#                           admin_database GET    /admin/database(.:format)                                                                         admin/database#index
-#                     admin_database_query POST   /admin/database/query(.:format)                                                                   admin/database#query
-#               reply_admin_support_ticket POST   /admin/support/:id/reply(.:format)                                                                admin/support_tickets#reply
-#               claim_admin_support_ticket POST   /admin/support/:id/claim(.:format)                                                                admin/support_tickets#claim
-#             resolve_admin_support_ticket POST   /admin/support/:id/resolve(.:format)                                                              admin/support_tickets#resolve
-#                    admin_support_tickets GET    /admin/support(.:format)                                                                          admin/support_tickets#index
-#                     admin_support_ticket GET    /admin/support/:id(.:format)                                                                      admin/support_tickets#show
-#                                          DELETE /admin/support/:id(.:format)                                                                      admin/support_tickets#destroy
-#                     mission_control_jobs        /admin/jobs                                                                                       MissionControl::Jobs::Engine
-#                             slack_events POST   /slack/events(.:format)                                                                           slack/events#create
-#                      slack_interactivity POST   /slack/interactivity(.:format)                                                                    slack/interactivity#create
-#                       rails_health_check GET    /up(.:format)                                                                                     rails/health#show
-#                                     root GET    /                                                                                                 landing#index
-#                                   signin GET    /signin(.:format)                                                                                 auth#show
-#                                hca_start GET    /auth/hca/start(.:format)                                                                         auth#new
-#                             hca_callback GET    /auth/hca/callback(.:format)                                                                      auth#create
-#                                  signout DELETE /auth/signout(.:format)                                                                           auth#destroy
-#                                    sorry GET    /sorry(.:format)                                                                                  bans#show
-#                                     home GET    /home(.:format)                                                                                   home#index
-#                                 settings GET    /settings(.:format)                                                                               settings#show
-#                      complete_onboarding POST   /onboarding/complete(.:format)                                                                    onboarding#complete
-#                       restart_onboarding POST   /onboarding/restart(.:format)                                                                     onboarding#restart
-#                        forge_keeper_chat POST   /forge_keeper/chat(.:format)                                                                      forge_keeper#chat
-#                             sync_address POST   /profile/sync_address(.:format)                                                                   profile#sync_address
-#                                     rsvp GET    /rsvp(.:format)                                                                                   rsvps#index
-#                                          POST   /rsvp(.:format)                                                                                   rsvps#create
-#                            rsvp_referral GET    /rsvp/referral(.:format)                                                                          rsvps#referral
-#                                  explore GET    /explore(.:format)                                                                                explore#index
-#                              leaderboard GET    /leaderboard(.:format)                                                                            leaderboard#index
-#                                referrals GET    /referrals(.:format)                                                                              referrals#index
-#                                     shop GET    /shop(.:format)                                                                                   shop#index
-#                              shop_orders POST   /shop/orders(.:format)                                                                            shop#create
-#                              shop_region PATCH  /shop/region(.:format)                                                                            shop#update_region
-#                                     user GET    /users/:id(.:format)                                                                              users#show
-#                               user_kudos POST   /users/:id/kudos(.:format)                                                                        users#add_kudo
-#                                user_kudo DELETE /users/:id/kudos/:kudo_id(.:format)                                                               users#destroy_kudo
-#                              user_github PATCH  /users/:id/github(.:format)                                                                       users#update_github
-#                                     news GET    /news(.:format)                                                                                   news#index
-#                                news_post GET    /news/:id(.:format)                                                                               news#show
-#                               reels_feed GET    /reels(.:format)                                                                                  reels#index
-#                       reel_ad_impression POST   /reel_ads/:id/impression(.:format)                                                                reel_ads#impression
-#                            reel_ad_click POST   /reel_ads/:id/click(.:format)                                                                     reel_ads#click
-#                                reel_kudo DELETE /reels/:reel_id/kudo(.:format)                                                                    reels/kudos#destroy
-#                                          POST   /reels/:reel_id/kudo(.:format)                                                                    reels/kudos#create
-#                                reel_view POST   /reels/:reel_id/view(.:format)                                                                    reels/views#create
-#                            reel_comments GET    /reels/:reel_id/comments(.:format)                                                                reels/comments#index
-#                                          POST   /reels/:reel_id/comments(.:format)                                                                reels/comments#create
-#                             reel_comment DELETE /reels/:reel_id/comments/:id(.:format)                                                            reels/comments#destroy
-#                                edit_reel GET    /reels/:id/edit(.:format)                                                                         reels#edit
-#                                     reel GET    /reels/:id(.:format)                                                                              reels#show
-#                                          PATCH  /reels/:id(.:format)                                                                              reels#update
-#                                          PUT    /reels/:id(.:format)                                                                              reels#update
-#                                          DELETE /reels/:id(.:format)                                                                              reels#destroy
-#              import_from_github_projects POST   /projects/import_from_github(.:format)                                                            projects#import_from_github
-#                submit_for_review_project POST   /projects/:id/submit_for_review(.:format)                                                         projects#submit_for_review
-#                     sync_journal_project POST   /projects/:id/sync_journal(.:format)                                                              projects#sync_journal
-#                   export_devlogs_project GET    /projects/:id/export_devlogs(.:format)                                                            projects#export_devlogs
-#                   resubmit_pitch_project POST   /projects/:id/resubmit_pitch(.:format)                                                            projects#resubmit_pitch
-#               upload_cover_image_project POST   /projects/:id/upload_cover_image(.:format)                                                        projects#upload_cover_image
-#                  set_devlog_mode_project PATCH  /projects/:id/set_devlog_mode(.:format)                                                           projects#set_devlog_mode
-#                        link_repo_project PATCH  /projects/:id/link_repo(.:format)                                                                 projects#link_repo
-#                       mark_built_project POST   /projects/:id/mark_built(.:format)                                                                projects#mark_built
-#                         add_kudo_project POST   /projects/:id/add_kudo(.:format)                                                                  projects#add_kudo
-#                     destroy_kudo_project DELETE /projects/:id/kudos/:kudo_id(.:format)                                                            projects#destroy_kudo
-#                          project_devlogs POST   /projects/:project_id/devlogs(.:format)                                                           devlogs#create
-#                           project_devlog GET    /projects/:project_id/devlogs/:id(.:format)                                                       devlogs#show
-#                                          PATCH  /projects/:project_id/devlogs/:id(.:format)                                                       devlogs#update
-#                                          PUT    /projects/:project_id/devlogs/:id(.:format)                                                       devlogs#update
-#                                          DELETE /projects/:project_id/devlogs/:id(.:format)                                                       devlogs#destroy
-#                     project_devlog_image POST   /projects/:project_id/devlog_image(.:format)                                                      devlogs#upload_image
-#                            project_reels GET    /projects/:project_id/reels(.:format)                                                             reels#manage
-#                                          POST   /projects/:project_id/reels(.:format)                                                             reels#create
-#                         new_project_reel GET    /projects/:project_id/reels/new(.:format)                                                         reels#new
-#                                 projects POST   /projects(.:format)                                                                               projects#create
-#                              new_project GET    /projects/new(.:format)                                                                           projects#new
-#                             edit_project GET    /projects/:id/edit(.:format)                                                                      projects#edit
-#                                  project GET    /projects/:id(.:format)                                                                           projects#show
-#                                          PATCH  /projects/:id(.:format)                                                                           projects#update
-#                                          PUT    /projects/:id(.:format)                                                                           projects#update
-#                                          DELETE /projects/:id(.:format)                                                                           projects#destroy
-#                                     docs GET    /docs(.:format)                                                                                   markdown#show
-#                                      doc GET    /docs/*slug(.:format)                                                                             markdown#show
-#                          api_v1_projects GET    /api/v1/projects(.:format)                                                                        api/v1/projects#index
-#                           api_v1_project GET    /api/v1/projects/:id(.:format)                                                                    api/v1/projects#show
-#                              api_v1_user GET    /api/v1/users/:id(.:format)                                                                       api/v1/users#show
-#                                                 /*path(.:format)                                                                                  errors#not_found
-#         turbo_recede_historical_location GET    /recede_historical_location(.:format)                                                             turbo/native/navigation#recede
-#         turbo_resume_historical_location GET    /resume_historical_location(.:format)                                                             turbo/native/navigation#resume
-#        turbo_refresh_historical_location GET    /refresh_historical_location(.:format)                                                            turbo/native/navigation#refresh
-#            rails_postmark_inbound_emails POST   /rails/action_mailbox/postmark/inbound_emails(.:format)                                           action_mailbox/ingresses/postmark/inbound_emails#create
-#               rails_relay_inbound_emails POST   /rails/action_mailbox/relay/inbound_emails(.:format)                                              action_mailbox/ingresses/relay/inbound_emails#create
-#            rails_sendgrid_inbound_emails POST   /rails/action_mailbox/sendgrid/inbound_emails(.:format)                                           action_mailbox/ingresses/sendgrid/inbound_emails#create
-#      rails_mandrill_inbound_health_check GET    /rails/action_mailbox/mandrill/inbound_emails(.:format)                                           action_mailbox/ingresses/mandrill/inbound_emails#health_check
-#            rails_mandrill_inbound_emails POST   /rails/action_mailbox/mandrill/inbound_emails(.:format)                                           action_mailbox/ingresses/mandrill/inbound_emails#create
-#             rails_mailgun_inbound_emails POST   /rails/action_mailbox/mailgun/inbound_emails/mime(.:format)                                       action_mailbox/ingresses/mailgun/inbound_emails#create
-#           rails_conductor_inbound_emails GET    /rails/conductor/action_mailbox/inbound_emails(.:format)                                          rails/conductor/action_mailbox/inbound_emails#index
-#                                          POST   /rails/conductor/action_mailbox/inbound_emails(.:format)                                          rails/conductor/action_mailbox/inbound_emails#create
-#        new_rails_conductor_inbound_email GET    /rails/conductor/action_mailbox/inbound_emails/new(.:format)                                      rails/conductor/action_mailbox/inbound_emails#new
-#            rails_conductor_inbound_email GET    /rails/conductor/action_mailbox/inbound_emails/:id(.:format)                                      rails/conductor/action_mailbox/inbound_emails#show
-# new_rails_conductor_inbound_email_source GET    /rails/conductor/action_mailbox/inbound_emails/sources/new(.:format)                              rails/conductor/action_mailbox/inbound_emails/sources#new
-#    rails_conductor_inbound_email_sources POST   /rails/conductor/action_mailbox/inbound_emails/sources(.:format)                                  rails/conductor/action_mailbox/inbound_emails/sources#create
-#    rails_conductor_inbound_email_reroute POST   /rails/conductor/action_mailbox/:inbound_email_id/reroute(.:format)                               rails/conductor/action_mailbox/reroutes#create
-# rails_conductor_inbound_email_incinerate POST   /rails/conductor/action_mailbox/:inbound_email_id/incinerate(.:format)                            rails/conductor/action_mailbox/incinerates#create
-#                       rails_service_blob GET    /rails/active_storage/blobs/redirect/:signed_id/*filename(.:format)                               active_storage/blobs/redirect#show
-#                 rails_service_blob_proxy GET    /rails/active_storage/blobs/proxy/:signed_id/*filename(.:format)                                  active_storage/blobs/proxy#show
-#                                          GET    /rails/active_storage/blobs/:signed_id/*filename(.:format)                                        active_storage/blobs/redirect#show
-#                rails_blob_representation GET    /rails/active_storage/representations/redirect/:signed_blob_id/:variation_key/*filename(.:format) active_storage/representations/redirect#show
-#          rails_blob_representation_proxy GET    /rails/active_storage/representations/proxy/:signed_blob_id/:variation_key/*filename(.:format)    active_storage/representations/proxy#show
-#                                          GET    /rails/active_storage/representations/:signed_blob_id/:variation_key/*filename(.:format)          active_storage/representations/redirect#show
-#                       rails_disk_service GET    /rails/active_storage/disk/:encoded_key/*filename(.:format)                                       active_storage/disk#show
-#                update_rails_disk_service PUT    /rails/active_storage/disk/:encoded_token(.:format)                                               active_storage/disk#update
-#                     rails_direct_uploads POST   /rails/active_storage/direct_uploads(.:format)                                                    active_storage/direct_uploads#create
+#                                     Prefix Verb   URI Pattern                                                                                       Controller#Action
+#                                            GET    /(*path)(.:format)                                                                                redirect(301) {host: "127.0.0.1"}
+#                                 admin_root GET    /admin(.:format)                                                                                  admin/static_pages#index
+#                              admin_pitches GET    /admin/pitches(.:format)                                                                          admin/projects#pitches
+#                              admin_reviews GET    /admin/reviews(.:format)                                                                          admin/reviews#index
+#                         admin_tier_reviews GET    /admin/reviews/:tier(.:format)                                                                    admin/reviews#index {tier: /t[1-4]/}
+#                  admin_reviews_leaderboard GET    /admin/reviews/leaderboard(.:format)                                                              admin/reviews#leaderboard
+#                               admin_review GET    /admin/reviews/:id(.:format)                                                                      admin/reviews#show
+#                          admin_skip_review POST   /admin/reviews/:id/skip(.:format)                                                                 admin/reviews#skip
+#                         admin_track_review POST   /admin/reviews/:id/track(.:format)                                                                admin/reviews#track
+#                         admin_claim_review POST   /admin/reviews/:id/claim(.:format)                                                                admin/reviews#claim
+#             heartbeat_admin_review_session PATCH  /admin/review_sessions/:id/heartbeat(.:format)                                                    admin/review_sessions#heartbeat
+#                       review_admin_project POST   /admin/projects/:id/review(.:format)                                                              admin/projects#review
+#                      restore_admin_project POST   /admin/projects/:id/restore(.:format)                                                             admin/projects#restore
+#                toggle_hidden_admin_project POST   /admin/projects/:id/toggle_hidden(.:format)                                                       admin/projects#toggle_hidden
+#            toggle_shadow_ban_admin_project POST   /admin/projects/:id/toggle_shadow_ban(.:format)                                                   admin/projects#toggle_shadow_ban
+#            toggle_staff_pick_admin_project POST   /admin/projects/:id/toggle_staff_pick(.:format)                                                   admin/projects#toggle_staff_pick
+#                  change_tier_admin_project POST   /admin/projects/:id/change_tier(.:format)                                                         admin/projects#change_tier
+#          convert_review_type_admin_project POST   /admin/projects/:id/convert_review_type(.:format)                                                 admin/projects#convert_review_type
+#                     add_note_admin_project POST   /admin/projects/:id/add_note(.:format)                                                            admin/projects#add_note
+#                 mark_unbuilt_admin_project POST   /admin/projects/:id/mark_unbuilt(.:format)                                                        admin/projects#mark_unbuilt
+#               reverse_review_admin_project POST   /admin/projects/:id/reverse_review(.:format)                                                      admin/projects#reverse_review
+#        ai_requirements_check_admin_project POST   /admin/projects/:id/ai_requirements_check(.:format)                                               admin/projects#ai_requirements_check
+# ai_requirements_check_status_admin_project GET    /admin/projects/:id/ai_requirements_check_status(.:format)                                        admin/projects#ai_requirements_check_status
+#                    repo_tree_admin_project GET    /admin/projects/:id/repo_tree(.:format)                                                           admin/projects#repo_tree
+#         changes_since_review_admin_project GET    /admin/projects/:id/changes_since_review(.:format)                                                admin/projects#changes_since_review
+#      send_checkpoint_message_admin_project POST   /admin/projects/:id/send_checkpoint_message(.:format)                                             admin/projects#send_checkpoint_message
+#              send_dm_message_admin_project POST   /admin/projects/:id/send_dm_message(.:format)                                                     admin/projects#send_dm_message
+#                 destroy_note_admin_project DELETE /admin/projects/:id/notes/:note_id(.:format)                                                      admin/projects#destroy_note
+#                  update_note_admin_project PATCH  /admin/projects/:id/notes/:note_id(.:format)                                                      admin/projects#update_note
+#              flag_for_review_admin_project POST   /admin/projects/:id/flag_for_review(.:format)                                                     admin/projects#flag_for_review
+#            unflag_for_review_admin_project POST   /admin/projects/:id/unflag_for_review(.:format)                                                   admin/projects#unflag_for_review
+#                             admin_projects GET    /admin/projects(.:format)                                                                         admin/projects#index
+#                              admin_project GET    /admin/projects/:id(.:format)                                                                     admin/projects#show
+#                                            DELETE /admin/projects/:id(.:format)                                                                     admin/projects#destroy
+#                    update_roles_admin_user PATCH  /admin/users/:id/update_roles(.:format)                                                           admin/users#update_roles
+#              update_permissions_admin_user PATCH  /admin/users/:id/update_permissions(.:format)                                                     admin/users#update_permissions
+#                    update_guild_admin_user PATCH  /admin/users/:id/update_guild(.:format)                                                           admin/users#update_guild
+#                         restore_admin_user POST   /admin/users/:id/restore(.:format)                                                                admin/users#restore
+#                             ban_admin_user POST   /admin/users/:id/ban(.:format)                                                                    admin/users#ban
+#                           unban_admin_user POST   /admin/users/:id/unban(.:format)                                                                  admin/users#unban
+#                        add_note_admin_user POST   /admin/users/:id/add_note(.:format)                                                               admin/users#add_note
+#                    destroy_note_admin_user DELETE /admin/users/:id/notes/:note_id(.:format)                                                         admin/users#destroy_note
+#                        add_kudo_admin_user POST   /admin/users/:id/add_kudo(.:format)                                                               admin/users#add_kudo
+#                    destroy_kudo_admin_user DELETE /admin/users/:id/kudos/:kudo_id(.:format)                                                         admin/users#destroy_kudo
+#                       add_badge_admin_user POST   /admin/users/:id/add_badge(.:format)                                                              admin/users#add_badge
+#                   destroy_badge_admin_user DELETE /admin/users/:id/badges/:badge_id(.:format)                                                       admin/users#destroy_badge
+#                    adjust_coins_admin_user POST   /admin/users/:id/adjust_coins(.:format)                                                           admin/users#adjust_coins
+#                   adjust_streak_admin_user POST   /admin/users/:id/adjust_streak(.:format)                                                          admin/users#adjust_streak
+#                    coin_history_admin_user GET    /admin/users/:id/coin_history(.:format)                                                           admin/users#coin_history
+#            toggle_shop_unlocked_admin_user POST   /admin/users/:id/toggle_shop_unlocked(.:format)                                                   admin/users#toggle_shop_unlocked
+#       toggle_maintenance_bypass_admin_user POST   /admin/users/:id/toggle_maintenance_bypass(.:format)                                              admin/users#toggle_maintenance_bypass
+#          generate_referral_code_admin_user POST   /admin/users/:id/generate_referral_code(.:format)                                                 admin/users#generate_referral_code
+#      update_fulfillment_regions_admin_user PATCH  /admin/users/:id/update_fulfillment_regions(.:format)                                             admin/users#update_fulfillment_regions
+#                                admin_users GET    /admin/users(.:format)                                                                            admin/users#index
+#                                 admin_user GET    /admin/users/:id(.:format)                                                                        admin/users#show
+#                                            DELETE /admin/users/:id(.:format)                                                                        admin/users#destroy
+#                  toggle_admin_feature_flag POST   /admin/feature_flags/:id/toggle(.:format)                                                         admin/feature_flags#toggle
+#                        admin_feature_flags GET    /admin/feature_flags(.:format)                                                                    admin/feature_flags#index
+#                                            POST   /admin/feature_flags(.:format)                                                                    admin/feature_flags#create
+#                         admin_feature_flag DELETE /admin/feature_flags/:id(.:format)                                                                admin/feature_flags#destroy
+#              payout_all_admin_reel_payouts POST   /admin/reel_payouts/payout_all(.:format)                                                          admin/reel_payouts#payout_all
+#                  approve_admin_reel_payout POST   /admin/reel_payouts/:id/approve(.:format)                                                         admin/reel_payouts#approve
+#                   reject_admin_reel_payout POST   /admin/reel_payouts/:id/reject(.:format)                                                          admin/reel_payouts#reject
+#                         admin_reel_payouts GET    /admin/reel_payouts(.:format)                                                                     admin/reel_payouts#index
+#                       toggle_admin_reel_ad POST   /admin/reel_ads/:id/toggle(.:format)                                                              admin/reel_ads#toggle
+#                             admin_reel_ads GET    /admin/reel_ads(.:format)                                                                         admin/reel_ads#index
+#                                            POST   /admin/reel_ads(.:format)                                                                         admin/reel_ads#create
+#                              admin_reel_ad PATCH  /admin/reel_ads/:id(.:format)                                                                     admin/reel_ads#update
+#                                            PUT    /admin/reel_ads/:id(.:format)                                                                     admin/reel_ads#update
+#                                            DELETE /admin/reel_ads/:id(.:format)                                                                     admin/reel_ads#destroy
+#                        approve_admin_order POST   /admin/orders/:id/approve(.:format)                                                               admin/orders#approve
+#                         reject_admin_order POST   /admin/orders/:id/reject(.:format)                                                                admin/orders#reject
+#                        fulfill_admin_order POST   /admin/orders/:id/fulfill(.:format)                                                               admin/orders#fulfill
+#                       reassign_admin_order POST   /admin/orders/:id/reassign(.:format)                                                              admin/orders#reassign
+#                               admin_orders GET    /admin/orders(.:format)                                                                           admin/orders#index
+#                                admin_order GET    /admin/orders/:id(.:format)                                                                       admin/orders#show
+#                           admin_shop_items GET    /admin/shop_items(.:format)                                                                       admin/shop_items#index
+#                                            POST   /admin/shop_items(.:format)                                                                       admin/shop_items#create
+#                            admin_shop_item PATCH  /admin/shop_items/:id(.:format)                                                                   admin/shop_items#update
+#                                            PUT    /admin/shop_items/:id(.:format)                                                                   admin/shop_items#update
+#                                            DELETE /admin/shop_items/:id(.:format)                                                                   admin/shop_items#destroy
+#                         export_admin_rsvps GET    /admin/rsvps/export(.:format)                                                                     admin/rsvps#export
+#                                admin_rsvps GET    /admin/rsvps(.:format)                                                                            admin/rsvps#index
+#                                 admin_rsvp DELETE /admin/rsvps/:id(.:format)                                                                        admin/rsvps#destroy
+#                 approve_all_admin_referral POST   /admin/referrals/:id/approve_all(.:format)                                                        admin/referrals#approve_all
+#                approve_one_admin_referrals POST   /admin/referrals/approve/:referral_id(.:format)                                                   admin/referrals#approve_one
+#          force_approve_all_admin_referrals POST   /admin/referrals/force_approve_all(.:format)                                                      admin/referrals#force_approve_all
+#                draw_winner_admin_referrals POST   /admin/referrals/draw_winner(.:format)                                                            admin/referrals#draw_winner
+#                 reset_pool_admin_referrals POST   /admin/referrals/reset_pool(.:format)                                                             admin/referrals#reset_pool
+#                            admin_referrals GET    /admin/referrals(.:format)                                                                        admin/referrals#index
+#                             admin_referral GET    /admin/referrals/:id(.:format)                                                                    admin/referrals#show
+#      send_to_airtable_admin_airtable_queue POST   /admin/airtable_queue/:id/send_to_airtable(.:format)                                              admin/airtable_queue#send_to_airtable
+#                cancel_admin_airtable_queue POST   /admin/airtable_queue/:id/cancel(.:format)                                                        admin/airtable_queue#cancel
+#                 retry_admin_airtable_queue POST   /admin/airtable_queue/:id/retry(.:format)                                                         admin/airtable_queue#retry
+#        revert_project_admin_airtable_queue POST   /admin/airtable_queue/:id/revert_project(.:format)                                                admin/airtable_queue#revert_project
+#             send_back_admin_airtable_queue POST   /admin/airtable_queue/:id/send_back(.:format)                                                     admin/airtable_queue#send_back
+#   check_justification_admin_airtable_queue POST   /admin/airtable_queue/:id/check_justification(.:format)                                           admin/airtable_queue#check_justification
+#                 admin_airtable_queue_index GET    /admin/airtable_queue(.:format)                                                                   admin/airtable_queue#index
+#                       admin_airtable_queue GET    /admin/airtable_queue/:id(.:format)                                                               admin/airtable_queue#show
+#               refresh_admin_hackatime_bans POST   /admin/hackatime_bans/refresh(.:format)                                                           admin/hackatime_bans#refresh
+#               ban_all_admin_hackatime_bans POST   /admin/hackatime_bans/ban_all(.:format)                                                           admin/hackatime_bans#ban_all
+#                       admin_hackatime_bans GET    /admin/hackatime_bans(.:format)                                                                   admin/hackatime_bans#index
+#                              admin_metrics GET    /admin/metrics(.:format)                                                                          admin/metrics#index
+#                        admin_airtable_sync GET    /admin/airtable_sync(.:format)                                                                    admin/airtable_sync#index
+#                admin_airtable_sync_recheck POST   /admin/airtable_sync/recheck(.:format)                                                            admin/airtable_sync#recheck
+#                admin_airtable_sync_requeue POST   /admin/airtable_sync/requeue/:project_id(.:format)                                                admin/airtable_sync#requeue
+#                          admin_slack_pings GET    /admin/slack_pings(.:format)                                                                      admin/slack_pings#index
+#              admin_slack_pings_weekly_ping POST   /admin/slack_pings/weekly_ping(.:format)                                                          admin/slack_pings#weekly_ping
+#              admin_slack_pings_leaderboard POST   /admin/slack_pings/leaderboard(.:format)                                                          admin/slack_pings#leaderboard
+#            admin_slack_pings_streak_breaks POST   /admin/slack_pings/streak_breaks(.:format)                                                        admin/slack_pings#streak_breaks
+#                  admin_slack_pings_invites POST   /admin/slack_pings/invites(.:format)                                                              admin/slack_pings#invites
+#                        admin_review_audits GET    /admin/review_audits(.:format)                                                                    admin/review_audits#index
+#                         admin_review_audit GET    /admin/review_audits/:id(.:format)                                                                admin/review_audits#show
+#                            admin_audit_log GET    /admin/audit_log(.:format)                                                                        admin/audit_log#index
+#                      admin_audit_log_entry GET    /admin/audit_log/:id(.:format)                                                                    admin/audit_log#show
+#                             admin_database GET    /admin/database(.:format)                                                                         admin/database#index
+#                       admin_database_query POST   /admin/database/query(.:format)                                                                   admin/database#query
+#                               admin_claude GET    /admin/claude(.:format)                                                                           admin/claude#show
+#                                            POST   /admin/claude(.:format)                                                                           admin/claude#update
+#                          admin_claude_test POST   /admin/claude/test(.:format)                                                                      admin/claude#test
+#                                            DELETE /admin/claude(.:format)                                                                           admin/claude#destroy
+#                 reply_admin_support_ticket POST   /admin/support/:id/reply(.:format)                                                                admin/support_tickets#reply
+#                 claim_admin_support_ticket POST   /admin/support/:id/claim(.:format)                                                                admin/support_tickets#claim
+#               resolve_admin_support_ticket POST   /admin/support/:id/resolve(.:format)                                                              admin/support_tickets#resolve
+#                      admin_support_tickets GET    /admin/support(.:format)                                                                          admin/support_tickets#index
+#                       admin_support_ticket GET    /admin/support/:id(.:format)                                                                      admin/support_tickets#show
+#                                            DELETE /admin/support/:id(.:format)                                                                      admin/support_tickets#destroy
+#                       mission_control_jobs        /admin/jobs                                                                                       MissionControl::Jobs::Engine
+#                               slack_events POST   /slack/events(.:format)                                                                           slack/events#create
+#                        slack_interactivity POST   /slack/interactivity(.:format)                                                                    slack/interactivity#create
+#                         rails_health_check GET    /up(.:format)                                                                                     rails/health#show
+#                                       root GET    /                                                                                                 landing#index
+#                                     signin GET    /signin(.:format)                                                                                 auth#show
+#                                  hca_start GET    /auth/hca/start(.:format)                                                                         auth#new
+#                               hca_callback GET    /auth/hca/callback(.:format)                                                                      auth#create
+#                                    signout DELETE /auth/signout(.:format)                                                                           auth#destroy
+#                                impersonate POST   /impersonate/:user_id(.:format)                                                                   impersonations#create
+#                         stop_impersonating DELETE /impersonate(.:format)                                                                            impersonations#destroy
+#                                      sorry GET    /sorry(.:format)                                                                                  bans#show
+#                                       home GET    /home(.:format)                                                                                   home#index
+#                                   settings GET    /settings(.:format)                                                                               settings#show
+#                      settings_avatar_proxy GET    /settings/avatar_proxy(.:format)                                                                  settings#avatar_proxy
+#                        complete_onboarding POST   /onboarding/complete(.:format)                                                                    onboarding#complete
+#                         restart_onboarding POST   /onboarding/restart(.:format)                                                                     onboarding#restart
+#                          forge_keeper_chat POST   /forge_keeper/chat(.:format)                                                                      forge_keeper#chat
+#                               sync_address POST   /profile/sync_address(.:format)                                                                   profile#sync_address
+#                                       rsvp GET    /rsvp(.:format)                                                                                   rsvps#index
+#                                            POST   /rsvp(.:format)                                                                                   rsvps#create
+#                              rsvp_referral GET    /rsvp/referral(.:format)                                                                          rsvps#referral
+#                                    explore GET    /explore(.:format)                                                                                explore#index
+#                                leaderboard GET    /leaderboard(.:format)                                                                            leaderboard#index
+#                                    relight GET    /relight(.:format)                                                                                relight#index
+#                                  referrals GET    /referrals(.:format)                                                                              referrals#index
+#                                       shop GET    /shop(.:format)                                                                                   shop#index
+#                                shop_orders POST   /shop/orders(.:format)                                                                            shop#create
+#                                shop_region PATCH  /shop/region(.:format)                                                                            shop#update_region
+#                                       user GET    /users/:id(.:format)                                                                              users#show
+#                                 user_kudos POST   /users/:id/kudos(.:format)                                                                        users#add_kudo
+#                                  user_kudo DELETE /users/:id/kudos/:kudo_id(.:format)                                                               users#destroy_kudo
+#                                user_github PATCH  /users/:id/github(.:format)                                                                       users#update_github
+#                           new_guild_choice GET    /guilds/choose(.:format)                                                                          guild_choices#new
+#                              guild_choices POST   /guilds/choose(.:format)                                                                          guild_choices#create
+#                         leaderboard_guilds GET    /guilds/leaderboard(.:format)                                                                     guilds#leaderboard
+#                                     guilds GET    /guilds(.:format)                                                                                 guilds#index
+#                                      guild GET    /guilds/:id(.:format)                                                                             guilds#show
+#                                 reels_feed GET    /reels(.:format)                                                                                  reels#index
+#                         reel_ad_impression POST   /reel_ads/:id/impression(.:format)                                                                reel_ads#impression
+#                              reel_ad_click POST   /reel_ads/:id/click(.:format)                                                                     reel_ads#click
+#                                  reel_kudo DELETE /reels/:reel_id/kudo(.:format)                                                                    reels/kudos#destroy
+#                                            POST   /reels/:reel_id/kudo(.:format)                                                                    reels/kudos#create
+#                                  reel_view POST   /reels/:reel_id/view(.:format)                                                                    reels/views#create
+#                              reel_comments GET    /reels/:reel_id/comments(.:format)                                                                reels/comments#index
+#                                            POST   /reels/:reel_id/comments(.:format)                                                                reels/comments#create
+#                               reel_comment DELETE /reels/:reel_id/comments/:id(.:format)                                                            reels/comments#destroy
+#                                  edit_reel GET    /reels/:id/edit(.:format)                                                                         reels#edit
+#                                       reel GET    /reels/:id(.:format)                                                                              reels#show
+#                                            PATCH  /reels/:id(.:format)                                                                              reels#update
+#                                            PUT    /reels/:id(.:format)                                                                              reels#update
+#                                            DELETE /reels/:id(.:format)                                                                              reels#destroy
+#                import_from_github_projects POST   /projects/import_from_github(.:format)                                                            projects#import_from_github
+#                  submit_for_review_project POST   /projects/:id/submit_for_review(.:format)                                                         projects#submit_for_review
+#                           ai_check_project GET    /projects/:id/ai_check(.:format)                                                                  projects#ai_check
+#                       run_ai_check_project POST   /projects/:id/run_ai_check(.:format)                                                              projects#run_ai_check
+#                    ai_check_status_project GET    /projects/:id/ai_check_status(.:format)                                                           projects#ai_check_status
+#                       sync_journal_project POST   /projects/:id/sync_journal(.:format)                                                              projects#sync_journal
+#                     export_devlogs_project GET    /projects/:id/export_devlogs(.:format)                                                            projects#export_devlogs
+#                     resubmit_pitch_project POST   /projects/:id/resubmit_pitch(.:format)                                                            projects#resubmit_pitch
+#                 upload_cover_image_project POST   /projects/:id/upload_cover_image(.:format)                                                        projects#upload_cover_image
+#                    set_devlog_mode_project PATCH  /projects/:id/set_devlog_mode(.:format)                                                           projects#set_devlog_mode
+#                          link_repo_project PATCH  /projects/:id/link_repo(.:format)                                                                 projects#link_repo
+#                 set_journal_branch_project PATCH  /projects/:id/set_journal_branch(.:format)                                                        projects#set_journal_branch
+#                           add_kudo_project POST   /projects/:id/add_kudo(.:format)                                                                  projects#add_kudo
+#                       destroy_kudo_project DELETE /projects/:id/kudos/:kudo_id(.:format)                                                            projects#destroy_kudo
+#                            project_devlogs POST   /projects/:project_id/devlogs(.:format)                                                           devlogs#create
+#                             project_devlog GET    /projects/:project_id/devlogs/:id(.:format)                                                       devlogs#show
+#                                            PATCH  /projects/:project_id/devlogs/:id(.:format)                                                       devlogs#update
+#                                            PUT    /projects/:project_id/devlogs/:id(.:format)                                                       devlogs#update
+#                                            DELETE /projects/:project_id/devlogs/:id(.:format)                                                       devlogs#destroy
+#                       project_devlog_image POST   /projects/:project_id/devlog_image(.:format)                                                      devlogs#upload_image
+#              project_collaboration_invites POST   /projects/:project_id/invites(.:format)                                                           collaboration_invites#create
+#               project_collaboration_invite DELETE /projects/:project_id/invites/:id(.:format)                                                       collaboration_invites#destroy
+#                       project_collaborator DELETE /projects/:project_id/collaborators/:id(.:format)                                                 project_collaborators#destroy
+#                               project_view POST   /projects/:project_id/view(.:format)                                                              projects/views#create
+#                              project_reels GET    /projects/:project_id/reels(.:format)                                                             reels#manage
+#                                            POST   /projects/:project_id/reels(.:format)                                                             reels#create
+#                           new_project_reel GET    /projects/:project_id/reels/new(.:format)                                                         reels#new
+#                                   projects POST   /projects(.:format)                                                                               projects#create
+#                                new_project GET    /projects/new(.:format)                                                                           projects#new
+#                               edit_project GET    /projects/:id/edit(.:format)                                                                      projects#edit
+#                                    project GET    /projects/:id(.:format)                                                                           projects#show
+#                                            PATCH  /projects/:id(.:format)                                                                           projects#update
+#                                            PUT    /projects/:id(.:format)                                                                           projects#update
+#                                            DELETE /projects/:id(.:format)                                                                           projects#destroy
+#                accept_collaboration_invite POST   /collaboration_invites/:id/accept(.:format)                                                       collaboration_invites#accept
+#               decline_collaboration_invite POST   /collaboration_invites/:id/decline(.:format)                                                      collaboration_invites#decline
+#                                       docs GET    /docs(.:format)                                                                                   markdown#show
+#                                        doc GET    /docs/*slug(.:format)                                                                             markdown#show
+#                                 guide_file GET    /guides/:slug/files/*path                                                                         guides_files#show
+#                            api_v1_projects GET    /api/v1/projects(.:format)                                                                        api/v1/projects#index
+#                             api_v1_project GET    /api/v1/projects/:id(.:format)                                                                    api/v1/projects#show
+#                                api_v1_user GET    /api/v1/users/:id(.:format)                                                                       api/v1/users#show
+#                                                   /*path(.:format)                                                                                  errors#not_found
+#           turbo_recede_historical_location GET    /recede_historical_location(.:format)                                                             turbo/native/navigation#recede
+#           turbo_resume_historical_location GET    /resume_historical_location(.:format)                                                             turbo/native/navigation#resume
+#          turbo_refresh_historical_location GET    /refresh_historical_location(.:format)                                                            turbo/native/navigation#refresh
+#              rails_postmark_inbound_emails POST   /rails/action_mailbox/postmark/inbound_emails(.:format)                                           action_mailbox/ingresses/postmark/inbound_emails#create
+#                 rails_relay_inbound_emails POST   /rails/action_mailbox/relay/inbound_emails(.:format)                                              action_mailbox/ingresses/relay/inbound_emails#create
+#              rails_sendgrid_inbound_emails POST   /rails/action_mailbox/sendgrid/inbound_emails(.:format)                                           action_mailbox/ingresses/sendgrid/inbound_emails#create
+#        rails_mandrill_inbound_health_check GET    /rails/action_mailbox/mandrill/inbound_emails(.:format)                                           action_mailbox/ingresses/mandrill/inbound_emails#health_check
+#              rails_mandrill_inbound_emails POST   /rails/action_mailbox/mandrill/inbound_emails(.:format)                                           action_mailbox/ingresses/mandrill/inbound_emails#create
+#               rails_mailgun_inbound_emails POST   /rails/action_mailbox/mailgun/inbound_emails/mime(.:format)                                       action_mailbox/ingresses/mailgun/inbound_emails#create
+#             rails_conductor_inbound_emails GET    /rails/conductor/action_mailbox/inbound_emails(.:format)                                          rails/conductor/action_mailbox/inbound_emails#index
+#                                            POST   /rails/conductor/action_mailbox/inbound_emails(.:format)                                          rails/conductor/action_mailbox/inbound_emails#create
+#          new_rails_conductor_inbound_email GET    /rails/conductor/action_mailbox/inbound_emails/new(.:format)                                      rails/conductor/action_mailbox/inbound_emails#new
+#              rails_conductor_inbound_email GET    /rails/conductor/action_mailbox/inbound_emails/:id(.:format)                                      rails/conductor/action_mailbox/inbound_emails#show
+#   new_rails_conductor_inbound_email_source GET    /rails/conductor/action_mailbox/inbound_emails/sources/new(.:format)                              rails/conductor/action_mailbox/inbound_emails/sources#new
+#      rails_conductor_inbound_email_sources POST   /rails/conductor/action_mailbox/inbound_emails/sources(.:format)                                  rails/conductor/action_mailbox/inbound_emails/sources#create
+#      rails_conductor_inbound_email_reroute POST   /rails/conductor/action_mailbox/:inbound_email_id/reroute(.:format)                               rails/conductor/action_mailbox/reroutes#create
+#   rails_conductor_inbound_email_incinerate POST   /rails/conductor/action_mailbox/:inbound_email_id/incinerate(.:format)                            rails/conductor/action_mailbox/incinerates#create
+#                         rails_service_blob GET    /rails/active_storage/blobs/redirect/:signed_id/*filename(.:format)                               active_storage/blobs/redirect#show
+#                   rails_service_blob_proxy GET    /rails/active_storage/blobs/proxy/:signed_id/*filename(.:format)                                  active_storage/blobs/proxy#show
+#                                            GET    /rails/active_storage/blobs/:signed_id/*filename(.:format)                                        active_storage/blobs/redirect#show
+#                  rails_blob_representation GET    /rails/active_storage/representations/redirect/:signed_blob_id/:variation_key/*filename(.:format) active_storage/representations/redirect#show
+#            rails_blob_representation_proxy GET    /rails/active_storage/representations/proxy/:signed_blob_id/:variation_key/*filename(.:format)    active_storage/representations/proxy#show
+#                                            GET    /rails/active_storage/representations/:signed_blob_id/:variation_key/*filename(.:format)          active_storage/representations/redirect#show
+#                         rails_disk_service GET    /rails/active_storage/disk/:encoded_key/*filename(.:format)                                       active_storage/disk#show
+#                  update_rails_disk_service PUT    /rails/active_storage/disk/:encoded_token(.:format)                                               active_storage/disk#update
+#                       rails_direct_uploads POST   /rails/active_storage/direct_uploads(.:format)                                                    active_storage/direct_uploads#create
 #
 # Routes for MissionControl::Jobs::Engine:
 #                      Prefix Verb   URI Pattern                                                    Controller#Action
@@ -314,11 +368,6 @@ Rails.application.routes.draw do
           post :toggle
         end
       end
-      resources :news_posts, only: [ :index, :create, :update, :destroy ] do
-        member do
-          post :toggle
-        end
-      end
       resources :orders, only: [ :index, :show ] do
         member do
           post :approve
@@ -422,6 +471,7 @@ Rails.application.routes.draw do
 
   get "explore" => "explore#index", as: :explore
   get "leaderboard" => "leaderboard#index", as: :leaderboard
+  get "relight" => "relight#index", as: :relight
   get "referrals" => "referrals#index", as: :referrals
   get "shop" => "shop#index", as: :shop
   post "shop/orders" => "shop#create", as: :shop_orders
@@ -430,8 +480,6 @@ Rails.application.routes.draw do
   post "users/:id/kudos" => "users#add_kudo", as: :user_kudos
   delete "users/:id/kudos/:kudo_id" => "users#destroy_kudo", as: :user_kudo
   patch "users/:id/github" => "users#update_github", as: :user_github
-  get "news" => "news#index", as: :news
-  get "news/:id" => "news#show", as: :news_post
 
   get  "guilds/choose" => "guild_choices#new", as: :new_guild_choice
   post "guilds/choose" => "guild_choices#create", as: :guild_choices

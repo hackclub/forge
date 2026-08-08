@@ -15,14 +15,6 @@ export interface User {
 
 export type FlashData = Record<string, string>
 
-export interface NewsPostSummary {
-  id: number
-  title: string
-  body_html: string
-  published_at: string
-  author_name: string
-}
-
 export interface Impersonation {
   viewing_as: string | null
   impersonator: string | null
@@ -38,6 +30,7 @@ export interface SharedProps {
   maintenance_mode: boolean
   reels_enabled: boolean
   guilds_enabled: boolean
+  relight_enabled: boolean
   forge_ui_enabled: boolean
   errors: Record<string, string[]>
   [key: string]: unknown

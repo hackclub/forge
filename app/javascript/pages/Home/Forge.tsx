@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { Head, usePage } from '@inertiajs/react'
+import { Head, Link as InertiaLink, usePage } from '@inertiajs/react'
 import type { SharedProps } from '@/types'
 import OnboardingModal from '@/components/OnboardingModal'
 import ForgePopup, { type ForgePopupSize } from '@/components/ForgePopup'
@@ -210,10 +210,17 @@ interface ForgeProps {
   projects: DashboardProject[]
   orph_motivation: { approved_count: number; goal: number; dino_image: string }
   coin_balance: number
+  relight_percent: number | null
   pending_invites: PendingCollaborationInvite[]
 }
 
-export default function ForgeScene({ projects, orph_motivation, coin_balance, pending_invites }: ForgeProps) {
+export default function ForgeScene({
+  projects,
+  orph_motivation,
+  coin_balance,
+  relight_percent,
+  pending_invites,
+}: ForgeProps) {
   const shared = usePage<SharedProps>().props
   const [open, setOpen] = useState<PopupId | null>(null)
   const lastMeta = useRef(POPUP_META.projects)
@@ -299,7 +306,7 @@ export default function ForgeScene({ projects, orph_motivation, coin_balance, pe
           ))}
         </div>
 
-        <ForgeHud coinBalance={coin_balance} />
+        <ForgeHud coinBalance={coin_balance} relightPercent={relight_percent} />
 
         {pending_invites.length > 0 && (
           <div className="absolute top-16 left-1/2 -translate-x-1/2 z-20 w-full max-w-xl px-4 hidden md:block">
@@ -321,6 +328,17 @@ export default function ForgeScene({ projects, orph_motivation, coin_balance, pe
             </h1>
           </div>
           <div className="grid grid-cols-2 gap-3 p-4">
+            {relight_percent != null && (
+              <InertiaLink
+                href="/relight"
+                className="corner-accents flex flex-col items-center gap-2.5 bg-[#1c1b1b] p-5 text-center ghost-border transition active:scale-95 hover:bg-[#2a2a2a]"
+              >
+                <FireIcon className="text-3xl" />
+                <span className="font-headline text-sm uppercase tracking-wider text-[#e5e2e1]">
+                  Relight &middot; {Math.floor(relight_percent)}%
+                </span>
+              </InertiaLink>
+            )}
             {OBJECTS.map((o) => (
               <button
                 key={o.id}

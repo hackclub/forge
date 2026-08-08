@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_05_213016) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_08_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -184,6 +184,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_05_213016) do
     t.string "title"
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
+    t.index ["created_at"], name: "index_devlogs_on_created_at"
     t.index ["project_id"], name: "index_devlogs_on_project_id"
     t.index ["status"], name: "index_devlogs_on_status"
     t.index ["user_id"], name: "index_devlogs_on_user_id"
@@ -219,18 +220,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_05_213016) do
     t.index ["author_id"], name: "index_kudos_on_author_id"
     t.index ["project_id"], name: "index_kudos_on_project_id"
     t.index ["user_id"], name: "index_kudos_on_user_id"
-  end
-
-  create_table "news_posts", force: :cascade do |t|
-    t.bigint "author_id", null: false
-    t.text "body", null: false
-    t.datetime "created_at", null: false
-    t.boolean "published", default: false, null: false
-    t.datetime "published_at"
-    t.string "title", null: false
-    t.datetime "updated_at", null: false
-    t.index ["author_id"], name: "index_news_posts_on_author_id"
-    t.index ["published", "published_at"], name: "index_news_posts_on_published_and_published_at"
   end
 
   create_table "orders", force: :cascade do |t|
@@ -817,7 +806,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_05_213016) do
   add_foreign_key "kudos", "projects"
   add_foreign_key "kudos", "users"
   add_foreign_key "kudos", "users", column: "author_id"
-  add_foreign_key "news_posts", "users", column: "author_id"
   add_foreign_key "orders", "projects"
   add_foreign_key "orders", "shop_items"
   add_foreign_key "orders", "users"

@@ -12,7 +12,6 @@ class HomeController < ApplicationController
       .joins(:project).merge(Project.kept)
       .includes(:project, :inviter)
       .order(created_at: :desc)
-    news_posts = NewsPost.includes(:author).published.limit(3)
     staff_picks = Project.kept.where(hidden: false).includes(:user).staff_picks.limit(3)
     approved_count = Project.kept.where(status: %i[approved pending pitch_approved pitch_pending]).count
 
@@ -24,6 +23,7 @@ class HomeController < ApplicationController
         created_at: current_user.created_at.strftime("%B %d, %Y")
       },
       coin_balance: current_user.coin_balance,
+      relight_percent: relight_enabled? ? RelightStats.shared_props[:percent] : nil,
       stats: {
         projects_count: projects.size + collaborated.size
       },
@@ -52,15 +52,6 @@ class HomeController < ApplicationController
           inviter_display_name: invite.inviter.display_name,
           inviter_avatar: invite.inviter.avatar,
           created_at: invite.created_at.strftime("%b %d, %Y")
-        }
-      },
-      news_posts: news_posts.map { |post|
-        {
-          id: post.id,
-          title: post.title,
-          body_html: helpers.render_markdown(post.body),
-          published_at: post.published_at.strftime("%b %d, %Y"),
-          author_name: post.author.display_name
         }
       },
       staff_picks: staff_picks.map { |p|

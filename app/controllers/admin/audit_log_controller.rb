@@ -76,7 +76,6 @@ class Admin::AuditLogController < Admin::ApplicationController
     when "Project" then admin_project_path(event.target_id)
     when "User"    then admin_user_path(event.target_id)
     when "FeatureFlag" then admin_feature_flags_path
-    when "NewsPost" then admin_news_posts_path
     when "SupportTicket" then admin_support_ticket_path(event.target_id)
     when "Order" then admin_order_path(event.target_id)
     when "ShopItem" then admin_shop_items_path
@@ -126,10 +125,6 @@ class Admin::AuditLogController < Admin::ApplicationController
     "feature_flag.created" => "Created feature flag",
     "feature_flag.toggled" => "Toggled feature flag",
     "feature_flag.destroyed" => "Deleted feature flag",
-    "news_post.created" => "Created news post",
-    "news_post.updated" => "Updated news post",
-    "news_post.publish_toggled" => "Toggled publish on news post",
-    "news_post.destroyed" => "Deleted news post",
     "support_ticket.replied" => "Replied to support ticket from",
     "support_ticket.claimed" => "Claimed support ticket from",
     "support_ticket.resolved" => "Resolved support ticket from",
