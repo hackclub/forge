@@ -237,8 +237,8 @@ export function DecisionPanel({
             onChange={(e) => onChangeTier(e.target.value)}
             className="w-full h-9 rounded-md border border-border bg-background px-3 text-sm text-foreground cursor-pointer"
           >
-            <option value="tier_4">Tier 4 — 5.0c/hr</option>
-            <option value="tier_3">Tier 3 — 5.5c/hr</option>
+            <option value="tier_4">Tier 4 — 4.5c/hr</option>
+            <option value="tier_3">Tier 3 — 5.0c/hr</option>
             <option value="tier_2">Tier 2 — 6.5c/hr</option>
             <option value="tier_1">Tier 1 — 7.5c/hr</option>
           </select>
