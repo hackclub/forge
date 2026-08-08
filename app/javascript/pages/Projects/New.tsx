@@ -12,7 +12,7 @@ const TIERS: TierOption[] = [
   {
     tier: 'tier_4',
     label: 'Tier 4',
-    rate: '5.0c / hour',
+    rate: '4.5c / hour',
     description:
       'Basic project. The simplest starting point for things like PCB Buisness Cards, LED timers, DIY Mouse. Should be $0-50',
     pitch: false,
@@ -20,7 +20,7 @@ const TIERS: TierOption[] = [
   {
     tier: 'tier_3',
     label: 'Tier 3',
-    rate: '5.5c / hour',
+    rate: '5.0c / hour',
     description: 'Standard projects such as a macropad on wheels, custom bluetooth speakers, Devboard. Around $0-100',
     pitch: false,
   },
