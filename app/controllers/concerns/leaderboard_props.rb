@@ -56,8 +56,8 @@ module LeaderboardProps
 
   def leaderboard_guild_referrals
     counts = Referral.joins(:referrer).where.not(users: { guild: nil }).group("users.guild").count
-    User.guilds.map { |name, idx|
-      { name: name, icon: GUILD_ICONS.fetch(name), value: counts[idx] || 0 }
+    User.guilds.keys.map { |name|
+      { name: name, icon: GUILD_ICONS.fetch(name), value: counts[name] || 0 }
     }.sort_by { |row| -row[:value] }
   end
 end

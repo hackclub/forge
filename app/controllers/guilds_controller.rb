@@ -48,7 +48,7 @@ class GuildsController < ApplicationController
     members = User.kept.in_guild(name).order(created_at: :desc).limit(100)
     member_count = User.kept.in_guild(name).count
 
-    referrer_counts = Referral.approved.joins(:referrer).merge(User.in_guild(name)).group(:referrer_id).count
+    referrer_counts = Referral.joins(:referrer).merge(User.in_guild(name)).group(:referrer_id).count
     top_referrers = User.where(id: referrer_counts.keys).map { |u|
       { id: u.id, display_name: u.display_name, avatar: u.avatar, referrals: referrer_counts[u.id] }
     }.sort_by { |r| -r[:referrals] }.first(10)
@@ -66,7 +66,7 @@ class GuildsController < ApplicationController
     states = GuildState.all.index_by(&:guild)
     member_counts = User.kept.where.not(guild: nil).group(:guild).count
 
-    referrals_total = Referral.approved.joins(:referrer).where.not(users: { guild: nil }).group("users.guild").count
+    referrals_total = Referral.joins(:referrer).where.not(users: { guild: nil }).group("users.guild").count
 
     rows = User.guilds.keys.map { |g|
       state = states[g]
@@ -80,7 +80,7 @@ class GuildsController < ApplicationController
         members_active_week: state&.members_active_week || 0,
         referrals_week: state&.referrals_week || 0,
         prize_pool_coins: state&.prize_pool_coins.to_f,
-        referrals_total: referrals_total[User.guilds[g]] || 0,
+        referrals_total: referrals_total[g] || 0,
         computed_at: state&.computed_at&.strftime("%b %d, %Y")
       }
     }
