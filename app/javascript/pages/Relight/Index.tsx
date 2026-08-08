@@ -56,7 +56,7 @@ export default function Index({ stats, my_hours }: { stats: RelightStats; my_hou
         animationDelay: `${Math.random() * 4}s`,
         animationDuration: `${2.5 + Math.random() * 3}s`,
       })),
-    [stats.percent]
+    [stats.percent],
   )
 
   const currentMilestone = [...stats.milestones].reverse().find((m) => m.reached)
@@ -107,8 +107,9 @@ export default function Index({ stats, my_hours }: { stats: RelightStats; my_hou
             Relight the Forge
           </h1>
           <p className="text-stone-400 text-sm sm:text-base mb-6">
-            The great forge has gone cold. Every project you build feeds the flame. Your job as a community is to keep feeding the fire and then together
-            we&apos;ll bring the forge <span className="text-[#e3b24c] font-bold">roaring back to life</span>!
+            The great forge has gone cold. Every project you build feeds the flame. Your job as a community is to keep
+            feeding the fire and then together we&apos;ll bring the forge{' '}
+            <span className="text-[#e3b24c] font-bold">roaring back to life</span>!
           </p>
           <p className="text-2xl sm:text-3xl font-headline text-[#ca5924]">
             {relit ? 'The Forge burns once more.' : (currentMilestone?.name ?? 'Cold Coals')}
@@ -147,9 +148,7 @@ export default function Index({ stats, my_hours }: { stats: RelightStats; my_hou
                 >
                   local_fire_department
                 </span>
-                <p
-                  className={`font-headline text-sm mt-1 ${m.reached ? 'text-[#e5e2e1]' : 'text-stone-600'}`}
-                >
+                <p className={`font-headline text-sm mt-1 ${m.reached ? 'text-[#e5e2e1]' : 'text-stone-600'}`}>
                   {m.name}
                 </p>
               </div>
@@ -219,14 +218,10 @@ export default function Index({ stats, my_hours }: { stats: RelightStats; my_hou
                       >
                         {row.icon}
                       </span>
-                      <span
-                        className={`font-headline capitalize ${mine ? 'text-[#ffb595]' : 'text-stone-200'}`}
-                      >
+                      <span className={`font-headline capitalize ${mine ? 'text-[#ffb595]' : 'text-stone-200'}`}>
                         {row.name}
                       </span>
-                      {i === 0 && (
-                        <span className="material-symbols-outlined text-sm text-[#e3b24c]">trophy</span>
-                      )}
+                      {i === 0 && <span className="material-symbols-outlined text-sm text-[#e3b24c]">trophy</span>}
                       <span className="ml-auto text-sm font-bold tabular-nums text-stone-400">{row.hours}h</span>
                     </div>
                     <div className="h-1.5 bg-[#0e0e0e] overflow-hidden">
