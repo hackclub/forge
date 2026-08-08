@@ -26,6 +26,7 @@ class RelightStatsTest < ActiveSupport::TestCase
     make_devlog(user, hours: 7, project_attrs: { hidden: true })
     make_devlog(user, hours: 9, project_attrs: { shadow_banned: true })
     make_devlog(user, hours: 11, project_attrs: { discarded_at: Time.current })
+    make_devlog(user, hours: 13, project_attrs: { status: :rejected })
 
     props = RelightStats.new.shared_props
     assert_equal 0.02, props[:percent]
@@ -67,6 +68,23 @@ class RelightStatsTest < ActiveSupport::TestCase
     assert_equal 6.0, race.first[:hours]
     assert_equal 75.0, race.first[:share]
     assert_equal 2.0, race.find { |r| r[:name] == "erebor" }[:hours]
+  end
+
+  test "guild race ignores hours logged before the window opened" do
+    elf = make_user(guild: :rivendell)
+    make_devlog(elf, hours: 40, created_at: RelightStats::START_AT - 1.hour)
+
+    race = RelightStats.new.shared_props[:guild_race]
+    assert_equal 0.0, race.find { |r| r[:name] == "rivendell" }[:hours]
+  end
+
+  test "rejected projects do not feed the guild race" do
+    elf = make_user(guild: :rivendell)
+    make_devlog(elf, hours: 5, created_at: 1.hour.ago)
+    make_devlog(elf, hours: 50, created_at: 1.hour.ago, project_attrs: { status: :rejected })
+
+    race = RelightStats.new.shared_props[:guild_race]
+    assert_equal 5.0, race.find { |r| r[:name] == "rivendell" }[:hours]
   end
 
   test "personal hours sums only the user's in-window devlogs" do

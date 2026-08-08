@@ -51,10 +51,14 @@ class RelightStats
     START_AT..END_AT
   end
 
+  def week_window
+    [ 7.days.ago, START_AT ].max..[ Time.current, END_AT ].min
+  end
+
   def visible_devlogs
     Devlog.unscope(:order)
       .joins(:project)
-      .merge(Project.kept.where(hidden: false).not_shadow_banned)
+      .merge(Project.kept.where(hidden: false).not_shadow_banned.where.not(status: :rejected))
   end
 
   def total_hours
@@ -91,7 +95,7 @@ class RelightStats
   def guild_race
     totals = visible_devlogs
       .joins(:user)
-      .where(devlogs: { created_at: 7.days.ago..Time.current })
+      .where(devlogs: { created_at: week_window })
       .where.not(users: { guild: nil })
       .group("users.guild")
       .sum(:time_hours)
