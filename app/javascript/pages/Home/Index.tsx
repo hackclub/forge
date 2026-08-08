@@ -1,5 +1,5 @@
 import { Head, Link } from '@inertiajs/react'
-import type { ProjectStatus, NewsPostSummary } from '@/types'
+import type { ProjectStatus } from '@/types'
 import ForgeKeeper from '@/components/ForgeKeeper'
 import CollaborationInvitesCard, { type PendingCollaborationInvite } from '@/components/CollaborationInvitesCard'
 
@@ -46,7 +46,6 @@ interface Props {
   orph_motivation: OrphMotivation
   projects: DashboardProject[]
   pending_invites: PendingCollaborationInvite[]
-  news_posts: NewsPostSummary[]
   staff_picks: StaffPick[]
 }
 
@@ -70,7 +69,7 @@ const STATUS_COLORS: Record<ProjectStatus, string> = {
   pitch_pending: 'bg-amber-500/15 text-amber-400',
 }
 
-export default function HomeIndex({ user, orph_motivation, projects, pending_invites, news_posts, staff_picks }: Props) {
+export default function HomeIndex({ user, orph_motivation, projects, pending_invites, staff_picks }: Props) {
   const orphProgress = Math.min(100, (orph_motivation.approved_count / orph_motivation.goal) * 100)
   const orphReached = orph_motivation.approved_count >= orph_motivation.goal
 
@@ -271,46 +270,6 @@ export default function HomeIndex({ user, orph_motivation, projects, pending_inv
           </section>
         )}
 
-        <section className="bg-[#1c1b1b] ghost-border p-8">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-headline font-bold text-[#e5e2e1] tracking-tight">Latest news</h2>
-            <Link
-              href="/news"
-              className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 hover:text-[#ffb595] transition-colors flex items-center gap-1"
-            >
-              View all
-              <span className="material-symbols-outlined text-sm">arrow_forward</span>
-            </Link>
-          </div>
-
-          {news_posts.length === 0 ? (
-            <div className="p-12 text-center">
-              <span className="material-symbols-outlined text-5xl text-stone-700 mb-4">campaign</span>
-              <p className="text-stone-500 text-sm">No news yet. Check back soon.</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {news_posts.map((post) => (
-                <Link
-                  key={post.id}
-                  href={`/news/${post.id}`}
-                  className="block bg-[#0e0e0e] ghost-border p-6 hover:bg-[#161616] transition-colors group min-w-0 overflow-hidden"
-                >
-                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
-                    {post.published_at}
-                  </p>
-                  <h3 className="font-headline font-bold text-lg tracking-tight text-[#e5e2e1] group-hover:text-[#ffb595] transition-colors mb-2 break-words">
-                    {post.title}
-                  </h3>
-                  <div
-                    className="markdown-content text-sm leading-relaxed text-stone-400 line-clamp-3 break-words [overflow-wrap:anywhere] !max-w-none !mx-0 !my-0 !px-0"
-                    dangerouslySetInnerHTML={{ __html: post.body_html }}
-                  />
-                </Link>
-              ))}
-            </div>
-          )}
-        </section>
       </div>
     </>
   )

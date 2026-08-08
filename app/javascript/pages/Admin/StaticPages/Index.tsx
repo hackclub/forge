@@ -8,7 +8,6 @@ import {
   Users,
   LifeBuoy,
   Sparkles,
-  Newspaper,
   ShoppingCart,
   Store,
   Users2,
@@ -147,13 +146,12 @@ export default function AdminStaticPagesIndex({
         </Section>
       )}
 
-      {(can('projects') || can('users') || can('support') || can('news') || can('orders') || can('referrals')) && (
+      {(can('projects') || can('users') || can('support') || can('orders') || can('referrals')) && (
         <Section title="Operations">
           {can('projects') && <Tile href="/admin/projects" label="Projects" icon={FolderOpen} badge={counts.projects} />}
           {can('users') && <Tile href="/admin/users" label="Users" icon={Users} badge={counts.users} />}
           {can('support') && <Tile href="/admin/support" label="Support Tickets" icon={LifeBuoy} />}
           {is_admin && <Tile href="/admin/rsvps" label="RSVPs" icon={Sparkles} />}
-          {can('news') && <Tile href="/admin/news_posts" label="News Posts" icon={Newspaper} />}
           {can('orders') && (
             <Tile
               href="/admin/orders"

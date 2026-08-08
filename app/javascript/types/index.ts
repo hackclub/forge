@@ -15,14 +15,6 @@ export interface User {
 
 export type FlashData = Record<string, string>
 
-export interface NewsPostSummary {
-  id: number
-  title: string
-  body_html: string
-  published_at: string
-  author_name: string
-}
-
 export interface Impersonation {
   viewing_as: string | null
   impersonator: string | null

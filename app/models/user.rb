@@ -291,7 +291,6 @@ class User < ApplicationRecord
     third_party
     support
     hackatime
-    news
     orders
     referrals
     superadmin

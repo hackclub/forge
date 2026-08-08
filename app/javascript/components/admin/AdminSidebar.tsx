@@ -10,7 +10,6 @@ import {
   Store,
   Megaphone,
   MessageSquare,
-  Newspaper,
   Sparkles,
   Bot,
   Flag,
@@ -64,7 +63,6 @@ interface AdminPermissions {
   jobs: boolean
   third_party: boolean
   support: boolean
-  news: boolean
   orders: boolean
   referrals: boolean
 }
@@ -108,7 +106,6 @@ function buildSections(): { items: NavItem[] }[] {
         { label: 'Shop Orders', href: '/admin/orders', icon: ShoppingCart, statKey: 'pending_orders', permission: 'orders' },
         { label: 'Shop Items', href: '/admin/shop_items', icon: Store, permission: 'orders' },
         { label: 'Referrals', href: '/admin/referrals', icon: Users2, permission: 'referrals' },
-        { label: 'News', href: '/admin/news_posts', icon: Newspaper, permission: 'news' },
         { label: 'RSVPs', href: '/admin/rsvps', icon: Sparkles, permission: 'is_admin' },
       ],
     },
@@ -208,7 +205,6 @@ export default function AdminSidebar({
     jobs: false,
     third_party: false,
     support: false,
-    news: false,
     orders: false,
     referrals: false,
   }

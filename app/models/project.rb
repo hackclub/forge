@@ -38,6 +38,7 @@
 #  staff_pick_at                :datetime
 #  status                       :integer          default("draft"), not null
 #  streak_at_approval           :integer
+#  streaks_at_submission        :jsonb            not null
 #  submitted_at                 :datetime
 #  subtitle                     :string
 #  tags                         :string           default([]), not null, is an Array

@@ -5,6 +5,7 @@
 #  id                           :bigint           not null, primary key
 #  ai_check_ran_at              :datetime
 #  ai_check_result              :jsonb
+#  ai_usage                     :text
 #  approval_justification       :text
 #  budget                       :text
 #  build_proof_url              :string
@@ -15,6 +16,8 @@
 #  description                  :text
 #  devlog_mode                  :string
 #  discarded_at                 :datetime
+#  flag_reason                  :text
+#  flagged_for_review_at        :datetime
 #  green_flags                  :string           default([]), is an Array
 #  hidden                       :boolean          default(FALSE), not null
 #  journal_branch               :string
@@ -29,18 +32,22 @@
 #  repo_link                    :string
 #  review_feedback              :text
 #  reviewed_at                  :datetime
+#  reviewed_commit_sha          :string
 #  shadow_banned                :boolean          default(FALSE), not null
 #  slack_message_ts             :string
 #  staff_pick_at                :datetime
 #  status                       :integer          default("draft"), not null
 #  streak_at_approval           :integer
+#  streaks_at_submission        :jsonb            not null
 #  submitted_at                 :datetime
 #  subtitle                     :string
 #  tags                         :string           default([]), not null, is an Array
 #  tier                         :string           default("tier_4"), not null
+#  uses_ai                      :boolean          default(FALSE), not null
 #  views_count                  :integer          default(0), not null
 #  created_at                   :datetime         not null
 #  updated_at                   :datetime         not null
+#  flagged_by_id                :bigint
 #  linked_project_id            :bigint
 #  reviewer_id                  :bigint
 #  slack_channel_id             :string
@@ -49,6 +56,8 @@
 # Indexes
 #
 #  index_projects_on_discarded_at                         (discarded_at)
+#  index_projects_on_flagged_by_id                        (flagged_by_id)
+#  index_projects_on_flagged_for_review_at                (flagged_for_review_at)
 #  index_projects_on_linked_project_id_for_build_reviews  (linked_project_id) UNIQUE WHERE (build_review = true)
 #  index_projects_on_staff_pick_at                        (staff_pick_at)
 #  index_projects_on_status                               (status)
@@ -58,6 +67,7 @@
 #
 # Foreign Keys
 #
+#  fk_rails_...  (flagged_by_id => users.id)
 #  fk_rails_...  (linked_project_id => projects.id)
 #  fk_rails_...  (reviewer_id => users.id)
 #  fk_rails_...  (user_id => users.id)

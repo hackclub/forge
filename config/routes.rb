@@ -314,11 +314,6 @@ Rails.application.routes.draw do
           post :toggle
         end
       end
-      resources :news_posts, only: [ :index, :create, :update, :destroy ] do
-        member do
-          post :toggle
-        end
-      end
       resources :orders, only: [ :index, :show ] do
         member do
           post :approve
@@ -431,8 +426,6 @@ Rails.application.routes.draw do
   post "users/:id/kudos" => "users#add_kudo", as: :user_kudos
   delete "users/:id/kudos/:kudo_id" => "users#destroy_kudo", as: :user_kudo
   patch "users/:id/github" => "users#update_github", as: :user_github
-  get "news" => "news#index", as: :news
-  get "news/:id" => "news#show", as: :news_post
 
   get  "guilds/choose" => "guild_choices#new", as: :new_guild_choice
   post "guilds/choose" => "guild_choices#create", as: :guild_choices

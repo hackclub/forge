@@ -57,7 +57,6 @@ class Admin::ApplicationController < ApplicationController
       jobs: user.has_permission?("jobs"),
       third_party: user.has_permission?("third_party"),
       support: user.has_permission?("support"),
-      news: user.has_permission?("news"),
       orders: user.has_permission?("orders"),
       referrals: user.has_permission?("referrals")
     }

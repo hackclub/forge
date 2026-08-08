@@ -35,15 +35,6 @@ const navItems: NavItem[] = [
     tour: undefined,
     flag: 'relight_enabled',
   },
-  {
-    href: '/news',
-    label: 'News',
-    icon: 'campaign',
-    authOnly: true,
-    tour: undefined,
-    flag: undefined,
-    hideFlag: 'guilds_enabled',
-  },
   { href: '/docs', label: 'Resources', icon: 'menu_book', authOnly: false, tour: 'nav-docs', flag: undefined },
 ]
 

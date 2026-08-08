@@ -42,7 +42,6 @@ const permissionLabels: Record<string, string> = {
   third_party: '3rd Party',
   support: 'Support Tickets',
   hackatime: 'Hackatime',
-  news: 'News',
   orders: 'Orders',
   referrals: 'Referrals',
   superadmin: 'Superadmin',
