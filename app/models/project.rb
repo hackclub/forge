@@ -112,8 +112,8 @@ class Project < ApplicationRecord
   TIER_COIN_RATES = {
     "tier_1" => 7.5,
     "tier_2" => 6.5,
-    "tier_3" => 5.5,
-    "tier_4" => 5.0,
+    "tier_3" => 5.0,
+    "tier_4" => 4.5,
     BUILD_REVIEW_TIER => 5.0
   }.freeze
 
