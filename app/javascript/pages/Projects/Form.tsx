@@ -1,13 +1,7 @@
 import { useState } from 'react'
 import { useForm, usePage } from '@inertiajs/react'
-import type { HackatimeProject, ProjectForm, ProjectTier, SharedProps } from '@/types'
-
-function formatHours(seconds: number) {
-  const hours = seconds / 3600
-  if (hours >= 10) return `${Math.round(hours)}h`
-  if (hours >= 1) return `${hours.toFixed(1)}h`
-  return `${Math.max(1, Math.round(seconds / 60))}m`
-}
+import type { ProjectForm, ProjectTier, SharedProps } from '@/types'
+import HackatimePicker from '@/components/HackatimePicker'
 
 export default function ProjectsForm({
   project,
@@ -29,15 +23,6 @@ export default function ProjectsForm({
   const [importing, setImporting] = useState(false)
   const [importError, setImportError] = useState('')
   const [showImport, setShowImport] = useState(false)
-  const [hackatimeProjects, setHackatimeProjects] = useState<HackatimeProject[] | null>(null)
-  const [loadingHackatime, setLoadingHackatime] = useState(false)
-  const [hackatimeError, setHackatimeError] = useState('')
-  const [hackatimeFilter, setHackatimeFilter] = useState('')
-
-  const visibleHackatimeProjects = (hackatimeProjects ?? []).filter((p) =>
-    p.name.toLowerCase().includes(hackatimeFilter.trim().toLowerCase()),
-  )
-
   const isBuildReview = project.tier === 'tier_build_review' || !!project.build_review
 
   const form = useForm({
@@ -52,30 +37,6 @@ export default function ProjectsForm({
     ai_usage: project.ai_usage,
     hackatime_projects: project.hackatime_projects ?? [],
   })
-
-  async function loadHackatimeProjects() {
-    setHackatimeError('')
-    setLoadingHackatime(true)
-    try {
-      const res = await fetch('/projects/hackatime_projects', { headers: { Accept: 'application/json' } })
-      const body = await res.json().catch(() => ({}))
-      if (!res.ok) throw new Error(body.error || 'Could not load your Hackatime projects.')
-
-      setHackatimeProjects(body.projects ?? [])
-    } catch (err) {
-      setHackatimeError(err instanceof Error ? err.message : 'Could not load your Hackatime projects.')
-    } finally {
-      setLoadingHackatime(false)
-    }
-  }
-
-  function toggleHackatimeProject(name: string) {
-    const selected = form.data.hackatime_projects
-    form.setData(
-      'hackatime_projects',
-      selected.includes(name) ? selected.filter((n) => n !== name) : [...selected, name],
-    )
-  }
 
   async function handleImport() {
     setImportError('')
@@ -264,76 +225,10 @@ export default function ProjectsForm({
                 Link the Hackatime projects you tracked time on!
               </span>
             </div>
-
-            {form.data.hackatime_projects.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {form.data.hackatime_projects.map((name) => (
-                  <button
-                    key={name}
-                    type="button"
-                    onClick={() => toggleHackatimeProject(name)}
-                    className="flex items-center gap-1 bg-[#ca5924]/15 px-2 py-1 text-xs font-bold text-[#ffb595]"
-                    title="Remove"
-                  >
-                    {name}
-                    <span className="material-symbols-outlined text-sm">close</span>
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {hackatimeProjects === null ? (
-              <button
-                type="button"
-                onClick={loadHackatimeProjects}
-                disabled={loadingHackatime}
-                className="flex items-center gap-2 bg-[#0e0e0e] px-4 py-2 text-xs font-bold uppercase tracking-wider text-stone-300 ghost-border transition-colors hover:text-[#ffb595] disabled:opacity-50"
-              >
-                <span className="material-symbols-outlined text-base">schedule</span>
-                {loadingHackatime ? 'Loading…' : 'Find my Hackatime projects'}
-              </button>
-            ) : hackatimeProjects.length === 0 ? (
-              <p className="text-stone-500 text-xs">No Hackatime projects found on your account yet.</p>
-            ) : (
-              <>
-                <input
-                  type="search"
-                  value={hackatimeFilter}
-                  onChange={(e) => setHackatimeFilter(e.target.value)}
-                  placeholder={`Search ${hackatimeProjects.length} projects…`}
-                  className="w-full bg-[#0e0e0e] border-none rounded-lg px-3 py-2 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600"
-                />
-                <div className="max-h-64 overflow-y-auto space-y-1">
-                  {visibleHackatimeProjects.length === 0 && (
-                    <p className="text-stone-500 text-xs py-2">No projects match “{hackatimeFilter}”.</p>
-                  )}
-                  {visibleHackatimeProjects.map((p) => (
-                    <label
-                      key={p.name}
-                      className="flex cursor-pointer items-center gap-3 bg-[#0e0e0e] px-3 py-2 hover:bg-[#161616]"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={form.data.hackatime_projects.includes(p.name)}
-                        onChange={() => toggleHackatimeProject(p.name)}
-                        className="size-4 accent-[#ca5924] shrink-0"
-                      />
-                      <span className="min-w-0 flex-1 truncate text-sm text-[#e5e2e1]">{p.name}</span>
-                      {p.languages.length > 0 && (
-                        <span className="hidden truncate text-[10px] uppercase tracking-wider text-stone-600 sm:block">
-                          {p.languages.slice(0, 3).join(' · ')}
-                        </span>
-                      )}
-                      <span className="shrink-0 text-xs font-bold tabular-nums text-[#e3b24c]">
-                        {formatHours(p.seconds)}
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              </>
-            )}
-
-            {hackatimeError && <p className="text-red-400 text-xs">{hackatimeError}</p>}
+            <HackatimePicker
+              selected={form.data.hackatime_projects}
+              onChange={(names) => form.setData('hackatime_projects', names)}
+            />
           </div>
         )}
 

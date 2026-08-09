@@ -6,6 +6,7 @@ import rehypeSanitize from 'rehype-sanitize'
 import remarkGfm from 'remark-gfm'
 import type { ProjectDetail, ProjectMember, ProjectStatus, SharedProps } from '@/types'
 import ReviewTimeline, { type ReviewEvent } from '@/components/ReviewTimeline'
+import HackatimePicker from '@/components/HackatimePicker'
 
 function isSafeUrl(url: string | null): boolean {
   if (!url) return false
@@ -304,6 +305,7 @@ export default function ProjectsShow({
   can,
   is_admin_view,
   pending_invites,
+  hackatime_enabled,
 }: {
   project: ProjectDetail
   devlogs: DevlogEntry[]
@@ -320,8 +322,24 @@ export default function ProjectsShow({
   }
   is_admin_view: boolean
   pending_invites: PendingInvite[]
+  hackatime_enabled?: boolean
 }) {
   const [kudoContent, setKudoContent] = useState('')
+  const [hackatimeSelection, setHackatimeSelection] = useState<string[]>(project.hackatime_projects ?? [])
+  const [savingHackatime, setSavingHackatime] = useState(false)
+  const linkedHackatime = project.hackatime_projects ?? []
+  const hackatimeChanged =
+    hackatimeSelection.length !== linkedHackatime.length ||
+    hackatimeSelection.some((name) => !linkedHackatime.includes(name))
+
+  function saveHackatimeProjects() {
+    setSavingHackatime(true)
+    router.patch(
+      `/projects/${project.id}`,
+      { project: { hackatime_projects: hackatimeSelection.length > 0 ? hackatimeSelection : [''] } },
+      { preserveScroll: true, onFinish: () => setSavingHackatime(false) },
+    )
+  }
   const [devlogOrder, setDevlogOrder] = useState<'newest' | 'oldest'>('newest')
 
   useEffect(() => {
@@ -1701,6 +1719,28 @@ export default function ProjectsShow({
               <span className="material-symbols-outlined">link</span>
               Link Repository
             </button>
+          )}
+          {can.update && hackatime_enabled && (
+            <div className="ghost-border bg-[#1c1b1b] p-6">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="material-symbols-outlined text-[#ffb595] text-lg">schedule</span>
+                <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline">
+                  Hackatime Projects
+                </h4>
+              </div>
+              <p className="text-stone-500 text-xs mb-3">Link the Hackatime projects you tracked time on.</p>
+              <HackatimePicker selected={hackatimeSelection} onChange={setHackatimeSelection} />
+              {hackatimeChanged && (
+                <button
+                  type="button"
+                  onClick={saveHackatimeProjects}
+                  disabled={savingHackatime}
+                  className="mt-3 w-full signature-smolder text-[#4c1a00] px-4 py-2 text-xs font-bold uppercase tracking-wider disabled:opacity-50"
+                >
+                  {savingHackatime ? 'Saving…' : 'Save linked projects'}
+                </button>
+              )}
+            </div>
           )}
           {can.update && !is_admin_view && project.payout && (
             <div className="bg-[#1c1b1b] ghost-border p-6">

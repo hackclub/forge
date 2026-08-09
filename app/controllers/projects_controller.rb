@@ -23,6 +23,7 @@ class ProjectsController < ApplicationController
         manage_team: current_user.present? && policy(@project).manage_team?,
         leave: current_user.present? && @project.member?(current_user) && @project.user_id != current_user.id
       },
+      hackatime_enabled: HackatimeService.enabled?,
       pending_invites: policy(@project).manage_team? ? serialize_pending_invites(@project) : [],
       kudos: @project.kudos.includes(:author).order(created_at: :desc).map { |k| serialize_project_kudo(k) }
     }
