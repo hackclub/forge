@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useForm, usePage } from '@inertiajs/react'
 import type { ProjectForm, ProjectTier, SharedProps } from '@/types'
+import HackatimePicker from '@/components/HackatimePicker'
 
 export default function ProjectsForm({
   project,
@@ -8,19 +9,20 @@ export default function ProjectsForm({
   submit_url,
   method,
   linkable_projects,
+  hackatime_enabled,
 }: {
   project: ProjectForm
   title: string
   submit_url: string
   method: string
   linkable_projects?: { id: number; name: string }[]
+  hackatime_enabled?: boolean
 }) {
   const { errors } = usePage<SharedProps>().props
   const [importUrl, setImportUrl] = useState('')
   const [importing, setImporting] = useState(false)
   const [importError, setImportError] = useState('')
   const [showImport, setShowImport] = useState(false)
-
   const isBuildReview = project.tier === 'tier_build_review' || !!project.build_review
 
   const form = useForm({
@@ -33,6 +35,7 @@ export default function ProjectsForm({
     linked_project_id: project.linked_project_id ?? '',
     uses_ai: project.uses_ai,
     ai_usage: project.ai_usage,
+    hackatime_projects: project.hackatime_projects ?? [],
   })
 
   async function handleImport() {
@@ -211,6 +214,23 @@ export default function ProjectsForm({
             placeholder="https://github.com/..."
           />
         </div>
+
+        {hackatime_enabled && (
+          <div className="ghost-border bg-[#1c1b1b] p-5 space-y-3">
+            <div>
+              <span className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-400">
+                Hackatime Projects <span className="text-stone-600 normal-case tracking-normal">(optional)</span>
+              </span>
+              <span className="block text-stone-500 text-xs mt-1">
+                Link the Hackatime projects you tracked time on!
+              </span>
+            </div>
+            <HackatimePicker
+              selected={form.data.hackatime_projects}
+              onChange={(names) => form.setData('hackatime_projects', names)}
+            />
+          </div>
+        )}
 
         <div className="ghost-border bg-[#1c1b1b] p-5 space-y-3">
           <label className="flex items-start gap-3 cursor-pointer">

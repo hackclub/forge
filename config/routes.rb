@@ -182,6 +182,7 @@
 #                                            PUT    /reels/:id(.:format)                                                                              reels#update
 #                                            DELETE /reels/:id(.:format)                                                                              reels#destroy
 #                import_from_github_projects POST   /projects/import_from_github(.:format)                                                            projects#import_from_github
+#                hackatime_projects_projects GET    /projects/hackatime_projects(.:format)                                                            projects#hackatime_projects
 #                  submit_for_review_project POST   /projects/:id/submit_for_review(.:format)                                                         projects#submit_for_review
 #                           ai_check_project GET    /projects/:id/ai_check(.:format)                                                                  projects#ai_check
 #                       run_ai_check_project POST   /projects/:id/run_ai_check(.:format)                                                              projects#run_ai_check
@@ -501,6 +502,7 @@ Rails.application.routes.draw do
   resources :projects, except: :index do
     collection do
       post :import_from_github
+      get :hackatime_projects
     end
     member do
       post :submit_for_review

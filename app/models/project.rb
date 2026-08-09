@@ -19,6 +19,7 @@
 #  flag_reason                  :text
 #  flagged_for_review_at        :datetime
 #  green_flags                  :string           default([]), is an Array
+#  hackatime_projects           :string           default([]), not null, is an Array
 #  hidden                       :boolean          default(FALSE), not null
 #  journal_branch               :string
 #  kudos_count                  :integer          default(0), not null
@@ -117,6 +118,8 @@ class Project < ApplicationRecord
     "tier_4" => 4.5,
     BUILD_REVIEW_TIER => 5.0
   }.freeze
+
+  before_validation :normalize_hackatime_projects
 
   validates :name, presence: true
   validates :repo_link, format: { with: /\Ahttps?:\/\/\S+\z/i, message: "must be a valid URL starting with http:// or https://" }, allow_blank: true
@@ -321,5 +324,9 @@ class Project < ApplicationRecord
 
   def process_cover_image_upload
     UploadCoverImageJob.perform_later(id)
+  end
+
+  def normalize_hackatime_projects
+    self.hackatime_projects = Array(hackatime_projects).map { |name| name.to_s.strip }.reject(&:blank?).uniq
   end
 end

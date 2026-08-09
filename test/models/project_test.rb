@@ -19,6 +19,7 @@
 #  flag_reason                  :text
 #  flagged_for_review_at        :datetime
 #  green_flags                  :string           default([]), is an Array
+#  hackatime_projects           :string           default([]), not null, is an Array
 #  hidden                       :boolean          default(FALSE), not null
 #  journal_branch               :string
 #  kudos_count                  :integer          default(0), not null
