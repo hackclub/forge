@@ -32,7 +32,8 @@ export function FlagDialog({
         <AlertDialogHeader>
           <AlertDialogTitle>Flag for review</AlertDialogTitle>
           <AlertDialogDescription>
-            Pulls this project out of the queue pending investigation. It will still stay pending but it will be investigated!
+            Pulls this project out of the queue pending investigation. It will still stay pending but it will be
+            investigated!
           </AlertDialogDescription>
         </AlertDialogHeader>
         <Textarea

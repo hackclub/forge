@@ -112,8 +112,7 @@ export default function AdminAuditLogIndex({
     )
   }
 
-  const selectCls =
-    'h-9 rounded-md border border-border bg-background px-3 text-sm text-foreground cursor-pointer'
+  const selectCls = 'h-9 rounded-md border border-border bg-background px-3 text-sm text-foreground cursor-pointer'
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">

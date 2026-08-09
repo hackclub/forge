@@ -293,7 +293,7 @@ export default function AdminAirtableQueueShow({
         <CardContent className="space-y-3">
           <div className="flex flex-col md:flex-row gap-2 md:items-center justify-between">
             <p className="text-sm text-muted-foreground">
-    Verifies if the justification is up to standard using gemini :D
+              Verifies if the justification is up to standard using gemini :D
             </p>
             <Button variant="outline" size="sm" onClick={runCheck} disabled={checking}>
               {checking ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}

@@ -23,9 +23,10 @@ export default function AdminDatabaseIndex({ tables }: { tables: string[] }) {
   const [loading, setLoading] = useState(false)
   const [selectedTable, setSelectedTable] = useState<string | null>(null)
 
-  const csrfToken = typeof document !== 'undefined'
-    ? document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content || ''
-    : ''
+  const csrfToken =
+    typeof document !== 'undefined'
+      ? document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content || ''
+      : ''
 
   async function runQuery(query?: string) {
     const q = query ?? sql
@@ -146,7 +147,11 @@ export default function AdminDatabaseIndex({ tables }: { tables: string[] }) {
                               className="font-mono text-xs whitespace-nowrap max-w-xs truncate"
                               title={String(cell ?? '')}
                             >
-                              {cell === null ? <span className="text-muted-foreground italic">NULL</span> : String(cell)}
+                              {cell === null ? (
+                                <span className="text-muted-foreground italic">NULL</span>
+                              ) : (
+                                String(cell)
+                              )}
                             </TableCell>
                           ))}
                         </TableRow>

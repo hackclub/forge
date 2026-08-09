@@ -18,11 +18,7 @@ interface LeaderboardRow {
   active_seconds: number
 }
 
-const rankStyles = [
-  'text-amber-500',
-  'text-zinc-400',
-  'text-orange-700 dark:text-orange-400',
-]
+const rankStyles = ['text-amber-500', 'text-zinc-400', 'text-orange-700 dark:text-orange-400']
 
 export default function AdminReviewsLeaderboard({
   rows,

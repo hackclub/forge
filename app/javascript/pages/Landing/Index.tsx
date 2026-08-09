@@ -280,7 +280,9 @@ export default function LandingIndex() {
 
       <ForgeMusic tracks={LANDING_TRACKS} position="bottom-4 left-4" />
 
-      <div className={`min-h-screen bg-[#0e0e0e] text-[#e5e2e1] relative overflow-hidden flex flex-col ${zooming ? 'landing-zooming' : ''}`}>
+      <div
+        className={`min-h-screen bg-[#0e0e0e] text-[#e5e2e1] relative overflow-hidden flex flex-col ${zooming ? 'landing-zooming' : ''}`}
+      >
         <LandingParallaxBg zooming={zooming} />
 
         <main className="relative z-10 flex-1 flex">

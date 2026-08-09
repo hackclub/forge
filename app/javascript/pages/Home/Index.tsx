@@ -269,7 +269,6 @@ export default function HomeIndex({ user, orph_motivation, projects, pending_inv
             </div>
           </section>
         )}
-
       </div>
     </>
   )

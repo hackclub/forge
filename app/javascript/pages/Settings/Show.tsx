@@ -45,7 +45,7 @@ function ForgePfpSection({ avatar }: { avatar: string }) {
   }, [])
 
   function download() {
-    canvasRef.current?.toBlob(blob => {
+    canvasRef.current?.toBlob((blob) => {
       if (!blob) return
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
@@ -78,8 +78,7 @@ function ForgePfpSection({ avatar }: { avatar: string }) {
           ) : (
             <>
               <p className="text-stone-400 text-sm mb-4">
-                Forge-ify your Slack pfp! Download it, then set it as your profile photo on
-                Slack :D
+                Forge-ify your Slack pfp! Download it, then set it as your profile photo on Slack :D
               </p>
               <button
                 onClick={download}

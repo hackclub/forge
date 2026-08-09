@@ -858,7 +858,10 @@ function ReelCard({
       window.setTimeout(() => setCopied(false), 1600)
     }
     if (navigator.clipboard?.writeText) {
-      navigator.clipboard.writeText(url).then(show).catch(() => prompt('Copy this link:', url))
+      navigator.clipboard
+        .writeText(url)
+        .then(show)
+        .catch(() => prompt('Copy this link:', url))
     } else {
       prompt('Copy this link:', url)
     }

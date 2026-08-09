@@ -105,10 +105,7 @@ export default function AdminReferralsIndex({
             <img src={winner.avatar} alt="" className="size-12 rounded-full" />
             <div className="flex-1 min-w-0">
               <p className="text-xs text-muted-foreground uppercase tracking-wide mb-0.5">Winner Drawn</p>
-              <Link
-                href={`/admin/users/${winner.id}`}
-                className="text-lg font-semibold hover:underline truncate block"
-              >
+              <Link href={`/admin/users/${winner.id}`} className="text-lg font-semibold hover:underline truncate block">
                 {winner.display_name}
               </Link>
               <p className="text-sm text-muted-foreground">

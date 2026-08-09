@@ -25,7 +25,14 @@ interface QueueItem {
   created_at: string
 }
 
-const statusInfo: Record<Status, { variant: 'default' | 'secondary' | 'outline' | 'destructive' | 'success' | 'warning'; icon: LucideIcon; label: string }> = {
+const statusInfo: Record<
+  Status,
+  {
+    variant: 'default' | 'secondary' | 'outline' | 'destructive' | 'success' | 'warning'
+    icon: LucideIcon
+    label: string
+  }
+> = {
   pending: { variant: 'warning', icon: Clock, label: 'Pending' },
   sent: { variant: 'success', icon: CheckCircle2, label: 'Sent' },
   cancelled: { variant: 'secondary', icon: XCircle, label: 'Cancelled' },
@@ -109,7 +116,9 @@ export default function AdminAirtableQueueIndex({
         <Card>
           <CardContent className="p-12 text-center">
             <p className="text-base font-medium mb-1">Queue is empty</p>
-            <p className="text-sm text-muted-foreground">Airtable-bound records will appear here for review before sending.</p>
+            <p className="text-sm text-muted-foreground">
+              Airtable-bound records will appear here for review before sending.
+            </p>
           </CardContent>
         </Card>
       ) : (

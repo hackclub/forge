@@ -12,7 +12,10 @@ interface Props {
   token_saved_at: string | null
 }
 
-const SOURCE_LABELS: Record<Props['credential_source'], { label: string; variant: 'success' | 'secondary' | 'destructive' }> = {
+const SOURCE_LABELS: Record<
+  Props['credential_source'],
+  { label: string; variant: 'success' | 'secondary' | 'destructive' }
+> = {
   env_api_key: { label: 'API key (env)', variant: 'success' },
   admin_token: { label: 'OAuth token (saved here)', variant: 'success' },
   env_auth_token: { label: 'OAuth token (env)', variant: 'secondary' },
@@ -27,12 +30,16 @@ export default function AdminClaudeShow({ credential_source, model, token_saved_
   function reauth(e: React.FormEvent) {
     e.preventDefault()
     setSaving(true)
-    router.post('/admin/claude', { token }, {
-      onFinish: () => {
-        setSaving(false)
-        setToken('')
+    router.post(
+      '/admin/claude',
+      { token },
+      {
+        onFinish: () => {
+          setSaving(false)
+          setToken('')
+        },
       },
-    })
+    )
   }
 
   function testConnection() {
@@ -93,7 +100,8 @@ export default function AdminClaudeShow({ credential_source, model, token_saved_
                 required
               />
               <p className="text-xs text-muted-foreground">
-                The token is verified against the Claude API before it's saved, then used for all AI checks. It's stored encrypted and never shown again.
+                The token is verified against the Claude API before it's saved, then used for all AI checks. It's stored
+                encrypted and never shown again.
               </p>
             </div>
             <div className="flex gap-2">

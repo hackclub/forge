@@ -10,11 +10,7 @@ export function Separator({ orientation = 'horizontal', className, ...props }: S
     <div
       role="separator"
       aria-orientation={orientation}
-      className={cn(
-        'bg-border shrink-0',
-        orientation === 'horizontal' ? 'h-px w-full' : 'h-full w-px',
-        className,
-      )}
+      className={cn('bg-border shrink-0', orientation === 'horizontal' ? 'h-px w-full' : 'h-full w-px', className)}
       {...props}
     />
   )

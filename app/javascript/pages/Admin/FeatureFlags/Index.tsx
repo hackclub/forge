@@ -104,7 +104,11 @@ export default function AdminFeatureFlagsIndex({ flags }: { flags: Flag[] }) {
                     <TableCell className="text-muted-foreground text-sm">{flag.description || '—'}</TableCell>
                     <TableCell>
                       <button onClick={() => toggle(flag.id)} className="cursor-pointer">
-                        {flag.enabled ? <Badge variant="success">Enabled</Badge> : <Badge variant="secondary">Disabled</Badge>}
+                        {flag.enabled ? (
+                          <Badge variant="success">Enabled</Badge>
+                        ) : (
+                          <Badge variant="secondary">Disabled</Badge>
+                        )}
                       </button>
                     </TableCell>
                     <TableCell className="text-muted-foreground text-xs">{flag.updated_at}</TableCell>
