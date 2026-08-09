@@ -62,6 +62,33 @@ module HackatimeService
     nil
   end
 
+  def get_user_projects(user_id)
+    return [] unless enabled? && user_id.present?
+
+    response = connection.get("user/projects", id: user_id)
+    return [] unless response.success?
+
+    JSON.parse(response.body).fetch("projects", []).map { |p|
+      {
+        name: p["name"],
+        seconds: p["total_duration"].to_i,
+        languages: Array(p["languages"]).compact,
+        repo: p["repo"],
+        last_heartbeat: p["last_heartbeat"]
+      }
+    }.reject { |p| p[:name].blank? }
+  rescue StandardError => e
+    Rails.logger.error("HackatimeService.get_user_projects failed: #{e.message}")
+    []
+  end
+
+  def projects_for_slack_id(slack_id)
+    user_id = get_user_by_slack_id(slack_id)
+    return [] unless user_id
+
+    get_user_projects(user_id)
+  end
+
   def get_trust_info(slack_id:, email:)
     return nil unless enabled?
 

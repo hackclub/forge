@@ -639,7 +639,11 @@ export default function ProjectsShow({
   const isPending = project.status === 'pending'
   const isReturned = project.status === 'returned'
   const isBuildingPhase =
-    isPitchApproved || isApproved || isPending || isReturned || (project.status === 'draft' && (isNormalTier || devlogs.length > 0))
+    isPitchApproved ||
+    isApproved ||
+    isPending ||
+    isReturned ||
+    (project.status === 'draft' && (isNormalTier || devlogs.length > 0))
   const isGitMode = project.devlog_mode === 'git'
   const isWebMode = project.devlog_mode === 'website'
   const canLog = isBuildingPhase
@@ -818,6 +822,22 @@ export default function ProjectsShow({
                 AI usage
               </p>
               <p className="text-sm text-stone-300 leading-relaxed whitespace-pre-wrap">{project.ai_usage}</p>
+            </div>
+          )}
+
+          {project.hackatime_projects && project.hackatime_projects.length > 0 && (
+            <div className="ghost-border bg-[#1c1b1b] p-4 mb-4 max-w-2xl">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-stone-500 font-bold mb-2 flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-sm">schedule</span>
+                Hackatime projects
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {project.hackatime_projects.map((name) => (
+                  <span key={name} className="bg-[#0e0e0e] px-2 py-1 text-xs font-bold text-[#ffb595]">
+                    {name}
+                  </span>
+                ))}
+              </div>
             </div>
           )}
 
@@ -1707,9 +1727,7 @@ export default function ProjectsShow({
                 {project.payout.guild_multiplier !== null && project.payout.guild_multiplier !== 1 && (
                   <p>× {project.payout.guild_multiplier} guild multiplier</p>
                 )}
-                {project.payout.team_total !== null && (
-                  <p>Team total: {project.payout.team_total.toFixed(2)}c</p>
-                )}
+                {project.payout.team_total !== null && <p>Team total: {project.payout.team_total.toFixed(2)}c</p>}
               </div>
             </div>
           )}

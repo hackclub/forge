@@ -17,6 +17,10 @@ class ProjectPolicy < ApplicationPolicy
     user.present?
   end
 
+  def hackatime_projects?
+    user.present?
+  end
+
   def update?
     return false if record.discarded? && !admin?
     admin? || owner?

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_08_000000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_09_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -317,6 +317,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_08_000000) do
     t.bigint "flagged_by_id"
     t.datetime "flagged_for_review_at"
     t.string "green_flags", default: [], array: true
+    t.string "hackatime_projects", default: [], null: false, array: true
     t.boolean "hidden", default: false, null: false
     t.string "journal_branch"
     t.integer "kudos_count", default: 0, null: false

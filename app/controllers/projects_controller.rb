@@ -37,18 +37,20 @@ class ProjectsController < ApplicationController
       render inertia: "Projects/AdvancedPitch", props: {}
     when "tier_2", "tier_3", "tier_4"
       render inertia: "Projects/Form", props: {
-        project: { name: "", subtitle: "", repo_link: "", tags: [], tier: params[:tier], uses_ai: false, ai_usage: "" },
+        project: { name: "", subtitle: "", repo_link: "", tags: [], tier: params[:tier], uses_ai: false, ai_usage: "", hackatime_projects: [] },
         title: "New Project",
         submit_url: projects_path,
-        method: "post"
+        method: "post",
+        hackatime_enabled: HackatimeService.enabled?
       }
     when Project::BUILD_REVIEW_TIER
       render inertia: "Projects/Form", props: {
-        project: { name: "", subtitle: "", repo_link: "", tags: [], tier: Project::BUILD_REVIEW_TIER, build_review: true, linked_project_id: nil, uses_ai: false, ai_usage: "" },
+        project: { name: "", subtitle: "", repo_link: "", tags: [], tier: Project::BUILD_REVIEW_TIER, build_review: true, linked_project_id: nil, uses_ai: false, ai_usage: "", hackatime_projects: [] },
         title: "New Build Review",
         submit_url: projects_path,
         method: "post",
-        linkable_projects: linkable_projects_for(current_user)
+        linkable_projects: linkable_projects_for(current_user),
+        hackatime_enabled: HackatimeService.enabled?
       }
     else
       render inertia: "Projects/New", props: {
@@ -87,11 +89,13 @@ class ProjectsController < ApplicationController
         tier: @project.tier,
         devlog_mode: @project.devlog_mode,
         uses_ai: @project.uses_ai,
-        ai_usage: @project.ai_usage.to_s
+        ai_usage: @project.ai_usage.to_s,
+        hackatime_projects: @project.hackatime_projects
       },
       title: "Edit Project",
       submit_url: project_path(@project),
-      method: "patch"
+      method: "patch",
+      hackatime_enabled: HackatimeService.enabled?
     }
   end
 
@@ -111,6 +115,23 @@ class ProjectsController < ApplicationController
     @project.discard
     audit!("project.soft_deleted", target: @project, metadata: { via: "owner" })
     redirect_to explore_path, notice: "Project deleted."
+  end
+
+  def hackatime_projects
+    authorize Project
+
+    unless HackatimeService.enabled?
+      render json: { error: "Hackatime is not configured." }, status: :service_unavailable
+      return
+    end
+
+    if current_user.slack_id.blank?
+      render json: { error: "Your account has no Slack ID, so we can't find your Hackatime projects." }, status: :unprocessable_entity
+      return
+    end
+
+    projects = HackatimeService.projects_for_slack_id(current_user.slack_id)
+    render json: { projects: projects }
   end
 
   def import_from_github
@@ -404,7 +425,7 @@ class ProjectsController < ApplicationController
   end
 
   def project_params
-    params.expect(project: [ :name, :subtitle, :repo_link, :tier, :devlog_mode, :linked_project_id, :uses_ai, :ai_usage, tags: [] ])
+    params.expect(project: [ :name, :subtitle, :repo_link, :tier, :devlog_mode, :linked_project_id, :uses_ai, :ai_usage, tags: [], hackatime_projects: [] ])
   end
 
   def linkable_projects_for(user)
@@ -433,6 +454,7 @@ class ProjectsController < ApplicationController
       devlog_mode: project.devlog_mode,
       uses_ai: project.uses_ai,
       ai_usage: project.ai_usage,
+      hackatime_projects: project.hackatime_projects,
       review_feedback: can_view_private_project_data ? project.review_feedback : nil,
       tier: project.tier,
       coin_rate: project.coin_rate,

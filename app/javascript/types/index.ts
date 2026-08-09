@@ -107,6 +107,7 @@ export interface ProjectDetail {
   review_feedback: string | null
   uses_ai: boolean
   ai_usage: string | null
+  hackatime_projects?: string[]
   tier: ProjectTier
   coin_rate: number
   payout: ProjectPayout | null
@@ -142,6 +143,15 @@ export interface ProjectForm {
   linked_project_id?: number | null
   uses_ai: boolean
   ai_usage: string
+  hackatime_projects?: string[]
+}
+
+export interface HackatimeProject {
+  name: string
+  seconds: number
+  languages: string[]
+  repo: string | null
+  last_heartbeat: string | null
 }
 
 export interface AdminUserRow {
