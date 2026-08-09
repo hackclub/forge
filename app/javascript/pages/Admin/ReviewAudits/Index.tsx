@@ -81,11 +81,7 @@ function Leaderboard({
             {sorted.map((t, idx) => {
               const tooltip = `Hourly: $${t.hourly_estimate_usd.toFixed(2)} (${(t.active_seconds / 3600).toFixed(2)}h × $10)\nPer-review: $${t.per_review_estimate_usd.toFixed(2)} (${t.reviews_count} × $0.33)\nFinal: average = $${t.estimated_payment_usd.toFixed(2)}`
               return (
-                <TableRow
-                  key={t.reviewer_id}
-                  className="cursor-pointer"
-                  onClick={() => onPickReviewer(t.reviewer_id)}
-                >
+                <TableRow key={t.reviewer_id} className="cursor-pointer" onClick={() => onPickReviewer(t.reviewer_id)}>
                   <TableCell className="text-muted-foreground font-mono text-xs">{idx + 1}</TableCell>
                   <TableCell>
                     <Link
@@ -102,7 +98,9 @@ function Leaderboard({
                   <TableCell className={cn('font-mono text-sm', sortKey === 'wall_seconds' && 'font-semibold')}>
                     {formatSeconds(t.wall_seconds)}
                   </TableCell>
-                  <TableCell className={cn('text-right font-mono text-xs', sortKey === 'reviews_count' && 'font-semibold')}>
+                  <TableCell
+                    className={cn('text-right font-mono text-xs', sortKey === 'reviews_count' && 'font-semibold')}
+                  >
                     {t.reviews_count}
                   </TableCell>
                   <TableCell className="text-right font-mono text-sm" title={tooltip}>
@@ -141,7 +139,8 @@ export default function ReviewAuditsIndex({
           Review Audits
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Every completed review — reviewer, project, active seconds, and a full audit trail of what happened. Superadmin only.
+          Every completed review — reviewer, project, active seconds, and a full audit trail of what happened.
+          Superadmin only.
         </p>
       </div>
 

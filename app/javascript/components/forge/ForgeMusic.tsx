@@ -8,7 +8,9 @@ interface Track {
 
 const DASHBOARD_TRACKS: Track[] = [{ src: '/forgeous-beat.m4a', title: 'Forgeous Beat', artist: 'Cisco Disco' }]
 
-export const LANDING_TRACKS: Track[] = [{ src: '/outside-the-forge.m4a', title: 'Outside the Forge', artist: 'Cisco Disco' }]
+export const LANDING_TRACKS: Track[] = [
+  { src: '/outside-the-forge.m4a', title: 'Outside the Forge', artist: 'Cisco Disco' },
+]
 
 const MUTED_KEY = 'forge-bgm-muted'
 const VOLUME_KEY = 'forge-bgm-volume'

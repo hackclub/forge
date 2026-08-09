@@ -46,7 +46,11 @@ const ACTION_ICON: Record<string, { icon: LucideIcon; color: string; label: stri
   'project.approved': { icon: CheckCircle2, color: 'text-emerald-600 dark:text-emerald-400', label: 'Approved' },
   'project.returned': { icon: Undo2, color: 'text-amber-600 dark:text-amber-400', label: 'Returned' },
   'project.rejected': { icon: XCircle, color: 'text-red-600 dark:text-red-400', label: 'Rejected' },
-  'project.review_reversed': { icon: RotateCcw, color: 'text-orange-600 dark:text-orange-400', label: 'Review Reversed' },
+  'project.review_reversed': {
+    icon: RotateCcw,
+    color: 'text-orange-600 dark:text-orange-400',
+    label: 'Review Reversed',
+  },
   'project.review_notes_saved': { icon: Pencil, color: 'text-muted-foreground', label: 'Review notes saved' },
   'project.readme_refreshed': { icon: Send, color: 'text-muted-foreground', label: 'README refreshed' },
   'project.note_added': { icon: StickyNote, color: 'text-muted-foreground', label: 'Note added' },
@@ -71,13 +75,7 @@ function decisionBadge(decision: string | null) {
   }
 }
 
-export default function ReviewAuditShow({
-  session,
-  events,
-}: {
-  session: SessionDetail
-  events: AuditEvent[]
-}) {
+export default function ReviewAuditShow({ session, events }: { session: SessionDetail; events: AuditEvent[] }) {
   return (
     <div className="max-w-5xl mx-auto space-y-6">
       <Button variant="ghost" size="sm" asChild>
@@ -151,7 +149,8 @@ export default function ReviewAuditShow({
         <CardContent>
           {events.length === 0 ? (
             <p className="text-sm text-muted-foreground py-6 text-center">
-              No audited actions in this window. The reviewer opened the page but didn't perform a tracked action before the session ended.
+              No audited actions in this window. The reviewer opened the page but didn't perform a tracked action before
+              the session ended.
             </p>
           ) : (
             <ol className="relative border-l border-border ml-3 space-y-4">

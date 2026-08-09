@@ -134,7 +134,8 @@ function PayoutRow({ req, actions }: { req: PayoutRequest; actions?: React.React
         <div className="flex-1 min-w-0">
           <p className="text-sm truncate">{req.reel.title || `${req.reel.kind} reel`}</p>
           <p className="text-xs text-muted-foreground mt-0.5">
-            {req.reel.views} views · {req.reel.kudos} kudos · {req.reel.comments} comments · paid {req.reel.lifetime_paid.toFixed(2)}c lifetime
+            {req.reel.views} views · {req.reel.kudos} kudos · {req.reel.comments} comments · paid{' '}
+            {req.reel.lifetime_paid.toFixed(2)}c lifetime
           </p>
           {req.reason && <p className="text-xs text-muted-foreground italic mt-1">"{req.reason}"</p>}
           <p className="text-[11px] text-muted-foreground mt-1">

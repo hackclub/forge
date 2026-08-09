@@ -27,7 +27,8 @@ const SIZE_CLASSES: Record<Size, string> = {
   icon: 'h-9 w-9',
 }
 
-const BASE = 'inline-flex items-center justify-center gap-1.5 rounded-md font-medium transition-colors cursor-pointer disabled:opacity-50 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background whitespace-nowrap [&_svg]:size-4 [&_svg]:shrink-0'
+const BASE =
+  'inline-flex items-center justify-center gap-1.5 rounded-md font-medium transition-colors cursor-pointer disabled:opacity-50 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background whitespace-nowrap [&_svg]:size-4 [&_svg]:shrink-0'
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
   { variant = 'default', size = 'default', asChild = false, className, children, ...props },

@@ -18,7 +18,11 @@ function useDialog() {
   return ctx
 }
 
-export function AlertDialog({ children, open: controlledOpen, onOpenChange }: {
+export function AlertDialog({
+  children,
+  open: controlledOpen,
+  onOpenChange,
+}: {
   children: ReactNode
   open?: boolean
   onOpenChange?: (v: boolean) => void

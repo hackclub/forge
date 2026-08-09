@@ -74,8 +74,12 @@ export default function AdminSlackPingsIndex({
       {(!contributors_channel_configured || !streaks_channel_configured) && (
         <Card className="border-destructive/40 bg-destructive/5">
           <CardContent className="p-3 text-sm text-destructive">
-            {!contributors_channel_configured && <p>`SLACK_CONTRIBUTORS_CHANNEL_ID` is not set — contributor pings and invites are disabled.</p>}
-            {!streaks_channel_configured && <p>`SLACK_STREAKS_CHANNEL_ID` is not set — streak announcements are disabled.</p>}
+            {!contributors_channel_configured && (
+              <p>`SLACK_CONTRIBUTORS_CHANNEL_ID` is not set — contributor pings and invites are disabled.</p>
+            )}
+            {!streaks_channel_configured && (
+              <p>`SLACK_STREAKS_CHANNEL_ID` is not set — streak announcements are disabled.</p>
+            )}
           </CardContent>
         </Card>
       )}

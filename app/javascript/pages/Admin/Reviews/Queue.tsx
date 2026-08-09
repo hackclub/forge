@@ -67,7 +67,11 @@ export default function AdminReviewsQueue({
   }
 
   function applyFilter(key: string) {
-    router.get(`/admin/reviews/${tier}`, { query: searchQuery || undefined, filter: key || undefined }, { preserveState: true })
+    router.get(
+      `/admin/reviews/${tier}`,
+      { query: searchQuery || undefined, filter: key || undefined },
+      { preserveState: true },
+    )
   }
 
   return (

@@ -97,8 +97,9 @@ export default function AdminOrdersShow({
   const filteredGrants = previous_grants.filter((g) => {
     const query = grantSearch.trim().toLowerCase()
     if (!query) return true
-    return [g.kind_label, g.project_name, g.hcb_grant_link, g.fulfilled_at]
-      .some((field) => field?.toLowerCase().includes(query))
+    return [g.kind_label, g.project_name, g.hcb_grant_link, g.fulfilled_at].some((field) =>
+      field?.toLowerCase().includes(query),
+    )
   })
 
   const grantAmountUsd =
@@ -359,9 +360,7 @@ export default function AdminOrdersShow({
               <CardTitle>Grant lookup</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <p className="text-sm text-muted-foreground">
-                Grants already given to {order.user_display_name}.
-              </p>
+              <p className="text-sm text-muted-foreground">Grants already given to {order.user_display_name}.</p>
               <div className="relative">
                 <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                 <Input

@@ -321,7 +321,11 @@ export default function ForgeScene({
             </div>
           )}
           <div className="relative">
-            <img src="/dashboard.png?v=2" alt="The forge workshop" className="max-h-60 w-full object-cover object-center" />
+            <img
+              src="/dashboard.png?v=2"
+              alt="The forge workshop"
+              className="max-h-60 w-full object-cover object-center"
+            />
             <div className="absolute inset-0 bg-gradient-to-t from-[#0e0e0e] via-[#0e0e0e]/40 to-transparent" />
             <h1 className="absolute bottom-3 left-4 font-headline text-2xl font-bold tracking-tight text-[#e5e2e1]">
               The Forge

@@ -198,7 +198,9 @@ export default function AdminShopItemsIndex({
                 </div>
 
                 <div className="border-t border-border pt-4 space-y-3">
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Internal (staff only)</p>
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                    Internal (staff only)
+                  </p>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div className="space-y-1.5">
                       <label className="text-xs text-muted-foreground">Order link</label>
@@ -227,14 +229,17 @@ export default function AdminShopItemsIndex({
                   <div className="flex items-center justify-between">
                     <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Region Pricing</p>
                     {regionPricing.length === 0 && (
-                      <Button type="button" variant="link" size="sm" onClick={() => setRegionPricing(defaultRegionPricing())}>
+                      <Button
+                        type="button"
+                        variant="link"
+                        size="sm"
+                        onClick={() => setRegionPricing(defaultRegionPricing())}
+                      >
                         Set up regions
                       </Button>
                     )}
                   </div>
-                  <p className="text-[11px] text-muted-foreground">
-                    Leave cost blank to use the default price above.
-                  </p>
+                  <p className="text-[11px] text-muted-foreground">Leave cost blank to use the default price above.</p>
                   {regionPricing.length > 0 && (
                     <div className="space-y-2">
                       {regionPricing.map((rp, idx) => (

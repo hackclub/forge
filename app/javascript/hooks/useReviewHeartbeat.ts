@@ -99,7 +99,10 @@ export function useReviewHeartbeat(heartbeatPath: string | null, initialActiveSe
       const toSend = accumulatedRef.current
       if (toSend > 0) {
         accumulatedRef.current = 0
-        navigator.sendBeacon?.(heartbeatPath, new Blob([JSON.stringify({ seconds: toSend })], { type: 'application/json' }))
+        navigator.sendBeacon?.(
+          heartbeatPath,
+          new Blob([JSON.stringify({ seconds: toSend })], { type: 'application/json' }),
+        )
       }
     }
     window.addEventListener('beforeunload', onBeforeUnload)

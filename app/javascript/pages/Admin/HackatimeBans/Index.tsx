@@ -32,7 +32,12 @@ export default function AdminHackatimeBansIndex({
 
   function banAll() {
     if (pending_ban_count === 0) return
-    if (!confirm(`Ban ${pending_ban_count} user${pending_ban_count === 1 ? '' : 's'} from Forge? This cannot be undone in bulk.`)) return
+    if (
+      !confirm(
+        `Ban ${pending_ban_count} user${pending_ban_count === 1 ? '' : 's'} from Forge? This cannot be undone in bulk.`,
+      )
+    )
+      return
     router.post('/admin/hackatime_bans/ban_all')
   }
 
@@ -64,7 +69,9 @@ export default function AdminHackatimeBansIndex({
         <Card className="border-destructive/40 bg-destructive/5">
           <CardContent className="p-3 text-sm text-destructive flex items-start gap-2">
             <AlertTriangle className="size-4 shrink-0 mt-0.5" />
-            <span>Hackatime is not configured. Set <code>HACKATIME_ADMIN_API_KEY</code> to enable checks.</span>
+            <span>
+              Hackatime is not configured. Set <code>HACKATIME_ADMIN_API_KEY</code> to enable checks.
+            </span>
           </CardContent>
         </Card>
       )}

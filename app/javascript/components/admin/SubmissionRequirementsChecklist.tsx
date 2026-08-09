@@ -33,7 +33,8 @@ export default function SubmissionRequirementsChecklist({ requirements }: { requ
       </div>
       {(missing.length > 0 || manual.length > 0) && (
         <div className="px-3 py-2 border-t border-border text-[11px] text-muted-foreground">
-          Submissions sent to the Unified DB must have every field. If a field is missing and you do not understand please message @Aarav J on slack
+          Submissions sent to the Unified DB must have every field. If a field is missing and you do not understand
+          please message @Aarav J on slack
         </div>
       )}
     </div>

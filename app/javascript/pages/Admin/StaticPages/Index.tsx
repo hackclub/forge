@@ -129,12 +129,8 @@ export default function AdminStaticPagesIndex({
 
       {(can('pending_reviews') || can('projects')) && (
         <Section title="Queue">
-          {can('pending_reviews') && (
-            <Tile href="/admin/ships" label="Ship Reviews" icon={Hammer} />
-          )}
-          {can('pending_reviews') && (
-            <Tile href="/admin/pitches" label="Pitch Reviews" icon={Lightbulb} />
-          )}
+          {can('pending_reviews') && <Tile href="/admin/ships" label="Ship Reviews" icon={Hammer} />}
+          {can('pending_reviews') && <Tile href="/admin/pitches" label="Pitch Reviews" icon={Lightbulb} />}
           {can('pending_reviews') && (
             <Tile
               href="/admin/reviews"
@@ -148,7 +144,9 @@ export default function AdminStaticPagesIndex({
 
       {(can('projects') || can('users') || can('support') || can('orders') || can('referrals')) && (
         <Section title="Operations">
-          {can('projects') && <Tile href="/admin/projects" label="Projects" icon={FolderOpen} badge={counts.projects} />}
+          {can('projects') && (
+            <Tile href="/admin/projects" label="Projects" icon={FolderOpen} badge={counts.projects} />
+          )}
           {can('users') && <Tile href="/admin/users" label="Users" icon={Users} badge={counts.users} />}
           {can('support') && <Tile href="/admin/support" label="Support Tickets" icon={LifeBuoy} />}
           {is_admin && <Tile href="/admin/rsvps" label="RSVPs" icon={Sparkles} />}

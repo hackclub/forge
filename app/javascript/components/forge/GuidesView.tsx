@@ -220,7 +220,15 @@ function GuideViewer({ guide, onBack }: { guide: GuideDetail; onBack: () => void
 
       <div className="flex gap-2 overflow-x-auto pb-1 lg:hidden">
         {guide.steps.map((s, i) => (
-          <StepTab key={i} step={s} index={i} current={i === stepIndex} done={completed.includes(i)} compact onSelect={() => setStepIndex(i)} />
+          <StepTab
+            key={i}
+            step={s}
+            index={i}
+            current={i === stepIndex}
+            done={completed.includes(i)}
+            compact
+            onSelect={() => setStepIndex(i)}
+          />
         ))}
       </div>
 
@@ -229,7 +237,13 @@ function GuideViewer({ guide, onBack }: { guide: GuideDetail; onBack: () => void
           <ul className="space-y-1">
             {guide.steps.map((s, i) => (
               <li key={i}>
-                <StepTab step={s} index={i} current={i === stepIndex} done={completed.includes(i)} onSelect={() => setStepIndex(i)} />
+                <StepTab
+                  step={s}
+                  index={i}
+                  current={i === stepIndex}
+                  done={completed.includes(i)}
+                  onSelect={() => setStepIndex(i)}
+                />
               </li>
             ))}
           </ul>
@@ -364,7 +378,9 @@ function FileCard({ file }: { file: GuideFile }) {
         </div>
       </div>
       {file.content && expanded && (
-        <pre className="max-h-72 overflow-auto p-3 font-mono text-xs leading-relaxed text-stone-300">{file.content}</pre>
+        <pre className="max-h-72 overflow-auto p-3 font-mono text-xs leading-relaxed text-stone-300">
+          {file.content}
+        </pre>
       )}
     </div>
   )

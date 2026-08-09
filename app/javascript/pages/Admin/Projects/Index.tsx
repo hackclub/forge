@@ -10,7 +10,10 @@ import AdminPagination from '@/components/admin/AdminPagination'
 import { cn } from '@/components/admin/lib/cn'
 import type { AdminProjectRow, PagyProps, ProjectStatus } from '@/types'
 
-const statusConfig: Record<ProjectStatus, { label: string; variant: 'default' | 'secondary' | 'outline' | 'destructive' | 'success' | 'warning' }> = {
+const statusConfig: Record<
+  ProjectStatus,
+  { label: string; variant: 'default' | 'secondary' | 'outline' | 'destructive' | 'success' | 'warning' }
+> = {
   draft: { label: 'Draft', variant: 'secondary' },
   pending: { label: 'Pending', variant: 'warning' },
   approved: { label: 'Approved', variant: 'success' },
@@ -57,7 +60,11 @@ export default function AdminProjectsIndex({
 
   function search(e: React.FormEvent) {
     e.preventDefault()
-    router.get(basePath, { query: searchQuery, status: hide_filters ? undefined : status_filter }, { preserveState: true })
+    router.get(
+      basePath,
+      { query: searchQuery, status: hide_filters ? undefined : status_filter },
+      { preserveState: true },
+    )
   }
 
   function filterByStatus(status: string) {
@@ -71,7 +78,8 @@ export default function AdminProjectsIndex({
           <h1 className="text-2xl font-semibold tracking-tight">{page_title || 'All Projects'}</h1>
           {review_mode && (
             <p className="text-sm text-muted-foreground mt-1">
-              Click <span className="text-foreground">Start Review Session</span> on the oldest pending project to begin. A timer tracks your active review time.
+              Click <span className="text-foreground">Start Review Session</span> on the oldest pending project to
+              begin. A timer tracks your active review time.
             </p>
           )}
         </div>
@@ -129,7 +137,9 @@ export default function AdminProjectsIndex({
 
       <Card>
         <CardHeader>
-          <CardTitle>{projects.length} project{projects.length === 1 ? '' : 's'}</CardTitle>
+          <CardTitle>
+            {projects.length} project{projects.length === 1 ? '' : 's'}
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {projects.length === 0 ? (

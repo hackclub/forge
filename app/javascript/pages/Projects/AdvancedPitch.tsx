@@ -23,8 +23,8 @@ export default function ProjectsAdvancedPitch() {
 
       <p className="text-stone-400 text-sm leading-relaxed mb-8">
         For projects that cost more than $200, your grant covers the full cost. To get started, post your pitch in{' '}
-        <span className="text-[#ffb595] font-bold">#forgery</span> on Slack with a detailed description and rough
-        BOM. It'll be picked up automatically.
+        <span className="text-[#ffb595] font-bold">#forgery</span> on Slack with a detailed description and rough BOM.
+        It'll be picked up automatically.
       </p>
 
       <div className="bg-[#1c1b1b] ghost-border p-8 mb-8">

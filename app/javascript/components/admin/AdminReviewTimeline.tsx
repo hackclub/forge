@@ -31,9 +31,7 @@ export interface ReviewEvent {
   override_hours: number | null
   coins_awarded: number | null
   refunded_coins: number | null
-  member_breakdown:
-    | { user_id: number; display_name: string; hours: number; coins: number }[]
-    | null
+  member_breakdown: { user_id: number; display_name: string; hours: number; coins: number }[] | null
   reviewer_display_name: string | null
   reviewer_avatar: string | null
   target_type: string | null
@@ -43,13 +41,25 @@ export interface ReviewEvent {
 
 const ACTION_CONFIG: Record<string, { label: string; color: string; icon: LucideIcon }> = {
   'project.submitted_for_review': { label: 'Submitted for Review', color: 'text-foreground', icon: Send },
-  'project.pitch_approved': { label: 'Pitch Approved', color: 'text-emerald-600 dark:text-emerald-400', icon: CheckCircle2 },
+  'project.pitch_approved': {
+    label: 'Pitch Approved',
+    color: 'text-emerald-600 dark:text-emerald-400',
+    icon: CheckCircle2,
+  },
   'project.approved': { label: 'Project Approved', color: 'text-emerald-600 dark:text-emerald-400', icon: ShieldCheck },
   'project.returned': { label: 'Returned for Changes', color: 'text-amber-600 dark:text-amber-400', icon: Undo2 },
   'project.rejected': { label: 'Rejected', color: 'text-red-600 dark:text-red-400', icon: XCircle },
   'project.reverted_to_draft': { label: 'Reverted to Draft', color: 'text-muted-foreground', icon: FileEdit },
-  'project.review_reversed': { label: 'Review Reversed', color: 'text-orange-600 dark:text-orange-400', icon: RotateCcw },
-  'project.build_approved': { label: 'Build Approved', color: 'text-emerald-600 dark:text-emerald-400', icon: ShieldCheck },
+  'project.review_reversed': {
+    label: 'Review Reversed',
+    color: 'text-orange-600 dark:text-orange-400',
+    icon: RotateCcw,
+  },
+  'project.build_approved': {
+    label: 'Build Approved',
+    color: 'text-emerald-600 dark:text-emerald-400',
+    icon: ShieldCheck,
+  },
   'project.build_returned': { label: 'Build Returned', color: 'text-amber-600 dark:text-amber-400', icon: Undo2 },
   'project.build_rejected': { label: 'Build Rejected', color: 'text-red-600 dark:text-red-400', icon: XCircle },
   'devlog.approved': { label: 'Devlog Approved', color: 'text-emerald-600 dark:text-emerald-400', icon: CheckCircle2 },
@@ -60,7 +70,9 @@ const ACTION_CONFIG: Record<string, { label: string; color: string; icon: Lucide
 function fundingSummary(event: ReviewEvent): string | null {
   const parts: string[] = []
   if (event.approved_hours != null) {
-    parts.push(`${Number(event.approved_hours).toFixed(1)} hrs approved${event.override_hours != null ? ' (override)' : ''}`)
+    parts.push(
+      `${Number(event.approved_hours).toFixed(1)} hrs approved${event.override_hours != null ? ' (override)' : ''}`,
+    )
   }
   if (event.coins_awarded != null) parts.push(`${Number(event.coins_awarded).toFixed(2)} coins awarded`)
   if (event.refunded_coins != null) parts.push(`${Number(event.refunded_coins).toFixed(2)} coins refunded`)
@@ -95,7 +107,11 @@ export default function AdminReviewTimeline({
       {open && (
         <ol className="divide-y divide-border">
           {events.map((event) => {
-            const cfg = ACTION_CONFIG[event.action] || { label: event.action, color: 'text-muted-foreground', icon: Info }
+            const cfg = ACTION_CONFIG[event.action] || {
+              label: event.action,
+              color: 'text-muted-foreground',
+              icon: Info,
+            }
             const Icon = cfg.icon
             const funding = fundingSummary(event)
             return (

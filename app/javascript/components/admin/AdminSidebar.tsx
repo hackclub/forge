@@ -85,11 +85,41 @@ function buildSections(): { items: NavItem[] }[] {
     },
     {
       items: [
-        { label: 'T1 Reviews', href: '/admin/reviews/t1', icon: ClipboardCheck, statKey: 'pending_reviews_tier_1', permission: 'review_tier_1' },
-        { label: 'T2 Reviews', href: '/admin/reviews/t2', icon: ClipboardCheck, statKey: 'pending_reviews_tier_2', permission: 'review_tier_2' },
-        { label: 'T3 Reviews', href: '/admin/reviews/t3', icon: ClipboardCheck, statKey: 'pending_reviews_tier_3', permission: 'review_tier_3' },
-        { label: 'T4 Reviews', href: '/admin/reviews/t4', icon: ClipboardCheck, statKey: 'pending_reviews_tier_4', permission: 'review_tier_4' },
-        { label: 'Pitch Reviews', href: '/admin/pitches', icon: Lightbulb, statKey: 'pending_pitches', permission: 'pending_reviews' },
+        {
+          label: 'T1 Reviews',
+          href: '/admin/reviews/t1',
+          icon: ClipboardCheck,
+          statKey: 'pending_reviews_tier_1',
+          permission: 'review_tier_1',
+        },
+        {
+          label: 'T2 Reviews',
+          href: '/admin/reviews/t2',
+          icon: ClipboardCheck,
+          statKey: 'pending_reviews_tier_2',
+          permission: 'review_tier_2',
+        },
+        {
+          label: 'T3 Reviews',
+          href: '/admin/reviews/t3',
+          icon: ClipboardCheck,
+          statKey: 'pending_reviews_tier_3',
+          permission: 'review_tier_3',
+        },
+        {
+          label: 'T4 Reviews',
+          href: '/admin/reviews/t4',
+          icon: ClipboardCheck,
+          statKey: 'pending_reviews_tier_4',
+          permission: 'review_tier_4',
+        },
+        {
+          label: 'Pitch Reviews',
+          href: '/admin/pitches',
+          icon: Lightbulb,
+          statKey: 'pending_pitches',
+          permission: 'pending_reviews',
+        },
         { label: 'Leaderboard', href: '/admin/reviews/leaderboard', icon: Trophy, permission: 'pending_reviews' },
       ],
     },
@@ -103,7 +133,13 @@ function buildSections(): { items: NavItem[] }[] {
     },
     {
       items: [
-        { label: 'Shop Orders', href: '/admin/orders', icon: ShoppingCart, statKey: 'pending_orders', permission: 'orders' },
+        {
+          label: 'Shop Orders',
+          href: '/admin/orders',
+          icon: ShoppingCart,
+          statKey: 'pending_orders',
+          permission: 'orders',
+        },
         { label: 'Shop Items', href: '/admin/shop_items', icon: Store, permission: 'orders' },
         { label: 'Referrals', href: '/admin/referrals', icon: Users2, permission: 'referrals' },
         { label: 'RSVPs', href: '/admin/rsvps', icon: Sparkles, permission: 'is_admin' },
@@ -117,7 +153,13 @@ function buildSections(): { items: NavItem[] }[] {
     },
     {
       items: [
-        { label: 'Feature Flags', href: '/admin/feature_flags', icon: Flag, statKey: 'feature_flags', permission: 'feature_flags' },
+        {
+          label: 'Feature Flags',
+          href: '/admin/feature_flags',
+          icon: Flag,
+          statKey: 'feature_flags',
+          permission: 'feature_flags',
+        },
         { label: 'Airtable Sync', href: '/admin/airtable_sync', icon: Database, permission: 'is_admin' },
         { label: 'Slack Pings', href: '/admin/slack_pings', icon: MessageSquare, permission: 'is_admin' },
         { label: 'Review Audits', href: '/admin/review_audits', icon: Activity, permission: 'is_superadmin' },
@@ -132,7 +174,17 @@ function buildSections(): { items: NavItem[] }[] {
   ]
 }
 
-function NavLink({ item, pathname, collapsed, stats }: { item: NavItem; pathname: string; collapsed: boolean; stats?: AdminStats }) {
+function NavLink({
+  item,
+  pathname,
+  collapsed,
+  stats,
+}: {
+  item: NavItem
+  pathname: string
+  collapsed: boolean
+  stats?: AdminStats
+}) {
   const isActive = pathname === item.href || (item.href !== '/admin' && pathname.startsWith(item.href))
   const Icon = item.icon
   const stat = item.statKey && stats ? stats[item.statKey] : null
@@ -222,7 +274,9 @@ export default function AdminSidebar({
       <div
         className={cn(
           'fixed inset-0 z-40 bg-black/30 transition-opacity duration-200',
-          !collapsed ? 'opacity-100 pointer-events-auto sm:opacity-0 sm:pointer-events-none' : 'opacity-0 pointer-events-none',
+          !collapsed
+            ? 'opacity-100 pointer-events-auto sm:opacity-0 sm:pointer-events-none'
+            : 'opacity-0 pointer-events-none',
         )}
         onClick={toggleCollapsed}
       />
@@ -245,11 +299,18 @@ export default function AdminSidebar({
       >
         <div className="flex items-center px-2.5 py-3 border-b border-sidebar-border">
           {!collapsed && (
-            <Link href="/admin" className="text-sm font-semibold tracking-tight whitespace-nowrap flex-1 min-w-0 truncate">
+            <Link
+              href="/admin"
+              className="text-sm font-semibold tracking-tight whitespace-nowrap flex-1 min-w-0 truncate"
+            >
               Forge Admin
             </Link>
           )}
-          <button onClick={toggleCollapsed} className={iconBtn} title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}>
+          <button
+            onClick={toggleCollapsed}
+            className={iconBtn}
+            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
             {collapsed ? <ChevronsRight className="size-4" /> : <ChevronsLeft className="size-4" />}
           </button>
         </div>
@@ -266,7 +327,13 @@ export default function AdminSidebar({
                 {i > 0 && <div className="my-2 mx-2 border-t border-sidebar-border" />}
                 <div className="space-y-0.5">
                   {visible.map((item) => (
-                    <NavLink key={item.href} item={item} pathname={pathname} collapsed={collapsed} stats={admin_stats} />
+                    <NavLink
+                      key={item.href}
+                      item={item}
+                      pathname={pathname}
+                      collapsed={collapsed}
+                      stats={admin_stats}
+                    />
                   ))}
                 </div>
               </div>
@@ -279,7 +346,9 @@ export default function AdminSidebar({
             {auth.user && (
               <>
                 <img src={auth.user.avatar} alt={auth.user.display_name} className="size-6 rounded-full shrink-0" />
-                {!collapsed && <span className="text-xs text-muted-foreground truncate flex-1">{auth.user.display_name}</span>}
+                {!collapsed && (
+                  <span className="text-xs text-muted-foreground truncate flex-1">{auth.user.display_name}</span>
+                )}
               </>
             )}
             {!auth.user && <div className="flex-1" />}

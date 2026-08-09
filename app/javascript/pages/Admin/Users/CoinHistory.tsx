@@ -1,13 +1,5 @@
 import { Head, Link } from '@inertiajs/react'
-import {
-  ArrowLeft,
-  Sliders,
-  ShoppingCart,
-  Undo2,
-  CheckCircle2,
-  TrendingUp,
-  type LucideIcon,
-} from 'lucide-react'
+import { ArrowLeft, Sliders, ShoppingCart, Undo2, CheckCircle2, TrendingUp, type LucideIcon } from 'lucide-react'
 import { Card, CardContent } from '@/components/admin/ui/card'
 import { Button } from '@/components/admin/ui/button'
 
@@ -125,7 +117,9 @@ export default function AdminUsersCoinHistory({
                       {entry.amount !== 0 && (
                         <span
                           className={`text-lg font-semibold shrink-0 ${
-                            entry.amount >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
+                            entry.amount >= 0
+                              ? 'text-emerald-600 dark:text-emerald-400'
+                              : 'text-red-600 dark:text-red-400'
                           }`}
                         >
                           {entry.amount >= 0 ? '+' : ''}

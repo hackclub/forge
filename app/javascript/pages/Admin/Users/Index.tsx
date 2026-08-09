@@ -102,7 +102,11 @@ export default function AdminUsersIndex({
                   >
                     <TableCell className="font-medium">
                       <div className="flex items-center gap-2">
-                        <Link href={`/admin/users/${user.id}`} className="hover:underline" onClick={(e) => e.stopPropagation()}>
+                        <Link
+                          href={`/admin/users/${user.id}`}
+                          className="hover:underline"
+                          onClick={(e) => e.stopPropagation()}
+                        >
                           {user.display_name}
                         </Link>
                         {user.is_banned && <Badge variant="destructive">Banned</Badge>}

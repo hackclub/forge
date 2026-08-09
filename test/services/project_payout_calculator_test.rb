@@ -2,7 +2,8 @@ require "test_helper"
 
 class ProjectPayoutCalculatorTest < ActiveSupport::TestCase
   setup do
-    @project = projects(:one) # tier_4 => 4.0 coins/hr
+    @project = projects(:one)
+    @rate = @project.coin_rate
     @owner = users(:one)
     @collaborator = users(:two)
     @project.project_collaborators.create!(user: @collaborator)
@@ -20,10 +21,10 @@ class ProjectPayoutCalculatorTest < ActiveSupport::TestCase
     shares = calculator.shares.index_by { |s| s.user.id }
 
     assert_equal 2.0, shares[@owner.id].hours
-    assert_equal 8.0, shares[@owner.id].coins
+    assert_equal 2 * @rate, shares[@owner.id].coins
     assert_equal 1.0, shares[@collaborator.id].hours
-    assert_equal 4.0, shares[@collaborator.id].coins
-    assert_equal 12.0, calculator.total
+    assert_equal 1 * @rate, shares[@collaborator.id].coins
+    assert_equal 3 * @rate, calculator.total
   end
 
   test "scales hours proportionally when an override is set" do
@@ -36,7 +37,7 @@ class ProjectPayoutCalculatorTest < ActiveSupport::TestCase
 
     assert_equal 1.0, shares[@owner.id].hours
     assert_equal 0.5, shares[@collaborator.id].hours
-    assert_equal 6.0, calculator.total
+    assert_equal 1.5 * @rate, calculator.total
   end
 
   test "skips members with zero hours" do

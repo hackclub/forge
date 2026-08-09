@@ -598,8 +598,8 @@ export default function AdminMetricsIndex({
           </Table>
           <p className="text-xs text-muted-foreground mt-2">
             In accounts now = current combined user balances: {coin_economy.in_accounts.earned} earned +{' '}
-            {coin_economy.in_accounts.adjustments} adjustments − {coin_economy.in_accounts.spent} spent (pending
-            orders included).
+            {coin_economy.in_accounts.adjustments} adjustments − {coin_economy.in_accounts.spent} spent (pending orders
+            included).
           </p>
         </CardContent>
       </Card>

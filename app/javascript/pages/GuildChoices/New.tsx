@@ -33,7 +33,8 @@ export default function GuildChoicesNew({ guilds }: { guilds: GuildOption[] }) {
             Pick your guild
           </h1>
           <p className="text-stone-500 text-sm md:text-base mt-3 max-w-xl mx-auto">
-            You'll join your guild's private channel and work together as a team to get weekly rewards! The more people and activity you have in your guild, the more rewards you get!
+            You'll join your guild's private channel and work together as a team to get weekly rewards! The more people
+            and activity you have in your guild, the more rewards you get!
           </p>
         </div>
 

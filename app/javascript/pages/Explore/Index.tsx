@@ -185,7 +185,13 @@ export default function ExploreIndex({
           <div className="bg-[#1c1b1b] rounded-xl ghost-border p-16 text-center">
             <span className="material-symbols-outlined text-5xl text-stone-700 mb-4">search_off</span>
             <p className="text-stone-300 text-lg font-headline font-medium mb-2">
-              {query ? 'No projects found' : filter === 'built' ? 'No built projects yet' : filter === 'in_progress' ? 'No projects in progress' : 'No projects yet'}
+              {query
+                ? 'No projects found'
+                : filter === 'built'
+                  ? 'No built projects yet'
+                  : filter === 'in_progress'
+                    ? 'No projects in progress'
+                    : 'No projects yet'}
             </p>
             <p className="text-stone-500 text-sm">
               {query ? 'Try a different search term or clear the filter.' : 'Be the first to submit a project.'}

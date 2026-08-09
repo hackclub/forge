@@ -35,11 +35,7 @@ export function DropdownMenuTrigger({ asChild, children }: { asChild?: boolean; 
     } as Record<string, unknown>)
   }
   return (
-    <button
-      ref={triggerRef as React.RefObject<HTMLButtonElement>}
-      type="button"
-      onClick={() => setOpen(true)}
-    >
+    <button ref={triggerRef as React.RefObject<HTMLButtonElement>} type="button" onClick={() => setOpen(true)}>
       {children}
     </button>
   )

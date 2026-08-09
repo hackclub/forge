@@ -134,7 +134,12 @@ export default function AdminReelAdsIndex({ ads, max_video_mb }: Props) {
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium text-muted-foreground">Click URL (optional)</label>
-                  <Input type="url" value={clickUrl} onChange={(e) => setClickUrl(e.target.value)} placeholder="https://example.com" />
+                  <Input
+                    type="url"
+                    value={clickUrl}
+                    onChange={(e) => setClickUrl(e.target.value)}
+                    placeholder="https://example.com"
+                  />
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium text-muted-foreground">Video (≤ {max_video_mb} MB)</label>
@@ -215,7 +220,12 @@ function AdRow({
           {editing ? (
             <div className="space-y-2">
               <Input value={title} onChange={(e) => setTitle(e.target.value)} />
-              <Input type="url" value={clickUrl} onChange={(e) => setClickUrl(e.target.value)} placeholder="https://..." />
+              <Input
+                type="url"
+                value={clickUrl}
+                onChange={(e) => setClickUrl(e.target.value)}
+                placeholder="https://..."
+              />
               <div className="flex gap-2">
                 <Button
                   size="sm"
@@ -243,7 +253,12 @@ function AdRow({
             <>
               <p className="font-medium break-words">{ad.title}</p>
               {ad.click_url && (
-                <a href={ad.click_url} target="_blank" rel="noopener noreferrer" className="text-xs hover:underline break-all">
+                <a
+                  href={ad.click_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs hover:underline break-all"
+                >
                   {ad.click_url}
                 </a>
               )}

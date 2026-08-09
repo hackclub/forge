@@ -3,11 +3,7 @@ function csrfToken(): string {
   return document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content || ''
 }
 
-export function trackReviewEvent(
-  projectId: number,
-  button: string,
-  metadata: Record<string, unknown> = {},
-): void {
+export function trackReviewEvent(projectId: number, button: string, metadata: Record<string, unknown> = {}): void {
   if (typeof window === 'undefined') return
   fetch(`/admin/reviews/${projectId}/track`, {
     method: 'POST',

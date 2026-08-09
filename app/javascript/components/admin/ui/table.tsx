@@ -19,12 +19,11 @@ export const TableHeader = forwardRef<HTMLTableSectionElement, HTMLAttributes<HT
   },
 )
 
-export const TableBody = forwardRef<HTMLTableSectionElement, HTMLAttributes<HTMLTableSectionElement>>(function TableBody(
-  { className, ...props },
-  ref,
-) {
-  return <tbody ref={ref} className={cn('[&_tr:last-child]:border-0', className)} {...props} />
-})
+export const TableBody = forwardRef<HTMLTableSectionElement, HTMLAttributes<HTMLTableSectionElement>>(
+  function TableBody({ className, ...props }, ref) {
+    return <tbody ref={ref} className={cn('[&_tr:last-child]:border-0', className)} {...props} />
+  },
+)
 
 export const TableRow = forwardRef<HTMLTableRowElement, HTMLAttributes<HTMLTableRowElement>>(function TableRow(
   { className, ...props },
@@ -33,7 +32,10 @@ export const TableRow = forwardRef<HTMLTableRowElement, HTMLAttributes<HTMLTable
   return (
     <tr
       ref={ref}
-      className={cn('border-b border-border transition-colors hover:bg-muted/40 data-[state=selected]:bg-muted', className)}
+      className={cn(
+        'border-b border-border transition-colors hover:bg-muted/40 data-[state=selected]:bg-muted',
+        className,
+      )}
       {...props}
     />
   )
