@@ -47,7 +47,11 @@ class Slack::EventsController < ApplicationController
       return
     end
 
-    return if event["subtype"].present?
+    # Slack delivers a message with an upload as subtype "file_share", so the
+    # support channel has to let that one through or screenshots are dropped.
+    subtype = event["subtype"]
+    shared_file_in_support = subtype == "file_share" && channel == support_channel_id
+    return if subtype.present? && !shared_file_in_support
 
     is_thread = event["thread_ts"].present?
 

@@ -18,7 +18,7 @@ class SupportTicketJob < ApplicationJob
       channel_id: channel_id,
       thread_ts: message_ts,
       bts_channel_id: bts_channel,
-      original_text: self.class.text_with_attachments(text, files).truncate(4000),
+      original_text: self.class.text_with_attachments(text, files).presence&.truncate(4000) || "(attachment only)",
       status: :open
     )
 
