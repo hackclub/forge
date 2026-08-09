@@ -119,7 +119,7 @@ export default function ForgeHud({
             </span>
           </Link>
         )}
-        <Counter img="/fire.png" value={user.current_streak} label="Day streak" />
+        <Counter icon="calendar_month" color="#ca5924" value={user.current_streak} label="Day streak" />
         <Counter img="/coin.png" value={coinBalance} label="Steel coins" />
       </div>
     </>
