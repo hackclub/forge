@@ -6,7 +6,7 @@ class ProjectsHackatimeTest < ActionDispatch::IntegrationTest
     { name: "keyboard-fw", seconds: 900, languages: [ "C" ], repo: nil, last_heartbeat: nil }
   ].freeze
 
-  attr_accessor :requested_slack_id
+  attr_accessor :requested_lookup
 
   def make_user(attrs = {})
     token = SecureRandom.hex(6)
@@ -32,20 +32,23 @@ class ProjectsHackatimeTest < ActionDispatch::IntegrationTest
     User.define_singleton_method(:exchange_hca_token, original)
   end
 
-  def with_hackatime(enabled:, projects: SAMPLE)
+  def with_hackatime(enabled:, user_id: 35, projects: SAMPLE)
     was_enabled = HackatimeService.method(:enabled?)
-    was_lookup = HackatimeService.method(:projects_for_slack_id)
+    was_find = HackatimeService.method(:find_user_id)
+    was_projects = HackatimeService.method(:get_user_projects)
     test = self
 
     HackatimeService.define_singleton_method(:enabled?) { enabled }
-    HackatimeService.define_singleton_method(:projects_for_slack_id) do |slack_id|
-      test.requested_slack_id = slack_id
-      projects
+    HackatimeService.define_singleton_method(:find_user_id) do |slack_id:, email:|
+      test.requested_lookup = { slack_id: slack_id, email: email }
+      user_id
     end
+    HackatimeService.define_singleton_method(:get_user_projects) { |_id| projects }
     yield
   ensure
     HackatimeService.define_singleton_method(:enabled?, was_enabled)
-    HackatimeService.define_singleton_method(:projects_for_slack_id, was_lookup)
+    HackatimeService.define_singleton_method(:find_user_id, was_find)
+    HackatimeService.define_singleton_method(:get_user_projects, was_projects)
   end
 
   test "lists the signed-in user's hackatime projects without asking for an id" do
@@ -55,9 +58,18 @@ class ProjectsHackatimeTest < ActionDispatch::IntegrationTest
     with_hackatime(enabled: true) { get hackatime_projects_projects_path }
 
     assert_response :success
-    assert_equal user.slack_id, requested_slack_id
+    assert_equal({ slack_id: user.slack_id, email: user.email }, requested_lookup)
     names = JSON.parse(response.body)["projects"].map { |p| p["name"] }
     assert_equal [ "forge", "keyboard-fw" ], names
+  end
+
+  test "reports when no hackatime account matches the signed-in user" do
+    sign_in_as(make_user)
+
+    with_hackatime(enabled: true, user_id: nil) { get hackatime_projects_projects_path }
+
+    assert_response :not_found
+    assert_match "couldn't find a Hackatime account", JSON.parse(response.body)["error"]
   end
 
   test "reports when hackatime is not configured" do
@@ -69,15 +81,15 @@ class ProjectsHackatimeTest < ActionDispatch::IntegrationTest
     assert_match "not configured", JSON.parse(response.body)["error"]
   end
 
-  test "reports when the account has no slack id" do
+  test "still resolves by email when the account has no slack id" do
     user = make_user
     sign_in_as(user)
     user.update_column(:slack_id, "")
 
     with_hackatime(enabled: true) { get hackatime_projects_projects_path }
 
-    assert_response :unprocessable_entity
-    assert_nil requested_slack_id
+    assert_response :success
+    assert_equal user.email, requested_lookup[:email]
   end
 
   test "requires signing in" do

@@ -125,13 +125,14 @@ class ProjectsController < ApplicationController
       return
     end
 
-    if current_user.slack_id.blank?
-      render json: { error: "Your account has no Slack ID, so we can't find your Hackatime projects." }, status: :unprocessable_entity
+    user_id = HackatimeService.find_user_id(slack_id: current_user.slack_id, email: current_user.email)
+
+    if user_id.nil?
+      render json: { error: "We couldn't find a Hackatime account for #{current_user.email}. Make sure you've used Hackatime with this email." }, status: :not_found
       return
     end
 
-    projects = HackatimeService.projects_for_slack_id(current_user.slack_id)
-    render json: { projects: projects }
+    render json: { projects: HackatimeService.get_user_projects(user_id) }
   end
 
   def import_from_github

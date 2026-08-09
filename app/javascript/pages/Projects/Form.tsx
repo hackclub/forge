@@ -32,6 +32,11 @@ export default function ProjectsForm({
   const [hackatimeProjects, setHackatimeProjects] = useState<HackatimeProject[] | null>(null)
   const [loadingHackatime, setLoadingHackatime] = useState(false)
   const [hackatimeError, setHackatimeError] = useState('')
+  const [hackatimeFilter, setHackatimeFilter] = useState('')
+
+  const visibleHackatimeProjects = (hackatimeProjects ?? []).filter((p) =>
+    p.name.toLowerCase().includes(hackatimeFilter.trim().toLowerCase()),
+  )
 
   const isBuildReview = project.tier === 'tier_build_review' || !!project.build_review
 
@@ -256,8 +261,7 @@ export default function ProjectsForm({
                 Hackatime Projects <span className="text-stone-600 normal-case tracking-normal">(optional)</span>
               </span>
               <span className="block text-stone-500 text-xs mt-1">
-                Link the Hackatime projects you tracked time on. We find them from your Slack account — nothing to type
-                in.
+                Link the Hackatime projects you tracked time on!
               </span>
             </div>
 
@@ -291,30 +295,42 @@ export default function ProjectsForm({
             ) : hackatimeProjects.length === 0 ? (
               <p className="text-stone-500 text-xs">No Hackatime projects found on your account yet.</p>
             ) : (
-              <div className="max-h-64 overflow-y-auto space-y-1">
-                {hackatimeProjects.map((p) => (
-                  <label
-                    key={p.name}
-                    className="flex cursor-pointer items-center gap-3 bg-[#0e0e0e] px-3 py-2 hover:bg-[#161616]"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={form.data.hackatime_projects.includes(p.name)}
-                      onChange={() => toggleHackatimeProject(p.name)}
-                      className="size-4 accent-[#ca5924] shrink-0"
-                    />
-                    <span className="min-w-0 flex-1 truncate text-sm text-[#e5e2e1]">{p.name}</span>
-                    {p.languages.length > 0 && (
-                      <span className="hidden truncate text-[10px] uppercase tracking-wider text-stone-600 sm:block">
-                        {p.languages.slice(0, 3).join(' · ')}
+              <>
+                <input
+                  type="search"
+                  value={hackatimeFilter}
+                  onChange={(e) => setHackatimeFilter(e.target.value)}
+                  placeholder={`Search ${hackatimeProjects.length} projects…`}
+                  className="w-full bg-[#0e0e0e] border-none rounded-lg px-3 py-2 text-sm text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600"
+                />
+                <div className="max-h-64 overflow-y-auto space-y-1">
+                  {visibleHackatimeProjects.length === 0 && (
+                    <p className="text-stone-500 text-xs py-2">No projects match “{hackatimeFilter}”.</p>
+                  )}
+                  {visibleHackatimeProjects.map((p) => (
+                    <label
+                      key={p.name}
+                      className="flex cursor-pointer items-center gap-3 bg-[#0e0e0e] px-3 py-2 hover:bg-[#161616]"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={form.data.hackatime_projects.includes(p.name)}
+                        onChange={() => toggleHackatimeProject(p.name)}
+                        className="size-4 accent-[#ca5924] shrink-0"
+                      />
+                      <span className="min-w-0 flex-1 truncate text-sm text-[#e5e2e1]">{p.name}</span>
+                      {p.languages.length > 0 && (
+                        <span className="hidden truncate text-[10px] uppercase tracking-wider text-stone-600 sm:block">
+                          {p.languages.slice(0, 3).join(' · ')}
+                        </span>
+                      )}
+                      <span className="shrink-0 text-xs font-bold tabular-nums text-[#e3b24c]">
+                        {formatHours(p.seconds)}
                       </span>
-                    )}
-                    <span className="shrink-0 text-xs font-bold tabular-nums text-[#e3b24c]">
-                      {formatHours(p.seconds)}
-                    </span>
-                  </label>
-                ))}
-              </div>
+                    </label>
+                  ))}
+                </div>
+              </>
             )}
 
             {hackatimeError && <p className="text-red-400 text-xs">{hackatimeError}</p>}

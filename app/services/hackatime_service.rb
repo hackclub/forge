@@ -72,7 +72,7 @@ module HackatimeService
       {
         name: p["name"],
         seconds: p["total_duration"].to_i,
-        languages: Array(p["languages"]).compact,
+        languages: Array(p["languages"]).map(&:to_s).reject(&:blank?),
         repo: p["repo"],
         last_heartbeat: p["last_heartbeat"]
       }
@@ -82,11 +82,10 @@ module HackatimeService
     []
   end
 
-  def projects_for_slack_id(slack_id)
-    user_id = get_user_by_slack_id(slack_id)
-    return [] unless user_id
-
-    get_user_projects(user_id)
+  # The fuzzy search returns no slack_uid to verify against, so the email
+  # endpoint is the only lookup that can confirm it found the right person.
+  def find_user_id(slack_id:, email:)
+    get_user_by_email(email) || get_user_by_slack_id(slack_id)
   end
 
   def get_trust_info(slack_id:, email:)
