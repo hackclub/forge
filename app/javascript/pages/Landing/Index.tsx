@@ -248,6 +248,7 @@ function Footer() {
               </a>
               <span className="text-stone-700"> (toll-free)</span>
             </p>
+            <p className="text-stone-600 text-xs mt-1">Program sponsored by Nathan</p>
           </div>
         </div>
         <p className="text-stone-700 text-xs mt-8">
