@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, router } from '@inertiajs/react'
-import { STATUS_COLORS, STATUS_LABELS, type DashboardProject } from './projectStatus'
+import { STATUS_COLORS, STATUS_LABELS, isShippable, type DashboardProject } from './projectStatus'
 import FireIcon from '@/components/FireIcon'
 
 interface ShippingPopupProps {
@@ -10,6 +10,7 @@ interface ShippingPopupProps {
 
 export default function ShippingPopup({ projects, onClose }: ShippingPopupProps) {
   const [selectedId, setSelectedId] = useState<number | null>(null)
+  const shippable = projects.filter(isShippable)
 
   function handleShip() {
     if (selectedId === null) return
@@ -17,12 +18,16 @@ export default function ShippingPopup({ projects, onClose }: ShippingPopupProps)
     router.visit(`/projects/${selectedId}/ai_check`)
   }
 
-  if (projects.length === 0) {
+  if (shippable.length === 0) {
     return (
       <div className="py-10 text-center">
         <FireIcon className="mb-3 block text-5xl mx-auto" />
         <p className="mb-1 font-headline text-lg text-[#e5e2e1]">Nothing to ship yet</p>
-        <p className="mb-6 text-sm text-stone-500">Forge a project first, then bring it to the furnace.</p>
+        <p className="mb-6 text-sm text-stone-500">
+          {projects.length === 0
+            ? 'Forge a project first, then bring it to the furnace.'
+            : 'Everything you own is already in review or approved. Only drafts, returned projects and approved pitches can go into the fire.'}
+        </p>
         <Link
           href="/projects/new"
           className="signature-smolder corner-accents inline-flex items-center gap-2 px-6 py-3 font-headline text-xs font-bold uppercase tracking-wider text-[#4c1a00]"
@@ -39,7 +44,7 @@ export default function ShippingPopup({ projects, onClose }: ShippingPopupProps)
       <p className="text-sm text-stone-400">Which project would you like to ship into the fire?</p>
 
       <div className="max-h-[52vh] space-y-2.5 overflow-y-auto pr-1">
-        {projects.map((project) => {
+        {shippable.map((project) => {
           const selected = project.id === selectedId
           return (
             <button
