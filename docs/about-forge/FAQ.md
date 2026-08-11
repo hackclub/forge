@@ -85,7 +85,7 @@
 <details markdown="1">
 	<summary role="heading" aria-level="3" style="font-size:1.25em;font-weight:700;margin:0.25em 0;">How much funding can I get?</summary>
 
-	Theoretically unlimited! Depending on the complexity of your project (the tier), you can earn between 5.0c to 7.5c per hour. You can then exchange these coins for funding where 1c = 1 USD.
+	Theoretically unlimited! Depending on the complexity of your project (the tier), you can earn between 4.5c to 7.5c per hour. You can then exchange these coins for funding where 1c = 1 USD.
 
 </details>
 

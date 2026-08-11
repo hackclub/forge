@@ -1,9 +1,9 @@
 import { Link } from '@inertiajs/react'
+import { formatCoinRate, TIER_COIN_RATES, tierCoinRate } from '@/lib/tiers'
 
 interface TierOption {
   tier: 'tier_1' | 'tier_2' | 'tier_3' | 'tier_4'
   label: string
-  rate: string
   description: string
   pitch: boolean
 }
@@ -12,7 +12,6 @@ const TIERS: TierOption[] = [
   {
     tier: 'tier_4',
     label: 'Tier 4',
-    rate: '4.5c / hour',
     description:
       'Basic project. The simplest starting point for things like PCB Buisness Cards, LED timers, DIY Mouse. Should be $0-50',
     pitch: false,
@@ -20,21 +19,18 @@ const TIERS: TierOption[] = [
   {
     tier: 'tier_3',
     label: 'Tier 3',
-    rate: '5.0c / hour',
     description: 'Standard projects such as a macropad on wheels, custom bluetooth speakers, Devboard. Around $0-100',
     pitch: false,
   },
   {
     tier: 'tier_2',
     label: 'Tier 2',
-    rate: '6.5c / hour',
     description: 'Bigger builds. Eg DIY game console, Full Split Keyboard, Custom Flipper Zero. Around $0-200',
     pitch: false,
   },
   {
     tier: 'tier_1',
     label: 'Tier 1',
-    rate: '7.5c / hour',
     description:
       'Advanced project ($200+).Requires a Slack pitch. Eg a DIY 3d printer, Battlebot with custom attachements. For projects $0-200+',
     pitch: true,
@@ -60,8 +56,9 @@ const PATHS: Path[] = [
   {
     key: 'build_review',
     label: 'Build Review',
-    description:
-      'Already funded? Submit build time on an existing project. Earns 5.0c / hour. A lapse link on each journal is highly recommended.',
+    description: `Already funded? Submit build time on an existing project. Earns ${formatCoinRate(
+      TIER_COIN_RATES.tier_build_review,
+    )}. A lapse link on each journal is highly recommended.`,
     href: '/projects/new?tier=tier_build_review',
     highlight: true,
   },
@@ -88,7 +85,9 @@ export default function ProjectsNew({ step = 'choose' }: { step?: 'choose' | 'ti
             >
               <div className="flex items-center justify-center gap-3">
                 <h2 className="text-xl font-headline font-bold text-[#e5e2e1]">{t.label}</h2>
-                <span className="text-xs font-bold uppercase tracking-[0.15em] text-[#ca5924]">{t.rate}</span>
+                <span className="text-xs font-bold uppercase tracking-[0.15em] text-[#ca5924]">
+                  {tierCoinRate(t.tier)}
+                </span>
               </div>
               <p className="text-stone-400 text-sm leading-relaxed">{t.description}</p>
               <div className="mt-auto pt-3">

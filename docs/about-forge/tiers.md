@@ -39,7 +39,7 @@ Examples:
 - Full split keyboard (polished!)
 - Single board computer
 
-### Tier 3 (5.5c/hour):
+### Tier 3 (5.0c/hour):
 
 Tier 3 is for smaller but meaningful projects, and can be a good starting point for learning new skills with some background knowledge.
 
@@ -52,7 +52,7 @@ Examples:
 - Custom devboard 
 - Modular keyboard
 
-### Tier 4 (5.0c/hour):
+### Tier 4 (4.5c/hour):
 
 Tier 4 covers small experiments to get started with electronics, or to experiment with new ideas or tools.
 

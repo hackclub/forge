@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useForm, usePage } from '@inertiajs/react'
 import type { ProjectForm, ProjectTier, SharedProps } from '@/types'
+import { tierCoinRate } from '@/lib/tiers'
 import HackatimePicker from '@/components/HackatimePicker'
 
 export default function ProjectsForm({
@@ -306,9 +307,9 @@ export default function ProjectsForm({
               onChange={(e) => form.setData('tier', e.target.value as ProjectTier)}
               className="w-full bg-[#0e0e0e] border-none rounded-lg px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30"
             >
-              <option value="tier_4">Tier 4 - 4.5c/hr (Basic, $0–50)</option>
-              <option value="tier_3">Tier 3 - 5.0c/hr (Standard, $0–100)</option>
-              <option value="tier_2">Tier 2 - 6.5c/hr (Bigger, $0–200)</option>
+              <option value="tier_4">Tier 4 - {tierCoinRate('tier_4')} (Basic, $0–50)</option>
+              <option value="tier_3">Tier 3 - {tierCoinRate('tier_3')} (Standard, $0–100)</option>
+              <option value="tier_2">Tier 2 - {tierCoinRate('tier_2')} (Bigger, $0–200)</option>
             </select>
             <p className="text-stone-600 text-xs mt-2">
               Higher tiers earn more coins per hour but are expected to be more ambitious.

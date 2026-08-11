@@ -5,6 +5,7 @@ import rehypeRaw from 'rehype-raw'
 import rehypeSanitize from 'rehype-sanitize'
 import remarkGfm from 'remark-gfm'
 import type { ProjectDetail, ProjectMember, ProjectStatus, SharedProps } from '@/types'
+import { formatCoinRate } from '@/lib/tiers'
 import ReviewTimeline, { type ReviewEvent } from '@/components/ReviewTimeline'
 import HackatimePicker from '@/components/HackatimePicker'
 
@@ -1759,7 +1760,7 @@ export default function ProjectsShow({
                   {project.payout.hours}h approved
                   {project.payout.logged_hours !== project.payout.hours &&
                     ` (${project.payout.logged_hours}h logged)`}{' '}
-                  × {project.coin_rate}c/h
+                  × {formatCoinRate(project.coin_rate)}
                 </p>
                 {project.payout.streak_multiplier !== null && project.payout.streak_multiplier !== 1 && (
                   <p>× {project.payout.streak_multiplier} streak multiplier</p>
