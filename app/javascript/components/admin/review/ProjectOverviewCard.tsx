@@ -1,6 +1,7 @@
 import { Badge } from '@/components/admin/ui/badge'
 import { GroupMemberTable } from './GroupMemberTable'
 import type { ReviewProject } from './types'
+import { formatCoinRate } from '@/lib/tiers'
 
 export function ProjectOverviewCard({
   project,
@@ -95,7 +96,7 @@ export function ProjectOverviewCard({
         </div>
         <div className="px-3 py-2">
           <p className="text-xs text-muted-foreground mb-0.5">Coin rate</p>
-          <p className="text-sm font-mono">{project.coin_rate}/hr</p>
+          <p className="text-sm font-mono">{formatCoinRate(project.coin_rate)}</p>
         </div>
         <div className="px-3 py-2">
           <p className="text-xs text-muted-foreground mb-0.5">Devlogs</p>

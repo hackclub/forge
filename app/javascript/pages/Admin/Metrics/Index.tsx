@@ -2,6 +2,7 @@ import { router } from '@inertiajs/react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/admin/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/admin/ui/table'
 import { cn } from '@/components/admin/lib/cn'
+import { formatCoinRate } from '@/lib/tiers'
 
 interface DailyPoint {
   date: string
@@ -535,7 +536,7 @@ export default function AdminMetricsIndex({
               {tier_breakdown.map((t) => (
                 <TableRow key={t.tier}>
                   <TableCell className="font-medium">{t.tier}</TableCell>
-                  <TableCell className="font-mono">{t.base_rate}</TableCell>
+                  <TableCell className="font-mono">{formatCoinRate(t.base_rate)}</TableCell>
                   <TableCell>{t.projects}</TableCell>
                   <TableCell>{t.total_hours}</TableCell>
                   <TableCell className="font-semibold">{t.total_coins}</TableCell>

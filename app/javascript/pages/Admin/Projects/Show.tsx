@@ -41,6 +41,7 @@ import {
 import AdminReviewTimeline, { type ReviewEvent } from '@/components/admin/AdminReviewTimeline'
 import { cn } from '@/components/admin/lib/cn'
 import type { AdminProjectDetail, ProjectStatus, SharedProps } from '@/types'
+import { tierCoinRate } from '@/lib/tiers'
 
 function isSafeUrl(url: string | null): boolean {
   if (!url) return false
@@ -816,10 +817,10 @@ export default function AdminProjectsShow({
                   }}
                   className="w-full h-9 rounded-md border border-border bg-background px-3 text-sm text-foreground cursor-pointer"
                 >
-                  <option value="tier_4">Tier 4 - 5.0c/hr</option>
-                  <option value="tier_3">Tier 3 - 5.5c/hr</option>
-                  <option value="tier_2">Tier 2 - 6.5c/hr</option>
-                  <option value="tier_1">Tier 1 - 7.5c/hr</option>
+                  <option value="tier_4">Tier 4 - {tierCoinRate('tier_4')}</option>
+                  <option value="tier_3">Tier 3 - {tierCoinRate('tier_3')}</option>
+                  <option value="tier_2">Tier 2 - {tierCoinRate('tier_2')}</option>
+                  <option value="tier_1">Tier 1 - {tierCoinRate('tier_1')}</option>
                 </select>
                 {project.from_slack && project.tier !== 'tier_1' && (
                   <p className="text-amber-600 dark:text-amber-400 text-xs mt-2">
