@@ -6,16 +6,19 @@ interface FireIconProps {
 }
 
 /**
- * The Forge flame. Renders /fire.png in place of the old
+ * The Forge flame. Renders /fire.webp in place of the old
  * `local_fire_department` material icon, used for streaks and everywhere
  * else a fire shows up across the app.
  */
 export default function FireIcon({ className = '' }: FireIconProps) {
   return (
     <img
-      src="/fire.png"
+      src="/fire.webp"
       alt=""
       aria-hidden="true"
+      width={16}
+      height={16}
+      decoding="async"
       draggable={false}
       className={`inline-block h-[1em] w-[1em] shrink-0 select-none object-contain align-[-0.15em] ${className}`}
     />

@@ -144,7 +144,7 @@ export default function ForgeMusic({
         <div className="flex w-60 flex-col gap-2 bg-[#1c1b1b]/90 p-3 corner-accents ghost-border">
           <div className="text-center">
             <p className="truncate font-headline text-sm font-bold leading-tight text-[#f1e9df]">{track.title}</p>
-            {track.artist && <p className="truncate text-[11px] text-stone-500">{track.artist}</p>}
+            {track.artist && <p className="truncate text-[11px] text-stone-400">{track.artist}</p>}
           </div>
 
           <div>
@@ -158,7 +158,7 @@ export default function ForgeMusic({
               aria-label="Seek"
               className="h-1 w-full cursor-pointer accent-[#ca5924]"
             />
-            <div className="flex justify-between font-mono text-[10px] tabular-nums text-stone-500">
+            <div className="flex justify-between font-mono text-[10px] tabular-nums text-stone-400">
               <span>{formatTime(currentTime)}</span>
               <span>{formatTime(duration)}</span>
             </div>

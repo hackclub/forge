@@ -50,7 +50,7 @@ function LandingParallaxBg({ zooming }: { zooming: boolean }) {
     <div ref={parallaxRef} className="login-bg-parallax fixed inset-0 pointer-events-none z-0">
       <div
         className={`absolute inset-[-4%] bg-cover bg-center bg-no-repeat ${zooming ? 'landing-bg-into-door' : 'landing-bg'}`}
-        style={{ backgroundImage: 'url(/landing/landing.png?v=2)' }}
+        style={{ backgroundImage: 'url(/landing/landing.webp)' }}
       />
     </div>
   )
@@ -149,64 +149,64 @@ function Footer() {
       <div className="max-w-[1400px] mx-auto px-8 md:px-16 py-12">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
           <div>
-            <h3 className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-500 mb-4">Hack Club</h3>
+            <h3 className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-400 mb-4">Hack Club</h3>
             <div className="flex flex-col gap-2">
               <a
                 href="https://hackclub.com/philosophy"
-                className="text-stone-500 text-sm hover:text-stone-300 transition-colors"
+                className="text-stone-400 text-sm hover:text-stone-300 transition-colors"
               >
                 Philosophy
               </a>
               <a
                 href="https://hackclub.com/team"
-                className="text-stone-500 text-sm hover:text-stone-300 transition-colors"
+                className="text-stone-400 text-sm hover:text-stone-300 transition-colors"
               >
                 Our Team
               </a>
               <a
                 href="https://hackclub.com/jobs"
-                className="text-stone-500 text-sm hover:text-stone-300 transition-colors"
+                className="text-stone-400 text-sm hover:text-stone-300 transition-colors"
               >
                 Jobs
               </a>
               <a
                 href="https://hackclub.com/press"
-                className="text-stone-500 text-sm hover:text-stone-300 transition-colors"
+                className="text-stone-400 text-sm hover:text-stone-300 transition-colors"
               >
                 Press
               </a>
               <a
                 href="https://hackclub.com/philanthropy"
-                className="text-stone-500 text-sm hover:text-stone-300 transition-colors"
+                className="text-stone-400 text-sm hover:text-stone-300 transition-colors"
               >
                 Donate
               </a>
             </div>
           </div>
           <div>
-            <h3 className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-500 mb-4">Resources</h3>
+            <h3 className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-400 mb-4">Resources</h3>
             <div className="flex flex-col gap-2">
               <a
                 href="https://events.hackclub.com/"
-                className="text-stone-500 text-sm hover:text-stone-300 transition-colors"
+                className="text-stone-400 text-sm hover:text-stone-300 transition-colors"
               >
                 Events
               </a>
               <a
                 href="https://jams.hackclub.com/"
-                className="text-stone-500 text-sm hover:text-stone-300 transition-colors"
+                className="text-stone-400 text-sm hover:text-stone-300 transition-colors"
               >
                 Jams
               </a>
               <a
                 href="https://toolbox.hackclub.com/"
-                className="text-stone-500 text-sm hover:text-stone-300 transition-colors"
+                className="text-stone-400 text-sm hover:text-stone-300 transition-colors"
               >
                 Toolbox
               </a>
               <a
                 href="https://hackclub.com/conduct/"
-                className="text-stone-500 text-sm hover:text-stone-300 transition-colors"
+                className="text-stone-400 text-sm hover:text-stone-300 transition-colors"
               >
                 Code of Conduct
               </a>
@@ -236,22 +236,22 @@ function Footer() {
                   target="_blank"
                   rel="noopener"
                   title={link.label}
-                  className="text-stone-600 hover:text-stone-400 transition-colors"
+                  className="text-stone-400 hover:text-stone-300 transition-colors"
                 >
                   <span className="material-symbols-outlined text-xl">{link.icon}</span>
                 </a>
               ))}
             </div>
-            <p className="text-stone-600 text-xs">
-              <a href="tel:1-855-625-HACK" className="hover:text-stone-400 transition-colors">
+            <p className="text-stone-400 text-xs">
+              <a href="tel:1-855-625-HACK" className="hover:text-stone-300 transition-colors">
                 1-855-625-HACK
               </a>
-              <span className="text-stone-700"> (toll-free)</span>
+              <span className="text-stone-400"> (toll-free)</span>
             </p>
-            <p className="text-stone-600 text-xs mt-1">Program sponsored by Nathan</p>
+            <p className="text-stone-400 text-xs mt-1">Program sponsored by Nathan</p>
           </div>
         </div>
-        <p className="text-stone-700 text-xs mt-8">
+        <p className="text-stone-400 text-xs mt-8">
           © {new Date().getFullYear()} Hack Club. 501(c)(3) nonprofit (EIN: 81-2908499)
         </p>
       </div>
@@ -277,7 +277,9 @@ export default function LandingIndex() {
 
   return (
     <>
-      <Head title="Forge" />
+      <Head title="Forge">
+        <link key="landing-bg" rel="preload" as="image" href="/landing/landing.webp" fetchPriority="high" />
+      </Head>
 
       <ForgeMusic tracks={LANDING_TRACKS} position="bottom-4 left-4" />
 
@@ -303,7 +305,7 @@ export default function LandingIndex() {
             <a
               href="/signin"
               onClick={startZoom}
-              className="signature-smolder text-[#4c1a00] font-headline font-bold py-4 px-10 uppercase tracking-[0.2em] text-sm inline-flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
+              className="signature-smolder text-[#1e0a00] font-headline font-bold py-4 px-10 uppercase tracking-[0.2em] text-sm inline-flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
             >
               <FireIcon className="text-lg" />
               Get Started
@@ -319,7 +321,7 @@ export default function LandingIndex() {
             <h2 className="text-3xl md:text-4xl font-headline font-bold tracking-tight text-[#e5e2e1]">
               Built by the same team
             </h2>
-            <p className="text-stone-500 text-sm mt-3 max-w-xl mx-auto">
+            <p className="text-stone-400 text-sm mt-3 max-w-xl mx-auto">
               A few of the programs we've run for teen makers around the world.
             </p>
           </div>
@@ -331,7 +333,9 @@ export default function LandingIndex() {
                 name: 'Grounded',
                 tag: 'Hardware Grants',
                 blurb: 'Turn hardware dreams into reality - tools, funding, and a community for teen builders.',
-                logo: '/landing/grounded.png',
+                logo: '/landing/grounded.webp',
+                logoWidth: 382,
+                logoHeight: 112,
               },
               {
                 href: 'https://blueprint.hackclub.com',
@@ -339,7 +343,9 @@ export default function LandingIndex() {
                 tag: 'Design It. We Ship It.',
                 blurb:
                   'Design a macropad (or any hardware project up to $400) in CAD/KiCad - Hack Club ships you the parts.',
-                logo: '/landing/blueprint.webp',
+                logo: '/landing/blueprint.webp?v=2',
+                logoWidth: 284,
+                logoHeight: 112,
               },
               {
                 href: 'https://highway.hackclub.com',
@@ -347,7 +353,9 @@ export default function LandingIndex() {
                 tag: 'Road to Undercity',
                 blurb:
                   'Grants for hardware projects - earn points and an invite to Undercity, a 4-day hackathon at GitHub HQ.',
-                logo: '/landing/highway.png',
+                logo: '/landing/highway.webp',
+                logoWidth: 492,
+                logoHeight: 112,
               },
             ].map((e) => (
               <a
@@ -358,12 +366,20 @@ export default function LandingIndex() {
                 className="group bg-[#1c1b1b]/80 backdrop-blur-sm ghost-border p-6 hover:bg-[#2a2a2a] transition-colors flex flex-col"
               >
                 <div className="bg-[#0e0e0e] ghost-border h-24 flex items-center justify-center mb-4 px-4">
-                  <img src={e.logo} alt={`${e.name} logo`} className="max-h-14 max-w-full object-contain" />
+                  <img
+                    src={e.logo}
+                    alt={`${e.name} logo`}
+                    width={e.logoWidth}
+                    height={e.logoHeight}
+                    loading="lazy"
+                    decoding="async"
+                    className="max-h-14 max-w-full object-contain"
+                  />
                 </div>
-                <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-500 mb-1">{e.tag}</p>
+                <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-400 mb-1">{e.tag}</p>
                 <h3 className="text-lg font-headline font-bold text-[#e5e2e1] tracking-tight mb-2">{e.name}</h3>
                 <p className="text-stone-400 text-sm leading-relaxed flex-1">{e.blurb}</p>
-                <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600 group-hover:text-[#ffb595] transition-colors mt-5 flex items-center gap-1">
+                <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-400 group-hover:text-[#ffb595] transition-colors mt-5 flex items-center gap-1">
                   Visit
                   <span className="material-symbols-outlined text-sm">arrow_outward</span>
                 </span>
@@ -407,8 +423,8 @@ export default function LandingIndex() {
             </div>
           </div>
 
-          <p className="text-stone-600 text-xs leading-relaxed max-w-2xl mx-auto mt-16 flex items-start gap-2">
-            <span className="material-symbols-outlined text-sm text-stone-600 mt-0.5 shrink-0">info</span>
+          <p className="text-stone-400 text-xs leading-relaxed max-w-2xl mx-auto mt-16 flex items-start gap-2">
+            <span className="material-symbols-outlined text-sm text-stone-400 mt-0.5 shrink-0">info</span>
             <span>
               The Forge team reserves the right to revoke, change, or cancel funding at any time. Funding is only
               granted when a project is approved, at the sole discretion of the Forge team.
