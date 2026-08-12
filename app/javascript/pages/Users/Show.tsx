@@ -87,7 +87,7 @@ function badgeClass(color: string): string {
 const STATUS_LABELS: Record<ProjectStatus, string> = {
   draft: 'Draft',
   pending: 'Pending',
-  approved: 'Shipped',
+  approved: 'Approved',
   returned: 'Returned',
   rejected: 'Rejected',
   pitch_approved: 'Building',

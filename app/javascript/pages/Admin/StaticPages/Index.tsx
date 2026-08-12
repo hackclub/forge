@@ -1,7 +1,6 @@
 import { Link, useForm } from '@inertiajs/react'
 import {
   ArrowLeft,
-  Hammer,
   Lightbulb,
   ClipboardCheck,
   FolderOpen,
@@ -129,7 +128,6 @@ export default function AdminStaticPagesIndex({
 
       {(can('pending_reviews') || can('projects')) && (
         <Section title="Queue">
-          {can('pending_reviews') && <Tile href="/admin/ships" label="Ship Reviews" icon={Hammer} />}
           {can('pending_reviews') && <Tile href="/admin/pitches" label="Pitch Reviews" icon={Lightbulb} />}
           {can('pending_reviews') && (
             <Tile

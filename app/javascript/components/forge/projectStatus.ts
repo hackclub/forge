@@ -7,6 +7,13 @@ export interface DashboardProject {
   status: ProjectStatus
   cover_image_url: string | null
   updated_at: string
+  is_collaboration: boolean
+}
+
+export const SHIPPABLE_STATUSES: ProjectStatus[] = ['draft', 'returned', 'pitch_approved']
+
+export function isShippable(project: DashboardProject): boolean {
+  return !project.is_collaboration && SHIPPABLE_STATUSES.includes(project.status)
 }
 
 export const STATUS_LABELS: Record<ProjectStatus, string> = {
