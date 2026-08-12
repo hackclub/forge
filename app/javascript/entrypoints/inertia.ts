@@ -13,14 +13,17 @@ interface PageModule {
 // Enhance server-rendered markdown links (internal prefetch + Inertia visits)
 import './markdown-links'
 
+const pages = import.meta.glob<PageModule>('../pages/**/*.tsx')
+
 createInertiaApp({
-  resolve: (name) => {
-    const pages = import.meta.glob<PageModule>('../pages/**/*.tsx', { eager: true })
-    const page = pages[`../pages/${name}.tsx`]
-    if (!page) {
+  resolve: async (name) => {
+    const importPage = pages[`../pages/${name}.tsx`]
+    if (!importPage) {
       console.error(`Missing Inertia page component: '${name}.tsx'`)
-      return page
+      return undefined as unknown as PageModule
     }
+
+    const page = await importPage()
 
     if (!page.default.__wrapped) {
       const userLayout = page.default.layout

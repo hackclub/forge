@@ -1,0 +1,33 @@
+# Forge
+
+> Forge is a Hack Club program where teen builders (ages 13-18) get their hardware projects funded. You pitch an idea, a reviewer approves it, you document the build in a journal, and Hack Club pays for the parts.
+
+Forge is run by Hack Club, a nonprofit network of high school hackers. Projects move through a tier system that sets how much funding a build can receive, and builders document progress in a `JOURNAL.md` file synced from their GitHub repo. Most of the site requires signing in with a Hack Club account; the pages listed below are public.
+
+## Docs
+
+- [Welcome to Forge](https://forge.hackclub.com/docs): Start here — what Forge is and how to get going
+- [How It Works](https://forge.hackclub.com/docs/about-forge/how-it-works): The full flow from pitch to funding
+- [The Tier and Streak System](https://forge.hackclub.com/docs/about-forge/tiers): How tiers set funding limits, and how streaks work
+- [FAQ](https://forge.hackclub.com/docs/about-forge/FAQ): Common questions about Forge
+
+## Requirements
+
+- [Pitching Your Project](https://forge.hackclub.com/docs/requirements/pitching): How to write a pitch that gets approved
+- [Project Guidelines](https://forge.hackclub.com/docs/requirements/project-guidelines): What counts as a Forge project
+- [Submission Requirements](https://forge.hackclub.com/docs/requirements/submitting): What your design submission needs to include
+- [What is Shipping?](https://forge.hackclub.com/docs/requirements/shipping): How to create a good ship
+
+## Design Resources
+
+- [About Funding and Cost](https://forge.hackclub.com/docs/design/cost): How much Forge covers and how budgets work
+- [Sourcing Parts](https://forge.hackclub.com/docs/design/sourcing-parts): Where to find the best and cheapest parts
+- [Good Journalling](https://forge.hackclub.com/docs/design/how-to-journal): Writing journal entries that document your process
+- [JOURNAL.md Format](https://forge.hackclub.com/docs/design/journal-format): The exact format Forge parses
+- [How to Write a Good README](https://forge.hackclub.com/docs/design/readme): Documenting your project repo
+
+## Optional
+
+- [Explore](https://forge.hackclub.com/explore): Public feed of projects other builders have shipped
+- [API](https://forge.hackclub.com/docs/Miscellaneous/api): Public API for Forge project data
+- [Hack Club](https://hackclub.com): The nonprofit behind Forge
