@@ -1,5 +1,5 @@
 import { Link, router } from '@inertiajs/react'
-import { ChevronLeft, ChevronRight, Trophy } from 'lucide-react'
+import { ChevronLeft, ChevronRight, TriangleAlert, Trophy } from 'lucide-react'
 import { Badge } from '@/components/admin/ui/badge'
 import { Button } from '@/components/admin/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/admin/ui/table'
@@ -18,16 +18,29 @@ interface LeaderboardRow {
   active_seconds: number
 }
 
+interface BelowTargetRow {
+  user_id: number
+  display_name: string
+  avatar: string
+  total: number
+  active_seconds: number
+  tiers: string[]
+}
+
 const rankStyles = ['text-amber-500', 'text-zinc-400', 'text-orange-700 dark:text-orange-400']
 
 export default function AdminReviewsLeaderboard({
   rows,
+  below_target,
+  weekly_target,
   week_label,
   is_current_week,
   prev_week,
   next_week,
 }: {
   rows: LeaderboardRow[]
+  below_target: BelowTargetRow[] | null
+  weekly_target: number
   week_label: string
   is_current_week: boolean
   prev_week: string
@@ -124,6 +137,65 @@ export default function AdminReviewsLeaderboard({
           </Table>
         )}
       </div>
+
+      {below_target && (
+        <div className="rounded-md border border-border bg-card overflow-hidden">
+          <div className="flex items-start gap-2 border-b border-border px-4 py-3">
+            <TriangleAlert className="size-4 mt-0.5 text-amber-500 shrink-0" />
+            <div>
+              <h2 className="text-sm font-semibold">Reviewers at or under {weekly_target} reviews</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Everyone with the reviewer permission who made {weekly_target} decisions or fewer during {week_label}.
+                Superadmins only.
+              </p>
+            </div>
+          </div>
+          {below_target.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-8 text-center">
+              Every reviewer cleared more than {weekly_target} reviews this week.
+            </p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Reviewer</TableHead>
+                  <TableHead>Tiers</TableHead>
+                  <TableHead className="text-right">Reviews</TableHead>
+                  <TableHead className="text-right">Review Time</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {below_target.map((row) => (
+                  <TableRow key={row.user_id} className="hover:bg-muted/20 transition-colors">
+                    <TableCell>
+                      <Link
+                        href={`/admin/users/${row.user_id}`}
+                        className="flex items-center gap-2 font-medium hover:underline"
+                      >
+                        <img src={row.avatar} alt="" className="size-6 rounded-full" />
+                        {row.display_name}
+                      </Link>
+                    </TableCell>
+                    <TableCell className="flex flex-wrap gap-1">
+                      {row.tiers.map((tier) => (
+                        <Badge key={tier} variant="outline">
+                          {tier.toUpperCase()}
+                        </Badge>
+                      ))}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Badge variant={row.total === 0 ? 'danger' : 'warning'}>{row.total}</Badge>
+                    </TableCell>
+                    <TableCell className="text-right text-sm text-muted-foreground">
+                      {row.active_seconds > 0 ? formatDuration(row.active_seconds) : '—'}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </div>
+      )}
     </div>
   )
 }

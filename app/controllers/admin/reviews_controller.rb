@@ -55,6 +55,7 @@ class Admin::ReviewsController < Admin::ApplicationController
   end
 
   LEADERBOARD_DECISION_ACTIONS = %w[project.approved project.returned project.rejected project.pitch_approved].freeze
+  LEADERBOARD_WEEKLY_TARGET = 5
 
   def leaderboard
     week_start = leaderboard_week_start
@@ -85,10 +86,15 @@ class Admin::ReviewsController < Admin::ApplicationController
     end
     rows = rows.sort_by { |r| [ -r[:total], -r[:active_seconds] ] }
 
+    totals = rows.index_by { |r| r[:user_id] }
+    below_target = current_user.superadmin? ? reviewers_below_target(totals) : nil
+
     this_week = Time.zone.today.beginning_of_week
 
     render inertia: "Admin/Reviews/Leaderboard", props: {
       rows: rows,
+      below_target: below_target,
+      weekly_target: LEADERBOARD_WEEKLY_TARGET,
       week_label: "#{week_start.strftime('%b %-d')} – #{week_start.end_of_week.strftime('%b %-d, %Y')}",
       is_current_week: week_start == this_week,
       prev_week: (week_start - 1.week).iso8601,
@@ -244,6 +250,33 @@ class Admin::ReviewsController < Admin::ApplicationController
 
   def tier_from_slug(slug)
     slug.to_s.sub("t", "tier_")
+  end
+
+  def reviewers_below_target(totals)
+    rows = eligible_reviewers.filter_map do |user|
+      row = totals[user.id]
+      total = row ? row[:total] : 0
+      next if total > LEADERBOARD_WEEKLY_TARGET
+
+      {
+        user_id: user.id,
+        display_name: user.display_name,
+        avatar: user.avatar,
+        total: total,
+        active_seconds: row ? row[:active_seconds] : 0,
+        tiers: user.allowed_review_tiers.map { |tier| tier_slug(tier) }
+      }
+    end
+    rows.sort_by { |r| [ r[:total], r[:display_name].to_s.downcase ] }
+  end
+
+  def eligible_reviewers
+    tier_permissions = Project::TIERS.map { |tier| "review_#{tier}" }
+    User.kept
+      .where(is_banned: false)
+      .where("permissions @> ARRAY[?]::varchar[]", "pending_reviews")
+      .where("permissions && ARRAY[?]::varchar[]", tier_permissions)
+      .order(:display_name)
   end
 
   def leaderboard_week_start
