@@ -1,6 +1,6 @@
 class Admin::ProjectsController < Admin::ApplicationController
   before_action :require_projects_permission!
-  before_action :set_project, only: [ :show, :review, :destroy, :restore, :toggle_hidden, :toggle_shadow_ban, :toggle_staff_pick, :change_tier, :add_note, :destroy_note, :update_note, :flag_for_review, :unflag_for_review, :mark_unbuilt, :reverse_review, :ai_requirements_check, :ai_requirements_check_status, :repo_tree, :changes_since_review, :send_checkpoint_message, :send_dm_message ]
+  before_action :set_project, only: [ :show, :review, :destroy, :restore, :toggle_hidden, :toggle_shadow_ban, :toggle_staff_pick, :change_tier, :add_note, :destroy_note, :update_note, :flag_for_review, :unflag_for_review, :mark_unbuilt, :reverse_review, :ai_requirements_check, :ai_requirements_check_status, :repo_tree, :commit_stats, :changes_since_review, :send_checkpoint_message, :send_dm_message ]
 
   def index
     scope = policy_scope(Project).includes(:user, :ships)
@@ -543,6 +543,37 @@ class Admin::ProjectsController < Admin::ApplicationController
       source: source,
       blob_base: blob_base_for(ctx),
       error: nil
+    }
+  end
+
+  def commit_stats
+    authorize @project, :review?
+
+    ctx = ForgeChecks::Context.new(@project)
+    unless ctx.github?
+      render json: { available: false }
+      return
+    end
+
+    cache_key = [ "admin/commit_stats", @project.id, @project.repo_link ]
+    Rails.cache.delete(cache_key) if params[:refresh].present?
+    data = Rails.cache.read(cache_key)
+
+    if data.nil?
+      data = ctx.commit_stats
+      Rails.cache.write(cache_key, data, expires_in: 30.minutes) if data
+    end
+
+    if data.nil?
+      render json: { available: false, error: "Couldn't fetch the commit history (rate limit or private repo)." }
+      return
+    end
+
+    render json: {
+      available: true,
+      count: data["count"],
+      first_at: data["first_at"],
+      last_at: data["last_at"]
     }
   end
 

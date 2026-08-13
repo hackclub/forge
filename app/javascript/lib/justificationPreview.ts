@@ -48,32 +48,60 @@ function supportingEvidence(ctx: JustificationContext): string {
   return lines.join('\n')
 }
 
-export function buildTimeEvidence(project: {
-  devlogs: { created_at_iso: string; lapse_url: string | null }[]
-  devlog_hours: number
-  commits_url: string | null
-}): string {
-  if (project.devlogs.length === 0) return ''
+export interface CommitStats {
+  count: number
+  first_at: string | null
+  last_at: string | null
+}
 
-  const dates = project.devlogs
-    .map((d) => new Date(d.created_at_iso).getTime())
+function formatEvidenceDate(time: number): string {
+  return new Date(time).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    timeZone: 'UTC',
+  })
+}
+
+function dateRange(isoValues: (string | null | undefined)[]): string {
+  const times = isoValues
+    .map((v) => new Date(v ?? '').getTime())
     .filter((t) => Number.isFinite(t))
     .sort((a, b) => a - b)
-  const fmt = (t: number) =>
-    new Date(t).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
-  const range =
-    dates.length === 0
-      ? ''
-      : fmt(dates[0]) === fmt(dates[dates.length - 1])
-        ? ` on ${fmt(dates[0])}`
-        : ` from ${fmt(dates[0])} to ${fmt(dates[dates.length - 1])}`
+  if (times.length === 0) return ''
 
-  const count = project.devlogs.length
-  const timelapses = project.devlogs.filter((d) => (d.lapse_url ?? '').trim()).length
-  const parts = [
-    `${count} journal ${count === 1 ? 'entry' : 'entries'}${range}, ${formatHours(project.devlog_hours)} logged.`,
-  ]
-  if (timelapses > 0) parts.push(`${timelapses} timelapse ${timelapses === 1 ? 'link' : 'links'} attached.`)
+  const first = formatEvidenceDate(times[0])
+  const last = formatEvidenceDate(times[times.length - 1])
+  return first === last ? ` on ${first}` : ` from ${first} to ${last}`
+}
+
+export function buildTimeEvidence(
+  project: {
+    devlogs: { created_at_iso: string; lapse_url: string | null }[]
+    devlog_hours: number
+    commits_url: string | null
+  },
+  commits?: CommitStats | null,
+): string {
+  const parts: string[] = []
+
+  if (project.devlogs.length > 0) {
+    const count = project.devlogs.length
+    const range = dateRange(project.devlogs.map((d) => d.created_at_iso))
+    parts.push(
+      `${count} journal ${count === 1 ? 'entry' : 'entries'}${range}, ${formatHours(project.devlog_hours)} logged.`,
+    )
+
+    const timelapses = project.devlogs.filter((d) => (d.lapse_url ?? '').trim()).length
+    if (timelapses > 0) parts.push(`${timelapses} timelapse ${timelapses === 1 ? 'link' : 'links'} attached.`)
+  }
+
+  if (commits && commits.count > 0) {
+    const range = dateRange([commits.first_at, commits.last_at])
+    parts.push(`${commits.count} ${commits.count === 1 ? 'commit' : 'commits'}${range}.`)
+  }
+
+  if (parts.length === 0) return ''
   if (project.commits_url) parts.push(`Commits: ${project.commits_url}`)
   return parts.join(' ')
 }

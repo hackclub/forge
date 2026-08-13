@@ -127,7 +127,7 @@ export function DecisionPanel({
           <label className="text-xs text-muted-foreground">
             Time evidence{' '}
             <span className="text-muted-foreground/60">
-              (auto-filled from devlogs — edit if the journal shows more)
+              (auto-filled from devlogs and commits — edit if the journal shows more)
             </span>
           </label>
           <Textarea
