@@ -26,6 +26,7 @@
 #        ai_requirements_check_admin_project POST   /admin/projects/:id/ai_requirements_check(.:format)                                               admin/projects#ai_requirements_check
 # ai_requirements_check_status_admin_project GET    /admin/projects/:id/ai_requirements_check_status(.:format)                                        admin/projects#ai_requirements_check_status
 #                    repo_tree_admin_project GET    /admin/projects/:id/repo_tree(.:format)                                                           admin/projects#repo_tree
+#                 commit_stats_admin_project GET    /admin/projects/:id/commit_stats(.:format)                                                        admin/projects#commit_stats
 #         changes_since_review_admin_project GET    /admin/projects/:id/changes_since_review(.:format)                                                admin/projects#changes_since_review
 #      send_checkpoint_message_admin_project POST   /admin/projects/:id/send_checkpoint_message(.:format)                                             admin/projects#send_checkpoint_message
 #              send_dm_message_admin_project POST   /admin/projects/:id/send_dm_message(.:format)                                                     admin/projects#send_dm_message
@@ -318,6 +319,7 @@ Rails.application.routes.draw do
           post :ai_requirements_check
           get :ai_requirements_check_status
           get :repo_tree
+          get :commit_stats
           get :changes_since_review
           post :send_checkpoint_message
           post :send_dm_message

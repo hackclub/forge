@@ -20,7 +20,7 @@ import { isSafeUrl } from '@/components/admin/review/helpers'
 import { useReviewHeartbeat } from '@/hooks/useReviewHeartbeat'
 import { useReviewShortcuts } from '@/hooks/useReviewShortcuts'
 import { trackReviewEvent } from '@/lib/reviewTracker'
-import { buildJustification, buildTimeEvidence } from '@/lib/justificationPreview'
+import { buildJustification, buildTimeEvidence, type CommitStats } from '@/lib/justificationPreview'
 import type {
   AiCheckResult,
   ConcurrentReviewer,
@@ -161,6 +161,7 @@ export default function AdminReviewsShow({
 
   const [reasoning, setReasoning] = useState('')
   const [timeSummary, setTimeSummary] = useState(() => buildTimeEvidence(project))
+  const autoTimeSummary = useRef(timeSummary)
   const [technicalFeatures, setTechnicalFeatures] = useState('')
   const [additionalJustification, setAdditionalJustification] = useState('')
   const [evidence, setEvidence] = useState('')
@@ -187,6 +188,27 @@ export default function AdminReviewsShow({
   const [flagReason, setFlagReason] = useState('')
   const [flagging, setFlagging] = useState(false)
   const [unflagging, setUnflagging] = useState(false)
+
+  useEffect(() => {
+    if (!project.repo_link) return
+    let cancelled = false
+    fetch(`/admin/projects/${project.id}/commit_stats`, {
+      credentials: 'same-origin',
+      headers: { Accept: 'application/json' },
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: (CommitStats & { available: boolean }) | null) => {
+        if (cancelled || !data?.available) return
+        const next = buildTimeEvidence(project, data)
+        setTimeSummary((current) => (current === autoTimeSummary.current ? next : current))
+        autoTimeSummary.current = next
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [project.id, project.repo_link])
 
   const openCheckpoint = useCallback(() => {
     setCheckpointBody(feedback)
