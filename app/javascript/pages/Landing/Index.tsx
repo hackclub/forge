@@ -210,6 +210,24 @@ function Footer() {
               >
                 Code of Conduct
               </a>
+              <a
+                href="https://hackclub.com/privacy-and-terms#hack-club-standard-terms-and-conditions"
+                className="text-stone-400 text-sm hover:text-stone-300 transition-colors"
+              >
+                Terms & Conditions
+              </a>
+              <a
+                href="https://hackclub.com/privacy-and-terms#hack-club-privacy-notice"
+                className="text-stone-400 text-sm hover:text-stone-300 transition-colors"
+              >
+                Privacy Notice
+              </a>
+              <a
+                href="https://forms.hackclub.com/bounty"
+                className="text-stone-400 text-sm hover:text-stone-300 transition-colors"
+              >
+                Fulfillment Bounty
+              </a>
             </div>
           </div>
           <div className="col-span-2 md:col-span-2">
@@ -291,11 +309,22 @@ export default function LandingIndex() {
         <main className="relative z-10 flex-1 flex">
           <div className="w-full md:w-1/2 md:ml-16 lg:ml-32 flex flex-col items-center justify-center text-center px-8 md:px-12 pt-48 pb-24">
             <div className="mb-12 max-w-md">
-              <h1 className="text-5xl md:text-7xl font-headline font-bold tracking-tighter leading-[0.95] mb-6">
-                Build hardware.
-                <br />
-                <span className="text-[#ca5924]">Get funded.</span>
+              <a
+                href="https://hackclub.com"
+                target="_blank"
+                rel="noopener"
+                className="inline-flex items-center gap-3 mb-5 text-stone-300 hover:text-[#e5e2e1] transition-colors"
+              >
+                <img src="/flag-standalone.svg" alt="Hack Club" className="h-6 md:h-7 w-auto" />
+                <span className="h-5 w-px bg-stone-500/50" />
+                <span className="text-[10px] uppercase tracking-[0.25em] font-bold">Hack Club Presents</span>
+              </a>
+              <h1 className="text-6xl md:text-8xl font-headline font-bold tracking-tighter leading-[0.95] mb-3 text-[#ca5924]">
+                Forge
               </h1>
+              <p className="text-xl md:text-2xl font-headline font-bold tracking-tight leading-tight mb-5">
+                Build hardware. Get funded.
+              </p>
               <p className="text-stone-400 text-base md:text-lg leading-relaxed">
                 Got a hardware idea? We'll help you build it. Unlimited funding for teen makers, ages 13–18. Sign in to
                 get started making!
