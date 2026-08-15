@@ -156,6 +156,24 @@ function Footer() {
               >
                 Code of Conduct
               </a>
+              <a
+                href="https://hackclub.com/privacy-and-terms#hack-club-standard-terms-and-conditions"
+                className="text-stone-400 text-sm hover:text-stone-300 transition-colors"
+              >
+                Terms & Conditions
+              </a>
+              <a
+                href="https://hackclub.com/privacy-and-terms#hack-club-privacy-notice"
+                className="text-stone-400 text-sm hover:text-stone-300 transition-colors"
+              >
+                Privacy Notice
+              </a>
+              <a
+                href="https://forms.hackclub.com/bounty"
+                className="text-stone-400 text-sm hover:text-stone-300 transition-colors"
+              >
+                Fulfillment Bounty
+              </a>
             </div>
           </div>
           <div className="col-span-2 md:col-span-2">
