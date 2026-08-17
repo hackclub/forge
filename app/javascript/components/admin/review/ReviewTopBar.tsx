@@ -11,6 +11,7 @@ import {
   StickyNote,
   User as UserIcon,
 } from 'lucide-react'
+import { Badge } from '@/components/admin/ui/badge'
 import { Button } from '@/components/admin/ui/button'
 import { Separator } from '@/components/admin/ui/separator'
 import { isSafeUrl, statusBadge } from './helpers'
@@ -27,6 +28,7 @@ export function ReviewTopBar({
   onToggleNotes,
   flagged,
   onFlag,
+  canFlag,
   commitsUrl,
   demoUrl,
 }: {
@@ -40,6 +42,7 @@ export function ReviewTopBar({
   onToggleNotes: () => void
   flagged: boolean
   onFlag: () => void
+  canFlag: boolean
   commitsUrl: string | null
   demoUrl: string | null
 }) {
@@ -104,13 +107,22 @@ export function ReviewTopBar({
         </a>
       </span>
       {statusBadge(project.status)}
+      {project.requirements_check && (
+        <Badge
+          variant="success"
+          title={`Requirements checked${project.requirements_check.checked_by ? ` by ${project.requirements_check.checked_by}` : ''} · ${project.requirements_check.checked_at}`}
+        >
+          <Check className="size-3" />
+          Requirements met
+        </Badge>
+      )}
 
       <div className="flex items-center gap-1.5 ml-auto">
         <Button variant="ghost" size="sm" onClick={onToggleNotes} title="Notes (n)">
           <StickyNote className="size-4" />
           Notes{notesCount > 0 ? ` (${notesCount})` : ''}
         </Button>
-        {!flagged && (
+        {canFlag && !flagged && (
           <Button variant="ghost" size="sm" onClick={onFlag} title="Flag for review">
             <Flag className="size-4" />
             Flag

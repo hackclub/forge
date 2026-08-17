@@ -41,6 +41,7 @@ interface AdminStats {
   pending_reviews_tier_2: number
   pending_reviews_tier_3: number
   pending_reviews_tier_4: number
+  pending_requirements_checks: number
   projects: number
   users: number
   pending_orders: number
@@ -55,6 +56,7 @@ interface AdminPermissions {
   review_tier_2: boolean
   review_tier_3: boolean
   review_tier_4: boolean
+  review_requirements: boolean
   projects: boolean
   users: boolean
   ships: boolean
@@ -112,6 +114,13 @@ function buildSections(): { items: NavItem[] }[] {
           icon: ClipboardCheck,
           statKey: 'pending_reviews_tier_4',
           permission: 'review_tier_4',
+        },
+        {
+          label: 'Requirement Checks',
+          href: '/admin/reviews/requirements',
+          icon: ClipboardCheck,
+          statKey: 'pending_requirements_checks',
+          permission: 'review_requirements',
         },
         {
           label: 'Pitch Reviews',
@@ -249,6 +258,7 @@ export default function AdminSidebar({
     review_tier_2: false,
     review_tier_3: false,
     review_tier_4: false,
+    review_requirements: false,
     projects: false,
     users: false,
     ships: false,

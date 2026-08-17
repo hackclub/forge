@@ -1,5 +1,18 @@
 import type { ProjectStatus, ProjectTier, SubmissionRequirement } from '@/types'
 
+export interface ReviewChecklistItem {
+  key: string
+  label: string
+  note: string | null
+  doc: string | null
+}
+
+export interface RequirementsCheck {
+  checked_at: string
+  checked_by: string | null
+  items: string[]
+}
+
 export interface AiCheckRequirement {
   name: string
   verdict: 'pass' | 'fail' | 'uncertain'
@@ -90,6 +103,8 @@ export interface ReviewProject {
   git_journal_url: string | null
   build_proof_url: string | null
   submission_requirements: SubmissionRequirement[]
+  review_checklist: ReviewChecklistItem[]
+  requirements_check: RequirementsCheck | null
   tags: string[]
   status: ProjectStatus
   tier: ProjectTier
