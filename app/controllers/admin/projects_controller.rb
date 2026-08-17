@@ -1,5 +1,8 @@
 class Admin::ProjectsController < Admin::ApplicationController
-  before_action :require_projects_permission!
+  REVIEW_SCREEN_ACTIONS = %i[review repo_tree commit_stats changes_since_review ai_requirements_check ai_requirements_check_status].freeze
+
+  before_action :require_projects_permission!, except: REVIEW_SCREEN_ACTIONS
+  before_action :require_review_screen_access!, only: REVIEW_SCREEN_ACTIONS
   before_action :set_project, only: [ :show, :review, :destroy, :restore, :toggle_hidden, :toggle_shadow_ban, :toggle_staff_pick, :change_tier, :add_note, :destroy_note, :update_note, :flag_for_review, :unflag_for_review, :mark_unbuilt, :reverse_review, :ai_requirements_check, :ai_requirements_check_status, :repo_tree, :commit_stats, :changes_since_review, :send_checkpoint_message, :send_dm_message ]
 
   def index
@@ -353,10 +356,22 @@ class Admin::ProjectsController < Admin::ApplicationController
     redirect_back fallback_location: admin_review_path(@project), notice: "Flag cleared; project is back in the queue."
   end
 
-  def review
-    authorize @project, :review?
+  REQUIREMENTS_CHECKER_DECISIONS = %w[requirements_met return].freeze
 
+  def review
     decision = params[:decision]
+    requirements_only = !policy(@project).review?
+
+    if requirements_only
+      authorize @project, :requirements_check?
+      unless REQUIREMENTS_CHECKER_DECISIONS.include?(decision)
+        redirect_to admin_review_path(@project), alert: "Requirements checkers can only pass or return a project."
+        return
+      end
+    else
+      authorize @project, :review?
+    end
+
     feedback = params[:feedback]
     reasoning = params[:reasoning]
     is_pitch_stage = @project.pitch_pending?
@@ -375,6 +390,11 @@ class Admin::ProjectsController < Admin::ApplicationController
         redirect_to admin_project_path(@project), notice: "Pitch approved."
       else
         if guard_duplicate_transition!(@project, :approved, "Project already approved.")
+          return
+        end
+        missing_checks = ReviewChecklist.missing_for(@project, params[:checklist])
+        if missing_checks.any?
+          redirect_to admin_review_path(@project), alert: "Complete the reviewer checklist before approving — #{missing_checks.size} item(s) left."
           return
         end
         if (error = override_invalid_reason(params[:override_hours], params[:override_hours_justification]))
@@ -428,6 +448,7 @@ class Admin::ProjectsController < Admin::ApplicationController
           override_hours: capped,
           reasoning: reasoning,
           build_review: @project.build_review,
+          checklist: ReviewChecklist.keys_for(@project),
           justification: justification,
           approved_hours: approved_hours.to_f,
           coins_awarded: @project.coins_awarded.to_f,
@@ -452,10 +473,10 @@ class Admin::ProjectsController < Admin::ApplicationController
       end
       @project.update!(status: :returned, reviewer: current_user, reviewed_at: Time.current, review_feedback: feedback)
       end_active_review_session(decision: "returned")
-      audit!("project.returned", target: @project, metadata: { feedback: feedback, stage: stage })
+      audit!("project.returned", target: @project, metadata: { feedback: feedback, stage: stage, requirements_check: requirements_only })
       notify_slack_decision(@project, "returned for changes", feedback, stage: stage)
       RecordReviewedCommitShaJob.perform_later(@project.id)
-      redirect_to admin_review_path(@project), notice: "Project returned to builder."
+      redirect_to(requirements_only ? next_requirements_check_path : admin_review_path(@project), notice: "Project returned to builder.")
     when "reject"
       if guard_duplicate_transition!(@project, :rejected, "Project already rejected.")
         return
@@ -466,6 +487,24 @@ class Admin::ProjectsController < Admin::ApplicationController
       notify_slack_decision(@project, "rejected", feedback, stage: stage)
       RecordReviewedCommitShaJob.perform_later(@project.id)
       redirect_to admin_review_path(@project), notice: "Project rejected."
+    when "requirements_met"
+      unless @project.pending?
+        redirect_to admin_review_path(@project), alert: "Only pending projects can be requirements checked."
+        return
+      end
+      missing_checks = ReviewChecklist.missing_for(@project, params[:checklist])
+      if missing_checks.any?
+        redirect_to admin_review_path(@project), alert: "Tick every checklist item before passing the requirements check — #{missing_checks.size} left."
+        return
+      end
+      @project.update!(
+        requirements_checked_at: Time.current,
+        requirements_checked_by: current_user,
+        requirements_check_items: ReviewChecklist.keys_for(@project)
+      )
+      end_active_review_session(decision: "requirements_met")
+      audit!("project.requirements_checked", target: @project, metadata: { checklist: @project.requirements_check_items })
+      redirect_to next_requirements_check_path, notice: "Requirements check passed — #{@project.name} is ready for a full review."
     when "draft"
       if guard_duplicate_transition!(@project, :draft, "Project already in draft.")
         return
@@ -495,20 +534,20 @@ class Admin::ProjectsController < Admin::ApplicationController
   end
 
   def ai_requirements_check
-    authorize @project, :review?
+    authorize @project, :review_screen?
 
     enqueue_reviewer_ai_check!(via: "reviewer")
     render json: { status: "queued" }
   end
 
   def ai_requirements_check_status
-    authorize @project, :review?
+    authorize @project, :review_screen?
     enqueue_reviewer_ai_check!(via: "auto_restart") if @project.ai_check_stale?
     render json: { result: @project.ai_check_result_for_display, ran_at: @project.ai_check_ran_at&.iso8601 }
   end
 
   def repo_tree
-    authorize @project, :review?
+    authorize @project, :review_screen?
 
     ctx = ForgeChecks::Context.new(@project)
     source = ctx.github? ? "github" : (ctx.gitlab? ? "gitlab" : nil)
@@ -547,7 +586,7 @@ class Admin::ProjectsController < Admin::ApplicationController
   end
 
   def commit_stats
-    authorize @project, :review?
+    authorize @project, :review_screen?
 
     ctx = ForgeChecks::Context.new(@project)
     unless ctx.github?
@@ -578,7 +617,7 @@ class Admin::ProjectsController < Admin::ApplicationController
   end
 
   def changes_since_review
-    authorize @project, :review?
+    authorize @project, :review_screen?
 
     ctx = ForgeChecks::Context.new(@project)
 
@@ -729,8 +768,30 @@ class Admin::ProjectsController < Admin::ApplicationController
     end
   end
 
+  def next_requirements_check_path
+    next_id = policy_scope(Project)
+      .kept
+      .where(status: :pending)
+      .not_flagged_for_review
+      .requirements_unchecked
+      .where.not(id: @project.id)
+      .order(Arel.sql("COALESCE(submitted_at, created_at) ASC"))
+      .limit(1)
+      .pluck(:id)
+      .first
+
+    next_id ? admin_review_path(next_id) : admin_requirements_reviews_path
+  end
+
   def require_projects_permission!
     require_permission!("projects")
+  end
+
+  def require_review_screen_access!
+    return if current_user&.has_permission?("projects")
+    return if current_user&.has_permission?("review_requirements")
+
+    raise ActionController::RoutingError, "Not Found"
   end
 
   def guard_duplicate_transition!(project, target_status, message)

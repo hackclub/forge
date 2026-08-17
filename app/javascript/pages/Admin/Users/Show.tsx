@@ -33,6 +33,7 @@ const permissionLabels: Record<string, string> = {
   review_tier_2: 'T2 Reviews',
   review_tier_3: 'T3 Reviews',
   review_tier_4: 'T4 Reviews',
+  review_requirements: 'Requirement Checks',
   projects: 'Projects',
   users: 'Users',
   ships: 'Build Reviews',

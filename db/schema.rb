@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_16_160041) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_17_191128) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -330,6 +330,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_16_160041) do
     t.datetime "readme_fetched_at"
     t.string "red_flags", default: [], array: true
     t.string "repo_link"
+    t.jsonb "requirements_check_items", default: [], null: false
+    t.datetime "requirements_checked_at"
+    t.bigint "requirements_checked_by_id"
     t.text "review_feedback"
     t.datetime "reviewed_at"
     t.string "reviewed_commit_sha"
@@ -353,6 +356,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_16_160041) do
     t.index ["flagged_by_id"], name: "index_projects_on_flagged_by_id"
     t.index ["flagged_for_review_at"], name: "index_projects_on_flagged_for_review_at"
     t.index ["linked_project_id"], name: "index_projects_on_linked_project_id_for_build_reviews", unique: true, where: "(build_review = true)"
+    t.index ["requirements_checked_at"], name: "index_projects_on_requirements_checked_at"
+    t.index ["requirements_checked_by_id"], name: "index_projects_on_requirements_checked_by_id"
     t.index ["staff_pick_at"], name: "index_projects_on_staff_pick_at"
     t.index ["status"], name: "index_projects_on_status"
     t.index ["submitted_at"], name: "index_projects_on_submitted_at"
@@ -824,6 +829,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_16_160041) do
   add_foreign_key "projects", "projects", column: "linked_project_id"
   add_foreign_key "projects", "users"
   add_foreign_key "projects", "users", column: "flagged_by_id"
+  add_foreign_key "projects", "users", column: "requirements_checked_by_id"
   add_foreign_key "projects", "users", column: "reviewer_id"
   add_foreign_key "reel_comments", "reel_comments", column: "parent_id", on_delete: :cascade
   add_foreign_key "reel_comments", "reels"

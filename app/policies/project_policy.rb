@@ -44,6 +44,14 @@ class ProjectPolicy < ApplicationPolicy
     user&.has_permission?("projects") && user.has_permission?("review_#{record.review_tier}")
   end
 
+  def requirements_check?
+    user.present? && user.has_permission?("review_requirements")
+  end
+
+  def review_screen?
+    review? || requirements_check?
+  end
+
   def create_devlog?
     return false if record.discarded?
     admin? || member?

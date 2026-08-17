@@ -17,6 +17,7 @@ import {
 } from '@/components/admin/ui/alert-dialog'
 import SubmissionRequirementsChecklist from '@/components/admin/SubmissionRequirementsChecklist'
 import { CollapsibleSection } from './CollapsibleSection'
+import { ReviewerChecklist } from './ReviewerChecklist'
 import { isSafeUrl } from './helpers'
 import type { ReviewProject } from './types'
 
@@ -37,7 +38,7 @@ export interface DecisionPanelState {
   setOverrideHours: (v: string) => void
   overrideJustification: string
   setOverrideJustification: (v: string) => void
-  submitting: null | 'approve' | 'return' | 'reject' | 'draft'
+  submitting: null | 'approve' | 'return' | 'reject' | 'draft' | 'requirements_met'
 }
 
 export function DecisionPanel({
@@ -46,6 +47,8 @@ export function DecisionPanel({
   checkpointChannelConfigured,
   canClaim,
   state,
+  checks,
+  onToggleCheck,
   claimedHours,
   deflation,
   previewCoins,
@@ -67,13 +70,15 @@ export function DecisionPanel({
   checkpointChannelConfigured: boolean
   canClaim: boolean
   state: DecisionPanelState
+  checks: Record<string, boolean>
+  onToggleCheck: (key: string) => void
   claimedHours: number
   deflation: number
   previewCoins: number
   justificationPreview: string
   approveReason: string | null
   returnReason: string | null
-  invalidField: 'conclusion' | 'technical' | 'feedback' | 'override' | null
+  invalidField: 'conclusion' | 'technical' | 'feedback' | 'override' | 'checklist' | null
   rejectOpen: boolean
   onRejectOpenChange: (open: boolean) => void
   onSubmit: (decision: 'approve' | 'return' | 'reject' | 'draft') => void
@@ -110,6 +115,15 @@ export function DecisionPanel({
       <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Submit Review</h3>
 
       <SubmissionRequirementsChecklist requirements={project.submission_requirements} />
+
+      <ReviewerChecklist
+        items={project.review_checklist}
+        checked={checks}
+        onToggle={onToggleCheck}
+        disabled={!can.review || !canClaim}
+        invalid={invalidField === 'checklist'}
+        requirementsCheck={project.requirements_check}
+      />
 
       <div className="space-y-3 rounded-md border border-border bg-card p-3">
         <div className="flex items-center gap-1.5">

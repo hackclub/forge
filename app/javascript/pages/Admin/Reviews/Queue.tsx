@@ -19,6 +19,13 @@ interface ReviewQueueRow {
   is_build_review: boolean
   waiting_since_iso: string
   claimed_by: { name: string; avatar: string } | null
+  requirements_checked_by: string | null
+}
+
+const REQUIREMENTS_QUEUE = 'requirements'
+
+function queueLabel(key: string) {
+  return key === REQUIREMENTS_QUEUE ? 'REQS' : key.toUpperCase()
 }
 
 const FILTERS = [
@@ -78,9 +85,13 @@ export default function AdminReviewsQueue({
     <div className="max-w-7xl mx-auto space-y-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Tier {tier.slice(1)} Review Queue</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">
+            {tier === REQUIREMENTS_QUEUE ? 'Requirements Check Queue' : `Tier ${tier.slice(1)} Review Queue`}
+          </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Oldest submissions first. Open one to start a timed review session — keyboard shortcuts make it fast.
+            {tier === REQUIREMENTS_QUEUE
+              ? 'Projects waiting on a requirements check. Work the checklist, then pass it on or return it to the builder.'
+              : 'Oldest submissions first. Open one to start a timed review session — keyboard shortcuts make it fast.'}
           </p>
           {allowed_tiers.length > 1 && (
             <div className="flex gap-2 mt-3">
@@ -95,7 +106,7 @@ export default function AdminReviewsQueue({
                       : 'border-border bg-background text-muted-foreground hover:bg-accent hover:text-foreground',
                   )}
                 >
-                  {t.toUpperCase()}
+                  {queueLabel(t)}
                 </Link>
               ))}
             </div>
@@ -105,7 +116,7 @@ export default function AdminReviewsQueue({
           <Button asChild>
             <Link href={`/admin/reviews/${first_pending_id}`}>
               <ClipboardCheck className="size-4" />
-              Start Reviewing
+              {tier === REQUIREMENTS_QUEUE ? 'Start Checking' : 'Start Reviewing'}
               <ArrowRight className="size-4" />
             </Link>
           </Button>
@@ -171,7 +182,16 @@ export default function AdminReviewsQueue({
                 const waitSeconds = Math.max(0, (now - Date.parse(p.waiting_since_iso)) / 1000)
                 return (
                   <TableRow key={p.id} className="hover:bg-muted/20 transition-colors">
-                    <TableCell className="font-medium">{p.name}</TableCell>
+                    <TableCell className="font-medium">
+                      <span className="flex items-center gap-1.5">
+                        {p.name}
+                        {p.requirements_checked_by && (
+                          <Badge variant="success" title={`Requirements checked by ${p.requirements_checked_by}`}>
+                            Reqs met
+                          </Badge>
+                        )}
+                      </span>
+                    </TableCell>
                     <TableCell>
                       <Link href={`/admin/users/${p.user_id}`} className="text-foreground hover:underline">
                         {p.user_display_name}
@@ -206,7 +226,7 @@ export default function AdminReviewsQueue({
                       <Button asChild size="sm" variant={p.claimed_by ? 'outline' : 'default'}>
                         <Link href={`/admin/reviews/${p.id}`}>
                           <ClipboardCheck className="size-3.5" />
-                          {p.claimed_by ? 'Open' : 'Review'}
+                          {p.claimed_by ? 'Open' : tier === REQUIREMENTS_QUEUE ? 'Check' : 'Review'}
                         </Link>
                       </Button>
                     </TableCell>

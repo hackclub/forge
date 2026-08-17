@@ -1,12 +1,16 @@
 class Admin::ReviewsController < Admin::ApplicationController
-  before_action :require_pending_reviews_permission!
+  before_action :require_review_access!
+  before_action :require_pending_reviews_permission!, only: [ :leaderboard ]
   before_action :set_project, only: [ :show, :skip, :track, :claim ]
+
+  REQUIREMENTS_QUEUE = "requirements".freeze
 
   TRACKABLE_BUTTONS = %w[
     end_session skip next_project view_project
     open_user open_repo open_public
     refresh_readme change_tier ai_check_run
     approve_clicked return_clicked draft_clicked reject_open reject_cancel reject_confirm
+    requirements_met_clicked
     open_devlog toggle_readme
   ].freeze
 
@@ -22,36 +26,13 @@ class Admin::ReviewsController < Admin::ApplicationController
     tier = tier_from_slug(params[:tier])
     raise ActionController::RoutingError, "Not Found" unless allowed.include?(tier)
 
-    base = policy_scope(Project).kept.where(status: :pending).for_review_tier(tier)
-    queue = base.not_flagged_for_review
+    render_queue(policy_scope(Project).kept.where(status: :pending).for_review_tier(tier), tier_slug(tier))
+  end
 
-    scope =
-      case params[:filter]
-      when "flagged" then base.flagged_for_review
-      when "design" then queue.where(build_review: false)
-      when "build" then queue.where(build_review: true)
-      else queue
-      end
-    scope = scope.includes(:user)
-    scope = scope.search(params[:query]) if params[:query].present?
+  def requirements
+    require_permission!("review_requirements")
 
-    @pagy, @projects = pagy(scope.order(Arel.sql("COALESCE(submitted_at, created_at) ASC")))
-
-    claims = ReviewSession.active.fresh
-      .where(project_id: @projects.map(&:id))
-      .includes(:reviewer)
-      .group_by(&:project_id)
-
-    render inertia: "Admin/Reviews/Queue", props: {
-      projects: @projects.map { |p| serialize_review_queue_row(p, claims[p.id]) },
-      pagy: pagy_props(@pagy),
-      query: params[:query].to_s,
-      filter: params[:filter].to_s,
-      tier: tier_slug(tier),
-      allowed_tiers: allowed.map { |t| tier_slug(t) },
-      metrics: ReviewQueueMetrics.new(queue).as_json,
-      first_pending_id: @projects.first&.id
-    }
+    render_queue(policy_scope(Project).kept.where(status: :pending).requirements_unchecked, REQUIREMENTS_QUEUE)
   end
 
   LEADERBOARD_DECISION_ACTIONS = %w[project.approved project.returned project.rejected project.pitch_approved].freeze
@@ -103,22 +84,12 @@ class Admin::ReviewsController < Admin::ApplicationController
   end
 
   def show
-    authorize @project, :review?
+    authorize @project, :review_screen?
 
     @session = ensure_session(@project) if @project.pending?
     concurrent = concurrent_active_reviewers(@project)
     claim = claim_state(@project)
-
-    next_pending_id = policy_scope(Project)
-      .kept
-      .where(status: :pending)
-      .for_review_tier(@project.review_tier)
-      .not_flagged_for_review
-      .where.not(id: @project.id)
-      .order(Arel.sql("COALESCE(submitted_at, created_at) ASC"))
-      .limit(1)
-      .pluck(:id)
-      .first
+    next_pending_id = next_in_queue(@project)
 
     render inertia: "Admin/Reviews/Show", props: {
       project: serialize_project_for_review(@project),
@@ -127,7 +98,7 @@ class Admin::ReviewsController < Admin::ApplicationController
       session: @session ? serialize_session(@session) : nil,
       concurrent_reviewers: concurrent,
       next_pending_id: next_pending_id,
-      queue_path: admin_tier_reviews_path(tier_slug(@project.review_tier)),
+      queue_path: queue_path_for(@project),
       reviewer: {
         id: current_user.id,
         display_name: current_user.display_name,
@@ -135,7 +106,11 @@ class Admin::ReviewsController < Admin::ApplicationController
         is_superadmin: current_user.superadmin?,
         slack_id: current_user.slack_id
       },
-      can: { review: policy(@project).review?, claim: claim[:locked_by].nil? || current_user.superadmin? },
+      can: {
+        review: policy(@project).review?,
+        requirements_check: policy(@project).requirements_check?,
+        claim: claim[:locked_by].nil? || current_user.superadmin?
+      },
       claim: claim,
       session_stats: current_user.superadmin? ? session_stats(@project) : nil,
       checkpoint_channel_configured: ENV["FORGE_CHECKPOINT_CHANNEL_ID"].to_s.strip.present?
@@ -143,27 +118,19 @@ class Admin::ReviewsController < Admin::ApplicationController
   end
 
   def skip
-    authorize @project, :review?
+    authorize @project, :review_screen?
 
-    next_id = policy_scope(Project)
-      .kept
-      .where(status: :pending)
-      .for_review_tier(@project.review_tier)
-      .where.not(id: @project.id)
-      .order(Arel.sql("COALESCE(submitted_at, created_at) ASC"))
-      .limit(1)
-      .pluck(:id)
-      .first
+    next_id = next_in_queue(@project)
 
     if next_id
       redirect_to admin_review_path(next_id)
     else
-      redirect_to admin_tier_reviews_path(tier_slug(@project.review_tier)), notice: "No more pending projects."
+      redirect_to queue_path_for(@project), notice: "No more pending projects."
     end
   end
 
   def track
-    authorize @project, :review?
+    authorize @project, :review_screen?
 
     button = params[:button].to_s
     unless TRACKABLE_BUTTONS.include?(button)
@@ -204,6 +171,37 @@ class Admin::ReviewsController < Admin::ApplicationController
 
   private
 
+  def serialize_requirements_check(project)
+    return nil unless project.requirements_checked?
+
+    {
+      checked_at: project.requirements_checked_at.strftime("%b %d, %Y %H:%M UTC"),
+      checked_by: project.requirements_checked_by&.display_name,
+      items: Array(project.requirements_check_items)
+    }
+  end
+
+  def requirements_only?(project)
+    !policy(project).review?
+  end
+
+  def next_in_queue(project)
+    scope = policy_scope(Project)
+      .kept
+      .where(status: :pending)
+      .not_flagged_for_review
+      .where.not(id: project.id)
+    scope = requirements_only?(project) ? scope.requirements_unchecked : scope.for_review_tier(project.review_tier)
+
+    scope.order(Arel.sql("COALESCE(submitted_at, created_at) ASC")).limit(1).pluck(:id).first
+  end
+
+  def queue_path_for(project)
+    return admin_requirements_reviews_path if requirements_only?(project)
+
+    admin_tier_reviews_path(tier_slug(project.review_tier))
+  end
+
   def claim_state(project)
     holder = ReviewSession.active.for_project(project).fresh
       .includes(:reviewer)
@@ -236,12 +234,58 @@ class Admin::ReviewsController < Admin::ApplicationController
       waiting_since_iso: (project.submitted_at || project.created_at).iso8601,
       claimed_by: holder ? { name: holder.reviewer.display_name, avatar: holder.reviewer.avatar } : nil,
       flagged: project.flagged_for_review?,
-      flag_reason: project.flag_reason
+      flag_reason: project.flag_reason,
+      requirements_checked_by: project.requirements_checked_by&.display_name
     }
   end
 
   def require_pending_reviews_permission!
     require_permission!("pending_reviews")
+  end
+
+  def require_review_access!
+    return if current_user&.has_permission?("pending_reviews")
+    return if current_user&.has_permission?("review_requirements")
+
+    raise ActionController::RoutingError, "Not Found"
+  end
+
+  def render_queue(base, queue_key)
+    queue = base.not_flagged_for_review
+
+    scope =
+      case params[:filter]
+      when "flagged" then base.flagged_for_review
+      when "design" then queue.where(build_review: false)
+      when "build" then queue.where(build_review: true)
+      else queue
+      end
+    scope = scope.includes(:user, :requirements_checked_by)
+    scope = scope.search(params[:query]) if params[:query].present?
+
+    @pagy, @projects = pagy(scope.order(Arel.sql("COALESCE(submitted_at, created_at) ASC")))
+
+    claims = ReviewSession.active.fresh
+      .where(project_id: @projects.map(&:id))
+      .includes(:reviewer)
+      .group_by(&:project_id)
+
+    render inertia: "Admin/Reviews/Queue", props: {
+      projects: @projects.map { |p| serialize_review_queue_row(p, claims[p.id]) },
+      pagy: pagy_props(@pagy),
+      query: params[:query].to_s,
+      filter: params[:filter].to_s,
+      tier: queue_key,
+      allowed_tiers: available_queues,
+      metrics: ReviewQueueMetrics.new(queue).as_json,
+      first_pending_id: @projects.first&.id
+    }
+  end
+
+  def available_queues
+    queues = current_user.allowed_review_tiers.map { |tier| tier_slug(tier) }
+    queues << REQUIREMENTS_QUEUE if current_user.has_permission?("review_requirements")
+    queues
   end
 
   def tier_slug(tier)
@@ -358,6 +402,8 @@ class Admin::ReviewsController < Admin::ApplicationController
       git_journal_url: git_journal_url_for(project),
       build_proof_url: project.build_proof_url,
       submission_requirements: SubmissionRequirements.for_project(project),
+      review_checklist: ReviewChecklist.for_project(project),
+      requirements_check: serialize_requirements_check(project),
       tags: project.tags,
       status: project.status,
       tier: project.tier,

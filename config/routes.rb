@@ -8,6 +8,7 @@
 #                              admin_reviews GET    /admin/reviews(.:format)                                                                          admin/reviews#index
 #                         admin_tier_reviews GET    /admin/reviews/:tier(.:format)                                                                    admin/reviews#index {tier: /t[1-4]/}
 #                  admin_reviews_leaderboard GET    /admin/reviews/leaderboard(.:format)                                                              admin/reviews#leaderboard
+#                 admin_requirements_reviews GET    /admin/reviews/requirements(.:format)                                                             admin/reviews#requirements
 #                               admin_review GET    /admin/reviews/:id(.:format)                                                                      admin/reviews#show
 #                          admin_skip_review POST   /admin/reviews/:id/skip(.:format)                                                                 admin/reviews#skip
 #                         admin_track_review POST   /admin/reviews/:id/track(.:format)                                                                admin/reviews#track
@@ -294,6 +295,7 @@ Rails.application.routes.draw do
       get "reviews" => "reviews#index", as: :reviews
       get "reviews/:tier" => "reviews#index", as: :tier_reviews, constraints: { tier: /t[1-4]/ }
       get "reviews/leaderboard" => "reviews#leaderboard", as: :reviews_leaderboard
+      get "reviews/requirements" => "reviews#requirements", as: :requirements_reviews
       get "reviews/:id" => "reviews#show", as: :review
       post "reviews/:id/skip" => "reviews#skip", as: :skip_review
       post "reviews/:id/track" => "reviews#track", as: :track_review

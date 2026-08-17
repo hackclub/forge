@@ -31,6 +31,8 @@
 #  readme_fetched_at            :datetime
 #  red_flags                    :string           default([]), is an Array
 #  repo_link                    :string
+#  requirements_check_items     :jsonb            not null
+#  requirements_checked_at      :datetime
 #  review_feedback              :text
 #  reviewed_at                  :datetime
 #  reviewed_commit_sha          :string
@@ -50,6 +52,7 @@
 #  updated_at                   :datetime         not null
 #  flagged_by_id                :bigint
 #  linked_project_id            :bigint
+#  requirements_checked_by_id   :bigint
 #  reviewer_id                  :bigint
 #  slack_channel_id             :string
 #  user_id                      :bigint           not null
@@ -60,6 +63,8 @@
 #  index_projects_on_flagged_by_id                        (flagged_by_id)
 #  index_projects_on_flagged_for_review_at                (flagged_for_review_at)
 #  index_projects_on_linked_project_id_for_build_reviews  (linked_project_id) UNIQUE WHERE (build_review = true)
+#  index_projects_on_requirements_checked_at              (requirements_checked_at)
+#  index_projects_on_requirements_checked_by_id           (requirements_checked_by_id)
 #  index_projects_on_staff_pick_at                        (staff_pick_at)
 #  index_projects_on_status                               (status)
 #  index_projects_on_submitted_at                         (submitted_at)
@@ -70,6 +75,7 @@
 #
 #  fk_rails_...  (flagged_by_id => users.id)
 #  fk_rails_...  (linked_project_id => projects.id)
+#  fk_rails_...  (requirements_checked_by_id => users.id)
 #  fk_rails_...  (reviewer_id => users.id)
 #  fk_rails_...  (user_id => users.id)
 #

@@ -1,3 +1,23 @@
+# == Schema Information
+#
+# Table name: streak_days
+#
+#  id         :bigint           not null, primary key
+#  date       :date             not null
+#  status     :integer          default("pending"), not null
+#  created_at :datetime         not null
+#  updated_at :datetime         not null
+#  user_id    :bigint           not null
+#
+# Indexes
+#
+#  index_streak_days_on_user_id           (user_id)
+#  index_streak_days_on_user_id_and_date  (user_id,date) UNIQUE
+#
+# Foreign Keys
+#
+#  fk_rails_...  (user_id => users.id)
+#
 class StreakDay < ApplicationRecord
   belongs_to :user
 

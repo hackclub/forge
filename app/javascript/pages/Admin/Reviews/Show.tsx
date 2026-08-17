@@ -13,6 +13,7 @@ import { FlagCards } from '@/components/admin/review/FlagCards'
 import { ContentTabs } from '@/components/admin/review/ContentTabs'
 import { ReviewerTimeAudit } from '@/components/admin/review/ReviewerTimeAudit'
 import { DecisionPanel } from '@/components/admin/review/DecisionPanel'
+import { RequirementsPanel } from '@/components/admin/review/RequirementsPanel'
 import { ReadOnlyDecision } from '@/components/admin/review/ReadOnlyDecision'
 import { SlackMessageDialog } from '@/components/admin/review/SlackMessageDialog'
 import { ShortcutCheatsheet } from '@/components/admin/review/ShortcutCheatsheet'
@@ -60,7 +61,7 @@ export default function AdminReviewsShow({
   reviewer: Reviewer
   review_history: ReviewEvent[]
   notes: ReviewNote[]
-  can: { review: boolean; claim: boolean }
+  can: { review: boolean; requirements_check: boolean; claim: boolean }
   claim: ClaimState
   session_stats: SessionStats | null
   checkpoint_channel_configured: boolean
@@ -159,6 +160,31 @@ export default function AdminReviewsShow({
     )
   }, [project.id, track])
 
+  const requirementsOnly = !can.review && can.requirements_check
+  const checklistStorageKey = `review:checklist:${project.id}`
+  const [checks, setChecks] = useState<Record<string, boolean>>(() => {
+    try {
+      const stored = localStorage.getItem(checklistStorageKey)
+      if (stored) return JSON.parse(stored) as Record<string, boolean>
+    } catch {}
+    const passed = project.requirements_check?.items ?? []
+    return Object.fromEntries(passed.map((key) => [key, true]))
+  })
+  const toggleCheck = useCallback(
+    (key: string) => {
+      setChecks((current) => {
+        const next = { ...current, [key]: !current[key] }
+        try {
+          localStorage.setItem(checklistStorageKey, JSON.stringify(next))
+        } catch {}
+        return next
+      })
+    },
+    [checklistStorageKey],
+  )
+  const checklistDone = project.review_checklist.filter((item) => checks[item.key]).length
+  const checklistComplete = checklistDone === project.review_checklist.length
+
   const [reasoning, setReasoning] = useState('')
   const [timeSummary, setTimeSummary] = useState(() => buildTimeEvidence(project))
   const autoTimeSummary = useRef(timeSummary)
@@ -170,7 +196,9 @@ export default function AdminReviewsShow({
     project.override_hours != null ? String(project.override_hours) : '',
   )
   const [overrideJustification, setOverrideJustification] = useState(project.override_hours_justification ?? '')
-  const [submitting, setSubmitting] = useState<null | 'approve' | 'return' | 'reject' | 'draft'>(null)
+  const [submitting, setSubmitting] = useState<null | 'approve' | 'return' | 'reject' | 'draft' | 'requirements_met'>(
+    null,
+  )
   const [checkpointOpen, setCheckpointOpen] = useState(false)
   const [checkpointBody, setCheckpointBody] = useState('')
   const [checkpointSlackId, setCheckpointSlackId] = useState(project.user_slack_id ?? '')
@@ -182,7 +210,9 @@ export default function AdminReviewsShow({
   const [activeTab, setActiveTab] = useState('journal')
   const [helpOpen, setHelpOpen] = useState(false)
   const [rejectOpen, setRejectOpen] = useState(false)
-  const [invalidField, setInvalidField] = useState<'conclusion' | 'technical' | 'feedback' | 'override' | null>(null)
+  const [invalidField, setInvalidField] = useState<
+    'conclusion' | 'technical' | 'feedback' | 'override' | 'checklist' | null
+  >(null)
   const [takingOver, setTakingOver] = useState(false)
   const [flagOpen, setFlagOpen] = useState(false)
   const [flagReason, setFlagReason] = useState('')
@@ -346,13 +376,19 @@ export default function AdminReviewsShow({
   }, [project.id, project.build_review, track])
 
   const submit = useCallback(
-    (decision: 'approve' | 'return' | 'reject' | 'draft') => {
+    (decision: 'approve' | 'return' | 'reject' | 'draft' | 'requirements_met') => {
       track(`${decision}_clicked`)
-      const payload: Record<string, string | number | null> = { decision }
-      if (decision === 'approve') {
-        if (!reasoning.trim() || !technicalFeatures.trim()) {
+      const payload: Record<string, string | number | string[] | null> = { decision }
+      if (decision === 'requirements_met') {
+        if (!checklistComplete) {
           return
         }
+        payload.checklist = project.review_checklist.map((item) => item.key)
+      } else if (decision === 'approve') {
+        if (!reasoning.trim() || !technicalFeatures.trim() || !checklistComplete) {
+          return
+        }
+        payload.checklist = project.review_checklist.map((item) => item.key)
         payload.reasoning = reasoning.trim()
         payload.time_summary = timeSummary.trim() || null
         payload.technical_features = technicalFeatures.trim() || null
@@ -376,11 +412,19 @@ export default function AdminReviewsShow({
       }
       setSubmitting(decision)
       router.post(`/admin/projects/${project.id}/review`, payload, {
+        onSuccess: () => {
+          try {
+            localStorage.removeItem(checklistStorageKey)
+          } catch {}
+        },
         onFinish: () => setSubmitting(null),
       })
     },
     [
       project.id,
+      project.review_checklist,
+      checklistComplete,
+      checklistStorageKey,
       reasoning,
       timeSummary,
       technicalFeatures,
@@ -394,21 +438,36 @@ export default function AdminReviewsShow({
   )
 
   const approveReason = useMemo<string | null>(() => {
+    if (!checklistComplete)
+      return `Complete the reviewer checklist (${checklistDone}/${project.review_checklist.length}) to approve`
     if (!technicalFeatures.trim()) return 'List the specific technical features to approve'
     if (!reasoning.trim()) return 'Explain why the hours match the work to approve'
     if (overrideHours.trim() !== '' && !overrideJustification.trim())
       return 'Add a deflation reason for the hours override'
     return null
-  }, [technicalFeatures, reasoning, overrideHours, overrideJustification])
+  }, [
+    checklistComplete,
+    checklistDone,
+    project.review_checklist.length,
+    technicalFeatures,
+    reasoning,
+    overrideHours,
+    overrideJustification,
+  ])
   const returnReason = useMemo<string | null>(
     () => (!feedback.trim() ? 'Add feedback to the builder' : null),
     [feedback],
   )
 
-  const flash = useCallback((field: 'conclusion' | 'technical' | 'feedback' | 'override') => {
+  const flash = useCallback((field: 'conclusion' | 'technical' | 'feedback' | 'override' | 'checklist') => {
     setInvalidField(field)
     window.setTimeout(() => setInvalidField(null), 1200)
   }, [])
+
+  const focusChecklist = useCallback(() => {
+    document.getElementById('review-checklist')?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+    flash('checklist')
+  }, [flash])
 
   const focusReasoning = useCallback(() => {
     document.getElementById('review-conclusion')?.focus()
@@ -438,7 +497,9 @@ export default function AdminReviewsShow({
   const handleApprove = useCallback(() => {
     if (!can.claim) return
     if (approveReason) {
-      if (!technicalFeatures.trim()) {
+      if (!checklistComplete) {
+        focusChecklist()
+      } else if (!technicalFeatures.trim()) {
         document.getElementById('review-technical')?.focus()
         flash('technical')
       } else if (!reasoning.trim()) {
@@ -451,7 +512,17 @@ export default function AdminReviewsShow({
       return
     }
     submit('approve')
-  }, [can.claim, approveReason, technicalFeatures, reasoning, focusReasoning, flash, submit])
+  }, [
+    can.claim,
+    approveReason,
+    checklistComplete,
+    focusChecklist,
+    technicalFeatures,
+    reasoning,
+    focusReasoning,
+    flash,
+    submit,
+  ])
 
   const handleReturn = useCallback(() => {
     if (!can.claim) return
@@ -489,7 +560,9 @@ export default function AdminReviewsShow({
       submit('return')
       return
     }
-    if (!technicalFeatures.trim()) {
+    if (!checklistComplete) {
+      focusChecklist()
+    } else if (!technicalFeatures.trim()) {
       document.getElementById('review-technical')?.focus()
       flash('technical')
     } else if (!reasoning.trim()) {
@@ -503,6 +576,8 @@ export default function AdminReviewsShow({
     can.claim,
     approveReason,
     returnReason,
+    checklistComplete,
+    focusChecklist,
     technicalFeatures,
     reasoning,
     submit,
@@ -561,7 +636,7 @@ export default function AdminReviewsShow({
   const demoUrl = project.ships.find((s) => s.demo_link)?.demo_link ?? project.build_proof_url ?? null
 
   useReviewShortcuts({
-    enabled: !isTerminal && !checkpointOpen && !dmOpen && !rejectOpen && !helpOpen,
+    enabled: !isTerminal && !requirementsOnly && !checkpointOpen && !dmOpen && !rejectOpen && !helpOpen,
     onApprove: handleApprove,
     onReturn: handleReturn,
     onReject: handleReject,
@@ -596,6 +671,7 @@ export default function AdminReviewsShow({
         onToggleNotes={() => setActiveTab('notes')}
         flagged={project.flagged_for_review}
         onFlag={() => setFlagOpen(true)}
+        canFlag={!requirementsOnly}
         commitsUrl={project.commits_url}
         demoUrl={demoUrl}
       />
@@ -648,6 +724,30 @@ export default function AdminReviewsShow({
           {project.sibling && <SiblingReviewPanel sibling={project.sibling} />}
           {isTerminal ? (
             <ReadOnlyDecision project={project} next_pending_id={next_pending_id} />
+          ) : requirementsOnly ? (
+            <RequirementsPanel
+              project={project}
+              checks={checks}
+              onToggleCheck={toggleCheck}
+              checklistComplete={checklistComplete}
+              feedback={feedback}
+              setFeedback={setFeedback}
+              submitting={submitting}
+              canClaim={can.claim}
+              invalidField={invalidField}
+              onSubmit={(decision) => {
+                if (decision === 'return' && !feedback.trim()) {
+                  focusFeedback()
+                  flash('feedback')
+                  return
+                }
+                if (decision === 'requirements_met' && !checklistComplete) {
+                  focusChecklist()
+                  return
+                }
+                submit(decision)
+              }}
+            />
           ) : (
             <>
               <DecisionPanel
@@ -674,6 +774,8 @@ export default function AdminReviewsShow({
                   setOverrideJustification,
                   submitting,
                 }}
+                checks={checks}
+                onToggleCheck={toggleCheck}
                 claimedHours={claimedHours}
                 deflation={deflation}
                 previewCoins={previewCoins}
