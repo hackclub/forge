@@ -67,7 +67,7 @@ class Admin::MetricsController < Admin::ApplicationController
     end
     days_to_goal = hours_goal_remaining > 0 && avg_hours_per_day.positive? ? (hours_goal_remaining / avg_hours_per_day).ceil : 0
 
-    streaks = UserActivityDay.joins(:user).where(active_on: (today - 1)..today).distinct.pluck(:user_id).map do |uid|
+    streaks = StreakDay.streak_counting.joins(:user).where(date: (today - 1)..today).distinct.pluck(:user_id).map do |uid|
       User.find(uid).current_streak
     end
 

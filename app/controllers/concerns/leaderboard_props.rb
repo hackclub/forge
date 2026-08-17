@@ -14,7 +14,7 @@ module LeaderboardProps
 
   def leaderboard_props
     hours_totals = leaderboard_hours_totals
-    streak_user_ids = User.kept.joins(:activity_days).distinct.pluck(:id)
+    streak_user_ids = User.kept.joins(:streak_days).merge(StreakDay.streak_counting).distinct.pluck(:id)
     streak_totals = streak_user_ids.to_h { |id| [ id, User.find(id).current_streak ] }
     streak_totals.reject! { |_, v| v.zero? }
 

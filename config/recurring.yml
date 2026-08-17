@@ -39,8 +39,8 @@ production:
     queue: background
     schedule: every hour at minute 30
 
-  streak_freeze_check:
-    class: StreakFreezeCheckJob
+  streak_reconciliation:
+    class: StreakReconciliationJob
     queue: background
     schedule: every hour
 

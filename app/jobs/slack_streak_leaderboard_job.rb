@@ -23,7 +23,7 @@ class SlackStreakLeaderboardJob < ApplicationJob
   private
 
   def leaderboard_entries
-    user_ids = UserActivityDay.where(active_on: 1.day.ago.to_date..).distinct.pluck(:user_id)
+    user_ids = StreakDay.streak_counting.where(date: 1.day.ago.to_date..).distinct.pluck(:user_id)
     User.kept.where(id: user_ids).filter_map { |user|
       streak = user.current_streak
       next if streak < 1
