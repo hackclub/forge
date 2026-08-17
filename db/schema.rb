@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_09_000000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_16_160041) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -676,6 +676,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_09_000000) do
     t.index ["user_id"], name: "index_streak_break_notices_on_user_id"
   end
 
+  create_table "streak_days", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.date "date", null: false
+    t.integer "status", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["user_id", "date"], name: "index_streak_days_on_user_id_and_date", unique: true
+    t.index ["user_id"], name: "index_streak_days_on_user_id"
+  end
+
   create_table "support_tickets", force: :cascade do |t|
     t.string "bts_channel_id", null: false
     t.string "bts_message_ts"
@@ -699,15 +709,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_09_000000) do
     t.index ["public_response_ts"], name: "index_support_tickets_on_public_response_ts"
     t.index ["status"], name: "index_support_tickets_on_status"
     t.index ["thread_ts"], name: "index_support_tickets_on_thread_ts", unique: true
-  end
-
-  create_table "user_activity_days", force: :cascade do |t|
-    t.date "active_on", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.bigint "user_id", null: false
-    t.index ["user_id", "active_on"], name: "index_user_activity_days_on_user_id_and_active_on", unique: true
-    t.index ["user_id"], name: "index_user_activity_days_on_user_id"
   end
 
   create_table "user_login_days", force: :cascade do |t|
@@ -853,7 +854,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_09_000000) do
   add_foreign_key "solid_queue_recurring_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_scheduled_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "streak_break_notices", "users"
-  add_foreign_key "user_activity_days", "users"
+  add_foreign_key "streak_days", "users"
   add_foreign_key "user_login_days", "users"
   add_foreign_key "user_notes", "users"
   add_foreign_key "user_notes", "users", column: "author_id"

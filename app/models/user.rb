@@ -96,7 +96,7 @@ class User < ApplicationRecord
   has_many :collaboration_invites_sent, class_name: "CollaborationInvite", foreign_key: :inviter_id, dependent: :destroy, inverse_of: :inviter
   has_many :referrals_made, class_name: "Referral", foreign_key: :referrer_id, dependent: :destroy, inverse_of: :referrer
   has_one :referral_received, class_name: "Referral", foreign_key: :referred_id, dependent: :destroy, inverse_of: :referred
-  has_many :activity_days, class_name: "UserActivityDay", dependent: :destroy
+  has_many :streak_days, dependent: :destroy
   has_many :login_days, class_name: "UserLoginDay", dependent: :destroy
   has_many :badges, dependent: :destroy
   has_many :awarded_badges, class_name: "Badge", foreign_key: :awarder_id, dependent: :nullify, inverse_of: :awarder
@@ -121,33 +121,11 @@ class User < ApplicationRecord
   STREAK_FREEZE_COST = 5
 
   def record_activity!(date = today_in_zone)
-    today = today_in_zone
-    date = today if date > today
-    activity_days.find_or_create_by!(active_on: date)
-    apply_streak_freezes!(today)
-  rescue ActiveRecord::RecordNotUnique
-    apply_streak_freezes!(today)
-    nil
+    StreakService.record_activity(self, date)
   end
 
   def apply_streak_freezes!(today = today_in_zone)
-    freezes = streak_freezes.to_i
-    return if freezes <= 0
-
-    last = activity_days.where("active_on < ?", today).maximum(:active_on)
-    return if last.nil?
-
-    gap = (today - last).to_i - 1
-    # Only spend freezes when they can bridge the whole gap — a partial fill
-    # can't save the streak and just burns freezes silently.
-    return if gap <= 0 || gap > freezes
-
-    transaction do
-      gap.times do |offset|
-        activity_days.find_or_create_by!(active_on: today - (offset + 1))
-      end
-      decrement!(:streak_freezes, gap)
-    end
+    StreakService.reconcile_missed_days(self, today)
   end
 
   def adjust_streak!(delta, today: today_in_zone)
@@ -155,9 +133,10 @@ class User < ApplicationRecord
     return 0 if delta.zero?
 
     if delta.positive?
-      cursor = if activity_days.exists?(active_on: today)
+      counting = streak_days.streak_counting
+      cursor = if counting.exists?(date: today)
         c = today - 1
-        c -= 1 while activity_days.exists?(active_on: c)
+        c -= 1 while counting.exists?(date: c)
         c
       else
         today
@@ -166,15 +145,16 @@ class User < ApplicationRecord
       added = 0
       transaction do
         delta.times do
-          activity_days.find_or_create_by!(active_on: cursor)
+          day = streak_days.find_or_initialize_by(date: cursor)
+          day.update!(status: :active)
           cursor -= 1
           added += 1
         end
       end
       added
     else
-      ids = activity_days.order(active_on: :desc).limit(-delta).pluck(:id)
-      activity_days.where(id: ids).delete_all
+      ids = streak_days.streak_counting.order(date: :desc).limit(-delta).pluck(:id)
+      streak_days.where(id: ids).delete_all
       -ids.size
     end
   end
@@ -196,35 +176,15 @@ class User < ApplicationRecord
   end
 
   def current_streak(today: today_in_zone)
-    dates = activity_days.where(active_on: (today - 365)..today).order(active_on: :desc).pluck(:active_on).to_set
-    return 0 if dates.empty?
-
-    cursor = dates.include?(today) ? today : today - 1
-    return 0 unless dates.include?(cursor)
-
-    streak = 0
-    while dates.include?(cursor)
-      streak += 1
-      cursor -= 1
-    end
-    streak
+    StreakDay.current_streak(self, today: today)
   end
 
   def longest_streak
-    dates = activity_days.order(:active_on).pluck(:active_on)
-    return 0 if dates.empty?
-
-    longest = 1
-    run = 1
-    dates.each_cons(2) do |a, b|
-      run = (b == a + 1) ? run + 1 : 1
-      longest = run if run > longest
-    end
-    longest
+    StreakDay.longest_streak(self)
   end
 
   def last_active_on
-    activity_days.maximum(:active_on)
+    streak_days.streak_counting.maximum(:date)
   end
 
   before_validation :ensure_referral_code, on: :create

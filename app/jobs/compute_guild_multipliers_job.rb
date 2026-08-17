@@ -28,8 +28,9 @@ class ComputeGuildMultipliersJob < ApplicationJob
   def recompute_guild!(guild, now: Time.current)
     window_start = now - WINDOW
 
-    active_members = UserActivityDay
-      .where(active_on: window_start..)
+    active_members = StreakDay
+      .streak_counting
+      .where(date: window_start..)
       .joins(:user)
       .merge(User.in_guild(guild))
       .distinct

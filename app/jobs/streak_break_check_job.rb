@@ -8,7 +8,7 @@ class StreakBreakCheckJob < ApplicationJob
     channel = ENV.fetch("SLACK_STREAKS_CHANNEL_ID", nil)
     return if channel.blank?
 
-    recently_active = UserActivityDay.where(active_on: 4.days.ago.to_date..).select(:user_id)
+    recently_active = StreakDay.streak_counting.where(date: 4.days.ago.to_date..).select(:user_id)
     User.kept.where.not(slack_id: nil).where(id: recently_active).find_each do |user|
       announce_break(user, channel, randomize)
     rescue StandardError => e
@@ -24,8 +24,8 @@ class StreakBreakCheckJob < ApplicationJob
     return if now_local.hour < 1
 
     yesterday = today - 1
-    return if user.activity_days.exists?(active_on: yesterday)
-    return unless user.activity_days.exists?(active_on: yesterday - 1)
+    return if user.streak_days.streak_counting.exists?(date: yesterday)
+    return unless user.streak_days.streak_counting.exists?(date: yesterday - 1)
 
     streak = broken_streak_length(user, yesterday - 1)
     return if streak < MIN_STREAK_TO_ANNOUNCE
@@ -41,10 +41,11 @@ class StreakBreakCheckJob < ApplicationJob
   end
 
   def broken_streak_length(user, last_active_day)
-    dates = user.activity_days
-      .where(active_on: (last_active_day - 365)..last_active_day)
-      .order(active_on: :desc)
-      .pluck(:active_on)
+    dates = user.streak_days
+      .streak_counting
+      .where(date: (last_active_day - 365)..last_active_day)
+      .order(date: :desc)
+      .pluck(:date)
       .to_set
 
     streak = 0
