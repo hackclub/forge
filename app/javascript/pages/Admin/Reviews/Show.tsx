@@ -685,7 +685,7 @@ export default function AdminReviewsShow({
           unflagging={unflagging}
         />
       )}
-      {claim.locked_by ? (
+      {claim.locked_by && !requirementsOnly ? (
         <ClaimBanner claim={claim} onTakeOver={takeOver} takingOver={takingOver} />
       ) : (
         <ConcurrentReviewersBanner reviewers={concurrent_reviewers} />
