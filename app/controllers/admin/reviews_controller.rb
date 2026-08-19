@@ -86,7 +86,8 @@ class Admin::ReviewsController < Admin::ApplicationController
   def show
     authorize @project, :review_screen?
 
-    @session = ensure_session(@project) if @project.pending?
+    can_review = policy(@project).review?
+    @session = ensure_session(@project) if @project.pending? && can_review
     concurrent = concurrent_active_reviewers(@project)
     claim = claim_state(@project)
     next_pending_id = next_in_queue(@project)
@@ -107,9 +108,9 @@ class Admin::ReviewsController < Admin::ApplicationController
         slack_id: current_user.slack_id
       },
       can: {
-        review: policy(@project).review?,
+        review: can_review,
         requirements_check: policy(@project).requirements_check?,
-        claim: claim[:locked_by].nil? || current_user.superadmin?
+        claim: !can_review || claim[:locked_by].nil? || current_user.superadmin?
       },
       claim: claim,
       session_stats: current_user.superadmin? ? session_stats(@project) : nil,
@@ -217,7 +218,7 @@ class Admin::ReviewsController < Admin::ApplicationController
           avatar: holder.reviewer.avatar,
           since: holder.started_at.iso8601
         },
-        can_take_over: current_user.superadmin?
+        can_take_over: current_user.superadmin? && policy(project).review?
       }
     end
   end
