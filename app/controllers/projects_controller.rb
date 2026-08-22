@@ -8,6 +8,7 @@ class ProjectsController < ApplicationController
     @og_title = @project.name
     @og_description = @project.subtitle.presence || "A project on Hack Club Forge by #{@project.user.display_name}."
     @og_image = @project.cover_image_url
+    SyncJournalJob.sync_if_stale(@project) if @project.member?(current_user)
 
     render inertia: "Projects/Show", props: {
       project: serialize_project_detail(@project),
@@ -255,7 +256,6 @@ class ProjectsController < ApplicationController
     end
 
     SyncJournalJob.perform_now(@project.id)
-    current_user&.record_activity!
     audit!("project.journal_synced", target: @project)
     redirect_to @project, notice: "Journal synced."
   end

@@ -1,6 +1,8 @@
 class SyncAllJournalsJob < ApplicationJob
   queue_as :background
 
+  STALE_AFTER = 25.minutes
+
   def perform
     delay = ENV.fetch("SYNC_ALL_JOURNALS_DELAY", "1").to_f
 
@@ -8,6 +10,7 @@ class SyncAllJournalsJob < ApplicationJob
       .where(devlog_mode: "git")
       .where.not(repo_link: [ nil, "" ])
       .where.not(status: :rejected)
+      .where("journal_synced_at IS NULL OR journal_synced_at <= ?", STALE_AFTER.ago)
       .find_each(batch_size: 50) do |project|
       begin
         SyncJournalJob.perform_now(project.id)

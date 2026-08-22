@@ -1,8 +1,20 @@
 class SyncJournalJob < ApplicationJob
   queue_as :default
 
+  AUTO_SYNC_INTERVAL = 10.minutes
+
+  def self.sync_if_stale(project)
+    return unless project&.devlog_mode == "git"
+    return if project.repo_link.blank?
+    return if project.journal_synced_at.present? && project.journal_synced_at > AUTO_SYNC_INTERVAL.ago
+
+    project.update_columns(journal_synced_at: Time.current)
+    perform_later(project.id)
+  end
+
   def perform(project_id)
     project = Project.find(project_id)
+    project.update_columns(journal_synced_at: Time.current)
     return unless project.repo_link.present?
 
     parsed = parse_repo_url(project.repo_link)
@@ -22,35 +34,44 @@ class SyncJournalJob < ApplicationJob
     return if entries.empty?
 
     raw_base = build_raw_base(parsed, branch)
-    dates_to_credit = []
+    author = project.user
+    today = author&.today_in_zone || Date.current
+    fallback_date = nil
 
     entries.each do |entry|
-      existing = Devlog.where(project_id: project.id, title: entry[:title]).exists?
-      next if existing
-
       content = rewrite_image_urls(entry[:content], raw_base)
       content = "No content" if content.blank?
 
-      devlog = Devlog.new(
-        project_id: project.id,
-        title: entry[:title],
-        content: content,
-        time_spent: entry[:time_spent],
-        time_hours: TimeSpentParser.parse(entry[:time_spent])
-      )
-      if devlog.save
-        Rails.logger.info("SyncJournal: created devlog '#{entry[:title]}' with time_spent=#{entry[:time_spent]}, time_hours=#{devlog.time_hours}")
-        if (entry_date = extract_entry_date(entry))
-          dates_to_credit << entry_date
-        end
+      devlog = Devlog.where(project_id: project.id, title: entry[:title]).first
+      parsed_date = extract_entry_date(entry, today)
+
+      if devlog
+        devlog.content = content
+        devlog.time_spent = entry[:time_spent]
+        devlog.time_hours = TimeSpentParser.parse(entry[:time_spent])
+        devlog.entry_date = parsed_date if parsed_date
       else
-        Rails.logger.error("SyncJournal: failed to create devlog '#{entry[:title]}': #{devlog.errors.full_messages}")
+        fallback_date ||= journal_commit_date(parsed, branch, today) || today
+        devlog = Devlog.new(
+          project_id: project.id,
+          title: entry[:title],
+          content: content,
+          time_spent: entry[:time_spent],
+          time_hours: TimeSpentParser.parse(entry[:time_spent]),
+          entry_date: parsed_date || fallback_date
+        )
+      end
+
+      next unless devlog.changed?
+
+      if devlog.save
+        Rails.logger.info("SyncJournal: synced devlog '#{entry[:title]}' for #{devlog.entry_date} with time_spent=#{entry[:time_spent]}, time_hours=#{devlog.time_hours}")
+      else
+        Rails.logger.error("SyncJournal: failed to save devlog '#{entry[:title]}': #{devlog.errors.full_messages}")
       end
     end
 
-    dates_to_credit.uniq.sort.each do |date|
-      project.user.record_activity!(date)
-    end
+    author&.apply_streak_freezes!
   end
 
   private
@@ -159,11 +180,11 @@ class SyncJournalJob < ApplicationJob
   MONTH_PATTERN = Regexp.new("\\b(#{MONTH_NAMES.join('|')})\\b", Regexp::IGNORECASE).freeze
   ISO_DATE_PATTERN = /\b(\d{4})-(\d{1,2})-(\d{1,2})\b/.freeze
 
-  def extract_entry_date(entry)
+  def extract_entry_date(entry, today = Date.current)
     source = "#{entry[:title]} #{entry[:content]}"
 
     if (m = source.match(ISO_DATE_PATTERN))
-      return build_safe_date(m[1].to_i, m[2].to_i, m[3].to_i)
+      return build_safe_date(m[1].to_i, m[2].to_i, m[3].to_i, today)
     end
 
     if (m = source.match(/#{MONTH_PATTERN}\.?\s+(\d{1,2})(?:[\s,]+(\d{4}))?/))
@@ -173,21 +194,61 @@ class SyncJournalJob < ApplicationJob
       return nil unless month
 
       day = m[2].to_i
-      year = m[3]&.to_i || Date.current.year
-      return build_safe_date(year, month, day)
+      year = m[3]&.to_i || today.year
+      return build_safe_date(year, month, day, today)
     end
 
     nil
   end
 
-  def build_safe_date(year, month, day)
+  def build_safe_date(year, month, day, today = Date.current)
     date = Date.new(year, month, day)
-    return nil if date > Date.current + 1
-    return nil if date < 2.years.ago.to_date
+    return nil if date > today + 1
+    return nil if date < today - 2.years
+    date = today if date > today
 
     date
   rescue Date::Error, ArgumentError
     nil
+  end
+
+  # Undated entries are credited to the day JOURNAL.md was last pushed, so an
+  # hourly sync doesn't hand yesterday's writing to today.
+  def journal_commit_date(parsed, branch, today)
+    timestamp = case parsed[:host]
+    when "github" then last_commit_timestamp("https://api.github.com/repos/#{parsed[:owner]}/#{parsed[:repo]}/commits", { path: "JOURNAL.md", per_page: 1, sha: branch }, %w[commit committer date])
+    when "gitlab" then last_commit_timestamp("https://gitlab.com/api/v4/projects/#{URI.encode_www_form_component("#{parsed[:owner]}/#{parsed[:repo]}")}/repository/commits", { path: "JOURNAL.md", per_page: 1, ref_name: branch }, %w[committed_date])
+    when "codeberg" then last_commit_timestamp("https://codeberg.org/api/v1/repos/#{parsed[:owner]}/#{parsed[:repo]}/commits", { path: "JOURNAL.md", limit: 1, sha: branch }, %w[commit committer date])
+    end
+    return nil if timestamp.blank?
+
+    date = Time.zone.parse(timestamp)&.to_date
+    return nil if date.nil?
+
+    [ date, today ].min
+  rescue StandardError => e
+    Rails.logger.warn("SyncJournal: commit date lookup failed: #{e.message}")
+    nil
+  end
+
+  def last_commit_timestamp(url, query, path)
+    uri = URI(url)
+    uri.query = URI.encode_www_form(query.compact.reject { |_, v| v.blank? })
+    req = Net::HTTP::Get.new(uri)
+    token = ENV["GITHUB_TOKEN"].to_s
+    req["Authorization"] = "Bearer #{token}" if token.present? && uri.host == "api.github.com"
+
+    http = Net::HTTP.new(uri.host, uri.port)
+    http.use_ssl = true
+    http.open_timeout = 5
+    http.read_timeout = 10
+    response = http.request(req)
+    return nil unless response.is_a?(Net::HTTPSuccess)
+
+    commits = JSON.parse(response.body)
+    return nil unless commits.is_a?(Array) && commits.first.is_a?(Hash)
+
+    commits.first.dig(*path)
   end
 
   HEADER_PATTERN = /^(\#{1,3})\s+(.+)$/
