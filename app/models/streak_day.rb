@@ -2,12 +2,13 @@
 #
 # Table name: streak_days
 #
-#  id         :bigint           not null, primary key
-#  date       :date             not null
-#  status     :integer          default("pending"), not null
-#  created_at :datetime         not null
-#  updated_at :datetime         not null
-#  user_id    :bigint           not null
+#  id           :bigint           not null, primary key
+#  date         :date             not null
+#  hours_logged :decimal(8, 2)    default(0.0), not null
+#  status       :integer          default("pending"), not null
+#  created_at   :datetime         not null
+#  updated_at   :datetime         not null
+#  user_id      :bigint           not null
 #
 # Indexes
 #

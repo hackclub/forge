@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_17_191128) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_22_120200) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -173,6 +173,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_17_191128) do
     t.decimal "approved_hours"
     t.text "content"
     t.datetime "created_at", null: false
+    t.date "entry_date"
     t.string "lapse_url"
     t.bigint "project_id", null: false
     t.text "review_feedback"
@@ -187,6 +188,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_17_191128) do
     t.index ["created_at"], name: "index_devlogs_on_created_at"
     t.index ["project_id"], name: "index_devlogs_on_project_id"
     t.index ["status"], name: "index_devlogs_on_status"
+    t.index ["user_id", "entry_date"], name: "index_devlogs_on_user_id_and_entry_date"
     t.index ["user_id"], name: "index_devlogs_on_user_id"
   end
 
@@ -320,6 +322,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_17_191128) do
     t.string "hackatime_projects", default: [], null: false, array: true
     t.boolean "hidden", default: false, null: false
     t.string "journal_branch"
+    t.datetime "journal_synced_at"
     t.integer "kudos_count", default: 0, null: false
     t.bigint "linked_project_id"
     t.string "name", null: false
@@ -684,6 +687,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_17_191128) do
   create_table "streak_days", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.date "date", null: false
+    t.decimal "hours_logged", precision: 8, scale: 2, default: "0.0", null: false
     t.integer "status", default: 0, null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false

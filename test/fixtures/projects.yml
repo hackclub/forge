@@ -24,6 +24,7 @@
 #  hackatime_projects           :string           default([]), not null, is an Array
 #  hidden                       :boolean          default(FALSE), not null
 #  journal_branch               :string
+#  journal_synced_at            :datetime
 #  kudos_count                  :integer          default(0), not null
 #  name                         :string           not null
 #  override_hours               :decimal(, )

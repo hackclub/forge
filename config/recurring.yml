@@ -37,7 +37,7 @@ production:
   sync_all_journals:
     class: SyncAllJournalsJob
     queue: background
-    schedule: every hour at minute 30
+    schedule: every 30 minutes
 
   streak_reconciliation:
     class: StreakReconciliationJob

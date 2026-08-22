@@ -23,6 +23,8 @@ class StreakBreakCheckJob < ApplicationJob
     now_local = Time.current.in_time_zone(user.timezone.presence || "UTC")
     return if now_local.hour < 1
 
+    StreakService.refresh_recent_days(user, today)
+
     yesterday = today - 1
     return if user.streak_days.streak_counting.exists?(date: yesterday)
     return unless user.streak_days.streak_counting.exists?(date: yesterday - 1)

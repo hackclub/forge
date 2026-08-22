@@ -5,6 +5,7 @@
 #  id              :bigint           not null, primary key
 #  approved_hours  :decimal(, )
 #  content         :text
+#  entry_date      :date
 #  lapse_url       :string
 #  review_feedback :text
 #  reviewed_at     :datetime
@@ -20,10 +21,11 @@
 #
 # Indexes
 #
-#  index_devlogs_on_created_at  (created_at)
-#  index_devlogs_on_project_id  (project_id)
-#  index_devlogs_on_status      (status)
-#  index_devlogs_on_user_id     (user_id)
+#  index_devlogs_on_created_at              (created_at)
+#  index_devlogs_on_project_id              (project_id)
+#  index_devlogs_on_status                  (status)
+#  index_devlogs_on_user_id                 (user_id)
+#  index_devlogs_on_user_id_and_entry_date  (user_id,entry_date)
 #
 # Foreign Keys
 #
@@ -43,6 +45,9 @@ class Devlog < ApplicationRecord
   # Default author is the project owner — covers git-journal sync and any
   # other creation path that doesn't set an author explicitly.
   before_validation { self.user ||= project&.user }
+  before_validation { self.entry_date ||= (user || project&.user)&.today_in_zone || Date.current }
+
+  after_commit :recredit_streak_day
 
   validates :title, presence: true
   validates :content, presence: true
@@ -73,5 +78,21 @@ class Devlog < ApplicationRecord
 
   def requirement_validation_details
     DevlogValidator.validation_details(content)
+  end
+
+  private
+
+  def recredit_streak_day
+    return if user.blank?
+
+    dates = [ entry_date, entry_date_previously_was ].compact.uniq
+    counting_before = user.streak_days.streak_counting.where(date: dates).count
+    dates.each { |date| StreakService.recompute_day(user, date) }
+
+    if user.streak_days.streak_counting.where(date: dates).count > counting_before
+      user.apply_streak_freezes!
+    end
+  rescue StandardError => e
+    Rails.logger.warn("Devlog #{id}: streak recompute failed: #{e.class}: #{e.message}")
   end
 end
