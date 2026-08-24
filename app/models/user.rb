@@ -8,6 +8,7 @@
 #  avatar              :string           not null
 #  ban_reason          :text
 #  birthday            :date
+#  bypass_idv          :boolean          default(FALSE), not null
 #  city                :string
 #  country             :string
 #  discarded_at        :datetime
@@ -305,6 +306,25 @@ class User < ApplicationRecord
     (has_attribute?(:shop_unlocked) && shop_unlocked?) || has_built_project?
   end
 
+  def over_18_on_file?
+    return false if birthday.blank?
+
+    ((Date.current - birthday) / 365.25).floor >= 19
+  end
+
+  def idv_verified?
+    return true if bypass_idv?
+    return false if over_18_on_file?
+
+    verification_status == "verified_eligible"
+  end
+
+  def idv_display_status
+    return "verified_but_over_18_on_file" if verification_status == "verified_eligible" && over_18_on_file?
+
+    verification_status
+  end
+
   def grant_permission(perm)
     self.permissions |= [ perm.to_s ]
   end
@@ -392,7 +412,8 @@ class User < ApplicationRecord
       country: pick(addr, %w[country country_code]).presence,
       postal_code: pick(addr, %w[postal_code zip zip_code postcode]).presence,
       phone_number: (pick(identity, %w[phone_number phone]).presence || pick(addr, %w[phone_number phone]).presence),
-      birthday: birthday_val
+      birthday: birthday_val,
+      verification_status: identity["verification_status"].presence
     }.compact
 
     update(attrs) if attrs.any?

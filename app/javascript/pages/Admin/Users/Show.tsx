@@ -48,6 +48,26 @@ const permissionLabels: Record<string, string> = {
   superadmin: 'Superadmin',
 }
 
+const IDV_LABELS: Record<string, string> = {
+  needs_submission: 'Needs Submission',
+  pending: 'Pending',
+  verified_eligible: 'Verified (Eligible)',
+  verified_but_over_18: 'Verified (Over 18)',
+  verified_but_over_18_on_file: 'Verified but 18+ from birthday on file',
+  rejected: 'Rejected',
+  not_found: 'Not Found',
+}
+
+const IDV_COLORS: Record<string, string> = {
+  needs_submission: 'text-amber-600 dark:text-amber-400',
+  pending: 'text-amber-600 dark:text-amber-400',
+  verified_eligible: 'text-emerald-600 dark:text-emerald-400',
+  verified_but_over_18: 'text-emerald-600 dark:text-emerald-400',
+  verified_but_over_18_on_file: 'text-red-600 dark:text-red-400',
+  rejected: 'text-red-600 dark:text-red-400',
+  not_found: 'text-red-600 dark:text-red-400',
+}
+
 const roleDescriptions: Record<string, string> = {
   user: 'Basic user account',
   admin: 'Full access to everything',
@@ -309,6 +329,53 @@ export default function AdminUsersShow({
           </CardContent>
         </Card>
       )}
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Identity Verification</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <span className="text-xs text-muted-foreground uppercase tracking-wide">Status</span>
+              <p
+                className={cn(
+                  'mt-1 font-semibold',
+                  user.verification_status ? IDV_COLORS[user.verification_status] : 'text-muted-foreground',
+                )}
+              >
+                {user.verification_status ? IDV_LABELS[user.verification_status] || user.verification_status : 'Not Synced'}
+              </p>
+            </div>
+            <Button onClick={() => router.post(`/admin/users/${user.id}/sync_idv`)} size="sm" variant="outline">
+              Refresh from HCA
+            </Button>
+          </div>
+
+          <Separator />
+
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-medium">Bypass IDV</p>
+              <p className="text-xs text-muted-foreground">Let this user ship without passing IDV.</p>
+            </div>
+            <button
+              onClick={() => router.post(`/admin/users/${user.id}/toggle_bypass_idv`)}
+              className={cn(
+                'relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer shrink-0',
+                user.bypass_idv ? 'bg-primary' : 'bg-muted',
+              )}
+            >
+              <span
+                className={cn(
+                  'inline-block h-4 w-4 transform rounded-full bg-background transition-transform shadow',
+                  user.bypass_idv ? 'translate-x-6' : 'translate-x-1',
+                )}
+              />
+            </button>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

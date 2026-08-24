@@ -1828,9 +1828,12 @@ export default function ProjectsShow({
               const hasRepo = !!project.repo_link
               const hasSubtitle = !!project.subtitle
               const hasCover = !!project.cover_image_url
+              const hasIdv = project.user_idv_verified
+              const idvStatus = project.user_verification_status
+              const idvNeedsVerification = idvStatus === 'needs_submission' || idvStatus === 'pending'
               const hasAddress = project.user_has_address
               const hasDevlogs = devlogs.length > 0
-              const canSubmit = hasRepo && hasSubtitle && hasCover && hasAddress && hasDevlogs
+              const canSubmit = hasRepo && hasSubtitle && hasCover && hasIdv && hasAddress && hasDevlogs
               return (
                 <div className="bg-[#1c1b1b] ghost-border p-8">
                   <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">
@@ -1844,6 +1847,20 @@ export default function ProjectsShow({
                         {!hasSubtitle && <li>• Add a short description</li>}
                         {!hasCover && <li>• Upload a cover image</li>}
                         {!hasDevlogs && <li>• Add at least one devlog entry</li>}
+                        {!hasIdv && (
+                          <li>
+                            {idvNeedsVerification ? (
+                              <>
+                                • Verify your identity on{' '}
+                                <a href="/settings" className="underline hover:text-amber-100">
+                                  Hack Club Auth
+                                </a>
+                              </>
+                            ) : (
+                              "• You're ineligible to submit for review"
+                            )}
+                          </li>
+                        )}
                         {!hasAddress && (
                           <li>
                             • Add your shipping address in{' '}

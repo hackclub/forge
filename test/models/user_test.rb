@@ -8,6 +8,7 @@
 #  avatar              :string           not null
 #  ban_reason          :text
 #  birthday            :date
+#  bypass_idv          :boolean          default(FALSE), not null
 #  city                :string
 #  country             :string
 #  discarded_at        :datetime

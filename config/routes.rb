@@ -350,6 +350,8 @@ Rails.application.routes.draw do
           get :coin_history
           post :toggle_shop_unlocked
           post :toggle_maintenance_bypass
+          post :toggle_bypass_idv
+          post :sync_idv
           post :generate_referral_code
           patch :update_fulfillment_regions
         end
