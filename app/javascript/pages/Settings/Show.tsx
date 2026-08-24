@@ -109,9 +109,11 @@ interface Address {
 const IDV_LABELS: Record<string, string> = {
   needs_submission: 'Needs Submission',
   pending: 'Pending',
+  verified: 'Verified',
   verified_eligible: 'Verified',
   verified_but_over_18: 'Verified (Not YSWS-Eligible)',
   verified_but_over_18_on_file: 'Verified but 18+ from birthday on file',
+  ineligible: 'Ineligible',
   rejected: 'Rejected',
   not_found: 'Not Found',
 }
@@ -119,9 +121,11 @@ const IDV_LABELS: Record<string, string> = {
 const IDV_COLORS: Record<string, string> = {
   needs_submission: 'text-amber-400',
   pending: 'text-amber-400',
+  verified: 'text-emerald-400',
   verified_eligible: 'text-emerald-400',
   verified_but_over_18: 'text-emerald-400',
   verified_but_over_18_on_file: 'text-red-400',
+  ineligible: 'text-red-400',
   rejected: 'text-red-400',
   not_found: 'text-red-400',
 }
