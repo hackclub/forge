@@ -25,7 +25,10 @@ class SettingsController < ApplicationController
         postal_code: user.postal_code,
         phone_number: user.phone_number
       } : nil,
-      hca_address_portal_url: HcaService.address_portal_url(return_to: settings_url)
+      hca_address_portal_url: HcaService.address_portal_url(return_to: settings_url),
+      verification_status: user.idv_display_status,
+      idv_verified: user.idv_verified?,
+      hca_verify_portal_url: HcaService.verify_portal_url(return_to: settings_url)
     }
   end
 

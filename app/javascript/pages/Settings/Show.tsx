@@ -106,6 +106,26 @@ interface Address {
   phone_number: string | null
 }
 
+const IDV_LABELS: Record<string, string> = {
+  needs_submission: 'Needs Submission',
+  pending: 'Pending',
+  verified_eligible: 'Verified',
+  verified_but_over_18: 'Verified (Not YSWS-Eligible)',
+  verified_but_over_18_on_file: 'Verified but 18+ from birthday on file',
+  rejected: 'Rejected',
+  not_found: 'Not Found',
+}
+
+const IDV_COLORS: Record<string, string> = {
+  needs_submission: 'text-amber-400',
+  pending: 'text-amber-400',
+  verified_eligible: 'text-emerald-400',
+  verified_but_over_18: 'text-emerald-400',
+  verified_but_over_18_on_file: 'text-red-400',
+  rejected: 'text-red-400',
+  not_found: 'text-red-400',
+}
+
 interface SettingsUser {
   id: number
   display_name: string
@@ -119,10 +139,16 @@ export default function SettingsShow({
   user,
   address,
   hca_address_portal_url,
+  verification_status,
+  idv_verified,
+  hca_verify_portal_url,
 }: {
   user: SettingsUser
   address: Address | null
   hca_address_portal_url: string
+  verification_status: string | null
+  idv_verified: boolean
+  hca_verify_portal_url: string
 }) {
   function refreshAddress() {
     router.post('/profile/sync_address', {}, { preserveScroll: true })
@@ -198,6 +224,26 @@ export default function SettingsShow({
             </p>
           )}
 
+          <div className="mt-6 pt-6 border-t border-white/5">
+            <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-2">
+              Identity Verification
+            </h3>
+            <p className={`text-sm font-bold mb-2 ${verification_status ? IDV_COLORS[verification_status] : 'text-stone-500'}`}>
+              {verification_status ? IDV_LABELS[verification_status] || verification_status : 'Not Synced'}
+            </p>
+            {!idv_verified && (
+              <p className="text-stone-500 text-sm mb-2">
+                {verification_status === 'verified_but_over_18' &&
+                  "You're verified, but Hack Club Auth's records show you're over 18."}
+                {verification_status === 'verified_but_over_18_on_file' &&
+                  "You're verified, but the birthday Forge has on file shows you're over 18."}
+                {verification_status !== 'verified_but_over_18' &&
+                  verification_status !== 'verified_but_over_18_on_file' &&
+                  'Required before submitting a project for review.'}
+              </p>
+            )}
+          </div>
+
           <div className="flex flex-col sm:flex-row gap-2 mt-5">
             <a
               href={hca_address_portal_url}
@@ -206,8 +252,19 @@ export default function SettingsShow({
               className="signature-smolder text-[#4c1a00] font-bold px-4 py-2 uppercase tracking-wider text-[10px] flex items-center justify-center gap-2 cursor-pointer"
             >
               <span className="material-symbols-outlined text-sm">open_in_new</span>
-              {address ? 'Edit on HCA' : 'Add Address on HCA'}
+              Edit Address on HCA
             </a>
+            {verification_status === 'needs_submission' && (
+              <a
+                href={hca_verify_portal_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="signature-smolder text-[#4c1a00] font-bold px-4 py-2 uppercase tracking-wider text-[10px] flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-sm">verified_user</span>
+                Verify on HCA
+              </a>
+            )}
             <button
               onClick={refreshAddress}
               className="ghost-border bg-[#0e0e0e] hover:bg-[#2a2a2a] text-stone-400 hover:text-[#ffb595] px-4 py-2 uppercase tracking-wider text-[10px] font-bold flex items-center justify-center gap-2 cursor-pointer transition-colors"

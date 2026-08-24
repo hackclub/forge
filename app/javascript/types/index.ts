@@ -125,6 +125,8 @@ export interface ProjectDetail {
   members: ProjectMember[]
   max_team_size: number
   user_has_address: boolean
+  user_idv_verified: boolean
+  user_verification_status: string | null
   user_address: UserAddress | null
   created_at: string
 }
@@ -177,6 +179,9 @@ export interface AdminUserDetail {
   ban_reason: string | null
   shop_unlocked: boolean
   maintenance_bypass: boolean
+  verification_status: string | null
+  bypass_idv: boolean
+  idv_verified: boolean
   referral_code: string | null
   fulfillment_regions: string[]
   is_discarded: boolean

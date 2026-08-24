@@ -135,6 +135,30 @@ class Admin::UsersController < Admin::ApplicationController
     redirect_to admin_user_path(@user), notice: "#{@user.display_name} #{status}."
   end
 
+  def toggle_bypass_idv
+    @user = User.find(params[:id])
+    authorize @user, :update?
+    @user.update!(bypass_idv: !@user.bypass_idv)
+    audit!("user.bypass_idv_toggled", target: @user, metadata: { bypass_idv: @user.bypass_idv })
+    status = @user.bypass_idv? ? "can now ship without IDV" : "must have IDV to ship"
+    redirect_to admin_user_path(@user), notice: "#{@user.display_name} #{status}."
+  end
+
+  def sync_idv
+    @user = User.find(params[:id])
+    authorize @user, :update?
+
+    identity = HcaService.identity(@user.hca_token)
+    if identity.blank?
+      redirect_to admin_user_path(@user), alert: "Couldn't reach HCA."
+      return
+    end
+
+    @user.apply_hca_identity(identity)
+    audit!("user.idv_synced", target: @user, metadata: { from: "hca" })
+    redirect_to admin_user_path(@user), notice: "Refreshed #{@user.display_name}'s identity from HCA."
+  end
+
   def generate_referral_code
     @user = User.find(params[:id])
     authorize @user, :update?
@@ -363,6 +387,9 @@ class Admin::UsersController < Admin::ApplicationController
       ban_reason: user.ban_reason,
       shop_unlocked: user.shop_unlocked,
       maintenance_bypass: user.maintenance_bypass,
+      verification_status: user.idv_display_status,
+      bypass_idv: user.bypass_idv,
+      idv_verified: user.idv_verified?,
       referral_code: user.referral_code,
       fulfillment_regions: user.fulfillment_regions,
       is_discarded: user.discarded?,

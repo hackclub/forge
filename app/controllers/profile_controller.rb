@@ -8,6 +8,6 @@ class ProfileController < ApplicationController
 
     current_user.apply_hca_identity(identity)
     audit!("user.address_synced", target: current_user, metadata: { from: "hca" })
-    redirect_back fallback_location: root_path, notice: "Address refreshed from HCA."
+    redirect_back fallback_location: root_path, notice: "Address and verification status refreshed from HCA."
   end
 end

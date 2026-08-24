@@ -332,6 +332,17 @@ class ProjectsController < ApplicationController
       return
     end
 
+    unless current_user.idv_verified?
+      idv_status = current_user.idv_display_status
+      alert = if idv_status == "needs_submission" || idv_status == "pending"
+        "Verify your identity on Hack Club Auth before submitting for review."
+      else
+        "You're ineligible to submit for review."
+      end
+      redirect_to @project, alert: alert
+      return
+    end
+
     unless current_user.address_line1.present?
       redirect_to @project, alert: "Fill in your shipping address before submitting for review."
       return
@@ -474,6 +485,8 @@ class ProjectsController < ApplicationController
       members: serialize_members(project),
       max_team_size: Project::MAX_TEAM_SIZE,
       user_has_address: can_view_user_address && project.user.address_line1.present?,
+      user_idv_verified: project.user.idv_verified?,
+      user_verification_status: project.user.idv_display_status,
       user_address: can_view_user_address && project.user.address_line1.present? ? {
         address_line1: project.user.address_line1,
         address_line2: project.user.address_line2,

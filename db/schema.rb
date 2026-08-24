@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_22_120200) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_24_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -746,6 +746,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_22_120200) do
     t.string "avatar", null: false
     t.text "ban_reason"
     t.date "birthday"
+    t.boolean "bypass_idv", default: false, null: false
     t.string "city"
     t.string "country"
     t.datetime "created_at", null: false
