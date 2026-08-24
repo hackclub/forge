@@ -312,15 +312,17 @@ class User < ApplicationRecord
     ((Date.current - birthday) / 365.25).floor >= 19
   end
 
+  IDV_VERIFIED_STATUSES = %w[verified verified_eligible].freeze
+
   def idv_verified?
     return true if bypass_idv?
     return false if over_18_on_file?
 
-    verification_status == "verified_eligible"
+    IDV_VERIFIED_STATUSES.include?(verification_status)
   end
 
   def idv_display_status
-    return "verified_but_over_18_on_file" if verification_status == "verified_eligible" && over_18_on_file?
+    return "verified_but_over_18_on_file" if IDV_VERIFIED_STATUSES.include?(verification_status) && over_18_on_file?
 
     verification_status
   end

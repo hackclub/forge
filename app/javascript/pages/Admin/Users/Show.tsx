@@ -51,9 +51,11 @@ const permissionLabels: Record<string, string> = {
 const IDV_LABELS: Record<string, string> = {
   needs_submission: 'Needs Submission',
   pending: 'Pending',
+  verified: 'Verified',
   verified_eligible: 'Verified (Eligible)',
   verified_but_over_18: 'Verified (Over 18)',
   verified_but_over_18_on_file: 'Verified but 18+ from birthday on file',
+  ineligible: 'Ineligible',
   rejected: 'Rejected',
   not_found: 'Not Found',
 }
@@ -61,9 +63,11 @@ const IDV_LABELS: Record<string, string> = {
 const IDV_COLORS: Record<string, string> = {
   needs_submission: 'text-amber-600 dark:text-amber-400',
   pending: 'text-amber-600 dark:text-amber-400',
+  verified: 'text-emerald-600 dark:text-emerald-400',
   verified_eligible: 'text-emerald-600 dark:text-emerald-400',
   verified_but_over_18: 'text-emerald-600 dark:text-emerald-400',
   verified_but_over_18_on_file: 'text-red-600 dark:text-red-400',
+  ineligible: 'text-red-600 dark:text-red-400',
   rejected: 'text-red-600 dark:text-red-400',
   not_found: 'text-red-600 dark:text-red-400',
 }
