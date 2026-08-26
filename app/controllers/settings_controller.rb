@@ -7,6 +7,12 @@ class SettingsController < ApplicationController
   def show
     user = current_user
 
+    current_timezone = User.timezone_identifier(user.timezone) || user.timezone.to_s
+    options = User.timezone_options
+    unless options.any? { |option| option[:value] == current_timezone }
+      options = ([ { value: current_timezone, label: user.timezone_label } ] + options)
+    end
+
     render inertia: "Settings/Show", props: {
       user: {
         id: user.id,
@@ -14,8 +20,11 @@ class SettingsController < ApplicationController
         email: user.email,
         avatar: user.avatar,
         github_username: user.github_username,
-        git_provider: user.git_provider || "github"
+        git_provider: user.git_provider || "github",
+        timezone: current_timezone,
+        timezone_manually_set: user.timezone_manually_set
       },
+      timezone_options: options,
       address: user.address_line1.present? ? {
         address_line1: user.address_line1,
         address_line2: user.address_line2,
@@ -30,6 +39,18 @@ class SettingsController < ApplicationController
       idv_verified: user.idv_verified?,
       hca_verify_portal_url: HcaService.verify_portal_url(return_to: settings_url)
     }
+  end
+
+  def update_timezone
+    identifier = User.timezone_identifier(params[:timezone])
+    if identifier.blank?
+      redirect_to settings_path, alert: "That timezone isn't one we recognise."
+      return
+    end
+
+    current_user.update!(timezone: identifier, timezone_manually_set: true)
+    audit!("user.timezone_updated", target: current_user, metadata: { timezone: identifier })
+    redirect_to settings_path, notice: "Timezone updated. Your streak day now rolls over at midnight #{identifier}."
   end
 
   def avatar_proxy

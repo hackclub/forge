@@ -2,48 +2,49 @@
 #
 # Table name: users
 #
-#  id                  :bigint           not null, primary key
-#  address_line1       :string
-#  address_line2       :string
-#  avatar              :string           not null
-#  ban_reason          :text
-#  birthday            :date
-#  bypass_idv          :boolean          default(FALSE), not null
-#  city                :string
-#  country             :string
-#  discarded_at        :datetime
-#  display_name        :string           not null
-#  email               :string           not null
-#  first_name          :string
-#  fulfillment_regions :string           default([]), not null, is an Array
-#  git_instance_url    :string
-#  git_provider        :string           default("github")
-#  github_username     :string
-#  guild               :integer
-#  hackatime_banned_at :datetime
-#  hca_token           :text
-#  is_adult            :boolean          default(FALSE), not null
-#  is_banned           :boolean          default(FALSE), not null
-#  is_beta_approved    :boolean          default(FALSE), not null
-#  last_name           :string
-#  last_seen_at        :datetime
-#  maintenance_bypass  :boolean          default(FALSE), not null
-#  onboarded_at        :datetime
-#  permissions         :string           default([]), not null, is an Array
-#  phone_number        :string
-#  postal_code         :string
-#  referral_code       :string
-#  region              :string           default("rest_of_world")
-#  roles               :string           default([]), not null, is an Array
-#  shop_unlocked       :boolean          default(FALSE), not null
-#  state               :string
-#  streak_freezes      :integer          default(1), not null
-#  timezone            :string           not null
-#  verification_status :string
-#  created_at          :datetime         not null
-#  updated_at          :datetime         not null
-#  hca_id              :string           not null
-#  slack_id            :string           not null
+#  id                    :bigint           not null, primary key
+#  address_line1         :string
+#  address_line2         :string
+#  avatar                :string           not null
+#  ban_reason            :text
+#  birthday              :date
+#  bypass_idv            :boolean          default(FALSE), not null
+#  city                  :string
+#  country               :string
+#  discarded_at          :datetime
+#  display_name          :string           not null
+#  email                 :string           not null
+#  first_name            :string
+#  fulfillment_regions   :string           default([]), not null, is an Array
+#  git_instance_url      :string
+#  git_provider          :string           default("github")
+#  github_username       :string
+#  guild                 :integer
+#  hackatime_banned_at   :datetime
+#  hca_token             :text
+#  is_adult              :boolean          default(FALSE), not null
+#  is_banned             :boolean          default(FALSE), not null
+#  is_beta_approved      :boolean          default(FALSE), not null
+#  last_name             :string
+#  last_seen_at          :datetime
+#  maintenance_bypass    :boolean          default(FALSE), not null
+#  onboarded_at          :datetime
+#  permissions           :string           default([]), not null, is an Array
+#  phone_number          :string
+#  postal_code           :string
+#  referral_code         :string
+#  region                :string           default("rest_of_world")
+#  roles                 :string           default([]), not null, is an Array
+#  shop_unlocked         :boolean          default(FALSE), not null
+#  state                 :string
+#  streak_freezes        :integer          default(1), not null
+#  timezone              :string           not null
+#  timezone_manually_set :boolean          default(FALSE), not null
+#  verification_status   :string
+#  created_at            :datetime         not null
+#  updated_at            :datetime         not null
+#  hca_id                :string           not null
+#  slack_id              :string           not null
 #
 # Indexes
 #
@@ -117,6 +118,21 @@ class User < ApplicationRecord
 
   def today_in_zone
     Time.current.in_time_zone(timezone.presence || "UTC").to_date
+  end
+
+  def self.timezone_identifier(value)
+    zone = ActiveSupport::TimeZone[value.to_s.strip]
+    zone && zone.tzinfo.identifier
+  end
+
+  def self.timezone_options
+    ActiveSupport::TimeZone.all.map { |zone| { value: zone.tzinfo.identifier, label: zone.to_s } }
+      .uniq { |option| option[:value] }
+  end
+
+  def timezone_label
+    zone = ActiveSupport::TimeZone[timezone.presence || "UTC"]
+    zone ? zone.to_s : timezone
   end
 
   STREAK_FREEZE_COST = 5
@@ -500,7 +516,7 @@ class User < ApplicationRecord
     elsif avatar.blank?
       updates[:avatar] = "/static-assets/pfp_fallback.webp"
     end
-    updates[:timezone] = new_timezone if new_timezone.present? && timezone != new_timezone
+    updates[:timezone] = new_timezone if new_timezone.present? && timezone != new_timezone && !timezone_manually_set?
 
     return if updates.empty?
 
