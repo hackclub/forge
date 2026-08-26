@@ -348,7 +348,9 @@ export default function AdminUsersShow({
                   user.verification_status ? IDV_COLORS[user.verification_status] : 'text-muted-foreground',
                 )}
               >
-                {user.verification_status ? IDV_LABELS[user.verification_status] || user.verification_status : 'Not Synced'}
+                {user.verification_status
+                  ? IDV_LABELS[user.verification_status] || user.verification_status
+                  : 'Not Synced'}
               </p>
             </div>
             <Button onClick={() => router.post(`/admin/users/${user.id}/sync_idv`)} size="sm" variant="outline">

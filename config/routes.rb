@@ -55,6 +55,8 @@
 #                    coin_history_admin_user GET    /admin/users/:id/coin_history(.:format)                                                           admin/users#coin_history
 #            toggle_shop_unlocked_admin_user POST   /admin/users/:id/toggle_shop_unlocked(.:format)                                                   admin/users#toggle_shop_unlocked
 #       toggle_maintenance_bypass_admin_user POST   /admin/users/:id/toggle_maintenance_bypass(.:format)                                              admin/users#toggle_maintenance_bypass
+#               toggle_bypass_idv_admin_user POST   /admin/users/:id/toggle_bypass_idv(.:format)                                                      admin/users#toggle_bypass_idv
+#                        sync_idv_admin_user POST   /admin/users/:id/sync_idv(.:format)                                                               admin/users#sync_idv
 #          generate_referral_code_admin_user POST   /admin/users/:id/generate_referral_code(.:format)                                                 admin/users#generate_referral_code
 #      update_fulfillment_regions_admin_user PATCH  /admin/users/:id/update_fulfillment_regions(.:format)                                             admin/users#update_fulfillment_regions
 #                                admin_users GET    /admin/users(.:format)                                                                            admin/users#index
@@ -146,6 +148,7 @@
 #                                       home GET    /home(.:format)                                                                                   home#index
 #                                   settings GET    /settings(.:format)                                                                               settings#show
 #                      settings_avatar_proxy GET    /settings/avatar_proxy(.:format)                                                                  settings#avatar_proxy
+#                          settings_timezone PATCH  /settings/timezone(.:format)                                                                      settings#update_timezone
 #                        complete_onboarding POST   /onboarding/complete(.:format)                                                                    onboarding#complete
 #                         restart_onboarding POST   /onboarding/restart(.:format)                                                                     onboarding#restart
 #                          forge_keeper_chat POST   /forge_keeper/chat(.:format)                                                                      forge_keeper#chat

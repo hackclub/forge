@@ -11,7 +11,6 @@ class SettingsTimezoneTest < ActionDispatch::IntegrationTest
       slack_id: "S#{token}",
       hca_id: "H#{token}",
       roles: [ "user" ],
-      birthday: 20.years.ago.to_date,
       onboarded_at: Time.current
     }.merge(attrs))
   end

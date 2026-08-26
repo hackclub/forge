@@ -138,7 +138,6 @@ interface SettingsUser {
   github_username: string | null
   git_provider: string
   timezone: string
-  timezone_manually_set: boolean
 }
 
 interface TimezoneOption {
@@ -168,11 +167,7 @@ export default function SettingsShow({
 
   function saveTimezone() {
     setSavingTimezone(true)
-    router.patch(
-      '/settings/timezone',
-      { timezone },
-      { preserveScroll: true, onFinish: () => setSavingTimezone(false) },
-    )
+    router.patch('/settings/timezone', { timezone }, { preserveScroll: true, onFinish: () => setSavingTimezone(false) })
   }
 
   function refreshAddress() {
@@ -220,10 +215,7 @@ export default function SettingsShow({
 
         <section className="bg-[#1c1b1b] ghost-border p-6 md:p-8 mb-6">
           <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">Timezone</h2>
-          <p className="text-stone-400 text-sm mb-5">
-            Your streak day rolls over at midnight in this timezone. If it's wrong, your streak will look like it resets
-            at a random time of day.
-          </p>
+          <p className="text-stone-400 text-sm mb-5">Select your timezone for streaks.</p>
 
           <div className="flex flex-col sm:flex-row gap-2">
             <select
@@ -246,12 +238,6 @@ export default function SettingsShow({
               {savingTimezone ? 'Saving...' : 'Save'}
             </button>
           </div>
-
-          <p className="text-stone-600 text-[10px] mt-3">
-            {user.timezone_manually_set
-              ? 'Set by you — Forge will stop syncing this from Slack.'
-              : 'Currently synced from your Slack profile. Saving a choice here takes over from that.'}
-          </p>
         </section>
 
         <ForgePfpSection avatar={user.avatar} />
@@ -289,7 +275,9 @@ export default function SettingsShow({
             <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-2">
               Identity Verification
             </h3>
-            <p className={`text-sm font-bold mb-2 ${verification_status ? IDV_COLORS[verification_status] : 'text-stone-500'}`}>
+            <p
+              className={`text-sm font-bold mb-2 ${verification_status ? IDV_COLORS[verification_status] : 'text-stone-500'}`}
+            >
               {verification_status ? IDV_LABELS[verification_status] || verification_status : 'Not Synced'}
             </p>
             {!idv_verified && (

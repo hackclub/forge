@@ -21,8 +21,7 @@ class SettingsController < ApplicationController
         avatar: user.avatar,
         github_username: user.github_username,
         git_provider: user.git_provider || "github",
-        timezone: current_timezone,
-        timezone_manually_set: user.timezone_manually_set
+        timezone: current_timezone
       },
       timezone_options: options,
       address: user.address_line1.present? ? {
