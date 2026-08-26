@@ -137,12 +137,19 @@ interface SettingsUser {
   avatar: string
   github_username: string | null
   git_provider: string
+  timezone: string
+}
+
+interface TimezoneOption {
+  value: string
+  label: string
 }
 
 export default function SettingsShow({
   user,
   address,
   hca_address_portal_url,
+  timezone_options,
   verification_status,
   idv_verified,
   hca_verify_portal_url,
@@ -150,10 +157,19 @@ export default function SettingsShow({
   user: SettingsUser
   address: Address | null
   hca_address_portal_url: string
+  timezone_options: TimezoneOption[]
   verification_status: string | null
   idv_verified: boolean
   hca_verify_portal_url: string
 }) {
+  const [timezone, setTimezone] = useState(user.timezone)
+  const [savingTimezone, setSavingTimezone] = useState(false)
+
+  function saveTimezone() {
+    setSavingTimezone(true)
+    router.patch('/settings/timezone', { timezone }, { preserveScroll: true, onFinish: () => setSavingTimezone(false) })
+  }
+
   function refreshAddress() {
     router.post('/profile/sync_address', {}, { preserveScroll: true })
   }
@@ -197,6 +213,33 @@ export default function SettingsShow({
           </div>
         </section>
 
+        <section className="bg-[#1c1b1b] ghost-border p-6 md:p-8 mb-6">
+          <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">Timezone</h2>
+          <p className="text-stone-400 text-sm mb-5">Select your timezone for streaks.</p>
+
+          <div className="flex flex-col sm:flex-row gap-2">
+            <select
+              value={timezone}
+              onChange={(e) => setTimezone(e.target.value)}
+              className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 text-sm"
+            >
+              {timezone_options.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <button
+              onClick={saveTimezone}
+              disabled={savingTimezone || timezone === user.timezone}
+              className="signature-smolder text-[#4c1a00] font-bold px-5 py-3 uppercase tracking-wider text-[10px] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
+            >
+              <span className="material-symbols-outlined text-sm">schedule</span>
+              {savingTimezone ? 'Saving...' : 'Save'}
+            </button>
+          </div>
+        </section>
+
         <ForgePfpSection avatar={user.avatar} />
 
         <section className="bg-[#1c1b1b] ghost-border p-6 md:p-8">
@@ -232,7 +275,9 @@ export default function SettingsShow({
             <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-2">
               Identity Verification
             </h3>
-            <p className={`text-sm font-bold mb-2 ${verification_status ? IDV_COLORS[verification_status] : 'text-stone-500'}`}>
+            <p
+              className={`text-sm font-bold mb-2 ${verification_status ? IDV_COLORS[verification_status] : 'text-stone-500'}`}
+            >
               {verification_status ? IDV_LABELS[verification_status] || verification_status : 'Not Synced'}
             </p>
             {!idv_verified && (
