@@ -67,7 +67,11 @@ export default function AdminReviewsShow({
   checkpoint_channel_configured: boolean
 }) {
   const isTerminal = project.status !== 'pending'
-  useReviewHeartbeat(session?.heartbeat_path ?? null, session?.active_seconds ?? 0)
+  const { releaseSession } = useReviewHeartbeat(
+    session?.heartbeat_path ?? null,
+    session?.release_path ?? null,
+    session?.active_seconds ?? 0,
+  )
   const [readmeRefreshing, setReadmeRefreshing] = useState(false)
 
   const aiInProgress = (r: AiCheckResult | null) => r?.status === 'queued' || r?.status === 'running'
@@ -594,8 +598,8 @@ export default function AdminReviewsShow({
   }, [next_pending_id, track])
   const onEndSession = useCallback(() => {
     track('end_session')
-    router.visit(queue_path)
-  }, [track, queue_path])
+    releaseSession().finally(() => router.visit(queue_path))
+  }, [track, queue_path, releaseSession])
 
   const takeOver = useCallback(() => {
     setTakingOver(true)

@@ -47,13 +47,10 @@ class ContributorStats
   end
 
   def hours_shipped_this_week
-    Devlog
-      .unscope(:order)
-      .joins(:project)
-      .where(projects: { shadow_banned: false })
-      .approved
-      .where(devlogs: { reviewed_at: window })
-      .sum(Arel.sql("COALESCE(devlogs.approved_hours, devlogs.time_hours)")).to_f.round(1)
+    Project.kept.approved.not_shadow_banned
+      .where(reviewed_at: window)
+      .includes(:devlogs)
+      .sum(&:total_hours).round(1)
   end
 
   def avg_hours_per_day_this_week

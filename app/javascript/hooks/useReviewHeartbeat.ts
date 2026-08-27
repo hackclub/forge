@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 const HEARTBEAT_INTERVAL_MS = 20_000
 const IDLE_THRESHOLD_MS = 10 * 60 * 1000
@@ -8,8 +8,13 @@ function csrfToken(): string {
   return document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content || ''
 }
 
-export function useReviewHeartbeat(heartbeatPath: string | null, initialActiveSeconds: number) {
+export function useReviewHeartbeat(
+  heartbeatPath: string | null,
+  releasePath: string | null,
+  initialActiveSeconds: number,
+) {
   const [activeSeconds, setActiveSeconds] = useState(initialActiveSeconds)
+  const releaseRef = useRef<() => Promise<void>>(async () => {})
   const lastTickRef = useRef<number>(Date.now())
   const lastActivityRef = useRef<number>(Date.now())
   const accumulatedRef = useRef<number>(0)
@@ -94,31 +99,57 @@ export function useReviewHeartbeat(heartbeatPath: string | null, initialActiveSe
     }
 
     const interval = window.setInterval(flush, HEARTBEAT_INTERVAL_MS)
-    const onBeforeUnload = () => {
+
+    let released = false
+    const release = (beacon: boolean): Promise<void> => {
+      if (released || !releasePath) return Promise.resolve()
+      released = true
+      window.clearInterval(interval)
       checkpoint()
-      const toSend = accumulatedRef.current
-      if (toSend > 0) {
-        accumulatedRef.current = 0
-        navigator.sendBeacon?.(
-          heartbeatPath,
-          new Blob([JSON.stringify({ seconds: toSend })], { type: 'application/json' }),
-        )
+      const body = JSON.stringify({
+        seconds: accumulatedRef.current,
+        authenticity_token: csrfToken(),
+      })
+      accumulatedRef.current = 0
+      if (beacon) {
+        navigator.sendBeacon?.(releasePath, new Blob([body], { type: 'application/json' }))
+        return Promise.resolve()
       }
+      return fetch(releasePath, {
+        method: 'POST',
+        keepalive: true,
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          'X-CSRF-Token': csrfToken(),
+        },
+        body,
+      })
+        .then(() => {})
+        .catch(() => {})
     }
-    window.addEventListener('beforeunload', onBeforeUnload)
+    releaseRef.current = () => release(false)
+
+    const onPageHide = (event: PageTransitionEvent) => {
+      if (event.persisted) return
+      release(true)
+    }
+    window.addEventListener('pagehide', onPageHide)
 
     return () => {
       document.removeEventListener('visibilitychange', onVisibility)
       window.removeEventListener('focus', onVisibility)
       window.removeEventListener('blur', onVisibility)
       activityEvents.forEach((evt) => window.removeEventListener(evt, markActivity))
-      window.removeEventListener('beforeunload', onBeforeUnload)
+      window.removeEventListener('pagehide', onPageHide)
       window.clearInterval(interval)
-      flush().catch(() => {})
+      release(false)
     }
-  }, [heartbeatPath])
+  }, [heartbeatPath, releasePath])
 
-  return activeSeconds
+  const releaseSession = useCallback(() => releaseRef.current(), [])
+
+  return { activeSeconds, releaseSession }
 }
 
 export function formatSeconds(s: number): string {

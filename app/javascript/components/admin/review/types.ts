@@ -150,6 +150,7 @@ export interface ReviewSession {
   active_seconds: number
   started_at: string
   heartbeat_path: string
+  release_path: string
 }
 
 export interface SessionStats {
