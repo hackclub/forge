@@ -36,6 +36,7 @@ class SyncJournalJob < ApplicationJob
     raw_base = build_raw_base(parsed, branch)
     author = project.user
     today = author&.today_in_zone || Date.current
+    zone = author&.timezone.presence || "UTC"
     fallback_date = nil
 
     entries.each do |entry|
@@ -51,7 +52,7 @@ class SyncJournalJob < ApplicationJob
         devlog.time_hours = TimeSpentParser.parse(entry[:time_spent])
         devlog.entry_date = parsed_date if parsed_date
       else
-        fallback_date ||= journal_commit_date(parsed, branch, today) || today
+        fallback_date ||= journal_commit_date(parsed, branch, today, zone) || today
         devlog = Devlog.new(
           project_id: project.id,
           title: entry[:title],
@@ -212,9 +213,9 @@ class SyncJournalJob < ApplicationJob
     nil
   end
 
-  # Undated entries are credited to the day JOURNAL.md was last pushed, so an
-  # hourly sync doesn't hand yesterday's writing to today.
-  def journal_commit_date(parsed, branch, today)
+  # Undated entries are credited to the day JOURNAL.md was last pushed, read in
+  # the author's timezone so a post-midnight commit isn't filed under yesterday.
+  def journal_commit_date(parsed, branch, today, zone)
     timestamp = case parsed[:host]
     when "github" then last_commit_timestamp("https://api.github.com/repos/#{parsed[:owner]}/#{parsed[:repo]}/commits", { path: "JOURNAL.md", per_page: 1, sha: branch }, %w[commit committer date])
     when "gitlab" then last_commit_timestamp("https://gitlab.com/api/v4/projects/#{URI.encode_www_form_component("#{parsed[:owner]}/#{parsed[:repo]}")}/repository/commits", { path: "JOURNAL.md", per_page: 1, ref_name: branch }, %w[committed_date])
@@ -222,7 +223,7 @@ class SyncJournalJob < ApplicationJob
     end
     return nil if timestamp.blank?
 
-    date = Time.zone.parse(timestamp)&.to_date
+    date = Time.zone.parse(timestamp)&.in_time_zone(zone)&.to_date
     return nil if date.nil?
 
     [ date, today ].min
