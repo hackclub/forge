@@ -178,28 +178,41 @@ class SyncJournalJob < ApplicationJob
   end
 
   MONTH_NAMES = (Date::MONTHNAMES.compact + Date::ABBR_MONTHNAMES.compact).map(&:downcase).uniq.freeze
-  MONTH_PATTERN = Regexp.new("\\b(#{MONTH_NAMES.join('|')})\\b", Regexp::IGNORECASE).freeze
+  MONTH_ALTERNATION = MONTH_NAMES.join("|").freeze
   ISO_DATE_PATTERN = /\b(\d{4})-(\d{1,2})-(\d{1,2})\b/.freeze
+  DAY_FIRST_PATTERN = Regexp.new("\\b(\\d{1,2})(?:st|nd|rd|th)?\\s+(#{MONTH_ALTERNATION})\\b\\.?(?:[\\s,]+(\\d{4}))?", Regexp::IGNORECASE).freeze
+  MONTH_FIRST_PATTERN = Regexp.new("\\b(#{MONTH_ALTERNATION})\\b\\.?\\s+(\\d{1,2})(?:[\\s,]+(\\d{4}))?", Regexp::IGNORECASE).freeze
+  DATE_LINE_PATTERN = /^.*\bdate\b.*$/i
 
+  # An explicit "Date:" line wins over prose, and "16 July" is read day-first
+  # before "July 16" is tried — otherwise a day-first entry matches the month
+  # and takes the clock time that follows it as the day.
   def extract_entry_date(entry, today = Date.current)
-    source = "#{entry[:title]} #{entry[:content]}"
+    sources = [ entry[:content].to_s[DATE_LINE_PATTERN], "#{entry[:title]} #{entry[:content]}" ].compact
 
-    if (m = source.match(ISO_DATE_PATTERN))
-      return build_safe_date(m[1].to_i, m[2].to_i, m[3].to_i, today)
-    end
+    sources.each do |source|
+      if (m = source.match(ISO_DATE_PATTERN))
+        return build_safe_date(m[1].to_i, m[2].to_i, m[3].to_i, today)
+      end
 
-    if (m = source.match(/#{MONTH_PATTERN}\.?\s+(\d{1,2})(?:[\s,]+(\d{4}))?/))
-      month_name = m[1].downcase
-      month = Date::MONTHNAMES.index { |n| n&.downcase == month_name } ||
-              Date::ABBR_MONTHNAMES.index { |n| n&.downcase == month_name }
-      return nil unless month
+      if (m = source.match(DAY_FIRST_PATTERN))
+        month = month_number(m[2])
+        return build_safe_date(m[3]&.to_i || today.year, month, m[1].to_i, today) if month
+      end
 
-      day = m[2].to_i
-      year = m[3]&.to_i || today.year
-      return build_safe_date(year, month, day, today)
+      if (m = source.match(MONTH_FIRST_PATTERN))
+        month = month_number(m[1])
+        return build_safe_date(m[3]&.to_i || today.year, month, m[2].to_i, today) if month
+      end
     end
 
     nil
+  end
+
+  def month_number(name)
+    name = name.downcase
+    Date::MONTHNAMES.index { |n| n&.downcase == name } ||
+      Date::ABBR_MONTHNAMES.index { |n| n&.downcase == name }
   end
 
   def build_safe_date(year, month, day, today = Date.current)
