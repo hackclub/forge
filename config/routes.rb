@@ -14,6 +14,7 @@
 #                         admin_track_review POST   /admin/reviews/:id/track(.:format)                                                                admin/reviews#track
 #                         admin_claim_review POST   /admin/reviews/:id/claim(.:format)                                                                admin/reviews#claim
 #             heartbeat_admin_review_session PATCH  /admin/review_sessions/:id/heartbeat(.:format)                                                    admin/review_sessions#heartbeat
+#               release_admin_review_session POST   /admin/review_sessions/:id/release(.:format)                                                      admin/review_sessions#release
 #                       review_admin_project POST   /admin/projects/:id/review(.:format)                                                              admin/projects#review
 #                      restore_admin_project POST   /admin/projects/:id/restore(.:format)                                                             admin/projects#restore
 #                toggle_hidden_admin_project POST   /admin/projects/:id/toggle_hidden(.:format)                                                       admin/projects#toggle_hidden
@@ -306,6 +307,7 @@ Rails.application.routes.draw do
       resources :review_sessions, only: [] do
         member do
           patch :heartbeat
+          post :release
         end
       end
 

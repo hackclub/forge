@@ -10,6 +10,15 @@ class Admin::ReviewSessionsController < Admin::ApplicationController
     render json: { active_seconds: @session.active_seconds }
   end
 
+  def release
+    return head :forbidden unless @session.reviewer_id == current_user.id
+
+    seconds = params[:seconds].to_i
+    @session.heartbeat!(seconds: seconds) if seconds.positive?
+    @session.end! if @session.active?
+    head :no_content
+  end
+
   private
 
   def require_pending_reviews_permission!

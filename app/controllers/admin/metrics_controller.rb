@@ -44,12 +44,10 @@ class Admin::MetricsController < Admin::ApplicationController
       .distinct.count(:user_id)
     avg_hours_per_person = builders_in_range.positive? ? (hours_range_total / builders_in_range).round(1) : 0
 
-    approved_hours_range = Devlog
-      .joins(:project)
-      .where(projects: { shadow_banned: false })
-      .approved
-      .where(devlogs: { reviewed_at: start_date.beginning_of_day..today.end_of_day })
-      .sum(Arel.sql("COALESCE(devlogs.approved_hours, devlogs.time_hours)")).to_f.round(1)
+    approved_hours_range = Project.kept.approved.not_shadow_banned
+      .where(reviewed_at: start_date.beginning_of_day..today.end_of_day)
+      .includes(:devlogs)
+      .sum(&:total_hours).round(1)
 
     hours_goal_target = 20_000
     total_hours_logged = Devlog

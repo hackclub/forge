@@ -383,7 +383,8 @@ class Admin::ReviewsController < Admin::ApplicationController
       id: session.id,
       active_seconds: session.active_seconds,
       started_at: session.started_at.iso8601,
-      heartbeat_path: heartbeat_admin_review_session_path(session)
+      heartbeat_path: heartbeat_admin_review_session_path(session),
+      release_path: release_admin_review_session_path(session)
     }
   end
 
