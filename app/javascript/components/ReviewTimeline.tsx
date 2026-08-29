@@ -23,6 +23,7 @@ const ACTION_CONFIG: Record<string, { label: string; color: string; icon: string
   'project.build_approved': { label: 'Build Approved', color: 'text-emerald-400', icon: 'verified' },
   'project.build_returned': { label: 'Build Returned', color: 'text-orange-400', icon: 'undo' },
   'project.build_rejected': { label: 'Build Rejected', color: 'text-red-400', icon: 'cancel' },
+  'project.submitted_for_review': { label: 'Submitted for Review', color: 'text-stone-400', icon: 'send' },
   'devlog.approved': { label: 'Devlog Approved', color: 'text-emerald-400', icon: 'check_circle' },
   'devlog.returned': { label: 'Devlog Returned', color: 'text-orange-400', icon: 'undo' },
 }
