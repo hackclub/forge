@@ -13,6 +13,7 @@ import {
   Sparkles,
   Bot,
   Flag,
+  FlagTriangleRight,
   LifeBuoy,
   Database,
   Activity,
@@ -42,6 +43,7 @@ interface AdminStats {
   pending_reviews_tier_3: number
   pending_reviews_tier_4: number
   pending_requirements_checks: number
+  flagged_projects: number
   projects: number
   users: number
   pending_orders: number
@@ -127,6 +129,13 @@ function buildSections(): { items: NavItem[] }[] {
           href: '/admin/pitches',
           icon: Lightbulb,
           statKey: 'pending_pitches',
+          permission: 'pending_reviews',
+        },
+        {
+          label: 'Flagged Projects',
+          href: '/admin/reviews/flagged',
+          icon: FlagTriangleRight,
+          statKey: 'flagged_projects',
           permission: 'pending_reviews',
         },
         { label: 'Leaderboard', href: '/admin/reviews/leaderboard', icon: Trophy, permission: 'pending_reviews' },
