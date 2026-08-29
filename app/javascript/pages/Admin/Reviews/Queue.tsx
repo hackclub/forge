@@ -15,17 +15,22 @@ interface ReviewQueueRow {
   name: string
   user_id: number
   user_display_name: string
+  status: string
   tier: ProjectTier
   is_build_review: boolean
   waiting_since_iso: string
   claimed_by: { name: string; avatar: string } | null
+  flagged_by_name: string | null
   requirements_checked_by: string | null
 }
 
 const REQUIREMENTS_QUEUE = 'requirements'
+const FLAGGED_QUEUE = 'flagged'
 
 function queueLabel(key: string) {
-  return key === REQUIREMENTS_QUEUE ? 'REQS' : key.toUpperCase()
+  if (key === REQUIREMENTS_QUEUE) return 'REQS'
+  if (key === FLAGGED_QUEUE) return 'Flagged'
+  return key.toUpperCase()
 }
 
 const FILTERS = [
@@ -33,6 +38,34 @@ const FILTERS = [
   { key: 'design', label: 'Design' },
   { key: 'build', label: 'Build' },
 ]
+
+const STATUS_FILTERS = [
+  { key: '', label: 'All statuses' },
+  { key: 'draft', label: 'Draft' },
+  { key: 'pending', label: 'Pending' },
+  { key: 'approved', label: 'Approved' },
+  { key: 'returned', label: 'Returned' },
+  { key: 'rejected', label: 'Rejected' },
+  { key: 'pitch_pending', label: 'Pitch Pending' },
+  { key: 'pitch_approved', label: 'Pitch Approved' },
+]
+
+const STATUS_BADGE_VARIANT: Record<string, 'outline' | 'success' | 'warning' | 'destructive' | 'secondary'> = {
+  draft: 'secondary',
+  pending: 'outline',
+  approved: 'success',
+  returned: 'warning',
+  rejected: 'destructive',
+  pitch_pending: 'outline',
+  pitch_approved: 'success',
+}
+
+function statusLabel(status: string) {
+  return status
+    .split('_')
+    .map((w) => w[0].toUpperCase() + w.slice(1))
+    .join(' ')
+}
 
 function waitBadgeVariant(seconds: number, slaHours: number): 'outline' | 'warning' | 'destructive' {
   const hours = seconds / 3600
@@ -46,6 +79,7 @@ export default function AdminReviewsQueue({
   pagy,
   query,
   filter,
+  status,
   tier,
   allowed_tiers,
   metrics,
@@ -55,6 +89,7 @@ export default function AdminReviewsQueue({
   pagy: PagyProps
   query: string
   filter: string
+  status: string
   tier: string
   allowed_tiers: string[]
   metrics: QueueMetrics
@@ -62,6 +97,7 @@ export default function AdminReviewsQueue({
 }) {
   const [searchQuery, setSearchQuery] = useState(query)
   const [now, setNow] = useState(() => Date.now())
+  const isFlaggedQueue = tier === FLAGGED_QUEUE
 
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 30000)
@@ -70,13 +106,25 @@ export default function AdminReviewsQueue({
 
   function submitSearch(e: React.FormEvent) {
     e.preventDefault()
-    router.get(`/admin/reviews/${tier}`, { query: searchQuery, filter: filter || undefined }, { preserveState: true })
+    router.get(
+      `/admin/reviews/${tier}`,
+      { query: searchQuery, filter: filter || undefined, status: status || undefined },
+      { preserveState: true },
+    )
   }
 
   function applyFilter(key: string) {
     router.get(
       `/admin/reviews/${tier}`,
-      { query: searchQuery || undefined, filter: key || undefined },
+      { query: searchQuery || undefined, filter: key || undefined, status: status || undefined },
+      { preserveState: true },
+    )
+  }
+
+  function applyStatus(key: string) {
+    router.get(
+      `/admin/reviews/${tier}`,
+      { query: searchQuery || undefined, filter: filter || undefined, status: key || undefined },
       { preserveState: true },
     )
   }
@@ -86,12 +134,18 @@ export default function AdminReviewsQueue({
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">
-            {tier === REQUIREMENTS_QUEUE ? 'Requirements Check Queue' : `Tier ${tier.slice(1)} Review Queue`}
+            {tier === REQUIREMENTS_QUEUE
+              ? 'Requirements Check Queue'
+              : tier === FLAGGED_QUEUE
+                ? 'Flagged Projects'
+                : `Tier ${tier.slice(1)} Review Queue`}
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
             {tier === REQUIREMENTS_QUEUE
               ? 'Projects waiting on a requirements check. Work the checklist, then pass it on or return it to the builder.'
-              : 'Oldest submissions first. Open one to start a timed review session — keyboard shortcuts make it fast.'}
+              : tier === FLAGGED_QUEUE
+                ? 'Projects a reviewer has pulled aside for a second look. Resolve the flag from inside the review.'
+                : 'Oldest submissions first. Open one to start a timed review session — keyboard shortcuts make it fast.'}
           </p>
           {allowed_tiers.length > 1 && (
             <div className="flex gap-2 mt-3">
@@ -144,6 +198,28 @@ export default function AdminReviewsQueue({
               </button>
             )
           })}
+          {isFlaggedQueue && (
+            <>
+              <span className="w-px bg-border mx-1" />
+              {STATUS_FILTERS.map((f) => {
+                const isActive = (status || '') === f.key
+                return (
+                  <button
+                    key={f.key}
+                    onClick={() => applyStatus(f.key)}
+                    className={cn(
+                      'inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md border transition-colors cursor-pointer',
+                      isActive
+                        ? 'bg-primary text-primary-foreground border-primary'
+                        : 'border-border bg-background text-muted-foreground hover:bg-accent hover:text-foreground',
+                    )}
+                  >
+                    {f.label}
+                  </button>
+                )
+              })}
+            </>
+          )}
         </div>
         <form onSubmit={submitSearch} className="flex gap-2 items-center">
           <div className="relative">
@@ -164,7 +240,9 @@ export default function AdminReviewsQueue({
 
       <div className="rounded-md border border-border bg-card overflow-hidden">
         {projects.length === 0 ? (
-          <p className="text-sm text-muted-foreground py-12 text-center">Nothing pending — queue is clear. 🎉</p>
+          <p className="text-sm text-muted-foreground py-12 text-center">
+            {isFlaggedQueue ? 'No flagged projects — queue is clear. 🎉' : 'Nothing pending — queue is clear. 🎉'}
+          </p>
         ) : (
           <Table>
             <TableHeader>
@@ -172,8 +250,9 @@ export default function AdminReviewsQueue({
                 <TableHead>Project</TableHead>
                 <TableHead>Author</TableHead>
                 <TableHead>Type</TableHead>
+                {isFlaggedQueue && <TableHead>Status</TableHead>}
                 <TableHead>Waiting</TableHead>
-                <TableHead>Claimed</TableHead>
+                <TableHead>{isFlaggedQueue ? 'Flagged by' : 'Claimed'}</TableHead>
                 <TableHead className="w-24"></TableHead>
               </TableRow>
             </TableHeader>
@@ -206,6 +285,11 @@ export default function AdminReviewsQueue({
                         <span className="text-xs text-muted-foreground capitalize">{p.tier.replace('_', ' ')}</span>
                       )}
                     </TableCell>
+                    {isFlaggedQueue && (
+                      <TableCell>
+                        <Badge variant={STATUS_BADGE_VARIANT[p.status] ?? 'outline'}>{statusLabel(p.status)}</Badge>
+                      </TableCell>
+                    )}
                     <TableCell>
                       <Badge variant={waitBadgeVariant(waitSeconds, metrics.sla_hours)}>
                         {formatDuration(waitSeconds)}
@@ -213,7 +297,13 @@ export default function AdminReviewsQueue({
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      {p.claimed_by ? (
+                      {isFlaggedQueue ? (
+                        p.flagged_by_name ? (
+                          <span className="text-xs text-muted-foreground">{p.flagged_by_name}</span>
+                        ) : (
+                          <span className="text-xs text-muted-foreground/50">—</span>
+                        )
+                      ) : p.claimed_by ? (
                         <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
                           <img src={p.claimed_by.avatar} alt="" className="size-4 rounded-full" />
                           {p.claimed_by.name}

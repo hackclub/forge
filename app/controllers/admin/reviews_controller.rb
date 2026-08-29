@@ -4,6 +4,7 @@ class Admin::ReviewsController < Admin::ApplicationController
   before_action :set_project, only: [ :show, :skip, :track, :claim ]
 
   REQUIREMENTS_QUEUE = "requirements".freeze
+  FLAGGED_QUEUE = "flagged".freeze
 
   TRACKABLE_BUTTONS = %w[
     end_session skip next_project view_project
@@ -33,6 +34,13 @@ class Admin::ReviewsController < Admin::ApplicationController
     require_permission!("review_requirements")
 
     render_queue(policy_scope(Project).kept.where(status: :pending).requirements_unchecked, REQUIREMENTS_QUEUE)
+  end
+
+  def flagged
+    base = policy_scope(Project).kept.flagged_for_review
+    base = base.where(status: params[:status]) if Project.statuses.key?(params[:status].to_s)
+
+    render_queue(base, FLAGGED_QUEUE, already_flagged: true)
   end
 
   LEADERBOARD_DECISION_ACTIONS = %w[project.approved project.returned project.rejected project.pitch_approved].freeze
@@ -230,12 +238,14 @@ class Admin::ReviewsController < Admin::ApplicationController
       name: project.name,
       user_id: project.user_id,
       user_display_name: project.user.display_name,
+      status: project.status,
       tier: project.tier,
       is_build_review: project.build_review,
       waiting_since_iso: (project.submitted_at || project.created_at).iso8601,
       claimed_by: holder ? { name: holder.reviewer.display_name, avatar: holder.reviewer.avatar } : nil,
       flagged: project.flagged_for_review?,
       flag_reason: project.flag_reason,
+      flagged_by_name: project.flagged_by&.display_name,
       requirements_checked_by: project.requirements_checked_by&.display_name
     }
   end
@@ -251,17 +261,17 @@ class Admin::ReviewsController < Admin::ApplicationController
     raise ActionController::RoutingError, "Not Found"
   end
 
-  def render_queue(base, queue_key)
-    queue = base.not_flagged_for_review
+  def render_queue(base, queue_key, already_flagged: false)
+    queue = already_flagged ? base : base.not_flagged_for_review
 
     scope =
       case params[:filter]
-      when "flagged" then base.flagged_for_review
+      when "flagged" then already_flagged ? base : base.flagged_for_review
       when "design" then queue.where(build_review: false)
       when "build" then queue.where(build_review: true)
       else queue
       end
-    scope = scope.includes(:user, :requirements_checked_by)
+    scope = scope.includes(:user, :requirements_checked_by, :flagged_by)
     scope = scope.search(params[:query]) if params[:query].present?
 
     @pagy, @projects = pagy(scope.order(Arel.sql("COALESCE(submitted_at, created_at) ASC")))
@@ -276,6 +286,7 @@ class Admin::ReviewsController < Admin::ApplicationController
       pagy: pagy_props(@pagy),
       query: params[:query].to_s,
       filter: params[:filter].to_s,
+      status: params[:status].to_s,
       tier: queue_key,
       allowed_tiers: available_queues,
       metrics: ReviewQueueMetrics.new(queue).as_json,

@@ -300,6 +300,7 @@ Rails.application.routes.draw do
       get "reviews/:tier" => "reviews#index", as: :tier_reviews, constraints: { tier: /t[1-4]/ }
       get "reviews/leaderboard" => "reviews#leaderboard", as: :reviews_leaderboard
       get "reviews/requirements" => "reviews#requirements", as: :requirements_reviews
+      get "reviews/flagged" => "reviews#flagged", as: :flagged_reviews
       get "reviews/:id" => "reviews#show", as: :review
       post "reviews/:id/skip" => "reviews#skip", as: :skip_review
       post "reviews/:id/track" => "reviews#track", as: :track_review
