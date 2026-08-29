@@ -52,6 +52,7 @@ class Admin::ApplicationController < ApplicationController
       review_tier_3: user.has_permission?("pending_reviews") && user.has_permission?("review_tier_3"),
       review_tier_4: user.has_permission?("pending_reviews") && user.has_permission?("review_tier_4"),
       review_requirements: user.has_permission?("review_requirements"),
+      fraud: user.has_permission?("fraud"),
       projects: user.has_permission?("projects"),
       users: user.has_permission?("users"),
       ships: user.has_permission?("ships"),
