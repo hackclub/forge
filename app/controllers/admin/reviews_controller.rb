@@ -1,5 +1,5 @@
 class Admin::ReviewsController < Admin::ApplicationController
-  before_action :require_review_access!
+  before_action :require_review_access!, except: [ :flagged ]
   before_action :require_pending_reviews_permission!, only: [ :leaderboard ]
   before_action :set_project, only: [ :show, :skip, :track, :claim ]
 
@@ -37,6 +37,8 @@ class Admin::ReviewsController < Admin::ApplicationController
   end
 
   def flagged
+    require_permission!("fraud")
+
     base = policy_scope(Project).kept.flagged_for_review
     base = base.where(status: params[:status]) if Project.statuses.key?(params[:status].to_s)
 
@@ -266,7 +268,6 @@ class Admin::ReviewsController < Admin::ApplicationController
 
     scope =
       case params[:filter]
-      when "flagged" then already_flagged ? base : base.flagged_for_review
       when "design" then queue.where(build_review: false)
       when "build" then queue.where(build_review: true)
       else queue

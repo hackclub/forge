@@ -59,6 +59,7 @@ interface AdminPermissions {
   review_tier_3: boolean
   review_tier_4: boolean
   review_requirements: boolean
+  fraud: boolean
   projects: boolean
   users: boolean
   ships: boolean
@@ -136,7 +137,7 @@ function buildSections(): { items: NavItem[] }[] {
           href: '/admin/reviews/flagged',
           icon: FlagTriangleRight,
           statKey: 'flagged_projects',
-          permission: 'pending_reviews',
+          permission: 'fraud',
         },
         { label: 'Leaderboard', href: '/admin/reviews/leaderboard', icon: Trophy, permission: 'pending_reviews' },
       ],
@@ -268,6 +269,7 @@ export default function AdminSidebar({
     review_tier_3: false,
     review_tier_4: false,
     review_requirements: false,
+    fraud: false,
     projects: false,
     users: false,
     ships: false,

@@ -260,6 +260,7 @@ class User < ApplicationRecord
     review_tier_3
     review_tier_4
     review_requirements
+    fraud
     projects
     users
     ships
