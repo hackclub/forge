@@ -265,10 +265,30 @@ class SyncJournalJob < ApplicationJob
     commits.first.dig(*path)
   end
 
-  HEADER_PATTERN = /^(\#{1,3})\s+(.+)$/
+  HEADER_PATTERN = /^(\#+)\s+(.+)$/
+
+  # Journals don't agree on which heading level marks a new entry: some use a
+  # single "#" per day, others use "#" only as a document title with "##" per
+  # day (and "###" for sub-notes within a day). We infer the entry level as
+  # the shallowest heading level that repeats — a level used only once is
+  # more likely a one-off document title than a recurring entry marker.
+  # Only "#" or "##" may ever serve as the entry boundary; deeper headings
+  # (###+) are always treated as sub-content, never as entry separators.
+  ENTRY_LEVELS = [ 1, 2 ].freeze
+
+  def detect_entry_level(content)
+    counts = Hash.new(0)
+    content.scan(HEADER_PATTERN) { |hashes, _title| counts[hashes.length] += 1 }
+    counts = counts.slice(*ENTRY_LEVELS)
+    return 1 if counts.empty?
+
+    repeated = counts.select { |_level, count| count >= 2 }.keys
+    repeated.any? ? repeated.min : counts.keys.min
+  end
 
   def parse_journal_entries(content)
     content_without_frontmatter = content.sub(/\A---\s*\n.*?\n---\s*\n/m, "")
+    entry_level = detect_entry_level(content_without_frontmatter)
 
     entries = []
     current_title = nil
@@ -276,12 +296,16 @@ class SyncJournalJob < ApplicationJob
 
     content_without_frontmatter.lines.each do |line|
       if (m = line.match(HEADER_PATTERN))
-        if current_title
-          entry = build_entry(current_title, current_body.join)
-          entries << entry if entry
+        if m[1].length == entry_level
+          if current_title
+            entry = build_entry(current_title, current_body.join)
+            entries << entry if entry
+          end
+          current_title = m[2].strip
+          current_body = []
+        else
+          current_body << line if current_title
         end
-        current_title = m[2].strip
-        current_body = []
       else
         current_body << line if current_title
       end
