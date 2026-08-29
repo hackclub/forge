@@ -13,7 +13,7 @@ class SyncJournalJobTest < ActiveSupport::TestCase
   def run_job(journal, commit_date: nil)
     job = SyncJournalJob.new
     job.define_singleton_method(:fetch_journal) { |_parsed, _branch| journal }
-    job.define_singleton_method(:journal_commit_date) { |_parsed, _branch, _today| commit_date }
+    job.define_singleton_method(:journal_commit_date) { |_parsed, _branch, _today, _zone| commit_date }
     job.perform(@project.id)
   end
 
@@ -58,6 +58,61 @@ class SyncJournalJobTest < ActiveSupport::TestCase
     run_job(journal, commit_date: @today)
 
     assert_equal 1, Devlog.where(project: @project, title: "Wiring").count
+  end
+
+  test "a one-off subheading stays part of the entry's content" do
+    run_job("# Wiring\n\n## Notes\n\nRan the harness, then soldered joints.\n\n**Total time spent: 2h**\n", commit_date: @today)
+
+    devlog = Devlog.find_by(project: @project, title: "Wiring")
+    assert_includes devlog.content, "## Notes"
+    assert_equal 2.0, devlog.time_hours.to_f
+  end
+
+  test "a doc title heading does not swallow ## entries into one" do
+    journal = <<~JOURNAL
+      # Journal
+
+      ## day 1
+
+      Built the enclosure.
+
+      **Total time spent: 2h**
+
+      ## day 2
+
+      Wired it up.
+
+      **Total time spent: 1h**
+    JOURNAL
+    run_job(journal, commit_date: @today)
+
+    assert Devlog.find_by(project: @project, title: "day 1")
+    assert Devlog.find_by(project: @project, title: "day 2")
+    assert_nil Devlog.find_by(project: @project, title: "Journal")
+  end
+
+  test "repeated ### headings never split entries, only # or ## can" do
+    journal = <<~JOURNAL
+      # Wiring
+
+      ### Morning
+
+      Ran the harness.
+
+      ### Afternoon
+
+      Soldered joints.
+
+      **Total time spent: 2h**
+    JOURNAL
+    run_job(journal, commit_date: @today)
+
+    devlog = Devlog.find_by(project: @project, title: "Wiring")
+    assert devlog
+    assert_includes devlog.content, "### Morning"
+    assert_includes devlog.content, "### Afternoon"
+    assert_nil Devlog.find_by(project: @project, title: "Morning")
+    assert_nil Devlog.find_by(project: @project, title: "Afternoon")
   end
 
   test "sync stamps journal_synced_at so the sweep can skip fresh projects" do
