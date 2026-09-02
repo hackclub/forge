@@ -30,7 +30,11 @@ class SupportRelayJob < ApplicationJob
       thread_ts: ticket.thread_ts,
       text: public_text,
       username: display_name,
-      icon_url: avatar_url
+      icon_url: avatar_url,
+      metadata: {
+        event_type: "forge_message",
+        event_payload: { source_user_id: slack_user_id }
+      }
     )
   rescue StandardError => e
     Rails.logger.error("SupportRelayJob failed: #{e.class}: #{e.message}\n#{e.backtrace&.first(5)&.join("\n")}")
