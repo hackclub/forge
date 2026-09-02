@@ -43,7 +43,8 @@ class ProjectsController < ApplicationController
         title: "New Project",
         submit_url: projects_path,
         method: "post",
-        hackatime_enabled: HackatimeService.enabled?
+        hackatime_enabled: HackatimeService.enabled?,
+        macondo_enabled: MacondoService.enabled?
       }
     when Project::BUILD_REVIEW_TIER
       render inertia: "Projects/Form", props: {
@@ -52,7 +53,8 @@ class ProjectsController < ApplicationController
         submit_url: projects_path,
         method: "post",
         linkable_projects: linkable_projects_for(current_user),
-        hackatime_enabled: HackatimeService.enabled?
+        hackatime_enabled: HackatimeService.enabled?,
+        macondo_enabled: MacondoService.enabled?
       }
     else
       render inertia: "Projects/New", props: {
@@ -71,6 +73,8 @@ class ProjectsController < ApplicationController
 
     if @project.save
       audit!("project.created", target: @project, metadata: { tier: @project.tier, build_review: @project.build_review })
+      macondo_project_id = params.dig(:project, :macondo_project_id).presence
+      ImportMacondoDataJob.perform_later(@project.id, macondo_project_id) if macondo_project_id
       redirect_to @project, notice: @project.build_review? ? "Build review created as draft." : "Project created as draft."
     else
       fallback_tier = @project.build_review? ? Project::BUILD_REVIEW_TIER : @project.tier
@@ -209,6 +213,45 @@ class ProjectsController < ApplicationController
     }
   rescue JSON::ParserError
     render json: { error: "Could not parse AI response" }, status: :unprocessable_entity
+  end
+
+  def import_from_macondo
+    authorize Project
+
+    unless MacondoService.enabled?
+      render json: { error: "Macondo import isn't configured." }, status: :service_unavailable
+      return
+    end
+
+    project_id = MacondoService.parse_project_id(params[:url])
+    if project_id.blank?
+      render json: { error: "That doesn't look like a Macondo project link." }, status: :unprocessable_entity
+      return
+    end
+
+    data = MacondoService.get_project(project_id)
+    if data.nil?
+      render json: { error: "Couldn't find that Macondo project." }, status: :not_found
+      return
+    end
+
+    unless MacondoService.owned_by?(data, current_user)
+      render json: { error: "This Macondo project isn't owned by your account." }, status: :forbidden
+      return
+    end
+
+    if MacondoService.shipped?(data)
+      render json: { error: "This project has already been shipped on Macondo and can't be imported." }, status: :unprocessable_entity
+      return
+    end
+
+    render json: {
+      name: data["name"],
+      description: data["description"],
+      repo_link: data["repository_url"],
+      hackatime_projects: Array(data["hackatime_projects"]),
+      macondo_project_id: project_id
+    }
   end
 
   def add_kudo

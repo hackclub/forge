@@ -9,6 +9,7 @@
 #                         admin_tier_reviews GET    /admin/reviews/:tier(.:format)                                                                    admin/reviews#index {tier: /t[1-4]/}
 #                  admin_reviews_leaderboard GET    /admin/reviews/leaderboard(.:format)                                                              admin/reviews#leaderboard
 #                 admin_requirements_reviews GET    /admin/reviews/requirements(.:format)                                                             admin/reviews#requirements
+#                      admin_flagged_reviews GET    /admin/reviews/flagged(.:format)                                                                  admin/reviews#flagged
 #                               admin_review GET    /admin/reviews/:id(.:format)                                                                      admin/reviews#show
 #                          admin_skip_review POST   /admin/reviews/:id/skip(.:format)                                                                 admin/reviews#skip
 #                         admin_track_review POST   /admin/reviews/:id/track(.:format)                                                                admin/reviews#track
@@ -124,10 +125,10 @@
 #                      admin_audit_log_entry GET    /admin/audit_log/:id(.:format)                                                                    admin/audit_log#show
 #                             admin_database GET    /admin/database(.:format)                                                                         admin/database#index
 #                       admin_database_query POST   /admin/database/query(.:format)                                                                   admin/database#query
-#                               admin_claude GET    /admin/claude(.:format)                                                                           admin/claude#show
-#                                            POST   /admin/claude(.:format)                                                                           admin/claude#update
-#                          admin_claude_test POST   /admin/claude/test(.:format)                                                                      admin/claude#test
-#                                            DELETE /admin/claude(.:format)                                                                           admin/claude#destroy
+#                             admin_api_keys GET    /admin/api_keys(.:format)                                                                         admin/api_keys#index
+#                              admin_api_key POST   /admin/api_keys/:id(.:format)                                                                     admin/api_keys#update
+#                         admin_api_key_test POST   /admin/api_keys/:id/test(.:format)                                                                admin/api_keys#test
+#                                      admin DELETE /admin/api_keys/:id(.:format)                                                                     admin/api_keys#destroy
 #                 reply_admin_support_ticket POST   /admin/support/:id/reply(.:format)                                                                admin/support_tickets#reply
 #                 claim_admin_support_ticket POST   /admin/support/:id/claim(.:format)                                                                admin/support_tickets#claim
 #               resolve_admin_support_ticket POST   /admin/support/:id/resolve(.:format)                                                              admin/support_tickets#resolve
@@ -188,6 +189,7 @@
 #                                            PUT    /reels/:id(.:format)                                                                              reels#update
 #                                            DELETE /reels/:id(.:format)                                                                              reels#destroy
 #                import_from_github_projects POST   /projects/import_from_github(.:format)                                                            projects#import_from_github
+#               import_from_macondo_projects POST   /projects/import_from_macondo(.:format)                                                           projects#import_from_macondo
 #                hackatime_projects_projects GET    /projects/hackatime_projects(.:format)                                                            projects#hackatime_projects
 #                  submit_for_review_project POST   /projects/:id/submit_for_review(.:format)                                                         projects#submit_for_review
 #                           ai_check_project GET    /projects/:id/ai_check(.:format)                                                                  projects#ai_check
@@ -436,10 +438,10 @@ Rails.application.routes.draw do
       get "audit_log/:id" => "audit_log#show", as: :audit_log_entry
       get "database" => "database#index", as: :database
       post "database/query" => "database#query"
-      get "claude" => "claude#show", as: :claude
-      post "claude" => "claude#update"
-      post "claude/test" => "claude#test"
-      delete "claude" => "claude#destroy"
+      get "api_keys" => "api_keys#index", as: :api_keys
+      post "api_keys/:id" => "api_keys#update", as: :api_key
+      post "api_keys/:id/test" => "api_keys#test", as: :api_key_test
+      delete "api_keys/:id" => "api_keys#destroy"
       resources :support_tickets, only: [ :index, :show, :destroy ], path: "support" do
         member do
           post :reply
@@ -515,6 +517,7 @@ Rails.application.routes.draw do
   resources :projects, except: :index do
     collection do
       post :import_from_github
+      post :import_from_macondo
       get :hackatime_projects
     end
     member do
