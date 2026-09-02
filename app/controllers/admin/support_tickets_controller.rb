@@ -46,7 +46,11 @@ class Admin::SupportTicketsController < Admin::ApplicationController
       thread_ts: @ticket.thread_ts,
       text: text,
       username: current_user.display_name,
-      icon_url: current_user.avatar
+      icon_url: current_user.avatar,
+      metadata: {
+        event_type: "forge_message",
+        event_payload: { source_user_id: current_user.slack_id }
+      }
     )
 
     audit!("support_ticket.replied", target: @ticket, label: @ticket.slack_display_name, metadata: { message: text })
