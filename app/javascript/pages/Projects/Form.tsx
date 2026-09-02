@@ -4,6 +4,29 @@ import type { ProjectForm, ProjectTier, SharedProps } from '@/types'
 import { tierCoinRate } from '@/lib/tiers'
 import HackatimePicker from '@/components/HackatimePicker'
 
+function GitHubMark({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 16 16" className={className} aria-hidden="true">
+      <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8Z" />
+    </svg>
+  )
+}
+
+function MacondoWordmark({ className }: { className?: string }) {
+  return (
+    <span
+      className={className}
+      style={{
+        fontFamily: "'Are You Serious', cursive",
+        color: 'rgb(253, 224, 71)',
+        textShadow: '0 1px 2px rgba(0, 0, 0, 0.55)',
+      }}
+    >
+      Macondo
+    </span>
+  )
+}
+
 export default function ProjectsForm({
   project,
   title,
@@ -160,9 +183,9 @@ export default function ProjectsForm({
             <button
               type="button"
               onClick={() => setShowImport(true)}
-              className="ghost-border bg-[#1c1b1b] hover:bg-[#2a2a2a] text-stone-400 hover:text-[#e5e2e1] px-5 py-3 text-xs font-bold uppercase tracking-[0.2em] transition-colors flex items-center gap-3 w-full justify-center"
+              className="border border-[#30363d] bg-[#181717] hover:bg-[#2b3137] text-white px-5 h-12 text-xs font-bold uppercase tracking-[0.2em] transition-colors flex items-center gap-3 w-full justify-center"
             >
-              <span className="material-symbols-outlined text-lg">download</span>
+              <GitHubMark className="size-4 fill-current shrink-0" />
               Import from GitHub
             </button>
           )}
@@ -170,10 +193,12 @@ export default function ProjectsForm({
             <button
               type="button"
               onClick={() => setShowMacondoImport(true)}
-              className="ghost-border bg-[#1c1b1b] hover:bg-[#2a2a2a] text-stone-400 hover:text-[#e5e2e1] px-5 py-3 text-xs font-bold uppercase tracking-[0.2em] transition-colors flex items-center gap-3 w-full justify-center"
+              className="border border-[#684d3a]/40 bg-[#eacfb3] hover:bg-[#e2c19e] text-[#684d3a] px-5 h-12 text-xs font-bold uppercase tracking-[0.2em] transition-colors flex items-center gap-3 w-full justify-center"
             >
               <span className="material-symbols-outlined text-lg">download</span>
-              Import from Macondo
+              <span>
+                Import from <MacondoWordmark className="normal-case tracking-normal text-xl align-baseline" />
+              </span>
             </button>
           )}
         </div>
@@ -182,7 +207,10 @@ export default function ProjectsForm({
       {showImport && (
         <div className="ghost-border bg-[#1c1b1b] p-6 mb-8 space-y-4">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500">Import from GitHub</span>
+            <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-white">
+              <GitHubMark className="size-4 fill-current shrink-0" />
+              Import from GitHub
+            </span>
             <button
               type="button"
               onClick={() => {
@@ -228,7 +256,9 @@ export default function ProjectsForm({
       {showMacondoImport && (
         <div className="ghost-border bg-[#1c1b1b] p-6 mb-8 space-y-4">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500">Import from Macondo</span>
+            <span className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500">
+              Import from <MacondoWordmark className="normal-case tracking-normal text-lg align-baseline" />
+            </span>
             <button
               type="button"
               onClick={() => {
@@ -262,9 +292,7 @@ export default function ProjectsForm({
               )}
             </button>
           </div>
-          <p className="text-stone-600 text-xs">
-            Open your project in a new tab and copy that URL
-          </p>
+          <p className="text-stone-600 text-xs">Open your project in a new tab and copy that URL</p>
           {macondoError && (
             <p className="text-red-400 text-sm flex items-center gap-2">
               <span className="material-symbols-outlined text-sm">error</span>
