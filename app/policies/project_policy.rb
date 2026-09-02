@@ -17,6 +17,10 @@ class ProjectPolicy < ApplicationPolicy
     user.present?
   end
 
+  def import_from_macondo?
+    user.present?
+  end
+
   def hackatime_projects?
     user.present?
   end
