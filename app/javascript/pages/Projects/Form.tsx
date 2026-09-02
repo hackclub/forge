@@ -148,10 +148,12 @@ export default function ProjectsForm({
       form.setData({
         ...form.data,
         name: data.name || form.data.name,
+        subtitle: data.description || form.data.subtitle,
         repo_link: data.repo_link || form.data.repo_link,
         hackatime_projects: Array.isArray(data.hackatime_projects)
           ? data.hackatime_projects
           : form.data.hackatime_projects,
+        devlog_mode: 'website',
         macondo_project_id: data.macondo_project_id || '',
       })
 

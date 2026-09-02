@@ -64,8 +64,11 @@ class ProjectsController < ApplicationController
   end
 
   def create
+    macondo_project_id = (params.dig(:project, :macondo_project_id) || params[:macondo_project_id]).presence
+
     @project = current_user.projects.build(project_params)
     @project.status = :draft
+    @project.devlog_mode = "website" if macondo_project_id
     if @project.tier == Project::BUILD_REVIEW_TIER
       @project.build_review = true
     end
@@ -73,8 +76,7 @@ class ProjectsController < ApplicationController
 
     if @project.save
       audit!("project.created", target: @project, metadata: { tier: @project.tier, build_review: @project.build_review })
-      macondo_project_id = params.dig(:project, :macondo_project_id).presence
-      ImportMacondoDataJob.perform_later(@project.id, macondo_project_id) if macondo_project_id
+      ImportMacondoDataJob.perform_now(@project.id, macondo_project_id) if macondo_project_id
       redirect_to @project, notice: @project.build_review? ? "Build review created as draft." : "Project created as draft."
     else
       fallback_tier = @project.build_review? ? Project::BUILD_REVIEW_TIER : @project.tier
