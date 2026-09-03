@@ -42,6 +42,19 @@ import type {
 } from '@/components/admin/review/types'
 import type { ReviewEvent } from '@/components/admin/AdminReviewTimeline'
 
+/**
+ * Options for the review page's side-actions — sending a Slack message, changing
+ * tier, flagging, taking over, refreshing the README.
+ *
+ * Inertia defaults `preserveState` to false, so every one of these used to remount
+ * the page component and silently wipe the whole decision form: justification,
+ * technical features, extra context, feedback, the duplicate acknowledgement and
+ * every per-entry deflation number and reason. Only the checklist survived,
+ * because it is the one thing kept in localStorage. On a 37-entry project that
+ * meant retyping everything to send one message.
+ */
+const STAY_ON_PAGE = { preserveScroll: true, preserveState: true } as const
+
 function openExternal(url: string) {
   window.open(url, '_blank', 'noopener,noreferrer')
 }
@@ -163,7 +176,7 @@ export default function AdminReviewsShow({
       `/admin/projects/${project.id}/review`,
       { decision: 'refresh_readme' },
       {
-        preserveScroll: true,
+        ...STAY_ON_PAGE,
         onFinish: () => {
           setTimeout(() => {
             router.reload({ only: ['project'], onFinish: () => setReadmeRefreshing(false) })
@@ -286,7 +299,7 @@ export default function AdminReviewsShow({
       `/admin/projects/${project.id}/send_checkpoint_message`,
       { body, user_slack_id: slackId },
       {
-        preserveScroll: true,
+        ...STAY_ON_PAGE,
         onFinish: () => {
           setCheckpointSending(false)
           setCheckpointOpen(false)
@@ -317,7 +330,7 @@ export default function AdminReviewsShow({
       `/admin/projects/${project.id}/send_dm_message`,
       { body, user_slack_id: slackId },
       {
-        preserveScroll: true,
+        ...STAY_ON_PAGE,
         onFinish: () => {
           setDmSending(false)
           setDmOpen(false)
@@ -419,7 +432,7 @@ export default function AdminReviewsShow({
       if (newTier === project.tier) return
       if (!confirm(`Change tier from ${project.tier.replace('_', ' ')} to ${newTier.replace('_', ' ')}?`)) return
       track('change_tier', { from: project.tier, to: newTier })
-      router.post(`/admin/projects/${project.id}/change_tier`, { tier: newTier }, { preserveScroll: true })
+      router.post(`/admin/projects/${project.id}/change_tier`, { tier: newTier }, STAY_ON_PAGE)
     },
     [project.id, project.tier, track],
   )
@@ -433,7 +446,7 @@ export default function AdminReviewsShow({
     )
       return
     track('convert_review_type', { to: toBuild ? 'build' : 'design' })
-    router.post(`/admin/projects/${project.id}/convert_review_type`, {}, { preserveScroll: true })
+    router.post(`/admin/projects/${project.id}/convert_review_type`, {}, STAY_ON_PAGE)
   }, [project.id, project.build_review, track])
 
   const submit = useCallback(
@@ -481,6 +494,14 @@ export default function AdminReviewsShow({
       }
       setSubmitting(decision)
       router.post(`/admin/projects/${project.id}/review`, payload, {
+        preserveScroll: true,
+        // Keep the form only if the decision was refused and we are back on the
+        // same still-pending project. Otherwise reset, so a reviewer's text can
+        // never carry over onto the next project in the queue.
+        preserveState: (page) => {
+          const next = (page.props as { project?: { id?: number; status?: string } }).project
+          return next?.id === project.id && next?.status === 'pending'
+        },
         onSuccess: () => {
           try {
             localStorage.removeItem(checklistStorageKey)
@@ -778,11 +799,7 @@ export default function AdminReviewsShow({
 
   const takeOver = useCallback(() => {
     setTakingOver(true)
-    router.post(
-      `/admin/reviews/${project.id}/claim`,
-      {},
-      { preserveScroll: true, onFinish: () => setTakingOver(false) },
-    )
+    router.post(`/admin/reviews/${project.id}/claim`, {}, { ...STAY_ON_PAGE, onFinish: () => setTakingOver(false) })
   }, [project.id])
 
   const submitFlag = useCallback(() => {
@@ -793,7 +810,7 @@ export default function AdminReviewsShow({
       `/admin/projects/${project.id}/flag_for_review`,
       { reason },
       {
-        preserveScroll: true,
+        ...STAY_ON_PAGE,
         onSuccess: () => {
           setFlagOpen(false)
           setFlagReason('')
@@ -808,7 +825,7 @@ export default function AdminReviewsShow({
     router.post(
       `/admin/projects/${project.id}/unflag_for_review`,
       {},
-      { preserveScroll: true, onFinish: () => setUnflagging(false) },
+      { ...STAY_ON_PAGE, onFinish: () => setUnflagging(false) },
     )
   }, [project.id])
 
