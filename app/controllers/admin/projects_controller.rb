@@ -1,7 +1,7 @@
 class Admin::ProjectsController < Admin::ApplicationController
   REVIEW_SCREEN_ACTIONS = %i[review repo_tree commit_stats changes_since_review ai_requirements_check ai_requirements_check_status].freeze
 
-  before_action :require_projects_permission!, except: REVIEW_SCREEN_ACTIONS
+  before_action :require_projects_permission!, except: REVIEW_SCREEN_ACTIONS + [ :unflag_for_review ]
   before_action :require_review_screen_access!, only: REVIEW_SCREEN_ACTIONS
   before_action :set_project, only: [ :show, :review, :destroy, :restore, :toggle_hidden, :toggle_shadow_ban, :toggle_staff_pick, :change_tier, :add_note, :destroy_note, :update_note, :flag_for_review, :unflag_for_review, :mark_unbuilt, :reverse_review, :ai_requirements_check, :ai_requirements_check_status, :repo_tree, :commit_stats, :changes_since_review, :send_checkpoint_message, :send_dm_message ]
 
@@ -344,10 +344,8 @@ class Admin::ProjectsController < Admin::ApplicationController
   end
 
   def unflag_for_review
-    authorize @project, :review?
-
-    unless current_user.superadmin?
-      redirect_back fallback_location: admin_review_path(@project), alert: "Only superadmins can clear a review flag."
+    unless current_user.superadmin? || current_user.has_permission?("fraud")
+      redirect_back fallback_location: admin_review_path(@project), alert: "Only superadmins or fraud reviewers can clear a review flag."
       return
     end
 

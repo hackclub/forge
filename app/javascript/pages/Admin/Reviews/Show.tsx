@@ -61,7 +61,7 @@ export default function AdminReviewsShow({
   reviewer: Reviewer
   review_history: ReviewEvent[]
   notes: ReviewNote[]
-  can: { review: boolean; requirements_check: boolean; claim: boolean }
+  can: { review: boolean; requirements_check: boolean; claim: boolean; unflag: boolean }
   claim: ClaimState
   session_stats: SessionStats | null
   checkpoint_channel_configured: boolean
@@ -684,7 +684,7 @@ export default function AdminReviewsShow({
         <FlagBanner
           reason={project.flag_reason}
           flaggedBy={project.flagged_by_name}
-          canUnflag={reviewer.is_superadmin}
+          canUnflag={can.unflag}
           onUnflag={unflag}
           unflagging={unflagging}
         />
