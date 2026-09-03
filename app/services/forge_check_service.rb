@@ -6,18 +6,22 @@ module ForgeCheckService
   CHECKS = [
     ForgeChecks::RepoLinked,
     ForgeChecks::HasSubtitle,
-    ForgeChecks::HasCoverImage,
+    ForgeChecks::CoverImageIsStill,
     ForgeChecks::ReadmeExists,
     ForgeChecks::ReadmeDescribesProject,
     ForgeChecks::ReadmeHasImages,
     ForgeChecks::ReadmeHasBomTable,
     ForgeChecks::HasHardwareDesignFiles,
+    ForgeChecks::HardwareFilesModifiable,
     ForgeChecks::HasFirmwareFiles,
     ForgeChecks::HasJournalEntries,
     ForgeChecks::JournalEntriesMeetLength,
     ForgeChecks::JournalEntriesHaveImages,
     ForgeChecks::JournalEntriesHaveTime,
     ForgeChecks::TotalHoursLogged,
+    ForgeChecks::PlayableUrlReachable,
+    ForgeChecks::NotSchoolOrPaidWork,
+    ForgeChecks::NoDuplicateSubmission,
     ForgeChecks::AiOriginalityCheck
   ].freeze
 

@@ -317,6 +317,7 @@ Rails.application.routes.draw do
       resources :projects, only: [ :index, :show, :destroy ] do
         member do
           post :review
+      post :check_draft_justification
           post :restore
           post :toggle_hidden
           post :toggle_shadow_ban

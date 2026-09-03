@@ -18,8 +18,12 @@ import {
 import SubmissionRequirementsChecklist from '@/components/admin/SubmissionRequirementsChecklist'
 import { CollapsibleSection } from './CollapsibleSection'
 import { ReviewerChecklist } from './ReviewerChecklist'
-import { isSafeUrl } from './helpers'
-import type { ReviewProject } from './types'
+import { JustificationLintPanel } from './JustificationLintPanel'
+import { JustificationGuide } from './JustificationGuide'
+import { DuplicateScanCard } from './DuplicateScanCard'
+import { JournalDeflationTable, type Deflation } from './JournalDeflationTable'
+import type { LintIssue } from '@/lib/justificationLint'
+import type { AiCheckResult, InvalidReviewField, ReviewProject } from './types'
 
 export interface DecisionPanelState {
   reasoning: string
@@ -30,14 +34,8 @@ export interface DecisionPanelState {
   setTechnicalFeatures: (v: string) => void
   additionalJustification: string
   setAdditionalJustification: (v: string) => void
-  evidence: string
-  setEvidence: (v: string) => void
   feedback: string
   setFeedback: (v: string) => void
-  overrideHours: string
-  setOverrideHours: (v: string) => void
-  overrideJustification: string
-  setOverrideJustification: (v: string) => void
   submitting: null | 'approve' | 'return' | 'reject' | 'draft' | 'requirements_met'
 }
 
@@ -49,10 +47,19 @@ export function DecisionPanel({
   state,
   checks,
   onToggleCheck,
+  deflations,
+  onDeflationChange,
+  approvedHours,
   claimedHours,
   deflation,
   previewCoins,
   justificationPreview,
+  lintIssues,
+  aiAudit,
+  aiAuditing,
+  onRunAiAudit,
+  duplicateAcknowledgement,
+  setDuplicateAcknowledgement,
   approveReason,
   returnReason,
   invalidField,
@@ -72,13 +79,22 @@ export function DecisionPanel({
   state: DecisionPanelState
   checks: Record<string, boolean>
   onToggleCheck: (key: string) => void
+  deflations: Record<number, Deflation>
+  onDeflationChange: (id: number, patch: Partial<Deflation>) => void
+  approvedHours: number
   claimedHours: number
   deflation: number
   previewCoins: number
   justificationPreview: string
+  lintIssues: LintIssue[]
+  aiAudit: AiCheckResult | null
+  aiAuditing: boolean
+  onRunAiAudit: () => void
+  duplicateAcknowledgement: string
+  setDuplicateAcknowledgement: (v: string) => void
   approveReason: string | null
   returnReason: string | null
-  invalidField: 'conclusion' | 'technical' | 'feedback' | 'override' | 'checklist' | null
+  invalidField: InvalidReviewField | null
   rejectOpen: boolean
   onRejectOpenChange: (open: boolean) => void
   onSubmit: (decision: 'approve' | 'return' | 'reject' | 'draft') => void
@@ -97,14 +113,8 @@ export function DecisionPanel({
     setTechnicalFeatures,
     additionalJustification,
     setAdditionalJustification,
-    evidence,
-    setEvidence,
     feedback,
     setFeedback,
-    overrideHours,
-    setOverrideHours,
-    overrideJustification,
-    setOverrideJustification,
     submitting,
   } = state
 
@@ -125,11 +135,19 @@ export function DecisionPanel({
         requirementsCheck={project.requirements_check}
       />
 
+      <DuplicateScanCard
+        scan={project.duplicate_scan}
+        acknowledgement={duplicateAcknowledgement}
+        setAcknowledgement={setDuplicateAcknowledgement}
+        disabled={!can.review || !canClaim}
+        invalid={invalidField === 'duplicate'}
+      />
+
       <div className="space-y-3 rounded-md border border-border bg-card p-3">
         <div className="flex items-center gap-1.5">
           <ScrollText className="size-3.5 text-muted-foreground" />
           <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Override Hours Justification
+            Your Justification
           </span>
         </div>
         <p className="text-[11px] text-muted-foreground -mt-1">
@@ -138,12 +156,7 @@ export function DecisionPanel({
         </p>
 
         <div className="space-y-1.5">
-          <label className="text-xs text-muted-foreground">
-            Time evidence{' '}
-            <span className="text-muted-foreground/60">
-              (auto-filled from devlogs and commits — edit if the journal shows more)
-            </span>
-          </label>
+          <label className="text-xs text-muted-foreground">Time evidence </label>
           <Textarea
             value={timeSummary}
             onChange={(e) => setTimeSummary(e.target.value)}
@@ -165,27 +178,15 @@ export function DecisionPanel({
           />
         </div>
 
-        <div className="space-y-1.5">
-          <label className="text-xs text-muted-foreground flex items-center justify-between">
-            <span>Supporting evidence (one link per line)</span>
-            {project.commits_url && isSafeUrl(project.commits_url) && (
-              <a
-                href={project.commits_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-foreground hover:underline"
-              >
-                commits ↗
-              </a>
-            )}
-          </label>
-          <Textarea
-            value={evidence}
-            onChange={(e) => setEvidence(e.target.value)}
-            placeholder="https://… devlog — shows incremental progress&#10;https://… timelapse — covers the build"
-            className="h-16 text-sm"
-          />
-        </div>
+        <JournalDeflationTable
+          devlogs={project.devlogs}
+          projectId={project.id}
+          deflations={deflations}
+          onChange={onDeflationChange}
+          disabled={!can.review || !canClaim}
+          invalid={invalidField === 'override'}
+          isGroupProject={project.is_group_project}
+        />
 
         <div className="space-y-1.5">
           <label className="text-xs text-muted-foreground">
@@ -211,6 +212,27 @@ export function DecisionPanel({
             className="h-14 text-sm"
           />
         </div>
+
+        <JustificationLintPanel
+          issues={lintIssues}
+          aiAudit={aiAudit}
+          aiAuditing={aiAuditing}
+          onRunAiAudit={onRunAiAudit}
+        />
+
+        <CollapsibleSection
+          title="Examples - What you should and shouldn't do"
+          summary="Seven real justifications that were fined, and their fixes"
+          storageKey="justification-guide-collapsed"
+          defaultOpen={false}
+        >
+          <div className="p-3">
+            <JustificationGuide
+              guide={project.justification_guide}
+              onUseExample={(text) => setReasoning(reasoning.trim() ? reasoning : text)}
+            />
+          </div>
+        </CollapsibleSection>
       </div>
 
       <div className="space-y-2">
@@ -275,42 +297,29 @@ export function DecisionPanel({
 
       <Separator />
 
-      <div className="space-y-2">
-        <label className="text-xs text-muted-foreground flex items-center gap-1.5">
-          <Clock className="size-3.5" />
-          Override hours <span className="text-muted-foreground/60">(leave blank to keep claimed)</span>
-        </label>
+      <div className="space-y-2 rounded-md border border-border bg-card p-3">
+        <div className="flex items-center gap-1.5">
+          <Clock className="size-3.5 text-muted-foreground" />
+          <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Hours submitted</span>
+        </div>
         <div className="flex items-center gap-2 text-sm">
-          <span className="text-muted-foreground font-mono">{claimedHours.toFixed(1)}h</span>
+          <span className="font-mono text-muted-foreground">{claimedHours.toFixed(1)}h claimed</span>
           <span className="text-muted-foreground">→</span>
-          <Input
-            type="number"
-            step="0.5"
-            min={0}
-            max={claimedHours}
-            value={overrideHours}
-            onChange={(e) => setOverrideHours(e.target.value)}
-            placeholder="claimed"
-            className="h-8 w-24 font-mono text-center"
-          />
           <span
             className={cn(
-              'font-mono text-xs',
-              deflation > 0 ? 'text-amber-600 dark:text-amber-400 font-semibold' : 'text-muted-foreground',
+              'font-mono font-semibold',
+              deflation > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-foreground',
             )}
           >
-            deflate {deflation.toFixed(1)}h
+            {approvedHours.toFixed(1)}h approved
           </span>
+          {deflation > 0 && (
+            <span className="font-mono text-xs text-amber-600 dark:text-amber-400">
+              (deflate {deflation.toFixed(1)}h)
+            </span>
+          )}
         </div>
-        {overrideHours.trim() !== '' && (
-          <Input
-            id="review-override"
-            value={overrideJustification}
-            onChange={(e) => setOverrideJustification(e.target.value)}
-            placeholder="Deflation reason (recorded in the justification)"
-            className={cn('h-8 text-sm', invalidField === 'override' && 'ring-2 ring-red-500/60')}
-          />
-        )}
+        <p className="text-[11px] text-muted-foreground">Calculated from above!</p>
       </div>
 
       <CollapsibleSection

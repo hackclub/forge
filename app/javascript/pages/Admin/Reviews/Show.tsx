@@ -10,7 +10,7 @@ import { FlagBanner } from '@/components/admin/review/FlagBanner'
 import { FlagDialog } from '@/components/admin/review/FlagDialog'
 import { ProjectOverviewCard } from '@/components/admin/review/ProjectOverviewCard'
 import { FlagCards } from '@/components/admin/review/FlagCards'
-import { ContentTabs } from '@/components/admin/review/ContentTabs'
+import { ContentTabs, visibleTabValues } from '@/components/admin/review/ContentTabs'
 import { ReviewerTimeAudit } from '@/components/admin/review/ReviewerTimeAudit'
 import { DecisionPanel } from '@/components/admin/review/DecisionPanel'
 import { RequirementsPanel } from '@/components/admin/review/RequirementsPanel'
@@ -22,8 +22,17 @@ import { useReviewHeartbeat } from '@/hooks/useReviewHeartbeat'
 import { useReviewShortcuts } from '@/hooks/useReviewShortcuts'
 import { trackReviewEvent } from '@/lib/reviewTracker'
 import { buildJustification, buildTimeEvidence, type CommitStats } from '@/lib/justificationPreview'
+import { hasBlockingIssues, lintJustification, type JustificationRules } from '@/lib/justificationLint'
+import {
+  approvedFor,
+  claimedFor,
+  initialDeflations,
+  unexplainedDeflations,
+  type Deflation,
+} from '@/components/admin/review/JournalDeflationTable'
 import type {
   AiCheckResult,
+  InvalidReviewField,
   ConcurrentReviewer,
   Reviewer,
   ReviewNote,
@@ -32,8 +41,6 @@ import type {
   SessionStats,
 } from '@/components/admin/review/types'
 import type { ReviewEvent } from '@/components/admin/AdminReviewTimeline'
-
-const TAB_VALUES = ['journal', 'readme', 'pitch', 'description', 'notes', 'timeline', 'ai_check', 'files', 'changes']
 
 function openExternal(url: string) {
   window.open(url, '_blank', 'noopener,noreferrer')
@@ -52,6 +59,7 @@ export default function AdminReviewsShow({
   claim,
   session_stats,
   checkpoint_channel_configured,
+  justification_rules,
 }: {
   project: ReviewProject
   session: ReviewSession | null
@@ -65,6 +73,7 @@ export default function AdminReviewsShow({
   claim: ClaimState
   session_stats: SessionStats | null
   checkpoint_channel_configured: boolean
+  justification_rules: JustificationRules | null
 }) {
   const isTerminal = project.status !== 'pending'
   const { releaseSession } = useReviewHeartbeat(
@@ -194,12 +203,19 @@ export default function AdminReviewsShow({
   const autoTimeSummary = useRef(timeSummary)
   const [technicalFeatures, setTechnicalFeatures] = useState('')
   const [additionalJustification, setAdditionalJustification] = useState('')
-  const [evidence, setEvidence] = useState('')
+  const [duplicateAcknowledgement, setDuplicateAcknowledgement] = useState('')
+  // Prefilled with each entry's claimed hours. This is the only place hours are
+  // set, so the justification and the submitted total cannot disagree.
+  const [deflations, setDeflations] = useState<Record<number, Deflation>>(() => initialDeflations(project.devlogs))
+  const setDeflation = useCallback((id: number, patch: Partial<Deflation>) => {
+    setDeflations((current) => {
+      const existing = current[id] ?? { hours: '', reason: '' }
+      return { ...current, [id]: { ...existing, ...patch } }
+    })
+  }, [])
+  const [justificationAudit, setJustificationAudit] = useState<AiCheckResult | null>(null)
+  const [justificationAuditing, setJustificationAuditing] = useState(false)
   const [feedback, setFeedback] = useState('')
-  const [overrideHours, setOverrideHours] = useState<string>(
-    project.override_hours != null ? String(project.override_hours) : '',
-  )
-  const [overrideJustification, setOverrideJustification] = useState(project.override_hours_justification ?? '')
   const [submitting, setSubmitting] = useState<null | 'approve' | 'return' | 'reject' | 'draft' | 'requirements_met'>(
     null,
   )
@@ -211,12 +227,16 @@ export default function AdminReviewsShow({
   const [dmBody, setDmBody] = useState('')
   const [dmSlackId, setDmSlackId] = useState(project.user_slack_id ?? '')
   const [dmSending, setDmSending] = useState(false)
-  const [activeTab, setActiveTab] = useState('journal')
+  // Every review opens on the digest: the pace, gaps and hour outliers it
+  // surfaces are what the hours decision turns on, and reading entries in order
+  // is the 25-minute review reviewers complained about.
+  const [activeTab, setActiveTab] = useState('digest')
+  // Shared with the tab strip so the number-key shortcuts never point at a
+  // tab that is hidden for this project's tier.
+  const tabValues = useMemo(() => visibleTabValues(project), [project])
   const [helpOpen, setHelpOpen] = useState(false)
   const [rejectOpen, setRejectOpen] = useState(false)
-  const [invalidField, setInvalidField] = useState<
-    'conclusion' | 'technical' | 'feedback' | 'override' | 'checklist' | null
-  >(null)
+  const [invalidField, setInvalidField] = useState<InvalidReviewField | null>(null)
   const [takingOver, setTakingOver] = useState(false)
   const [flagOpen, setFlagOpen] = useState(false)
   const [flagReason, setFlagReason] = useState('')
@@ -310,12 +330,47 @@ export default function AdminReviewsShow({
   const builderMentionPreview = checkpointSlackId.trim() ? `<@${checkpointSlackId.trim()}>` : '<@?>'
 
   const claimedHours = project.devlog_hours
-  const approvedHours = useMemo(() => {
-    const v = parseFloat(overrideHours)
-    if (overrideHours.trim() === '' || !Number.isFinite(v)) return claimedHours
-    return Math.max(0, Math.min(v, claimedHours))
-  }, [overrideHours, claimedHours])
+  // Approved hours are the sum of the per-entry approvals — never typed twice.
+  const approvedHours = useMemo(
+    () => Math.round(project.devlogs.reduce((sum, e) => sum + approvedFor(e, deflations[e.id]), 0) * 100) / 100,
+    [project.devlogs, deflations],
+  )
   const deflation = Math.max(0, claimedHours - approvedHours)
+
+  // Each deflated entry states its own before/after and reason, which is what
+  // the fines ask for; the aggregate is composed rather than written by hand.
+  const overrideJustification = useMemo(
+    () =>
+      project.devlogs
+        .filter((e) => approvedFor(e, deflations[e.id]) < claimedFor(e) - 0.001)
+        .map((e) => {
+          const reason = (deflations[e.id]?.reason ?? '').trim()
+          return `"${e.title}" ${claimedFor(e).toFixed(1)}h → ${approvedFor(e, deflations[e.id]).toFixed(1)}h: ${reason}`
+        })
+        .join(' '),
+    [project.devlogs, deflations],
+  )
+
+  // The evidence block reviewers asked to have prefilled, now carrying the
+  // per-entry outcome rather than just a link.
+  const evidence = useMemo(
+    () =>
+      project.devlogs
+        .map((e) => {
+          const claimed = claimedFor(e)
+          const approved = approvedFor(e, deflations[e.id])
+          const verdict =
+            approved < claimed - 0.001
+              ? `claimed ${claimed.toFixed(1)}h, approved ${approved.toFixed(1)}h`
+              : `${claimed.toFixed(1)}h approved in full`
+          const lapse = e.lapse_url ? ` — timelapse: ${e.lapse_url}` : ''
+          return `${window.location.origin}/projects/${project.id}#devlog-${e.id} — ${e.created_at}: ${e.title} (${verdict})${lapse}`
+        })
+        .join('\n'),
+    [project.devlogs, project.id, deflations],
+  )
+
+  const overrideHours = deflation > 0.001 ? String(approvedHours) : ''
   const previewCoins = Math.round(approvedHours * project.coin_rate * 100) / 100
 
   const origin = typeof window !== 'undefined' ? window.location.origin : 'https://forge.hackclub.com'
@@ -399,6 +454,14 @@ export default function AdminReviewsShow({
         payload.additional_justification = additionalJustification.trim() || null
         payload.evidence = evidence.trim() || null
         payload.feedback = feedback.trim() || null
+        payload.duplicate_acknowledgement = duplicateAcknowledgement.trim() || null
+        payload.journal_deflations = JSON.stringify(
+          project.devlogs.map((e) => ({
+            devlog_id: e.id,
+            approved_hours: approvedFor(e, deflations[e.id]),
+            reason: (deflations[e.id]?.reason ?? '').trim(),
+          })),
+        )
         if (overrideHours.trim() !== '') {
           payload.override_hours = overrideHours.trim()
           if (!overrideJustification.trim()) {
@@ -437,19 +500,106 @@ export default function AdminReviewsShow({
       feedback,
       overrideHours,
       overrideJustification,
+      duplicateAcknowledgement,
+      deflations,
+      project.devlogs,
       track,
     ],
   )
 
+  // Audits the justification the reviewer has typed so far. On demand rather
+  // than automatic: it costs a model call, and the static linter has already
+  // caught the phrasings we were fined for.
+  const runJustificationAudit = useCallback(async () => {
+    setJustificationAuditing(true)
+    track('justification_ai_audit')
+    try {
+      const res = await fetch(`/admin/projects/${project.id}/check_draft_justification`, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          'X-CSRF-Token': document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '',
+        },
+        body: JSON.stringify({ justification: justificationPreview, approved_hours: approvedHours }),
+      })
+      const data = res.ok ? await res.json() : null
+      setJustificationAudit(data?.result ?? { overall: 'error', message: 'The audit request failed.' })
+    } catch {
+      setJustificationAudit({ overall: 'error', message: 'The audit request failed.' })
+    } finally {
+      setJustificationAuditing(false)
+    }
+  }, [project.id, justificationPreview, approvedHours, track])
+
+  const hasLapse = useMemo(() => project.devlogs.some((d) => (d.lapse_url ?? '').trim().length > 0), [project.devlogs])
+
+  // Runs on every keystroke against the rule table the server sent, so the
+  // reviewer sees the problem while writing. The server re-runs the same rules
+  // on submit — this is the hint, not the gate.
+  const lintIssues = useMemo(
+    () =>
+      lintJustification(
+        {
+          timeSummary,
+          technicalFeatures,
+          evidence,
+          assessment: reasoning,
+          additional: additionalJustification,
+          deflationReason: overrideJustification,
+          claimedHours,
+          approvedHours,
+          journalOnly: project.devlog_mode !== 'git',
+          usesAi: project.uses_ai,
+          hasLapse,
+          redFlags: project.red_flags ?? [],
+        },
+        justification_rules,
+      ),
+    [
+      timeSummary,
+      technicalFeatures,
+      evidence,
+      reasoning,
+      additionalJustification,
+      overrideJustification,
+      claimedHours,
+      approvedHours,
+      project.devlog_mode,
+      project.uses_ai,
+      project.red_flags,
+      hasLapse,
+      justification_rules,
+    ],
+  )
+
+  const duplicateBlocked = project.duplicate_scan.verdict === 'blocked' && duplicateAcknowledgement.trim().length < 20
+
+  // The composed aggregate reason is long enough to satisfy the text linter even
+  // when every per-entry reason is blank, so the per-entry check has to be its
+  // own gate rather than relying on JustificationLint.
+  const missingDeflationReasons = useMemo(
+    () => unexplainedDeflations(project.devlogs, deflations),
+    [project.devlogs, deflations],
+  )
+
   const approveReason = useMemo<string | null>(() => {
+    if (project.self_review) return 'You cannot approve your own project'
     if (!checklistComplete)
       return `Complete the reviewer checklist (${checklistDone}/${project.review_checklist.length}) to approve`
     if (!technicalFeatures.trim()) return 'List the specific technical features to approve'
     if (!reasoning.trim()) return 'Explain why the hours match the work to approve'
     if (overrideHours.trim() !== '' && !overrideJustification.trim())
       return 'Add a deflation reason for the hours override'
+    if (duplicateBlocked) return 'Explain why this duplicate repo is not double-dipping to approve'
+    if (missingDeflationReasons.length > 0)
+      return `Give a reason for ${missingDeflationReasons.length} deflated journal entr${missingDeflationReasons.length === 1 ? 'y' : 'ies'}`
+    if (hasBlockingIssues(lintIssues))
+      return `Fix ${lintIssues.filter((i) => i.severity === 'block').length} justification issue(s) that would get us fined`
     return null
   }, [
+    project.self_review,
     checklistComplete,
     checklistDone,
     project.review_checklist.length,
@@ -457,13 +607,16 @@ export default function AdminReviewsShow({
     reasoning,
     overrideHours,
     overrideJustification,
+    duplicateBlocked,
+    missingDeflationReasons,
+    lintIssues,
   ])
   const returnReason = useMemo<string | null>(
     () => (!feedback.trim() ? 'Add feedback to the builder' : null),
     [feedback],
   )
 
-  const flash = useCallback((field: 'conclusion' | 'technical' | 'feedback' | 'override' | 'checklist') => {
+  const flash = useCallback((field: InvalidReviewField) => {
     setInvalidField(field)
     window.setTimeout(() => setInvalidField(null), 1200)
   }, [])
@@ -655,7 +808,7 @@ export default function AdminReviewsShow({
     openCommits,
     runAiCheck,
     setTab: setActiveTab,
-    tabValues: TAB_VALUES,
+    tabValues,
     smartSubmit,
     toggleNotes: () => setActiveTab('notes'),
     toggleHelp: () => setHelpOpen((v) => !v),
@@ -679,6 +832,12 @@ export default function AdminReviewsShow({
         commitsUrl={project.commits_url}
         demoUrl={demoUrl}
       />
+
+      {project.self_review && (
+        <div className="rounded-md border border-red-600/50 bg-red-500/10 px-3 py-2 text-xs font-medium text-red-700 dark:text-red-300">
+          This is your own project. You cannot approve it
+        </div>
+      )}
 
       {project.flagged_for_review && (
         <FlagBanner
@@ -768,22 +927,25 @@ export default function AdminReviewsShow({
                   setTechnicalFeatures,
                   additionalJustification,
                   setAdditionalJustification,
-                  evidence,
-                  setEvidence,
                   feedback,
                   setFeedback,
-                  overrideHours,
-                  setOverrideHours,
-                  overrideJustification,
-                  setOverrideJustification,
                   submitting,
                 }}
+                deflations={deflations}
+                onDeflationChange={setDeflation}
+                approvedHours={approvedHours}
                 checks={checks}
                 onToggleCheck={toggleCheck}
                 claimedHours={claimedHours}
                 deflation={deflation}
                 previewCoins={previewCoins}
                 justificationPreview={justificationPreview}
+                lintIssues={lintIssues}
+                aiAudit={justificationAudit}
+                aiAuditing={justificationAuditing}
+                onRunAiAudit={runJustificationAudit}
+                duplicateAcknowledgement={duplicateAcknowledgement}
+                setDuplicateAcknowledgement={setDuplicateAcknowledgement}
                 approveReason={approveReason}
                 returnReason={returnReason}
                 invalidField={invalidField}

@@ -15,6 +15,15 @@ class Admin::ApiKeysController < Admin::ApplicationController
       model: nil,
       setting_key: MacondoService::API_KEY_SETTING,
       test: ->(token) { MacondoService.test_connection!(token) }
+    },
+    # Read-only PAT for the YSWS Unified Database, used to catch double-dipped
+    # repos before approval. Needs data.records:read on the unified base.
+    "unified_db" => {
+      label: "Unified DB",
+      credential_source: -> { UnifiedDbService.enabled? ? "admin_key" : "none" },
+      model: nil,
+      setting_key: UnifiedDbService::PAT_SETTING,
+      test: ->(token) { UnifiedDbService.test_connection!(token) }
     }
   }.freeze
 

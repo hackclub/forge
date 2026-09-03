@@ -213,9 +213,20 @@ class Project < ApplicationRecord
   end
 
   def ai_check_result_for_display
-    return ai_check_result unless ai_check_stale?
+    result = ai_check_result
+    return result unless result.is_a?(Hash)
 
-    ai_check_result.merge("status" => "error", "message" => "This check stalled before finishing — run it again.")
+    if ai_check_stale?
+      return result.merge("status" => "error", "message" => "This check stalled before finishing — run it again.")
+    end
+
+    # Results written before the status field existed carry a full verdict but
+    # no status. The pre-submission page keys its rendering off status, so those
+    # rows produced a page with no spinner, no results and no re-run button. A
+    # result with a verdict is finished, whatever it is missing.
+    return result.merge("status" => "done") if result["status"].blank? && result["overall"].present?
+
+    result
   end
 
   def advanced?

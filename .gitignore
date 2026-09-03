@@ -47,3 +47,7 @@ stitch/
 # Ignore key files for decrypting credentials and more.
 /config/*.key
 
+
+# Local copy of the #this-is-fines Slack export used to derive the review
+# guardrails. Contains member names and fraud-tooling links — keep it local.
+/fines.txt

@@ -30,12 +30,16 @@ export function statusBadge(status: ProjectStatus) {
   }
 }
 
-export function verdictBadge(verdict: 'pass' | 'fail' | 'uncertain') {
+export function verdictBadge(verdict: 'pass' | 'fail' | 'uncertain' | 'error') {
   switch (verdict) {
     case 'pass':
       return <Badge variant="success">Pass</Badge>
     case 'fail':
       return <Badge variant="destructive">Fail</Badge>
+    // A checker that crashed is not the same as a project we are unsure about,
+    // and showing "Uncertain" for it reads as a judgement that was never made.
+    case 'error':
+      return <Badge variant="destructive">Check failed</Badge>
     default:
       return <Badge variant="warning">Uncertain</Badge>
   }

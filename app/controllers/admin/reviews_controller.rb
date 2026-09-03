@@ -125,7 +125,8 @@ class Admin::ReviewsController < Admin::ApplicationController
       },
       claim: claim,
       session_stats: current_user.superadmin? ? session_stats(@project) : nil,
-      checkpoint_channel_configured: ENV["FORGE_CHECKPOINT_CHANNEL_ID"].to_s.strip.present?
+      checkpoint_channel_configured: ENV["FORGE_CHECKPOINT_CHANNEL_ID"].to_s.strip.present?,
+      justification_rules: JustificationLint.rules_payload
     }
   end
 
@@ -422,6 +423,7 @@ class Admin::ReviewsController < Admin::ApplicationController
       tags: project.tags,
       status: project.status,
       tier: project.tier,
+      review_tier: project.review_tier,
       budget: project.budget,
       build_review: project.build_review,
       linked_project: project.linked_project ? { id: project.linked_project.id, name: project.linked_project.name } : nil,
@@ -456,7 +458,11 @@ class Admin::ReviewsController < Admin::ApplicationController
       ships: project.ships.sort_by(&:created_at).reverse.map { |s| serialize_ship(s) },
       flagged_for_review: project.flagged_for_review?,
       flag_reason: project.flag_reason,
-      flagged_by_name: project.flagged_by&.display_name
+      flagged_by_name: project.flagged_by&.display_name,
+      journal_digest: JournalDigest.build(project),
+      duplicate_scan: DuplicateScan.run(project),
+      justification_guide: JustificationExamples.for_project(project),
+      self_review: project.user_id == current_user.id
     }
   end
 

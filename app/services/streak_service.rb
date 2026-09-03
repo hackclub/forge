@@ -70,7 +70,7 @@ class StreakService
       if user.streak_freezes.to_i >= gap.size
         freeze_days(user, gap)
       else
-        gap.each { |date| mark(user, date, :missed) }
+        mark_all(user, gap, :missed)
       end
     end
   end
@@ -101,15 +101,42 @@ class StreakService
       .update_all("streak_freezes = streak_freezes - #{dates.size}")
     return if rows.zero?
 
-    dates.each { |date| mark(user, date, :frozen) }
+    mark_all(user, dates, :frozen)
     user.reload
   end
 
-  private_class_method def self.mark(user, date, status)
-    day = StreakDay.find_or_initialize_by(user: user, date: date)
-    return if day.status == status.to_s
+  # Sets a status across a whole date range in two queries.
+  #
+  # This used to be a per-day find_or_initialize_by in a loop, which meant every
+  # request that touched a user's streak issued one SELECT per day since their
+  # last counting day — and since marking days `missed` does not move that
+  # cursor, the same days were re-read and discarded on every request forever,
+  # growing by one query per day. A user 96 days past their last streak day cost
+  # 100 queries and about a second of database time per request.
+  #
+  # Rows that already hold the target status are filtered out, so the steady
+  # state is a single SELECT with no writes.
+  private_class_method def self.mark_all(user, dates, status)
+    dates = Array(dates)
+    return if dates.empty?
 
-    day.status = status
-    day.save!
+    target = status.to_s
+    existing = StreakDay.where(user: user, date: dates.min..dates.max).pluck(:date, :status).to_h
+    changed = dates.reject { |date| existing[date] == target }
+    return if changed.empty?
+
+    now = Time.current
+    StreakDay.upsert_all(
+      changed.map do |date|
+        { user_id: user.id, date: date, status: StreakDay.statuses.fetch(target),
+          created_at: now, updated_at: now }
+      end,
+      unique_by: %i[user_id date],
+      # Only status moves on an existing row; hours_logged and created_at stay
+      # put. updated_at is deliberately absent — upsert_all appends it itself,
+      # and naming it here makes Postgres reject the statement for assigning the
+      # same column twice.
+      update_only: %i[status]
+    )
   end
 end

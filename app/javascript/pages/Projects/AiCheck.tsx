@@ -312,6 +312,35 @@ function ProjectsAiCheck({
           </div>
         )}
 
+        {/* A result that is not running, not an error and not renderable as done
+            used to leave this page blank with no way to recover. Never again:
+            offer the re-run instead of nothing. */}
+        {!running && !error && result != null && !(result.status === 'done' && result.overall) && (
+          <div className="bg-[#1c1b1b] ghost-border p-6 mb-5">
+            <p className="font-headline font-bold text-[#e5e2e1] text-lg mb-1">This check needs re-running</p>
+            <p className="text-stone-500 text-xs mb-4">
+              The saved result is from an older version of the check and can&apos;t be displayed.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={runCheck}
+                className="ghost-border bg-[#0e0e0e] hover:bg-[#2a2a2a] text-stone-300 hover:text-[#ffb595] py-3 px-4 text-xs font-bold uppercase tracking-[0.15em] flex items-center justify-center gap-2 transition-colors cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-base">refresh</span>
+                Run the check
+              </button>
+              <button
+                onClick={submitForReview}
+                disabled={submitting}
+                className="flex-1 signature-smolder text-[#4c1a00] py-3 px-4 text-xs font-bold uppercase tracking-[0.15em] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              >
+                <span className="material-symbols-outlined text-base">{submitting ? 'progress_activity' : 'send'}</span>
+                {submitting ? 'Submitting…' : 'Submit for review anyway'}
+              </button>
+            </div>
+          </div>
+        )}
+
         {result?.status === 'done' && result.overall && (
           <>
             <div className="bg-[#1c1b1b] ghost-border p-6 mb-5">

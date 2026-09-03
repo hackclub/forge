@@ -35,6 +35,37 @@ class ProjectsAiCheckTest < ActionDispatch::IntegrationTest
     assert_not Project.new(ai_check_result: nil).ai_check_stale?
   end
 
+  # Results written before the status field existed carry a full verdict but no
+  # status, which left the pre-submission page with nothing to render: no
+  # spinner, no results, and no re-run button to escape with.
+  test "a completed result that predates the status field is reported as done" do
+    legacy = {
+      "overall" => "fail",
+      "summary" => "Missing the BOM table.",
+      "requirements" => [ { "name" => "README BOM table", "verdict" => "fail", "reasoning" => "None found.", "source" => "submitting.md" } ],
+      "checked_at" => 3.months.ago.iso8601,
+      "provider" => "google"
+    }
+    project = Project.new(ai_check_result: legacy)
+
+    assert_not project.ai_check_stale?
+    assert_equal "done", project.ai_check_result_for_display["status"]
+    assert_equal "fail", project.ai_check_result_for_display["overall"]
+  end
+
+  test "a status-less result with no verdict is left alone rather than faked as done" do
+    project = Project.new(ai_check_result: { "provider" => "google" })
+    assert_nil project.ai_check_result_for_display["status"]
+  end
+
+  test "normalising a legacy result does not mask a real error or a live run" do
+    errored = Project.new(ai_check_result: { "status" => "error", "message" => "boom", "overall" => "fail" })
+    assert_equal "error", errored.ai_check_result_for_display["status"]
+
+    running = Project.new(ai_check_result: { "status" => "running", "started_at" => 1.minute.ago.iso8601 })
+    assert_equal "running", running.ai_check_result_for_display["status"]
+  end
+
   test "visiting the check page restarts a stale zombie check" do
     owner = make_user
     project = Project.create!(user: owner, name: "Zombie", tier: "tier_4", status: :draft)

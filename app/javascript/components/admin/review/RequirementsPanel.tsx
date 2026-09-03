@@ -4,7 +4,7 @@ import { Textarea } from '@/components/admin/ui/textarea'
 import { cn } from '@/components/admin/lib/cn'
 import SubmissionRequirementsChecklist from '@/components/admin/SubmissionRequirementsChecklist'
 import { ReviewerChecklist } from './ReviewerChecklist'
-import type { ReviewProject } from './types'
+import type { InvalidReviewField, ReviewProject } from './types'
 
 export function RequirementsPanel({
   project,
@@ -26,7 +26,7 @@ export function RequirementsPanel({
   setFeedback: (v: string) => void
   submitting: null | 'approve' | 'return' | 'reject' | 'draft' | 'requirements_met'
   canClaim: boolean
-  invalidField: 'conclusion' | 'technical' | 'feedback' | 'override' | 'checklist' | null
+  invalidField: InvalidReviewField | null
   onSubmit: (decision: 'requirements_met' | 'return') => void
 }) {
   const lockReason = canClaim ? null : 'Another reviewer holds this — take over to act'

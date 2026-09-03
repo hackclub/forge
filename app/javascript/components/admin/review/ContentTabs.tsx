@@ -3,10 +3,12 @@ import Markdown from 'react-markdown'
 import rehypeRaw from 'rehype-raw'
 import rehypeSanitize from 'rehype-sanitize'
 import remarkGfm from 'remark-gfm'
-import { ArrowUpDown, Check, Clock, Copy, RefreshCw } from 'lucide-react'
+import { ArrowUpDown, Check, ChevronRight, ChevronsDownUp, ChevronsUpDown, Clock, Copy, RefreshCw } from 'lucide-react'
 import { Badge } from '@/components/admin/ui/badge'
 import { Button } from '@/components/admin/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/admin/ui/tabs'
+import { JournalDigestPanel } from './JournalDigestPanel'
+import { CollapsibleSection } from './CollapsibleSection'
 import { cn } from '@/components/admin/lib/cn'
 import AdminReviewTimeline, { type ReviewEvent } from '@/components/admin/AdminReviewTimeline'
 import { AiCheckPanel } from './AiCheckPanel'
@@ -60,6 +62,19 @@ function CopyDevlogLink({ url }: { url: string }) {
   )
 }
 
+/**
+ * Tabs visible for a project, in the order the number-key shortcuts index them.
+ *
+ * Pitch and Description only apply to tier 1, where the advanced pitch flow
+ * fills them in. Exported so the shortcut handler and the tab strip stay in
+ * agreement — otherwise pressing "4" jumps to a tab that renders nothing.
+ */
+export function visibleTabValues(project: { review_tier: string }): string[] {
+  const tabs = ['digest', 'journal', 'readme']
+  if (project.review_tier === 'tier_1') tabs.push('pitch', 'description')
+  return [...tabs, 'notes', 'timeline', 'ai_check', 'files', 'changes']
+}
+
 export function ContentTabs({
   project,
   notes,
@@ -93,15 +108,29 @@ export function ContentTabs({
   const isGitJournal = project.devlog_mode === 'git'
   const journalUrl = isGitJournal ? (project.git_journal_url ?? project.repo_link ?? null) : null
   const [journalNewestFirst, setJournalNewestFirst] = useState(false)
+  // Long journals are the top complaint from reviewers, so entries start
+  // collapsed and open one at a time. The metadata line is never hidden.
+  const [openEntries, setOpenEntries] = useState<Set<number>>(new Set())
+  const toggleEntry = (id: number) =>
+    setOpenEntries((current) => {
+      const next = new Set(current)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  const allOpen = project.devlogs.length > 0 && openEntries.size === project.devlogs.length
   const orderedDevlogs = journalNewestFirst ? [...project.devlogs].reverse() : project.devlogs
+  const tierOne = project.review_tier === 'tier_1'
 
   return (
     <Tabs value={value} onValueChange={onValueChange} className="w-full">
       <TabsList>
+        {/* Value stays "digest": it keys off the journal_digest payload. */}
+        <TabsTrigger value="digest">Overview</TabsTrigger>
         <TabsTrigger value="journal">Journal ({project.devlogs.length})</TabsTrigger>
         <TabsTrigger value="readme">README</TabsTrigger>
-        <TabsTrigger value="pitch">Pitch</TabsTrigger>
-        <TabsTrigger value="description">Description</TabsTrigger>
+        {tierOne && <TabsTrigger value="pitch">Pitch</TabsTrigger>}
+        {tierOne && <TabsTrigger value="description">Description</TabsTrigger>}
         <TabsTrigger value="notes">Notes ({notes.length})</TabsTrigger>
         <TabsTrigger value="timeline">Timeline</TabsTrigger>
         <TabsTrigger value="ai_check">AI Check</TabsTrigger>
@@ -109,11 +138,23 @@ export function ContentTabs({
         <TabsTrigger value="changes">Changes</TabsTrigger>
       </TabsList>
 
+      <TabsContent value="digest">
+        <JournalDigestPanel digest={project.journal_digest} projectId={project.id} />
+      </TabsContent>
+
       <TabsContent value="journal">
         <div className="mb-2 flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={() => setJournalNewestFirst((v) => !v)}>
             <ArrowUpDown className="size-3.5" />
             {journalNewestFirst ? 'Newest first' : 'Oldest first'}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setOpenEntries(allOpen ? new Set() : new Set(project.devlogs.map((d) => d.id)))}
+          >
+            {allOpen ? <ChevronsDownUp className="size-3.5" /> : <ChevronsUpDown className="size-3.5" />}
+            {allOpen ? 'Collapse all' : 'Expand all'}
           </Button>
           {journalUrl && <CopyJournalButton url={journalUrl} label="Copy JOURNAL.md link" />}
         </div>
@@ -127,7 +168,20 @@ export function ContentTabs({
                 className="rounded-md border border-border bg-card p-3 space-y-2 hover:bg-muted/20 transition-colors"
               >
                 <div className="flex items-center gap-2 text-xs flex-wrap">
-                  <span className="font-semibold text-sm text-foreground">{entry.title}</span>
+                  <button
+                    type="button"
+                    onClick={() => toggleEntry(entry.id)}
+                    aria-expanded={openEntries.has(entry.id)}
+                    className="flex min-w-0 items-center gap-1.5 text-left cursor-pointer"
+                  >
+                    <ChevronRight
+                      className={cn(
+                        'size-3.5 shrink-0 text-muted-foreground transition-transform',
+                        openEntries.has(entry.id) && 'rotate-90',
+                      )}
+                    />
+                    <span className="font-semibold text-sm text-foreground">{entry.title}</span>
+                  </button>
                   {project.is_group_project && (
                     <span className="flex items-center gap-1 text-muted-foreground">
                       <img src={entry.user_avatar} alt="" className="size-3.5 rounded-full" />
@@ -164,11 +218,26 @@ export function ContentTabs({
                   {!entry.meets_requirements && <Badge variant="warning">Below requirements</Badge>}
                   {!isGitJournal && <CopyDevlogLink url={`${origin}/projects/${project.id}/devlogs/${entry.id}`} />}
                 </div>
-                <div className="markdown-content text-sm">
-                  <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw, rehypeSanitize]}>
-                    {entry.content}
-                  </Markdown>
-                </div>
+                {openEntries.has(entry.id) ? (
+                  <div className="markdown-content text-sm">
+                    <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw, rehypeSanitize]}>
+                      {entry.content}
+                    </Markdown>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => toggleEntry(entry.id)}
+                    className="block w-full truncate text-left text-xs text-muted-foreground hover:text-foreground cursor-pointer"
+                  >
+                    {entry.content
+                      .replace(/[#*`>\-_[\]()!]/g, ' ')
+                      .replace(/\s+/g, ' ')
+                      .trim()
+                      .slice(0, 140) || 'Empty entry'}
+                    …
+                  </button>
+                )}
               </div>
             ))}
           </div>
@@ -208,27 +277,31 @@ export function ContentTabs({
         )}
       </TabsContent>
 
-      <TabsContent value="pitch">
-        {project.pitch_text ? (
-          <div className="rounded-md border border-border bg-card p-3 markdown-content text-sm">
-            <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw, rehypeSanitize]}>
-              {project.pitch_text}
-            </Markdown>
-          </div>
-        ) : (
-          <p className="text-sm text-muted-foreground p-3">No pitch text on this project.</p>
-        )}
-      </TabsContent>
+      {tierOne && (
+        <TabsContent value="pitch">
+          {project.pitch_text ? (
+            <div className="rounded-md border border-border bg-card p-3 markdown-content text-sm">
+              <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw, rehypeSanitize]}>
+                {project.pitch_text}
+              </Markdown>
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground p-3">No pitch text on this project.</p>
+          )}
+        </TabsContent>
+      )}
 
-      <TabsContent value="description">
-        {project.description ? (
-          <div className="rounded-md border border-border bg-card p-3 text-sm whitespace-pre-wrap">
-            {project.description}
-          </div>
-        ) : (
-          <p className="text-sm text-muted-foreground p-3">No description.</p>
-        )}
-      </TabsContent>
+      {tierOne && (
+        <TabsContent value="description">
+          {project.description ? (
+            <div className="rounded-md border border-border bg-card p-3 text-sm whitespace-pre-wrap">
+              {project.description}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground p-3">No description.</p>
+          )}
+        </TabsContent>
+      )}
 
       <TabsContent value="notes">
         <NotesPanel notes={notes} projectId={project.id} currentUserId={currentUserId} isSuperadmin={isSuperadmin} />

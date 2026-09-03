@@ -27,7 +27,7 @@ class JustificationTemplate
     The final reviewer was asked to justify why this ship meets the standards of the Unified DB:
 
     %{review_justification}
-    %{additional_justification}
+    %{additional_justification}%{duplicate_note}
     !! To inspect the full review for this ship, including timelapses & journals, see: %{forge_admin_link}
 
     For any questions, please reach out to aarav@hackclub.com.
@@ -74,6 +74,7 @@ class JustificationTemplate
       deflation_reason: deflation_suffix,
       review_justification: fields[:assessment].to_s.strip.presence || "(no justification provided)",
       additional_justification: additional_justification(fields),
+      duplicate_note: duplicate_note(fields),
       forge_admin_link: forge_admin_link
     )
   end
@@ -83,6 +84,17 @@ class JustificationTemplate
     return "" if text.blank?
 
     "\nAdditional justification:\n#{text}\n"
+  end
+
+  # Duplicate code URLs are the most-fined thing across every program, and the
+  # fines consistently ask for the same thing: "if it's an update please justify
+  # it". When a reviewer approves over a duplicate match, their reasoning goes
+  # into the record rather than staying in Forge.
+  def self.duplicate_note(fields)
+    text = fields[:duplicate_acknowledgement].to_s.strip
+    return "" if text.blank?
+
+    "\nThis repository already appears in the Unified Database. The reviewer addressed it as follows:\n#{text}\n"
   end
 
   def self.supporting_evidence(project, fields)

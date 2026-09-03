@@ -354,6 +354,25 @@ class Admin::ProjectsController < Admin::ApplicationController
     redirect_back fallback_location: admin_review_path(@project), notice: "Flag cleared; project is back in the queue."
   end
 
+  # Audits the justification a reviewer is still writing, so the AI verdict
+  # arrives before approval instead of after a fine. Requested directly:
+  # "it would be better if we have the ai to check our justification during
+  # reviewing itself". JustificationLint already runs on every keystroke for
+  # free; this is the paid second opinion, so it is on demand only.
+  def check_draft_justification
+    authorize @project, :review?
+
+    result = AiRequirementsChecker.audit_justification(
+      text: params[:justification].to_s,
+      hours: params[:approved_hours],
+      project: @project
+    )
+    audit!("project.draft_justification_ai_check", target: @project, metadata: { overall: result["overall"] })
+    render json: { result: result }
+  rescue AiRequirementsChecker::Error => e
+    render json: { result: { "overall" => "error", "message" => e.message } }
+  end
+
   REQUIREMENTS_CHECKER_DECISIONS = %w[requirements_met return].freeze
 
   def review
@@ -397,6 +416,10 @@ class Admin::ProjectsController < Admin::ApplicationController
         end
         if (error = override_invalid_reason(params[:override_hours], params[:override_hours_justification]))
           redirect_to admin_project_path(@project), alert: error
+          return
+        end
+        if (error = fine_guard_reason(@project, params))
+          redirect_to admin_review_path(@project), alert: error
           return
         end
         capped = capped_override_hours(@project, params[:override_hours])
@@ -448,6 +471,7 @@ class Admin::ProjectsController < Admin::ApplicationController
           build_review: @project.build_review,
           checklist: ReviewChecklist.keys_for(@project),
           justification: justification,
+          duplicate_acknowledgement: params[:duplicate_acknowledgement].presence,
           approved_hours: approved_hours.to_f,
           coins_awarded: @project.coins_awarded.to_f,
           member_breakdown: payout_shares&.map { |s|
@@ -799,6 +823,113 @@ class Admin::ProjectsController < Admin::ApplicationController
     true
   end
 
+  # Blocks approvals that would earn Forge a fine. These mirror the live hints in
+  # the review UI, but the UI is only a hint — this is the enforcement, so a
+  # stale page or a hand-crafted request cannot get past it.
+  #
+  # Every branch here corresponds to a fine Forge actually received: self-review
+  # ("please do not review your own projects"), double-dipping (four fines for
+  # repos already submitted to Blueprint/Stasis), a dead build proof link (seven
+  # fines for "not a valid demo link"), and unjustified hours (eight fines).
+  def fine_guard_reason(project, params)
+    return "You cannot approve your own project — ask another reviewer." if project.user_id == current_user.id
+
+    if (dupe = duplicate_block_reason(project, params))
+      return dupe
+    end
+
+    if (deflation = journal_deflation_reason(project, params))
+      return deflation
+    end
+
+    issues = JustificationLint.run(
+      time_summary: params[:time_summary],
+      technical_features: params[:technical_features],
+      evidence: params[:evidence],
+      assessment: params[:reasoning].presence || params[:feedback],
+      additional: params[:additional_justification],
+      deflation_reason: params[:override_hours_justification],
+      claimed_hours: project.devlog_hours,
+      approved_hours: capped_override_hours(project, params[:override_hours]) || project.devlog_hours,
+      journal_only: project.devlog_mode.to_s != "git",
+      uses_ai: project.uses_ai,
+      has_lapse: project.devlogs.any? { |d| d.lapse_url.present? },
+      red_flags: project.red_flags || []
+    )
+    blocking = issues.select(&:blocking?)
+    return nil if blocking.empty?
+
+    "Justification would get us fined — #{blocking.size} issue#{'s' if blocking.size != 1} to fix: #{blocking.first(3).map(&:message).join(' ')}"
+  end
+
+  # Hours are now approved per journal entry, so the aggregate reason string is
+  # composed rather than typed. That means JustificationLint's length check on it
+  # passes even when every individual reason is blank — the per-entry rule has to
+  # be enforced here on the entries themselves.
+  #
+  # Also re-checks that the submitted total matches the sum of the entries. A
+  # justification disagreeing with the submitted number is its own fine:
+  # "Justification says deflated to 5.6 hours but Unified DB has 6.6 hours".
+  MIN_DEFLATION_REASON = 10
+
+  def journal_deflation_reason(project, params)
+    rows = parse_journal_deflations(params[:journal_deflations])
+    return nil if rows.nil?
+
+    claimed_by_id = project.devlogs.to_h { |d| [ d.id, d.parsed_hours.to_f ] }
+    unexplained = 0
+    total = 0.0
+
+    rows.each do |row|
+      claimed = claimed_by_id[row[:devlog_id]]
+      next if claimed.nil?
+
+      approved = row[:approved_hours].clamp(0.0, claimed)
+      total += approved
+      unexplained += 1 if approved < claimed - 0.001 && row[:reason].length < MIN_DEFLATION_REASON
+    end
+
+    if unexplained.positive?
+      return "#{unexplained} deflated journal entr#{unexplained == 1 ? 'y needs' : 'ies need'} a reason before you can approve."
+    end
+
+    submitted = capped_override_hours(project, params[:override_hours]) || project.devlog_hours
+    return nil if (submitted.to_f - total).abs <= 0.05
+
+    "The hours submitted (#{submitted.to_f.round(2)}h) do not match the per-entry approvals (#{total.round(2)}h). Reload the review and try again."
+  end
+
+  def parse_journal_deflations(raw)
+    return nil if raw.blank?
+
+    parsed = JSON.parse(raw)
+    return nil unless parsed.is_a?(Array)
+
+    parsed.filter_map do |row|
+      next unless row.is_a?(Hash)
+
+      id = Integer(row["devlog_id"], exception: false)
+      next if id.nil?
+
+      { devlog_id: id, approved_hours: row["approved_hours"].to_f, reason: row["reason"].to_s.strip }
+    end
+  rescue JSON::ParserError
+    nil
+  end
+
+  # A duplicate is not always disqualifying (design/build pairs and genuine
+  # updates share a repo), so the reviewer can proceed by acknowledging it in
+  # writing — which then lands in the justification and the audit log.
+  def duplicate_block_reason(project, params)
+    scan = DuplicateScan.run(project)
+    return nil unless scan["verdict"] == "blocked"
+    return nil if params[:duplicate_acknowledgement].to_s.strip.length >= 20
+
+    programs = scan["unified"].map { |r| r["program"] }.compact.uniq
+    where = programs.any? ? programs.join(", ") : "another Forge project"
+    "This repo is already submitted to #{where}. Explain in the duplicate box why this is not double-dipping (20+ characters) before approving."
+  end
+
   def justification_fields(reasoning:, feedback:)
     {
       time_summary: params[:time_summary],
@@ -806,7 +937,8 @@ class Admin::ProjectsController < Admin::ApplicationController
       evidence: params[:evidence],
       assessment: reasoning.presence || feedback.to_s,
       additional_justification: params[:additional_justification],
-      deflation_reason: params[:override_hours_justification]
+      deflation_reason: params[:override_hours_justification],
+      duplicate_acknowledgement: params[:duplicate_acknowledgement]
     }
   end
 
