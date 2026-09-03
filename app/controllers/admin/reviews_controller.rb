@@ -120,7 +120,8 @@ class Admin::ReviewsController < Admin::ApplicationController
       can: {
         review: can_review,
         requirements_check: policy(@project).requirements_check?,
-        claim: !can_review || claim[:locked_by].nil? || current_user.superadmin?
+        claim: !can_review || claim[:locked_by].nil? || current_user.superadmin?,
+        unflag: current_user.superadmin? || current_user.has_permission?("fraud")
       },
       claim: claim,
       session_stats: current_user.superadmin? ? session_stats(@project) : nil,
