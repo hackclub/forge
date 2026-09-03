@@ -89,7 +89,7 @@ export function lintJustification(input: LintInput, rules: JustificationRules | 
       severity: 'block',
       message:
         'This reads as a message to the builder. The justification is an internal record for whoever audits the Unified DB — put encouragement in the feedback field instead.',
-      fine: 'Factual internal record — NOT encouragement, praise, or a message addressed to the submitter',
+      fine: 'The handbook lists "Good job :)" and "Great project, approved!" as non-compliant: the record is not feedback to the submitter.',
     })
   }
 
