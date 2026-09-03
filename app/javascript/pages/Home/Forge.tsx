@@ -14,6 +14,7 @@ import FireIcon from '@/components/FireIcon'
 import ForgeMusic from '@/components/forge/ForgeMusic'
 import type { DashboardProject } from '@/components/forge/projectStatus'
 import CollaborationInvitesCard, { type PendingCollaborationInvite } from '@/components/CollaborationInvitesCard'
+import { usePerformanceMode } from '@/hooks/usePerformanceMode'
 
 const DEBUG_HOTSPOTS = false
 
@@ -229,11 +230,18 @@ export default function ForgeScene({
 
   const showOnboarding = !!shared.auth.user?.needs_onboarding && !shared.auth.user?.is_banned
   const parallaxRef = useRef<HTMLDivElement | null>(null)
+  const [performanceMode] = usePerformanceMode()
 
   useEffect(() => {
     if (typeof window === 'undefined') return
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
     const node = parallaxRef.current
+    if (performanceMode || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      if (node) {
+        node.style.setProperty('--px', '0px')
+        node.style.setProperty('--py', '0px')
+      }
+      return
+    }
     if (!node) return
 
     let raf = 0
@@ -264,7 +272,7 @@ export default function ForgeScene({
       window.removeEventListener('mousemove', onMove)
       if (raf) cancelAnimationFrame(raf)
     }
-  }, [])
+  }, [performanceMode])
 
   if (EDIT_MODE) {
     return (
@@ -466,6 +474,7 @@ function ForgeHotspot({
   debug: boolean
 }) {
   const [active, setActive] = useState(false)
+  const [performanceMode] = usePerformanceMode()
   const poly = object.points
   const base = labelCenter(object)
   const lcx = object.lx ?? base.lx
@@ -480,10 +489,12 @@ function ForgeHotspot({
         alt=""
         aria-hidden
         draggable={false}
-        className={`pointer-events-none absolute inset-0 h-full w-full object-fill ${active ? '' : 'forge-overlay-idle'}`}
+        className={`pointer-events-none absolute inset-0 h-full w-full object-fill ${active || performanceMode ? '' : 'forge-overlay-idle'}`}
         style={
           active
-            ? { filter: 'brightness(1.15) drop-shadow(0 0 22px rgba(202,89,36,0.7))', transition: 'filter 200ms ease' }
+            ? performanceMode
+              ? { filter: 'brightness(1.2)' }
+              : { filter: 'brightness(1.15) drop-shadow(0 0 22px rgba(202,89,36,0.7))', transition: 'filter 200ms ease' }
             : { animationDelay: `${index * 0.6}s` }
         }
       />
@@ -530,6 +541,9 @@ function ForgeHotspot({
 }
 
 function ForgeEmbers() {
+  const [performanceMode] = usePerformanceMode()
+  if (performanceMode) return null
+
   return (
     <div className="pointer-events-none absolute" style={{ left: '60%', top: '46%', width: '13%', height: '26%' }}>
       {EMBERS.map((e, i) => (

@@ -161,17 +161,18 @@ function useTargetRect(selector: string | undefined) {
     }
 
     measure()
-    const tick = () => {
-      measure()
-      frame = window.requestAnimationFrame(tick)
-    }
-    frame = window.requestAnimationFrame(tick)
+    // Measure briefly after scrollIntoView settles
+    const timer1 = window.setTimeout(measure, 100)
+    const timer2 = window.setTimeout(measure, 350)
 
     window.addEventListener('resize', measure)
+    window.addEventListener('scroll', measure, true)
     return () => {
       cancelled = true
-      window.cancelAnimationFrame(frame)
+      window.clearTimeout(timer1)
+      window.clearTimeout(timer2)
       window.removeEventListener('resize', measure)
+      window.removeEventListener('scroll', measure, true)
     }
   }, [selector])
 

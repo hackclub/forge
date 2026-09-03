@@ -602,3 +602,24 @@ h1, h2, h3, .font-headline {
   border-top: 1px solid rgba(168, 138, 126, 0.15);
   font-size: 0.875rem;
 }
+
+/* Performance / Eco Mode */
+.performance-mode .forge-overlay-idle {
+  animation: none !important;
+}
+
+.performance-mode .forge-ember {
+  display: none !important;
+}
+
+.performance-mode .animate-float {
+  animation: none !important;
+}
+
+.performance-mode .login-bg,
+.performance-mode .landing-bg {
+  animation: none !important;
+  transform: none !important;
+  filter: none !important;
+}
+

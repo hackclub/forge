@@ -1,5 +1,6 @@
 import { Link, router, Head } from '@inertiajs/react'
 import { useEffect, useRef, useState } from 'react'
+import { usePerformanceMode } from '@/hooks/usePerformanceMode'
 
 const PFP_SIZE = 1024
 
@@ -339,7 +340,41 @@ export default function SettingsShow({
             </button>
           </div>
         </section>
+
+        <PerformanceSection />
       </div>
     </>
+  )
+}
+
+function PerformanceSection() {
+  const [performanceMode, togglePerformanceMode] = usePerformanceMode()
+
+  return (
+    <section className="bg-[#1c1b1b] ghost-border p-6 md:p-8 mt-6">
+      <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">Performance & Graphics</h2>
+      <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:justify-between">
+        <div>
+          <p className="text-[#e5e2e1] font-headline font-bold text-base">
+            Eco / Performance Mode ({performanceMode ? 'Enabled' : 'Disabled'})
+          </p>
+          <p className="text-stone-400 text-sm mt-1">
+            Reduces CPU and GPU usage by disabling heavy full-screen blur filters, floating particles, embers, and mouse parallax effects.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={togglePerformanceMode}
+          className={`ghost-border px-4 py-2 uppercase tracking-wider text-[10px] font-bold inline-flex items-center justify-center gap-2 cursor-pointer transition-colors shrink-0 ${
+            performanceMode
+              ? 'bg-[#ca5924]/25 text-[#ffb595] border-[#ca5924]/60 hover:bg-[#ca5924]/35'
+              : 'bg-[#0e0e0e] text-stone-400 hover:bg-[#2a2a2a] hover:text-stone-200'
+          }`}
+        >
+          <span className="material-symbols-outlined text-sm">{performanceMode ? 'bolt' : 'speed'}</span>
+          {performanceMode ? 'Disable Eco Mode' : 'Enable Eco Mode'}
+        </button>
+      </div>
+    </section>
   )
 }

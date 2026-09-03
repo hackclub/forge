@@ -2,14 +2,22 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Head } from '@inertiajs/react'
 import FireIcon from '@/components/FireIcon'
 import ForgeMusic, { LANDING_TRACKS } from '@/components/forge/ForgeMusic'
+import { usePerformanceMode } from '@/hooks/usePerformanceMode'
 
 function LandingParallaxBg({ zooming }: { zooming: boolean }) {
   const parallaxRef = useRef<HTMLDivElement | null>(null)
+  const [performanceMode] = usePerformanceMode()
 
   useEffect(() => {
     if (typeof window === 'undefined') return
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
     const node = parallaxRef.current
+    if (performanceMode || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      if (node) {
+        node.style.setProperty('--parallax-x', '0px')
+        node.style.setProperty('--parallax-y', '0px')
+      }
+      return
+    }
     if (!node) return
 
     let rafId = 0
@@ -71,7 +79,9 @@ const FORGE_ICONS = [
 ]
 
 function FloatingIcons() {
+  const [performanceMode] = usePerformanceMode()
   const icons = useMemo(() => {
+    if (performanceMode) return []
     const seeded = (s: number) => ((s * 9301 + 49297) % 233280) / 233280
     const cols = 10
     const rows = 6
