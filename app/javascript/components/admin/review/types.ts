@@ -167,6 +167,7 @@ export interface DuplicateScan {
   macondo: { id: string; title: string | null; shipped: boolean }[]
   unified_available: boolean
   unified_error: boolean
+  unified_checked: boolean
   verdict: 'clear' | 'review' | 'blocked'
   reason?: string
   scanned_at: string

@@ -345,9 +345,11 @@ export default function AdminReviewsShow({
         .filter((e) => approvedFor(e, deflations[e.id]) < claimedFor(e) - 0.001)
         .map((e) => {
           const reason = (deflations[e.id]?.reason ?? '').trim()
-          return `"${e.title}" ${claimedFor(e).toFixed(1)}h → ${approvedFor(e, deflations[e.id]).toFixed(1)}h: ${reason}`
+          // Entry titles contain colons ("August 12: Competition date!"), so the
+          // reason is separated with an em dash to stay unambiguous.
+          return `- "${e.title}" ${claimedFor(e).toFixed(1)}h → ${approvedFor(e, deflations[e.id]).toFixed(1)}h — ${reason}`
         })
-        .join(' '),
+        .join('\n'),
     [project.devlogs, deflations],
   )
 
@@ -524,10 +526,30 @@ export default function AdminReviewsShow({
         },
         body: JSON.stringify({ justification: justificationPreview, approved_hours: approvedHours }),
       })
-      const data = res.ok ? await res.json() : null
-      setJustificationAudit(data?.result ?? { overall: 'error', message: 'The audit request failed.' })
-    } catch {
-      setJustificationAudit({ overall: 'error', message: 'The audit request failed.' })
+      // The endpoint answers with a JSON result even on failure, so read the
+      // body regardless of status. Anything that is not JSON (an auth redirect
+      // landing on an HTML page, a proxy error page) is reported with its status
+      // rather than collapsed into one unhelpful message.
+      const body = await res.text()
+      let parsed: { result?: AiCheckResult } | null = null
+      try {
+        parsed = JSON.parse(body)
+      } catch {
+        parsed = null
+      }
+      setJustificationAudit(
+        parsed?.result ?? {
+          overall: 'error',
+          message: res.redirected
+            ? `The audit request was redirected to ${res.url} — you may not have review permission for this tier.`
+            : `The audit request failed (HTTP ${res.status}).`,
+        },
+      )
+    } catch (e) {
+      setJustificationAudit({
+        overall: 'error',
+        message: `Could not reach the audit endpoint: ${e instanceof Error ? e.message : 'network error'}`,
+      })
     } finally {
       setJustificationAuditing(false)
     }

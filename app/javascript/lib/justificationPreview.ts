@@ -111,7 +111,8 @@ export function buildJustification(ctx: JustificationContext): string {
   const deflationRaw = Math.max(0, Math.round((ctx.claimed_hours - ctx.approved_hours) * 10) / 10)
   const deflation = String(deflationRaw).replace(/\.0$/, '')
   const deflationReason = (ctx.deflation_reason ?? '').trim()
-  const deflationSuffix = deflationRaw > 0 && deflationReason ? ` — reason: ${deflationReason}` : ''
+  // A multi-line list of per-entry reasons reads as a block, not a clause.
+  const deflationSuffix = deflationRaw > 0 && deflationReason ? `:\n${deflationReason}` : ''
   const reasoning = (ctx.assessment ?? '').trim() || '(no justification provided)'
   const additional = (ctx.additional_justification ?? '').trim()
   const additionalBlock = additional ? `\nAdditional justification:\n${additional}\n` : ''
