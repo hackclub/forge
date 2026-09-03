@@ -54,7 +54,9 @@ class JustificationTemplate
     deflation = (claimed_hours.to_f - approved_hours.to_f).round(1)
     deflation = 0 if deflation.negative?
     deflation_reason = fields[:deflation_reason].to_s.strip
-    deflation_suffix = deflation > 0 && deflation_reason.present? ? " — reason: #{deflation_reason}" : ""
+    # Per-entry reasons arrive newline-separated, so they render as a list under
+    # the total rather than one unreadable run-on line.
+    deflation_suffix = deflation > 0 && deflation_reason.present? ? ":\n#{deflation_reason}" : ""
 
     format(
       TEMPLATE,

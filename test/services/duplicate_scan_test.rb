@@ -148,6 +148,33 @@ class DuplicateScanTest < ActiveSupport::TestCase
     assert_equal 1, calls, "expected the second call to be served from cache"
   end
 
+  # Setting the token has to take effect on the next page load, not 30 minutes
+  # later. A scan taken while it was unset used to be cached as a clean result.
+  test "a scan taken before the token was configured is not cached" do
+    calls = 0
+    counting = ->(*) { calls += 1; [] }
+
+    with_memory_cache do
+      with_unified(records_for_repo: counting, enabled: false) do
+        first = DuplicateScan.run(@project)
+        assert_not first["unified_checked"]
+        assert_not first["unified_available"]
+      end
+
+      # Token now configured; the next load must re-scan rather than serve the
+      # "not configured" answer from cache.
+      with_unified(records_for_repo: counting) do
+        second = DuplicateScan.run(@project)
+        assert second["unified_checked"], "expected a fresh scan once the token exists"
+      end
+    end
+
+    # Two calls, not one: the second load re-scanned instead of returning the
+    # cached "not configured" result. (The stub bypasses the real enabled?
+    # short-circuit, so the disabled pass counts as a call too.)
+    assert_equal 2, calls, "expected the second load to re-scan, not hit cache"
+  end
+
   test "a unified match blocks regardless of what Forge holds" do
     match = ->(*) {
       [ { "record_id" => "rec1", "record_url" => "https://airtable.com/x", "program" => "Blueprint",

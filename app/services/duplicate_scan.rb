@@ -24,10 +24,12 @@ module DuplicateScan
     return cached if cached.present?
 
     result = scan(project, slug)
-    # A failed cross-program lookup must not be remembered as "clear" — that
-    # would hide a real double-dip for the whole TTL. Leave it uncached so the
-    # next page load retries.
-    Rails.cache.write(key, result, expires_in: CACHE_TTL) unless result["unified_error"]
+    # Only remember a scan that actually checked every program. A failed lookup
+    # must not be cached as "clear" (it would hide a real double-dip for the
+    # whole TTL), and neither must a scan taken before the Unified DB token was
+    # configured — otherwise setting the token appears to do nothing until the
+    # cache expires.
+    Rails.cache.write(key, result, expires_in: CACHE_TTL) if result["unified_checked"]
     result
   end
 
@@ -51,6 +53,7 @@ module DuplicateScan
       "macondo" => macondo,
       "unified_available" => UnifiedDbService.enabled?,
       "unified_error" => unified_error,
+      "unified_checked" => UnifiedDbService.enabled? && !unified_error,
       "verdict" => verdict(forge, unified, macondo),
       "scanned_at" => Time.current.iso8601
     }
@@ -108,6 +111,7 @@ module DuplicateScan
   def empty_result(reason)
     { "slug" => nil, "forge" => [], "unified" => [], "macondo" => [],
       "unified_available" => UnifiedDbService.enabled?, "unified_error" => false,
-      "verdict" => "clear", "reason" => reason, "scanned_at" => Time.current.iso8601 }
+      "unified_checked" => false, "verdict" => "clear", "reason" => reason,
+      "scanned_at" => Time.current.iso8601 }
   end
 end

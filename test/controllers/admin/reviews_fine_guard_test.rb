@@ -274,6 +274,60 @@ class Admin::ReviewsFineGuardTest < ActionDispatch::IntegrationTest
     assert_equal "approved", @project.reload.status
   end
 
+  # --- justification audit endpoint ---------------------------------------
+  #
+  # A fetch() follows redirects, so answering a JSON request with Pundit's HTML
+  # redirect made every permission failure look like a generic network error.
+
+  test "the audit endpoint reports a permission problem as JSON, not a redirect" do
+    @reviewer.update!(permissions: %w[projects pending_reviews])
+
+    post check_draft_justification_admin_project_path(@project), params: { justification: "text", approved_hours: 12.4 }
+
+    assert_response :forbidden
+    body = JSON.parse(response.body)
+    assert_equal "error", body.dig("result", "overall")
+    assert_match(/review permission/i, body.dig("result", "message"))
+  end
+
+  test "a requirements checker gets a readable message, not a bare 404" do
+    checker = make_user(roles: %w[user reviewer], permissions: %w[review_requirements], birthday: Date.new(2008, 1, 1))
+    sign_in_as(checker)
+
+    post check_draft_justification_admin_project_path(@project), params: { justification: "text", approved_hours: 12.4 }
+
+    assert_response :forbidden
+    assert_match(/review permission/i, JSON.parse(response.body).dig("result", "message"))
+  end
+
+  test "the audit endpoint reports a missing AI credential as JSON" do
+    post check_draft_justification_admin_project_path(@project), params: { justification: "text", approved_hours: 12.4 }
+
+    assert_response :success
+    body = JSON.parse(response.body)
+    assert_equal "error", body.dig("result", "overall")
+    assert_match(/credential|configured/i, body.dig("result", "message"))
+  end
+
+  # The per-entry reasons used to be joined with a space, producing one
+  # unreadable run-on line in the Unified DB record.
+  test "deflation reasons render as a list, one entry per line" do
+    entry = @project.devlogs.first
+    approve(
+      override_hours: "6.0",
+      override_hours_justification: %(- "#{entry.title}" 12.4h → 6.0h — Entry describes writing up earlier work.),
+      **deflations([ {
+        devlog_id: entry.id, approved_hours: 6.0,
+        reason: "Entry describes writing up earlier work."
+      } ])
+    )
+
+    assert_equal "approved", @project.reload.status
+    justification = @project.approval_justification
+    assert_match(/hours of deflation was applied to meet our requirements:\n- "/, justification)
+    refute_match(/requirements — reason:/, justification)
+  end
+
   test "still enforces the checklist" do
     approve(checklist: [])
     assert_equal "pending", @project.reload.status

@@ -1,9 +1,9 @@
 class Admin::ProjectsController < Admin::ApplicationController
-  REVIEW_SCREEN_ACTIONS = %i[review repo_tree commit_stats changes_since_review ai_requirements_check ai_requirements_check_status].freeze
+  REVIEW_SCREEN_ACTIONS = %i[review repo_tree commit_stats changes_since_review ai_requirements_check ai_requirements_check_status check_draft_justification].freeze
 
   before_action :require_projects_permission!, except: REVIEW_SCREEN_ACTIONS + [ :unflag_for_review ]
   before_action :require_review_screen_access!, only: REVIEW_SCREEN_ACTIONS
-  before_action :set_project, only: [ :show, :review, :destroy, :restore, :toggle_hidden, :toggle_shadow_ban, :toggle_staff_pick, :change_tier, :add_note, :destroy_note, :update_note, :flag_for_review, :unflag_for_review, :mark_unbuilt, :reverse_review, :ai_requirements_check, :ai_requirements_check_status, :repo_tree, :commit_stats, :changes_since_review, :send_checkpoint_message, :send_dm_message ]
+  before_action :set_project, only: [ :show, :review, :destroy, :restore, :toggle_hidden, :toggle_shadow_ban, :toggle_staff_pick, :change_tier, :add_note, :destroy_note, :update_note, :flag_for_review, :unflag_for_review, :mark_unbuilt, :reverse_review, :ai_requirements_check, :ai_requirements_check_status, :check_draft_justification, :repo_tree, :commit_stats, :changes_since_review, :send_checkpoint_message, :send_dm_message ]
 
   def index
     scope = policy_scope(Project).includes(:user, :ships)
@@ -360,7 +360,16 @@ class Admin::ProjectsController < Admin::ApplicationController
   # reviewing itself". JustificationLint already runs on every keystroke for
   # free; this is the paid second opinion, so it is on demand only.
   def check_draft_justification
-    authorize @project, :review?
+    # Deliberately not `authorize`: Pundit's failure handler redirects to an HTML
+    # page, and a fetch() follows that redirect and then chokes parsing HTML as
+    # JSON — which surfaces to the reviewer as a generic "request failed" with no
+    # hint that it was a permissions problem.
+    unless policy(@project).review?
+      return render json: {
+        result: { "overall" => "error",
+                  "message" => "You don't have review permission for #{@project.review_tier.to_s.tr('_', ' ')}, so the audit can't run." }
+      }, status: :forbidden
+    end
 
     result = AiRequirementsChecker.audit_justification(
       text: params[:justification].to_s,
@@ -371,6 +380,13 @@ class Admin::ProjectsController < Admin::ApplicationController
     render json: { result: result }
   rescue AiRequirementsChecker::Error => e
     render json: { result: { "overall" => "error", "message" => e.message } }
+  rescue StandardError => e
+    # A timeout or a malformed model response should say so, not 500 into the
+    # frontend's catch-all.
+    Rails.logger.error("[JustificationAudit] project=#{@project&.id.inspect} #{e.class}: #{e.message}")
+    Sentry.capture_exception(e) if defined?(Sentry)
+    render json: { result: { "overall" => "error", "message" => "The audit hit an unexpected error (#{e.class}). Try again." } },
+           status: :internal_server_error
   end
 
   REQUIREMENTS_CHECKER_DECISIONS = %w[requirements_met return].freeze
