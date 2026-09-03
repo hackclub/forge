@@ -146,4 +146,71 @@ class UserStreakTest < ActiveSupport::TestCase
 
     assert_equal 2, @user.longest_streak
   end
+
+  # --- reconcile_missed_days query cost -----------------------------------
+  #
+  # This ran one SELECT per day since the user's last counting day, on every
+  # request that touched their streak. Because marking days `missed` does not
+  # move that cursor, the same days were re-read and discarded forever, growing
+  # by a query a day: a 96-day gap cost 100 queries and ~1s of database time on
+  # every page load.
+
+  def count_queries
+    count = 0
+    sub = ActiveSupport::Notifications.subscribe("sql.active_record") do |*, payload|
+      count += 1 unless payload[:name].to_s.match?(/SCHEMA|TRANSACTION/)
+    end
+    yield
+    count
+  ensure
+    ActiveSupport::Notifications.unsubscribe(sub)
+  end
+
+  test "a long gap is resolved in a handful of queries, not one per day" do
+    @user.update!(streak_freezes: 0)
+    active_day(@today - 90)
+
+    queries = count_queries { StreakService.reconcile_missed_days(@user, @today) }
+
+    assert_operator queries, :<, 15, "expected a batched write, got #{queries} queries for an 89-day gap"
+    assert_equal 89, @user.streak_days.where(status: :missed).count
+  end
+
+  test "re-running over an already-resolved gap writes nothing and stays cheap" do
+    @user.update!(streak_freezes: 0)
+    active_day(@today - 90)
+    StreakService.reconcile_missed_days(@user, @today)
+
+    before = @user.streak_days.order(:date).pluck(:date, :status, :hours_logged)
+    queries = count_queries { StreakService.reconcile_missed_days(@user, @today) }
+
+    assert_operator queries, :<, 10, "steady state should be nearly free, got #{queries} queries"
+    assert_equal before, @user.streak_days.reload.order(:date).pluck(:date, :status, :hours_logged)
+  end
+
+  test "marking a gap missed preserves created_at and hours on existing rows" do
+    @user.update!(streak_freezes: 0)
+    active_day(@today - 5)
+    stamped = @user.streak_days.create!(
+      date: @today - 3, status: :pending, hours_logged: 0.4, created_at: 10.days.ago
+    )
+
+    StreakService.reconcile_missed_days(@user, @today)
+    stamped.reload
+
+    assert stamped.status_missed?
+    assert_equal 0.4, stamped.hours_logged.to_f
+    assert_in_delta 10.days.ago.to_i, stamped.created_at.to_i, 5
+  end
+
+  test "a bridged gap is frozen in one batch and still spends the freezes" do
+    active_day(@today - 3)
+    @user.update!(streak_freezes: 2)
+
+    queries = count_queries { StreakService.reconcile_missed_days(@user, @today) }
+
+    assert_operator queries, :<, 15
+    assert_equal 2, @user.streak_days.where(status: :frozen).count
+    assert_equal 0, @user.reload.streak_freezes
+  end
 end

@@ -126,7 +126,7 @@ This project was approved at ${approved}
 
 1. Journaling time was verified/deflated by ${ctx.reviewer_name}${emailPart} to ensure it matches our policy of what is allowed. Inactive and unrelated time was stripped according to our policy publicly available at here: https://forge.hackclub.com/docs/design/how-to-journal The project was then checked to ensure it meets our requirements of a "shipped" hardware project, which is publicly available here: https://forge.hackclub.com/docs/design/journal-format & https://forge.hackclub.com/docs/requirements/submitting
 
-3. A final check was done by Aarav (aarav@hackclub.com) and Souptik (Lead reviewer for forge), who is knowledgeable in hardware, to ensure nothing was missed prior, and that the projects meets our standards in terms of quality.
+3. A final check was done by Aarav (aarav@hackclub.com), who is knowledgeable in hardware, to ensure nothing was missed prior, and that the projects meets our standards in terms of quality.
 
 Time evidence:
 ${present(ctx.time_summary)}

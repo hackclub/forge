@@ -1,5 +1,8 @@
 import type { ProjectStatus, ProjectTier, SubmissionRequirement } from '@/types'
 
+/** Field the review form flashes red when a submit is blocked. */
+export type InvalidReviewField = 'conclusion' | 'technical' | 'feedback' | 'override' | 'checklist' | 'duplicate'
+
 export interface ReviewChecklistItem {
   key: string
   label: string
@@ -23,7 +26,9 @@ export interface AiCheckRequirement {
 export interface AiCheckResult {
   status?: 'queued' | 'running' | 'done' | 'error'
   summary?: string
-  overall?: 'pass' | 'fail' | 'uncertain'
+  // 'error' is returned when the checker itself raises; see the rescue in
+  // Admin::AirtableQueueController#check_justification.
+  overall?: 'pass' | 'fail' | 'uncertain' | 'error'
   requirements?: AiCheckRequirement[]
   checked_at?: string
   model?: string
@@ -88,6 +93,91 @@ export interface ReviewNote {
   created_at: string
 }
 
+export interface JournalDigestItem {
+  id: number
+  title: string
+  entry_date: string | null
+  hours: number
+  chars: number
+  has_image: boolean
+  lapse_url: string | null
+  written_on: string
+  backfilled: boolean
+  outlier: boolean
+}
+
+export interface JournalDigestWeek {
+  week_of: string
+  label: string
+  entries: number
+  hours: number
+  with_images: number
+  lapse_urls: string[]
+  items: JournalDigestItem[]
+}
+
+export interface JournalDigestSignal {
+  code: string
+  level: 'warn' | 'info'
+  headline: string
+  why: string
+  entry_ids: number[]
+}
+
+export interface JournalDigest {
+  entry_count: number
+  total_hours: number
+  first_entry_on?: string | null
+  last_entry_on?: string | null
+  span_days: number
+  with_images: number
+  with_lapse: number
+  weeks: JournalDigestWeek[]
+  signals: JournalDigestSignal[]
+}
+
+export interface DuplicateScanUnifiedRow {
+  record_id: string
+  record_url: string
+  program: string
+  status: string | null
+  hours: string | number | null
+  submitter: string | null
+  email: string | null
+  code_url: string | null
+  created_at: string | null
+  duplicate_justification: string | null
+}
+
+export interface DuplicateScanForgeRow {
+  id: number
+  name: string
+  status: string
+  build_review: boolean
+  owner: string | null
+  same_owner: boolean
+  approved_at: string | null
+  path: string
+}
+
+export interface DuplicateScan {
+  slug: string | null
+  forge: DuplicateScanForgeRow[]
+  unified: DuplicateScanUnifiedRow[]
+  macondo: { id: string; title: string | null; shipped: boolean }[]
+  unified_available: boolean
+  unified_error: boolean
+  verdict: 'clear' | 'review' | 'blocked'
+  reason?: string
+  scanned_at: string
+}
+
+export interface JustificationGuide {
+  anatomy: { part: string; detail: string }[]
+  examples: { key: string; text: string; fine: string; why: string; fixed: string }[]
+  journal_only: boolean
+}
+
 export interface ReviewProject {
   id: number
   name: string
@@ -108,6 +198,7 @@ export interface ReviewProject {
   tags: string[]
   status: ProjectStatus
   tier: ProjectTier
+  review_tier: ProjectTier
   budget: string | null
   build_review: boolean
   linked_project: { id: number; name: string } | null
@@ -143,6 +234,10 @@ export interface ReviewProject {
   flagged_for_review: boolean
   flag_reason: string | null
   flagged_by_name: string | null
+  journal_digest: JournalDigest
+  duplicate_scan: DuplicateScan
+  justification_guide: JustificationGuide
+  self_review: boolean
 }
 
 export interface ReviewSession {

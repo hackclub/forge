@@ -53,8 +53,15 @@ class ReviewChecklist
     },
     {
       key: "screenshot",
-      label: "Cover image is a still image of the project",
-      note: "No GIFs, no video files",
+      label: "Cover image shows this project, not a logo or a render",
+      note: "Fines were issued for logos, banners, CAD renders, code, an itch.io page, and a cat. No GIFs either",
+      doc: "#{HANDBOOK}/required-submission-fields",
+      stages: %w[design build]
+    },
+    {
+      key: "links_open",
+      label: "Every link opens in a private window",
+      note: "Repo, build proof and any Onshape/Drive link — 73 fines were dead or login-walled links, 7 of them ours",
       doc: "#{HANDBOOK}/required-submission-fields",
       stages: %w[design build]
     },
@@ -82,14 +89,14 @@ class ReviewChecklist
     {
       key: "hours",
       label: "Hours match the evidence, or are deflated with a reason",
-      note: "A stranger following your links should reach the same number",
+      note: "A stranger following your links must reach the same number without asking you anything",
       doc: "#{HANDBOOK}/override-hours-spent",
       stages: %w[design build]
     },
     {
       key: "exceptions",
       label: "Not a school assignment, paid Hack Club work, or a duplicate ship",
-      note: "These cannot go to the Unified DB at all",
+      note: "These cannot go to the Unified DB at all — check the duplicate scan above, not just your memory",
       doc: "#{HANDBOOK}/project-exceptions",
       stages: %w[design build]
     }

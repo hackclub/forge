@@ -103,9 +103,19 @@ module AiRequirementsChecker
   end
 
   def check_justification(item)
+    audit_justification(
+      text: item.payload.to_h["Optional - Override Hours Spent Justification"].to_s,
+      hours: item.payload.to_h["Optional - Override Hours Spent"],
+      project: item.project
+    )
+  end
+
+  # Audits a justification that has not been submitted anywhere yet, so a
+  # reviewer can see the verdict before approving rather than after a fine.
+  def audit_justification(text:, hours:, project:)
     ensure_configured!
 
-    parsed = complete_json(justification_prompt(item), schema: JUSTIFICATION_SCHEMA)
+    parsed = complete_json(justification_prompt(text: text, hours: hours, project: project), schema: JUSTIFICATION_SCHEMA)
     checks = Array(parsed["checks"]).filter_map do |row|
       next unless row.is_a?(Hash)
       name = row["name"].to_s.strip
@@ -128,11 +138,8 @@ module AiRequirementsChecker
     }
   end
 
-  def justification_prompt(item)
-    payload = item.payload || {}
-    justification = payload["Optional - Override Hours Spent Justification"].to_s
-    hours = payload["Optional - Override Hours Spent"]
-    project = item.project
+  def justification_prompt(text:, hours:, project:)
+    justification = text.to_s
     kind = project&.build_review? ? "build review" : "design review"
 
     <<~PROMPT
