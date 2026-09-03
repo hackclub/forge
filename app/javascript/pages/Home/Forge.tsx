@@ -494,7 +494,10 @@ function ForgeHotspot({
           active
             ? performanceMode
               ? { filter: 'brightness(1.2)' }
-              : { filter: 'brightness(1.15) drop-shadow(0 0 22px rgba(202,89,36,0.7))', transition: 'filter 200ms ease' }
+              : {
+                  filter: 'brightness(1.15) drop-shadow(0 0 22px rgba(202,89,36,0.7))',
+                  transition: 'filter 200ms ease',
+                }
             : { animationDelay: `${index * 0.6}s` }
         }
       />

@@ -352,14 +352,17 @@ function PerformanceSection() {
 
   return (
     <section className="bg-[#1c1b1b] ghost-border p-6 md:p-8 mt-6">
-      <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">Performance & Graphics</h2>
+      <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">
+        Performance & Graphics
+      </h2>
       <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:justify-between">
         <div>
           <p className="text-[#e5e2e1] font-headline font-bold text-base">
             Eco / Performance Mode ({performanceMode ? 'Enabled' : 'Disabled'})
           </p>
           <p className="text-stone-400 text-sm mt-1">
-            Reduces CPU and GPU usage by disabling heavy full-screen blur filters, floating particles, embers, and mouse parallax effects.
+            Reduces CPU and GPU usage by disabling heavy full-screen blur filters, floating particles, embers, and mouse
+            parallax effects.
           </p>
         </div>
         <button
