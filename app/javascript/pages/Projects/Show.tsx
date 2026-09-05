@@ -117,6 +117,12 @@ interface DevlogEntry {
   }
 }
 
+interface UnmatchedLapseLink {
+  id: number
+  title: string
+  lapse_url: string
+}
+
 interface PendingInvite {
   id: number
   invitee_display_name: string
@@ -307,6 +313,7 @@ export default function ProjectsShow({
   is_admin_view,
   pending_invites,
   hackatime_enabled,
+  orphaned_lapse_links = [],
 }: {
   project: ProjectDetail
   devlogs: DevlogEntry[]
@@ -324,6 +331,7 @@ export default function ProjectsShow({
   is_admin_view: boolean
   pending_invites: PendingInvite[]
   hackatime_enabled?: boolean
+  orphaned_lapse_links?: UnmatchedLapseLink[]
 }) {
   const [kudoContent, setKudoContent] = useState('')
   const [hackatimeSelection, setHackatimeSelection] = useState<string[]>(project.hackatime_projects ?? [])
@@ -460,6 +468,50 @@ export default function ProjectsShow({
         editDevlogForm.reset()
       },
     })
+  }
+
+  const [editingLapseId, setEditingLapseId] = useState<number | null>(null)
+  const lapseForm = useForm({ lapse_url: '' })
+
+  function startEditLapse(entry: DevlogEntry) {
+    setEditingLapseId(entry.id)
+    lapseForm.setData('lapse_url', entry.lapse_url || '')
+  }
+
+  function cancelEditLapse() {
+    setEditingLapseId(null)
+    lapseForm.reset()
+  }
+
+  function submitEditLapse(e: React.FormEvent, id: number) {
+    e.preventDefault()
+    lapseForm.patch(`/projects/${project.id}/devlogs/${id}`, {
+      preserveScroll: true,
+      onSuccess: () => {
+        setEditingLapseId(null)
+        lapseForm.reset()
+      },
+    })
+  }
+
+  function useUnmatchedLapseLink(linkId: number, devlogId: number) {
+    router.patch(
+      `/projects/${project.id}/orphaned_lapse_links/${linkId}/relink`,
+      { devlog_id: devlogId },
+      {
+        preserveScroll: true,
+        onSuccess: () => {
+          setEditingLapseId(null)
+          lapseForm.reset()
+          setEditingDevlogId(null)
+          editDevlogForm.reset()
+        },
+      },
+    )
+  }
+
+  function deleteUnmatchedLapseLink(linkId: number) {
+    router.delete(`/projects/${project.id}/orphaned_lapse_links/${linkId}`, { preserveScroll: true })
   }
 
   function uploadCoverImage(e: React.ChangeEvent<HTMLInputElement>) {
@@ -1017,6 +1069,43 @@ export default function ProjectsShow({
             </section>
           )}
 
+          {orphaned_lapse_links.length > 0 && (
+            <section className="mb-8">
+              <div className="ghost-border bg-amber-950/30 border border-amber-700/40 p-4">
+                <p className="text-amber-200 text-sm font-bold mb-1">
+                  {orphaned_lapse_links.length} Unmatched Lapse Link{orphaned_lapse_links.length > 1 ? 's' : ''}
+                </p>
+                <p className="text-amber-100/70 text-xs mb-3">
+                  These lapse links no longer match a journal entry. Attach one from an entry's edit form below, or
+                  delete the ones you don't need.
+                </p>
+                <ul className="space-y-2">
+                  {orphaned_lapse_links.map((link) => (
+                    <li key={link.id} className="flex items-center justify-between gap-3 text-xs">
+                      <span className="text-amber-100/90 truncate">
+                        &quot;{link.title}&quot; →{' '}
+                        <a
+                          href={link.lapse_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="underline hover:text-amber-50"
+                        >
+                          {link.lapse_url}
+                        </a>
+                      </span>
+                      <button
+                        onClick={() => deleteUnmatchedLapseLink(link.id)}
+                        className="text-amber-300/70 hover:text-amber-100 shrink-0 cursor-pointer uppercase tracking-[0.15em] font-bold"
+                      >
+                        Delete
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </section>
+          )}
+
           {showGitDevlog && (
             <section className="mb-12">
               <div className="flex items-center justify-between mb-6">
@@ -1210,6 +1299,74 @@ export default function ProjectsShow({
                           {entry.content}
                         </Markdown>
                       </div>
+                      {editingLapseId === entry.id ? (
+                        <form
+                          onSubmit={(e) => submitEditLapse(e, entry.id)}
+                          className="mt-3 pt-3 border-t border-stone-800 space-y-2"
+                        >
+                          {orphaned_lapse_links.length > 0 && (
+                            <div className="flex flex-wrap gap-1.5 mb-1">
+                              {orphaned_lapse_links.map((link) => (
+                                <button
+                                  key={link.id}
+                                  type="button"
+                                  onClick={() => useUnmatchedLapseLink(link.id, entry.id)}
+                                  className="ghost-border bg-[#0e0e0e] hover:bg-[#2a2a2a] text-stone-400 hover:text-[#ffb595] px-2 py-1 text-[10px] uppercase tracking-[0.1em] cursor-pointer transition-colors"
+                                >
+                                  Use link from &quot;{link.title}&quot;
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="url"
+                              value={lapseForm.data.lapse_url}
+                              onChange={(e) => lapseForm.setData('lapse_url', e.target.value)}
+                              className="flex-1 bg-[#0e0e0e] border-none px-3 py-2 text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 text-xs"
+                              placeholder="https://lapse.hackclub.com/timelapse"
+                            />
+                            <button
+                              type="submit"
+                              disabled={lapseForm.processing}
+                              className="signature-smolder text-[#4c1a00] px-4 py-2 text-xs font-bold uppercase tracking-[0.15em] cursor-pointer"
+                            >
+                              Save
+                            </button>
+                            <button
+                              type="button"
+                              onClick={cancelEditLapse}
+                              className="text-stone-500 hover:text-stone-300 px-2 py-2 text-xs cursor-pointer"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </form>
+                      ) : (
+                        <div className="mt-3 pt-3 border-t border-stone-800 flex items-center gap-3">
+                          {entry.lapse_url && (
+                            <a
+                              href={entry.lapse_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-[#ffb595] hover:text-[#ca5924] text-xs flex items-center gap-1"
+                            >
+                              <span className="material-symbols-outlined text-xs">videocam</span>
+                              Lapse
+                            </a>
+                          )}
+                          {entry.can_edit && (
+                            <button
+                              onClick={() => startEditLapse(entry)}
+                              className="text-stone-600 hover:text-[#ffb595] transition-colors cursor-pointer text-xs flex items-center gap-1"
+                              aria-label="Edit lapse link"
+                            >
+                              <span className="material-symbols-outlined text-sm">edit</span>
+                              {entry.lapse_url ? 'Edit Lapse Link' : 'Add Lapse Link'}
+                            </button>
+                          )}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -1359,25 +1516,23 @@ export default function ProjectsShow({
                       placeholder="e.g. 3 hours"
                     />
                   </div>
-                  {project.build_review && (
-                    <div>
-                      <label className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
-                        Lapse Link{' '}
-                        <span className="text-[#ffb595] normal-case tracking-normal">(highly recommended)</span>
-                      </label>
-                      <input
-                        type="url"
-                        value={devlogForm.data.lapse_url}
-                        onChange={(e) => devlogForm.setData('lapse_url', e.target.value)}
-                        className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 text-sm"
-                        placeholder="https://lapse.hackclub.com/timelapse/create"
-                      />
-                      <p className="text-xs text-stone-500 mt-1.5">
-                        A timelapse of your build helps reviewers verify hours faster — submissions without one are more
-                        likely to be returned.
-                      </p>
-                    </div>
-                  )}
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
+                      Lapse Link{' '}
+                      <span className="text-[#ffb595] normal-case tracking-normal">(highly recommended)</span>
+                    </label>
+                    <input
+                      type="url"
+                      value={devlogForm.data.lapse_url}
+                      onChange={(e) => devlogForm.setData('lapse_url', e.target.value)}
+                      className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 text-sm"
+                      placeholder="https://lapse.hackclub.com/timelapse/create"
+                    />
+                    <p className="text-xs text-stone-500 mt-1.5">
+                      A timelapse of your build helps reviewers verify hours faster — submissions without one are more
+                      likely to be returned.
+                    </p>
+                  </div>
                   <button
                     type="submit"
                     disabled={devlogForm.processing || devlogValidationErrors.length > 0}
@@ -1505,21 +1660,33 @@ export default function ProjectsShow({
                               placeholder="e.g. 3 or 3 hours"
                             />
                           </div>
-                          {project.build_review && (
-                            <div>
-                              <label className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
-                                Lapse Link{' '}
-                                <span className="text-[#ffb595] normal-case tracking-normal">(highly recommended)</span>
-                              </label>
-                              <input
-                                type="url"
-                                value={editDevlogForm.data.lapse_url}
-                                onChange={(e) => editDevlogForm.setData('lapse_url', e.target.value)}
-                                className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 text-sm"
-                                placeholder="https://lapse.hackclub.com/timelapse"
-                              />
-                            </div>
-                          )}
+                          <div>
+                            <label className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
+                              Lapse Link{' '}
+                              <span className="text-[#ffb595] normal-case tracking-normal">(highly recommended)</span>
+                            </label>
+                            {orphaned_lapse_links.length > 0 && (
+                              <div className="flex flex-wrap gap-1.5 mb-2">
+                                {orphaned_lapse_links.map((link) => (
+                                  <button
+                                    key={link.id}
+                                    type="button"
+                                    onClick={() => useUnmatchedLapseLink(link.id, entry.id)}
+                                    className="ghost-border bg-[#0e0e0e] hover:bg-[#2a2a2a] text-stone-400 hover:text-[#ffb595] px-2 py-1 text-[10px] uppercase tracking-[0.1em] cursor-pointer transition-colors"
+                                  >
+                                    Use link from &quot;{link.title}&quot;
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                            <input
+                              type="url"
+                              value={editDevlogForm.data.lapse_url}
+                              onChange={(e) => editDevlogForm.setData('lapse_url', e.target.value)}
+                              className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 text-sm"
+                              placeholder="https://lapse.hackclub.com/timelapse"
+                            />
+                          </div>
                           <div className="flex gap-2">
                             <button
                               type="submit"

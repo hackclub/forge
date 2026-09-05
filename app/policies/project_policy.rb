@@ -66,6 +66,10 @@ class ProjectPolicy < ApplicationPolicy
     owner? && !record.build_review?
   end
 
+  def manage_lapse_links?
+    admin? || user&.reviewer? || member?
+  end
+
   private
 
   def collaborator?

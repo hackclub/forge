@@ -16,6 +16,10 @@ class DevlogPolicy < ApplicationPolicy
     update?
   end
 
+  def view_lapse_url?
+    ProjectPolicy.new(user, record.project).manage_lapse_links?
+  end
+
   private
 
   def author?

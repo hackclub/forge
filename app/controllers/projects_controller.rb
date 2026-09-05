@@ -10,6 +10,8 @@ class ProjectsController < ApplicationController
     @og_image = @project.cover_image_url
     SyncJournalJob.sync_if_stale(@project) if @project.member?(current_user)
 
+    can_manage_lapse_links = current_user.present? && policy(@project).manage_lapse_links?
+
     render inertia: "Projects/Show", props: {
       project: serialize_project_detail(@project),
       devlogs: @project.devlogs.includes(:user).map { |d| serialize_devlog(d) },
@@ -26,7 +28,8 @@ class ProjectsController < ApplicationController
       },
       hackatime_enabled: HackatimeService.enabled?,
       pending_invites: policy(@project).manage_team? ? serialize_pending_invites(@project) : [],
-      kudos: @project.kudos.includes(:author).order(created_at: :desc).map { |k| serialize_project_kudo(k) }
+      kudos: @project.kudos.includes(:author).order(created_at: :desc).map { |k| serialize_project_kudo(k) },
+      orphaned_lapse_links: can_manage_lapse_links ? @project.orphaned_lapse_links.order(:created_at).map { |o| { id: o.id, title: o.title, lapse_url: o.lapse_url } } : []
     }
   end
 
@@ -296,11 +299,7 @@ class ProjectsController < ApplicationController
       return
     end
 
-    if params[:clear] == "true"
-      @project.devlogs.delete_all
-    end
-
-    SyncJournalJob.perform_now(@project.id)
+    SyncJournalJob.perform_now(@project.id, clear: params[:clear] == "true")
     audit!("project.journal_synced", target: @project)
     redirect_to @project, notice: "Journal synced."
   end
@@ -602,7 +601,7 @@ class ProjectsController < ApplicationController
       content: devlog.content,
       time_spent: devlog.time_spent,
       time_hours: devlog.time_hours&.to_f,
-      lapse_url: devlog.lapse_url,
+      lapse_url: policy(devlog).view_lapse_url? ? devlog.lapse_url : nil,
       created_at: devlog.created_at.strftime("%B %d, %Y"),
       user_id: devlog.user_id,
       user_display_name: devlog.user.display_name,

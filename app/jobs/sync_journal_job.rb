@@ -12,7 +12,7 @@ class SyncJournalJob < ApplicationJob
     perform_later(project.id)
   end
 
-  def perform(project_id)
+  def perform(project_id, clear: false)
     project = Project.find(project_id)
     project.update_columns(journal_synced_at: Time.current)
     return unless project.repo_link.present?
@@ -32,6 +32,20 @@ class SyncJournalJob < ApplicationJob
     end
 
     return if entries.empty?
+
+    current_titles = entries.map { |e| e[:title] }
+    preserved_lapse_urls = {}
+
+    if clear
+      project.devlogs.where.not(lapse_url: nil).find_each do |d|
+        if current_titles.include?(d.title)
+          preserved_lapse_urls[d.title] = d.lapse_url
+        else
+          stash_orphaned_lapse_link!(project, d.title, d.lapse_url)
+        end
+      end
+      project.devlogs.delete_all
+    end
 
     raw_base = build_raw_base(parsed, branch)
     author = project.user
@@ -72,10 +86,27 @@ class SyncJournalJob < ApplicationJob
       end
     end
 
+    if clear
+      preserved_lapse_urls.each do |title, lapse_url|
+        project.devlogs.where(title: title).update_all(lapse_url: lapse_url)
+      end
+    else
+      project.devlogs.where.not(lapse_url: nil).where.not(title: current_titles).find_each do |d|
+        stash_orphaned_lapse_link!(project, d.title, d.lapse_url)
+        d.update_column(:lapse_url, nil)
+      end
+    end
+
     author&.apply_streak_freezes!
   end
 
   private
+
+  def stash_orphaned_lapse_link!(project, title, lapse_url)
+    link = OrphanedLapseLink.find_or_initialize_by(project: project, title: title)
+    link.lapse_url = lapse_url
+    link.save!
+  end
 
   def parse_repo_url(url)
     match = url.match(%r{github\.com/([^/]+)/([^/]+?)(?:\.git)?(?:/|$)})

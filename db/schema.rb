@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_24_130000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_05_153000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -253,6 +253,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_24_130000) do
     t.index ["slack_message_ts"], name: "index_orders_on_slack_message_ts"
     t.index ["status"], name: "index_orders_on_status"
     t.index ["user_id"], name: "index_orders_on_user_id"
+  end
+
+  create_table "orphaned_lapse_links", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "lapse_url", null: false
+    t.bigint "project_id", null: false
+    t.string "title", null: false
+    t.datetime "updated_at", null: false
+    t.index ["project_id"], name: "index_orphaned_lapse_links_on_project_id"
   end
 
   create_table "project_collaborators", force: :cascade do |t|
@@ -824,6 +833,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_24_130000) do
   add_foreign_key "orders", "users"
   add_foreign_key "orders", "users", column: "assigned_to_id"
   add_foreign_key "orders", "users", column: "reviewer_id"
+  add_foreign_key "orphaned_lapse_links", "projects"
   add_foreign_key "project_collaborators", "projects"
   add_foreign_key "project_collaborators", "users"
   add_foreign_key "project_notes", "projects"
