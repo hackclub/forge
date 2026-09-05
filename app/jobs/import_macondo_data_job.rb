@@ -46,7 +46,10 @@ class ImportMacondoDataJob < ApplicationJob
   end
 
   def import_journals(project, journals)
-    Array(journals).each_with_index do |j, i|
+    
+    ordered = Array(journals).sort_by { |j| parse_time(j["created_at"]) }
+
+    ordered.each_with_index do |j, i|
       title = j["short_brief"].presence || "Imported entry #{j["id"] || i + 1}"
       next if project.devlogs.exists?(title: title)
 
@@ -54,10 +57,24 @@ class ImportMacondoDataJob < ApplicationJob
         title: title,
         content: j["long_brief"].presence || j["short_brief"].presence || "Imported from Macondo.",
         time_hours: j["hours"],
+        time_spent: format_time_spent(j["hours"]),
         entry_date: j["created_at"]&.to_date
       )
     end
   rescue StandardError => e
     Rails.logger.error("ImportMacondoDataJob journals failed: #{e.message}")
+  end
+
+  def parse_time(value)
+    Time.parse(value.to_s)
+  rescue ArgumentError, TypeError
+    Time.at(0)
+  end
+
+  
+  def format_time_spent(hours)
+    return nil if hours.blank?
+
+    "#{hours.to_f.round(2)} hours"
   end
 end
