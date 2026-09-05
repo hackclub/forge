@@ -12,6 +12,7 @@ import FaqPopup from '@/components/forge/FaqPopup'
 import ForgeHud from '@/components/forge/ForgeHud'
 import FireIcon from '@/components/FireIcon'
 import ForgeMusic from '@/components/forge/ForgeMusic'
+import ForgeKeeper from '@/components/ForgeKeeper'
 import type { DashboardProject } from '@/components/forge/projectStatus'
 import CollaborationInvitesCard, { type PendingCollaborationInvite } from '@/components/CollaborationInvitesCard'
 import { usePerformanceMode } from '@/hooks/usePerformanceMode'
@@ -315,6 +316,10 @@ export default function ForgeScene({
         </div>
 
         <ForgeHud coinBalance={coin_balance} relightPercent={relight_percent} />
+
+        <div className="fixed right-5 top-20 z-40 xl:top-24">
+          <ForgeKeeper userName={shared.auth.user?.display_name ?? ''} />
+        </div>
 
         {pending_invites.length > 0 && (
           <div className="absolute top-16 left-1/2 -translate-x-1/2 z-20 w-full max-w-xl px-4 hidden md:block">
