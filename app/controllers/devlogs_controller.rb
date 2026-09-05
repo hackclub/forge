@@ -22,7 +22,7 @@ class DevlogsController < ApplicationController
         content: @devlog.content,
         time_spent: @devlog.time_spent,
         time_hours: @devlog.time_hours&.to_f,
-        lapse_url: @devlog.lapse_url,
+        lapse_url: policy(@devlog).view_lapse_url? ? @devlog.lapse_url : nil,
         created_at: @devlog.created_at.strftime("%B %d, %Y"),
         user_id: @devlog.user_id,
         user_display_name: @devlog.user.display_name,
@@ -57,12 +57,14 @@ class DevlogsController < ApplicationController
     @devlog = @project.devlogs.find(params[:id])
     authorize @devlog
 
-    temp_devlog = @devlog.dup
-    temp_devlog.assign_attributes(devlog_params)
-    requirement_errors = temp_devlog.submission_requirement_errors
-    if requirement_errors.any?
-      redirect_to @project, alert: "Please fix these issues: #{requirement_errors.join(', ')}"
-      return
+    if @project.devlog_mode != "git"
+      temp_devlog = @devlog.dup
+      temp_devlog.assign_attributes(devlog_params)
+      requirement_errors = temp_devlog.submission_requirement_errors
+      if requirement_errors.any?
+        redirect_to @project, alert: "Please fix these issues: #{requirement_errors.join(', ')}"
+        return
+      end
     end
 
     if @devlog.update(devlog_params)
@@ -127,10 +129,14 @@ class DevlogsController < ApplicationController
   end
 
   def devlog_params
-    attrs = params.expect(devlog: [ :title, :content, :time_spent, :lapse_url ])
-    attrs[:time_spent] = normalize_time_spent(attrs[:time_spent])
-    attrs[:time_hours] = TimeSpentParser.parse(attrs[:time_spent])
-    attrs
+    if @project.devlog_mode == "git"
+      params.expect(devlog: [ :lapse_url ])
+    else
+      attrs = params.expect(devlog: [ :title, :content, :time_spent, :lapse_url ])
+      attrs[:time_spent] = normalize_time_spent(attrs[:time_spent])
+      attrs[:time_hours] = TimeSpentParser.parse(attrs[:time_spent])
+      attrs
+    end
   end
 
   def normalize_time_spent(value)

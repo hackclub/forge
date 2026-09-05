@@ -538,6 +538,11 @@ Rails.application.routes.draw do
     end
     resources :devlogs, only: [ :show, :create, :update, :destroy ]
     post "devlog_image" => "devlogs#upload_image", as: :devlog_image
+    resources :orphaned_lapse_links, only: [ :destroy ] do
+      member do
+        patch :relink
+      end
+    end
     resources :collaboration_invites, only: [ :create, :destroy ], path: "invites"
     resources :collaborators, only: [ :destroy ], controller: "project_collaborators"
     resource :view, only: [ :create ], module: :projects, controller: "views"

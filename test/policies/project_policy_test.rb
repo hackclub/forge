@@ -13,6 +13,19 @@ class ProjectPolicyTest < ActiveSupport::TestCase
     ProjectPolicy.new(user, project)
   end
 
+  def make_user(attrs = {})
+    token = SecureRandom.hex(6)
+    User.create!({
+      avatar: "avatar",
+      display_name: "User #{token}",
+      email: "#{token}@example.com",
+      timezone: "UTC",
+      slack_id: "S#{token}",
+      hca_id: "H#{token}",
+      roles: [ "user" ]
+    }.merge(attrs))
+  end
+
   test "collaborators can view, even when hidden" do
     @project.update!(hidden: true)
     assert policy(@collaborator).show?
@@ -45,5 +58,17 @@ class ProjectPolicyTest < ActiveSupport::TestCase
       build_review: true, linked_project: approved
     )
     assert_not policy(@owner, build_review).manage_team?
+  end
+
+  test "lapse links are manageable by admins, reviewers, and project members only" do
+    admin = make_user(roles: [ "admin" ])
+    reviewer = make_user(roles: [ "reviewer" ])
+
+    assert policy(admin).manage_lapse_links?
+    assert policy(reviewer).manage_lapse_links?
+    assert policy(@owner).manage_lapse_links?
+    assert policy(@collaborator).manage_lapse_links?
+    assert_not policy(@stranger).manage_lapse_links?
+    assert_not policy(nil).manage_lapse_links?
   end
 end

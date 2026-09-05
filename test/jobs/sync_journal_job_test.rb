@@ -10,11 +10,11 @@ class SyncJournalJobTest < ActiveSupport::TestCase
     @today = @user.today_in_zone
   end
 
-  def run_job(journal, commit_date: nil)
+  def run_job(journal, commit_date: nil, clear: false)
     job = SyncJournalJob.new
     job.define_singleton_method(:fetch_journal) { |_parsed, _branch| journal }
     job.define_singleton_method(:journal_commit_date) { |_parsed, _branch, _today, _zone| commit_date }
-    job.perform(@project.id)
+    job.perform(@project.id, clear: clear)
   end
 
   test "an undated entry is credited to the day JOURNAL.md was last pushed" do
@@ -119,6 +119,50 @@ class SyncJournalJobTest < ActiveSupport::TestCase
     run_job("# Wiring\n\n**Total time spent: 2h**\n", commit_date: @today)
 
     assert_not_nil @project.reload.journal_synced_at
+  end
+
+  test "a normal resync never touches an existing lapse_url" do
+    run_job("# Wiring\n\n**Total time spent: 30m**\n", commit_date: @today)
+    devlog = Devlog.find_by(project: @project, title: "Wiring")
+    devlog.update!(lapse_url: "https://lapse.hackclub.com/timelapse/abc")
+
+    run_job("# Wiring\n\n**Total time spent: 2h**\n", commit_date: @today)
+
+    assert_equal "https://lapse.hackclub.com/timelapse/abc", devlog.reload.lapse_url
+  end
+
+  test "a normal resync moves a lapse_url into an orphaned link when its title disappears" do
+    run_job("# Wiring\n\n**Total time spent: 30m**\n", commit_date: @today)
+    devlog = Devlog.find_by(project: @project, title: "Wiring")
+    devlog.update!(lapse_url: "https://lapse.hackclub.com/timelapse/abc")
+
+    run_job("# Soldering\n\n**Total time spent: 1h**\n", commit_date: @today)
+
+    assert_nil devlog.reload.lapse_url
+    link = @project.orphaned_lapse_links.find_by(title: "Wiring")
+    assert_equal "https://lapse.hackclub.com/timelapse/abc", link.lapse_url
+  end
+
+  test "a clear resync restores a lapse_url when the title still exists" do
+    run_job("# Wiring\n\n**Total time spent: 30m**\n", commit_date: @today)
+    Devlog.find_by(project: @project, title: "Wiring").update!(lapse_url: "https://lapse.hackclub.com/timelapse/abc")
+
+    run_job("# Wiring\n\n**Total time spent: 2h**\n", commit_date: @today, clear: true)
+
+    devlog = Devlog.find_by(project: @project, title: "Wiring")
+    assert_equal "https://lapse.hackclub.com/timelapse/abc", devlog.lapse_url
+    assert_equal 0, @project.orphaned_lapse_links.count
+  end
+
+  test "a clear resync preserves a vanished title's lapse_url as an orphaned link instead of losing it" do
+    run_job("# Wiring\n\n**Total time spent: 30m**\n", commit_date: @today)
+    Devlog.find_by(project: @project, title: "Wiring").update!(lapse_url: "https://lapse.hackclub.com/timelapse/abc")
+
+    run_job("# Soldering\n\n**Total time spent: 1h**\n", commit_date: @today, clear: true)
+
+    assert_nil Devlog.find_by(project: @project, title: "Wiring")
+    link = @project.orphaned_lapse_links.find_by(title: "Wiring")
+    assert_equal "https://lapse.hackclub.com/timelapse/abc", link.lapse_url
   end
 
   test "sync_if_stale skips a project synced within the auto-sync interval" do

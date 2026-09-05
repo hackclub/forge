@@ -96,6 +96,7 @@ class Project < ApplicationRecord
   has_one :build_review_for_project, class_name: "Project", foreign_key: :linked_project_id, dependent: :nullify, inverse_of: :linked_project
   has_many :ships, dependent: :destroy
   has_many :devlogs, dependent: :destroy
+  has_many :orphaned_lapse_links, dependent: :destroy
   has_many :airtable_queue_items, dependent: :destroy
   has_many :kudos, dependent: :destroy
   has_many :project_notes, dependent: :destroy
