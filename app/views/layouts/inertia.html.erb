@@ -34,6 +34,13 @@
     <%= vite_typescript_tag "inertia" %>
     <%= inertia_ssr_head %>
     <%= Sentry.get_trace_propagation_meta.html_safe %>
+
+    <!-- Privacy-friendly analytics by Plausible -->
+    <script async src="https://plausible.io/js/pa-o4tR6oeap-tsKq60q9WRb.js"></script>
+    <script>
+      window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
+      plausible.init()
+    </script>
   </head>
 
   <body>
