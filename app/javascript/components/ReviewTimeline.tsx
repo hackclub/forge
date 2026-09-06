@@ -7,6 +7,7 @@ export interface ReviewEvent {
   action: string
   stage: string | null
   feedback: string | null
+  slack_url?: string | null
   reviewer_display_name: string | null
   reviewer_avatar: string | null
   target_type: string | null
@@ -82,6 +83,18 @@ export default function ReviewTimeline({
                       <div className="prose prose-invert prose-sm max-w-none text-stone-300 prose-a:text-[#ffb595] break-words [overflow-wrap:anywhere]">
                         <Markdown remarkPlugins={[remarkGfm]}>{event.feedback}</Markdown>
                       </div>
+                    )}
+                    {event.slack_url && (
+                      <a
+                        href={event.slack_url}
+                        target="_blank"
+                        rel="noopener"
+                        className="ghost-border bg-[#1c1b1b] hover:bg-[#2a2a2a] text-stone-300 hover:text-[#ffb595] px-3 py-1.5 mt-3 text-[10px] font-bold uppercase tracking-[0.15em] inline-flex items-center gap-2 transition-colors"
+                      >
+                        <span className="material-symbols-outlined text-sm">forum</span>
+                        <span>View in Slack</span>
+                        <span className="material-symbols-outlined text-xs">open_in_new</span>
+                      </a>
                     )}
                   </div>
                 </div>

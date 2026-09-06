@@ -759,7 +759,11 @@ class Admin::ProjectsController < Admin::ApplicationController
       client.chat_postMessage(channel: channel, thread_ts: response["ts"], text: "Project: #{project_url}")
     end
 
-    audit!("project.checkpoint_message_sent", target: @project, metadata: { user_slack_id: user_slack_id })
+    audit!(
+      "project.checkpoint_message_sent",
+      target: @project,
+      metadata: { user_slack_id: user_slack_id, channel_id: channel, message_ts: response["ts"] }
+    )
     redirect_back fallback_location: admin_review_path(@project), notice: "Checkpoint message sent."
   rescue Slack::Web::Api::Errors::SlackError => e
     redirect_back fallback_location: admin_review_path(@project), alert: "Slack error: #{e.message}"
@@ -1086,7 +1090,7 @@ class Admin::ProjectsController < Admin::ApplicationController
       discarded_at: project.discarded_at&.strftime("%b %d, %Y"),
       pitch_text: project.pitch_text,
       from_slack: project.slack_message_ts.present?,
-      slack_url: project.slack_channel_id.present? && project.slack_message_ts.present? ? "https://hackclub.slack.com/archives/#{project.slack_channel_id}/p#{project.slack_message_ts.to_s.delete('.')}" : nil,
+      slack_url: project.slack_thread_url,
       tier: project.tier,
       budget: project.budget,
       cover_image_url: project.cover_image_url,

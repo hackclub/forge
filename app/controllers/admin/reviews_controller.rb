@@ -442,7 +442,7 @@ class Admin::ReviewsController < Admin::ApplicationController
       ai_check_result: project.ai_check_result_for_display,
       ai_check_ran_at: project.ai_check_ran_at&.strftime("%b %d, %Y %H:%M UTC"),
       from_slack: project.slack_message_ts.present?,
-      slack_url: project.slack_channel_id.present? && project.slack_message_ts.present? ? "https://hackclub.slack.com/archives/#{project.slack_channel_id}/p#{project.slack_message_ts.to_s.delete('.')}" : nil,
+      slack_url: project.slack_thread_url,
       created_at: project.created_at.strftime("%b %d, %Y"),
       created_at_iso: project.created_at.iso8601,
       user_id: project.user_id,
