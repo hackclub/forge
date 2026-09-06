@@ -15,7 +15,7 @@ class ProjectsController < ApplicationController
     render inertia: "Projects/Show", props: {
       project: serialize_project_detail(@project),
       devlogs: @project.devlogs.includes(:user).map { |d| serialize_devlog(d) },
-      review_history: can_view_project_review?(@project) ? @project.review_history.map { |e| serialize_review_event(e) } : [],
+      review_history: serialize_review_history(@project),
       is_admin_view: policy(@project).update? && @project.user_id != current_user&.id,
       can: {
         update: policy(@project).update?,
@@ -618,13 +618,22 @@ class ProjectsController < ApplicationController
     }
   end
 
-  def serialize_review_event(event)
+  def serialize_review_history(project)
+    return [] unless can_view_project_review?(project)
+
+    events = project.review_history.to_a
+    checkpoint_urls = project.checkpoint_urls_for(events)
+    events.map { |e| serialize_review_event(e, slack_url: checkpoint_urls[e.id]) }
+  end
+
+  def serialize_review_event(event, slack_url: nil)
     meta = event.metadata || {}
     {
       id: event.id,
       action: event.action,
       stage: meta["stage"],
       feedback: meta["feedback"].presence,
+      slack_url: slack_url,
       reviewer_display_name: event.actor&.display_name,
       reviewer_avatar: event.actor&.avatar,
       target_type: event.target_type,

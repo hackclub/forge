@@ -299,6 +299,12 @@ class Project < ApplicationRecord
 
   ADMIN_REVIEW_EVENT_ACTIONS = (REVIEW_EVENT_ACTIONS + %w[project.tier_changed]).freeze
 
+  # Decisions whose feedback gets relayed to the builder in #forge-checkpoint.
+  RETURNED_REVIEW_ACTIONS = %w[project.returned project.build_returned].freeze
+
+  # How far apart a return and its checkpoint message may be and still be paired.
+  CHECKPOINT_MATCH_WINDOW = 6.hours
+
   def review_history(actions: REVIEW_EVENT_ACTIONS)
     AuditEvent
       .includes(:actor)
@@ -310,6 +316,49 @@ class Project < ApplicationRecord
 
   def admin_review_history
     review_history(actions: ADMIN_REVIEW_EVENT_ACTIONS)
+  end
+
+  # Permalink to the Slack thread the pitch was posted in; reviewer decisions are
+  # posted as replies there.
+  def slack_thread_url
+    self.class.slack_message_url(slack_channel_id, slack_message_ts)
+  end
+
+  def self.slack_message_url(channel_id, message_ts)
+    return nil if channel_id.blank? || message_ts.blank?
+
+    "https://hackclub.slack.com/archives/#{channel_id}/p#{message_ts.to_s.delete('.')}"
+  end
+
+  # Links each "returned" review event to the #forge-checkpoint message that carried
+  # its feedback to the builder, keyed by event id. Reviewers send that message from
+  # the review UI moments before or after recording the decision and the two aren't
+  # linked in the database, so each return is paired with the nearest unclaimed
+  # checkpoint message in time.
+  def checkpoint_urls_for(events)
+    returns = events.select { |e| RETURNED_REVIEW_ACTIONS.include?(e.action) }
+    return {} if returns.empty?
+
+    checkpoints = AuditEvent
+      .for_action("project.checkpoint_message_sent")
+      .for_target("Project", id)
+      .to_a
+      .select { |c| c.metadata["message_ts"].present? }
+    return {} if checkpoints.empty?
+
+    urls = {}
+    claimed = Set.new
+    returns
+      .product(checkpoints)
+      .map { |ret, checkpoint| [ (ret.created_at - checkpoint.created_at).abs, ret, checkpoint ] }
+      .sort_by { |distance, ret, _| [ distance, ret.id ] }
+      .each do |distance, ret, checkpoint|
+        next if distance > CHECKPOINT_MATCH_WINDOW || urls.key?(ret.id) || claimed.include?(checkpoint.id)
+
+        urls[ret.id] = self.class.slack_message_url(checkpoint.metadata["channel_id"], checkpoint.metadata["message_ts"])
+        claimed << checkpoint.id
+      end
+    urls.compact
   end
 
   private
