@@ -115,6 +115,27 @@ class SyncJournalJobTest < ActiveSupport::TestCase
     assert_nil Devlog.find_by(project: @project, title: "Afternoon")
   end
 
+  test "a day-first entry is credited to its own day" do
+    date = @today - 1
+    run_job("# #{date.day} #{Date::MONTHNAMES[date.month]} #{date.year} 10 PM\n\n**Total time spent: 2h**\n", commit_date: @today)
+
+    assert_equal date, Devlog.last.entry_date
+  end
+
+  test "an entry counter is not read as the day of the month" do
+    date = @today - 1
+    run_job("# Day 15 #{Date::MONTHNAMES[date.month]} #{date.day}, #{date.year}\n\n**Total time spent: 2h**\n", commit_date: @today)
+
+    assert_equal date, Devlog.last.entry_date
+  end
+
+  test "a date mentioned mid-sentence does not override the title" do
+    date = @today - 1
+    run_job("# #{date.day} #{Date::MONTHNAMES[date.month]} #{date.year}\n\npushed back the release date: #{Date::MONTHNAMES[date.month]} #{date.day} next year\n\n**Total time spent: 2h**\n", commit_date: @today)
+
+    assert_equal date, Devlog.last.entry_date
+  end
+
   test "sync stamps journal_synced_at so the sweep can skip fresh projects" do
     run_job("# Wiring\n\n**Total time spent: 2h**\n", commit_date: @today)
 

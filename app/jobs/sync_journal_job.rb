@@ -211,33 +211,58 @@ class SyncJournalJob < ApplicationJob
   MONTH_NAMES = (Date::MONTHNAMES.compact + Date::ABBR_MONTHNAMES.compact).map(&:downcase).uniq.freeze
   MONTH_ALTERNATION = MONTH_NAMES.join("|").freeze
   ISO_DATE_PATTERN = /\b(\d{4})-(\d{1,2})-(\d{1,2})\b/.freeze
-  DAY_FIRST_PATTERN = Regexp.new("\\b(\\d{1,2})(?:st|nd|rd|th)?\\s+(#{MONTH_ALTERNATION})\\b\\.?(?:[\\s,]+(\\d{4}))?", Regexp::IGNORECASE).freeze
-  MONTH_FIRST_PATTERN = Regexp.new("\\b(#{MONTH_ALTERNATION})\\b\\.?\\s+(\\d{1,2})(?:[\\s,]+(\\d{4}))?", Regexp::IGNORECASE).freeze
-  DATE_LINE_PATTERN = /^.*\bdate\b.*$/i
+  DAY_FIRST_PATTERN = Regexp.new("\\b(\\d{1,2})(?!\\d)(?:st|nd|rd|th)?\\s+(#{MONTH_ALTERNATION})\\b\\.?(?:[\\s,]+(\\d{4}))?", Regexp::IGNORECASE).freeze
+  MONTH_FIRST_PATTERN = Regexp.new("\\b(#{MONTH_ALTERNATION})\\b\\.?\\s+(\\d{1,2})(?!\\d)(?:st|nd|rd|th)?(?:[\\s,]+(\\d{4}))?", Regexp::IGNORECASE).freeze
+  DATE_LINE_PATTERN = /^[ \t*_#>-]*date\b[^\n]*$/i
+  ENTRY_COUNTER_PATTERN = /\b(?:day|entry|log|devlog|part)[ \t]*(?:#[ \t]*)?\z/i
+  COUNTER_LOOKBACK = 16
 
   # An explicit "Date:" line wins over prose, and "16 July" is read day-first
-  # before "July 16" is tried — otherwise a day-first entry matches the month
-  # and takes the clock time that follows it as the day.
+  # before "July 16" is tried. A day-first match right after an entry counter
+  # ("Day 15 August 28") is only used when nothing else in the source parses.
   def extract_entry_date(entry, today = Date.current)
     sources = [ entry[:content].to_s[DATE_LINE_PATTERN], "#{entry[:title]} #{entry[:content]}" ].compact
 
     sources.each do |source|
-      if (m = source.match(ISO_DATE_PATTERN))
-        return build_safe_date(m[1].to_i, m[2].to_i, m[3].to_i, today)
-      end
-
-      if (m = source.match(DAY_FIRST_PATTERN))
-        month = month_number(m[2])
-        return build_safe_date(m[3]&.to_i || today.year, month, m[1].to_i, today) if month
-      end
-
-      if (m = source.match(MONTH_FIRST_PATTERN))
-        month = month_number(m[1])
-        return build_safe_date(m[3]&.to_i || today.year, month, m[2].to_i, today) if month
-      end
+      date = match_date(source, today)
+      return date if date
     end
 
     nil
+  end
+
+  def match_date(source, today)
+    if (m = source.match(ISO_DATE_PATTERN))
+      date = build_safe_date(m[1].to_i, m[2].to_i, m[3].to_i, today)
+      return date if date
+    end
+
+    after_counter = nil
+    position = 0
+
+    while (m = DAY_FIRST_PATTERN.match(source, position))
+      position = m.end(0)
+      month = month_number(m[2])
+      next unless month
+
+      date = build_safe_date(m[3]&.to_i || today.year, month, m[1].to_i, today)
+      next unless date
+      return date unless entry_counter_before?(source, m.begin(0))
+
+      after_counter ||= date
+    end
+
+    if (m = source.match(MONTH_FIRST_PATTERN))
+      month = month_number(m[1])
+      date = month ? build_safe_date(m[3]&.to_i || today.year, month, m[2].to_i, today) : nil
+      return date if date
+    end
+
+    after_counter
+  end
+
+  def entry_counter_before?(source, index)
+    ENTRY_COUNTER_PATTERN.match?(source[[ index - COUNTER_LOOKBACK, 0 ].max...index])
   end
 
   def month_number(name)
