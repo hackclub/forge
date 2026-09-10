@@ -316,8 +316,12 @@ class ProjectsController < ApplicationController
     authorize @project, :update?
 
     entries = @project.devlogs.order(id: :asc)
-    md = +"# #{@project.name}\n\n"
-    md << "#{@project.subtitle}\n\n" if @project.subtitle.present?
+    md = +"---\n"
+    md << "title: #{@project.name.to_json}\n"
+    md << "author: #{@project.user.display_name.to_json}\n"
+    md << "description: #{@project.subtitle.to_json}\n" if @project.subtitle.present?
+    md << "created_at: #{@project.created_at.strftime('%Y-%m-%d').to_json}\n"
+    md << "---\n\n"
 
     entries.each do |entry|
       md << "# #{entry.created_at.strftime('%Y-%m-%d')}: #{entry.title}\n\n"
@@ -325,7 +329,7 @@ class ProjectsController < ApplicationController
       md << "#{entry.content}\n\n"
     end
 
-    send_data md, filename: "#{@project.name.parameterize}-journal.md", type: "text/markdown"
+    send_data md, filename: "JOURNAL.md", type: "text/markdown"
   end
 
   def set_devlog_mode
