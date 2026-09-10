@@ -27,10 +27,6 @@ class SyncJournalJob < ApplicationJob
 
     entries = parse_journal_entries(journal_content)
 
-    if entries.empty?
-      entries = parse_with_ai(journal_content)
-    end
-
     return if entries.empty?
 
     current_titles = entries.map { |e| e[:title] }
@@ -367,45 +363,5 @@ class SyncJournalJob < ApplicationJob
       content: body,
       time_spent: time_spent
     }
-  end
-
-  def parse_with_ai(content)
-    prompt = <<~PROMPT
-      Parse this JOURNAL.md file into individual devlog entries. Each entry should have a date/title, the content, and time spent.
-
-      Journal content:
-      #{content.truncate(4000)}
-
-      Respond in valid JSON only, no markdown fences:
-      [{"title": "entry title with date", "content": "the entry content", "time_spent": "time if mentioned or null"}]
-    PROMPT
-
-    response = Net::HTTP.post(
-      URI("https://ai.hackclub.com/proxy/v1/chat/completions"),
-      { model: "qwen/qwen3-32b", messages: [ { role: "user", content: prompt } ] }.to_json,
-      "Content-Type" => "application/json",
-      "Authorization" => "Bearer #{ENV['HACKCLUB_AI_API_KEY']}"
-    )
-
-    if response.is_a?(Net::HTTPSuccess)
-      ai_content = JSON.parse(response.body).dig("choices", 0, "message", "content") || ""
-      json_match = ai_content.match(/\[[\s\S]*\]/)
-      if json_match
-        data = JSON.parse(json_match[0])
-        return data.filter_map do |entry|
-          next if entry["title"].blank?
-          {
-            title: entry["title"],
-            content: entry["content"] || "",
-            time_spent: entry["time_spent"]
-          }
-        end
-      end
-    end
-
-    []
-  rescue StandardError => e
-    Rails.logger.error("AI journal parsing failed: #{e.message}")
-    []
   end
 end
