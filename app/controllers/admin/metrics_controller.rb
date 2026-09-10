@@ -1,5 +1,6 @@
 class Admin::MetricsController < Admin::ApplicationController
   COIN_USD_VALUE = 1.0
+  TOP_COIN_HOLDERS_LIMIT = 100
 
   def index
     days = (params[:days].presence || 30).to_i.clamp(7, 180)
@@ -111,21 +112,17 @@ class Admin::MetricsController < Admin::ApplicationController
     total_coins_all = tier_breakdown.sum { |t| t[:total_coins] }
     avg_coins_per_hour = total_hours_all.positive? ? (total_coins_all / total_hours_all).round(2) : 0
 
-    kept_user_ids = User.kept.select(:id)
-    balance_earned = Project.kept.approved
-      .where.not(id: ProjectPayout.select(:project_id))
-      .where(user_id: kept_user_ids)
-      .includes(:devlogs, :user)
-      .sum(&:coins_earned) +
-      ProjectPayout.joins(:project).merge(Project.kept).where(user_id: kept_user_ids).sum(:coins).to_f
-    balance_adjustments = CoinAdjustment.where(user_id: kept_user_ids).sum(:amount).to_f
-    balance_spent = Order.where(status: %i[pending approved fulfilled], user_id: kept_user_ids).sum(:coin_cost).to_f
+    earned_by_user, adjusted_by_user, spent_by_user = coin_totals_by_user
+    balance_earned = earned_by_user.values.sum
+    balance_adjustments = adjusted_by_user.values.sum
+    balance_spent = spent_by_user.values.sum
     coins_in_accounts = {
       earned: balance_earned.round(2),
       adjustments: balance_adjustments.round(2),
       spent: balance_spent.round(2),
       balance: (balance_earned + balance_adjustments - balance_spent).round(2)
     }
+    top_holders = top_coin_holders(earned_by_user, adjusted_by_user, spent_by_user)
 
     approved_referrals_count = Referral.approved.count
     referral_per_unit = Referral::PAYOUT_AMOUNT + Referral::PRIZE_POOL_CONTRIBUTION
@@ -235,6 +232,7 @@ class Admin::MetricsController < Admin::ApplicationController
         grand_total: (total_coins_all + referral_economy[:total_coins] + reel_economy[:total_coins]).round(2),
         in_accounts: coins_in_accounts
       },
+      top_coin_holders: top_holders,
       referral_economy: referral_economy,
       reel_economy: reel_economy,
       location_distribution: location_distribution,
@@ -245,6 +243,52 @@ class Admin::MetricsController < Admin::ApplicationController
   end
 
   private
+
+  def coin_totals_by_user
+    kept_user_ids = User.kept.select(:id)
+
+    earned = Hash.new(0.0)
+    Project.kept.approved
+      .where.not(id: ProjectPayout.select(:project_id))
+      .where(user_id: kept_user_ids)
+      .includes(:devlogs, :user)
+      .each { |project| earned[project.user_id] += project.coins_earned }
+    ProjectPayout.joins(:project).merge(Project.kept)
+      .where(user_id: kept_user_ids)
+      .group(:user_id)
+      .sum(:coins)
+      .each { |user_id, coins| earned[user_id] += coins.to_f }
+
+    adjusted = CoinAdjustment.where(user_id: kept_user_ids).group(:user_id).sum(:amount).transform_values(&:to_f)
+    spent = Order.where(status: %i[pending approved fulfilled], user_id: kept_user_ids)
+      .group(:user_id).sum(:coin_cost).transform_values(&:to_f)
+
+    [ earned, adjusted, spent ]
+  end
+
+  def top_coin_holders(earned, adjusted, spent, limit: TOP_COIN_HOLDERS_LIMIT)
+    balances = (earned.keys + adjusted.keys + spent.keys).uniq.to_h do |user_id|
+      [ user_id, (earned[user_id].to_f + adjusted[user_id].to_f - spent[user_id].to_f).round(2) ]
+    end
+
+    ranked = balances.sort_by { |user_id, balance| [ -balance, user_id ] }.first(limit)
+    users = User.kept.where(id: ranked.map(&:first)).index_by(&:id)
+
+    ranked.filter_map do |user_id, balance|
+      user = users[user_id]
+      next unless user
+
+      {
+        id: user.id,
+        display_name: user.display_name,
+        avatar: user.avatar,
+        balance: balance,
+        earned: earned[user_id].to_f.round(2),
+        adjusted: adjusted[user_id].to_f.round(2),
+        spent: spent[user_id].to_f.round(2)
+      }
+    end
+  end
 
   # Review throughput for completed reviews in the given window:
   #   - avg_active_seconds:    heartbeat-measured hands-on review time per review
