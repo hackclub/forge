@@ -102,6 +102,7 @@ export interface ProjectDetail {
   tags: string[]
   repo_link: string | null
   journal_branch: string | null
+  journal_parse_failed: boolean
   status: ProjectStatus
   devlog_mode: 'website' | 'git' | null
   review_feedback: string | null

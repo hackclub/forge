@@ -1190,6 +1190,24 @@ export default function ProjectsShow({
                 </div>
               </div>
 
+              {project.repo_link && project.journal_parse_failed && can.update && (
+                <div className="ghost-border bg-amber-950/30 border border-amber-700/40 p-4 mb-6 flex items-start gap-2">
+                  <span className="material-symbols-outlined text-amber-500 text-lg shrink-0 mt-0.5">warning</span>
+                  <div className="text-xs">
+                    <p className="text-amber-200 text-sm font-bold mb-1">Couldn't sync JOURNAL.md</p>
+                    <p className="text-amber-100/70">
+                      Forge couldn't find any journal entries to sync. This can happen if the repo link is invalid,{' '}
+                      <code className="text-amber-100">JOURNAL.md</code> is missing, or it doesn't follow the
+                      expected format. Check the{' '}
+                      <a href="/docs/design/journal-format" className="underline hover:text-amber-50">
+                        format guide
+                      </a>{' '}
+                      and re-sync.
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {!project.repo_link && can.update && (
                 <div className="ghost-border bg-[#1c1b1b] p-8 text-center mb-6">
                   <span className="material-symbols-outlined text-3xl text-stone-700 mb-3">link_off</span>
@@ -1215,6 +1233,7 @@ export default function ProjectsShow({
                         Add a <code className="text-[#ffb595]">JOURNAL.md</code> to your repo and click "Sync
                         JOURNAL.md" above.
                       </p>
+                      <p className="text-stone-500 text-xs">If journals are missing, check the format guide.</p>
                       <a
                         href="/docs/design/journal-format"
                         className="text-[#ffb595] text-xs hover:underline mt-2 inline-block"

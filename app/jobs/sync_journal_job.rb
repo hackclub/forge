@@ -15,19 +15,43 @@ class SyncJournalJob < ApplicationJob
   def perform(project_id, clear: false)
     project = Project.find(project_id)
     project.update_columns(journal_synced_at: Time.current)
-    return unless project.repo_link.present?
+    return :no_repo unless project.repo_link.present?
+
+    # A plain sync never removes existing entries on failure - only an explicit
+    # resync (clear) does, unless there's nothing to preserve in the first place.
+    wipe_on_failure = clear || !project.devlogs.exists?
 
     parsed = parse_repo_url(project.repo_link)
-    return unless parsed
+    unless parsed
+      project.update_column(:journal_parse_failed, true)
+      project.devlogs.delete_all if wipe_on_failure
+      return :invalid_repo
+    end
 
     branch = project.journal_branch.presence
 
     journal_content = fetch_journal(parsed, branch)
-    return unless journal_content.present?
+    if journal_content.nil?
+      project.update_column(:journal_parse_failed, true)
+      project.devlogs.delete_all if wipe_on_failure
+      return :fetch_failed
+    end
+
+    if journal_content.blank?
+      project.update_column(:journal_parse_failed, false)
+      project.devlogs.delete_all if wipe_on_failure
+      return :empty
+    end
 
     entries = parse_journal_entries(journal_content)
 
-    return if entries.empty?
+    if entries.empty?
+      project.update_column(:journal_parse_failed, true)
+      project.devlogs.delete_all if wipe_on_failure
+      return :parse_failed
+    end
+
+    project.update_column(:journal_parse_failed, false)
 
     current_titles = entries.map { |e| e[:title] }
     preserved_lapse_urls = {}
@@ -94,6 +118,8 @@ class SyncJournalJob < ApplicationJob
     end
 
     author&.apply_streak_freezes!
+
+    :synced
   end
 
   private

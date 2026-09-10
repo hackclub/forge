@@ -299,17 +299,29 @@ class ProjectsController < ApplicationController
       return
     end
 
-    SyncJournalJob.perform_now(@project.id, clear: params[:clear] == "true")
+    result = SyncJournalJob.perform_now(@project.id, clear: params[:clear] == "true")
     audit!("project.journal_synced", target: @project)
-    redirect_to @project, notice: "Journal synced."
+
+    case result
+    when :invalid_repo
+      redirect_to @project, alert: "That repo link doesn't look like a GitHub, GitLab, or Codeberg URL."
+    when :fetch_failed
+      redirect_to @project, alert: "Couldn't find a JOURNAL.md in that repo. Check the repo link and branch."
+    else
+      redirect_to @project, notice: "Journal synced."
+    end
   end
 
   def export_devlogs
     authorize @project, :update?
 
     entries = @project.devlogs.order(id: :asc)
-    md = +"# #{@project.name}\n\n"
-    md << "#{@project.subtitle}\n\n" if @project.subtitle.present?
+    md = +"---\n"
+    md << "title: #{@project.name.to_json}\n"
+    md << "author: #{@project.user.display_name.to_json}\n"
+    md << "description: #{@project.subtitle.to_json}\n" if @project.subtitle.present?
+    md << "created_at: #{@project.created_at.strftime('%Y-%m-%d').to_json}\n"
+    md << "---\n\n"
 
     entries.each do |entry|
       md << "# #{entry.created_at.strftime('%Y-%m-%d')}: #{entry.title}\n\n"
@@ -317,7 +329,7 @@ class ProjectsController < ApplicationController
       md << "#{entry.content}\n\n"
     end
 
-    send_data md, filename: "#{@project.name.parameterize}-journal.md", type: "text/markdown"
+    send_data md, filename: "JOURNAL.md", type: "text/markdown"
   end
 
   def set_devlog_mode
@@ -507,6 +519,7 @@ class ProjectsController < ApplicationController
       tags: project.tags,
       repo_link: project.repo_link,
       journal_branch: project.journal_branch,
+      journal_parse_failed: project.journal_parse_failed,
       status: project.status,
       devlog_mode: project.devlog_mode,
       uses_ai: project.uses_ai,

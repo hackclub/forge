@@ -53,6 +53,7 @@ export default function ProjectsForm({
   const [macondoImporting, setMacondoImporting] = useState(false)
   const [macondoError, setMacondoError] = useState('')
   const [showMacondoImport, setShowMacondoImport] = useState(false)
+  const [showGitSwitchWarning, setShowGitSwitchWarning] = useState(false)
   const isBuildReview = project.tier === 'tier_build_review' || !!project.build_review
 
   const form = useForm({
@@ -475,7 +476,14 @@ export default function ProjectsForm({
             <select
               id="devlog_mode"
               value={form.data.devlog_mode}
-              onChange={(e) => form.setData('devlog_mode', e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value
+                if (value === 'git' && project.devlog_mode === 'website') {
+                  setShowGitSwitchWarning(true)
+                  return
+                }
+                form.setData('devlog_mode', value)
+              }}
               className="w-full bg-[#0e0e0e] border-none rounded-lg px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30"
             >
               <option value="">Not chosen</option>
@@ -483,6 +491,55 @@ export default function ProjectsForm({
               <option value="website">Web Devlog</option>
             </select>
             <p className="text-stone-600 text-xs mt-2">Switching modes won't delete existing devlog entries.</p>
+          </div>
+        )}
+
+        {showGitSwitchWarning && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-[#1c1b1b] ghost-border max-w-md w-full p-8 space-y-6">
+              <div>
+                <h3 className="text-xl font-headline font-bold text-[#e5e2e1] mb-2">Switching to Git Journal</h3>
+                <p className="text-stone-400 text-sm mb-4">
+                  Git Journal syncs your devlog from a <code className="text-[#ffb595]">JOURNAL.md</code> file in
+                  your repo. If you later resync, any entry that isn't in that file can be cleared from Forge.
+                </p>
+                <p className="text-stone-400 text-sm">
+                  Download an export of your current entries, already formatted as a{' '}
+                  <code className="text-[#ffb595]">JOURNAL.md</code>, so you can commit it to your repo and build
+                  from it.
+                </p>
+              </div>
+
+              {project.id && (
+                <a
+                  href={`/projects/${project.id}/export_devlogs`}
+                  className="w-full ghost-border bg-[#0e0e0e] hover:bg-[#2a2a2a] text-stone-300 font-headline font-bold py-2 uppercase tracking-wider text-sm transition-colors flex items-center justify-center gap-2"
+                >
+                  <span className="material-symbols-outlined text-lg">download</span>
+                  Download JOURNAL.md
+                </a>
+              )}
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowGitSwitchWarning(false)}
+                  className="flex-1 bg-stone-700/40 hover:bg-stone-700/60 text-stone-400 font-headline font-bold py-2 uppercase tracking-wider text-sm transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    form.setData('devlog_mode', 'git')
+                    setShowGitSwitchWarning(false)
+                  }}
+                  className="flex-1 signature-smolder text-[#4c1a00] font-headline font-bold py-2 uppercase tracking-wider text-sm active:scale-95 transition-transform"
+                >
+                  Switch to Git Journal
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
