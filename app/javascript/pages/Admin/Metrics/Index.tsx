@@ -1,4 +1,4 @@
-import { router } from '@inertiajs/react'
+import { Link, router } from '@inertiajs/react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/admin/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/admin/ui/table'
 import { cn } from '@/components/admin/lib/cn'
@@ -81,6 +81,16 @@ interface CoinEconomy {
     spent: number
     balance: number
   }
+}
+
+interface TopCoinHolder {
+  id: number
+  display_name: string
+  avatar: string
+  balance: number
+  earned: number
+  adjusted: number
+  spent: number
 }
 
 interface ReferralEconomy {
@@ -210,6 +220,7 @@ export default function AdminMetricsIndex({
   payouts,
   tier_breakdown,
   coin_economy,
+  top_coin_holders,
   referral_economy,
   reel_economy,
   location_distribution,
@@ -227,6 +238,7 @@ export default function AdminMetricsIndex({
   payouts: Payouts
   tier_breakdown: TierRow[]
   coin_economy: CoinEconomy
+  top_coin_holders: TopCoinHolder[]
   referral_economy: ReferralEconomy
   reel_economy: ReelEconomy
   location_distribution: LocationDistribution
@@ -602,6 +614,56 @@ export default function AdminMetricsIndex({
             {coin_economy.in_accounts.adjustments} adjustments − {coin_economy.in_accounts.spent} spent (pending orders
             included).
           </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Top coin holders</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-xs text-muted-foreground mb-3">
+            The {top_coin_holders.length} highest current balances (earned + adjustments − spent, pending orders
+            included).
+          </p>
+          {top_coin_holders.length === 0 ? (
+            <p className="text-xs text-muted-foreground">No balances yet.</p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-12">#</TableHead>
+                  <TableHead>Builder</TableHead>
+                  <TableHead className="text-right">Balance</TableHead>
+                  <TableHead className="text-right">Earned</TableHead>
+                  <TableHead className="text-right">Adjustments</TableHead>
+                  <TableHead className="text-right">Spent</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {top_coin_holders.map((holder, i) => (
+                  <TableRow key={holder.id}>
+                    <TableCell className="text-muted-foreground font-mono tabular-nums">{i + 1}</TableCell>
+                    <TableCell>
+                      <Link
+                        href={`/admin/users/${holder.id}`}
+                        className="flex items-center gap-2 hover:underline min-w-0"
+                      >
+                        <img src={holder.avatar} alt="" className="size-6 rounded-full shrink-0" />
+                        <span className="truncate">{holder.display_name}</span>
+                      </Link>
+                    </TableCell>
+                    <TableCell className="text-right font-semibold tabular-nums">
+                      {holder.balance.toLocaleString()}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">{holder.earned.toLocaleString()}</TableCell>
+                    <TableCell className="text-right tabular-nums">{holder.adjusted.toLocaleString()}</TableCell>
+                    <TableCell className="text-right tabular-nums">{holder.spent.toLocaleString()}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
 
