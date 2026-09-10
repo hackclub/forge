@@ -17,6 +17,26 @@ class SyncJournalJobTest < ActiveSupport::TestCase
     job.perform(@project.id, clear: clear)
   end
 
+  test "a journal with no entry headings creates no devlogs" do
+    run_job(<<~MD, commit_date: @today)
+      ---
+      title: "Hackpad"
+      author: "Amy"
+      description: "A fairly basic macropad held togther with hopes and dreams"
+      created_at: "2026-09-05"
+      ---
+    MD
+
+    assert_equal 0, @project.devlogs.count
+  end
+
+  test "an empty journal creates no devlogs" do
+    run_job("", commit_date: @today)
+    run_job("   \n\n", commit_date: @today)
+
+    assert_equal 0, @project.devlogs.count
+  end
+
   test "an undated entry is credited to the day JOURNAL.md was last pushed" do
     run_job("# Built the enclosure\n\n**Total time spent: 2h**\n", commit_date: @today - 1)
 
