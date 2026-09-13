@@ -256,6 +256,18 @@ export default function ShopPopup() {
               <p className="py-2 font-headline text-2xl font-bold text-[#e5e2e1]">{directCost}c</p>
             </div>
           </div>
+          <div>
+            <label className="mb-2 block text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500">
+              Notes for staff (optional)
+            </label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={2}
+              placeholder="Anything staff should know..."
+              className="w-full bg-[#1c1b1b] px-4 py-2.5 text-sm text-[#e5e2e1] ghost-border placeholder:text-stone-600 focus:outline-none focus:ring-1 focus:ring-[#ca5924]/30 resize-y"
+            />
+          </div>
           <button
             type="submit"
             disabled={!canAffordDirect}
