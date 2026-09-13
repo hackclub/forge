@@ -2,26 +2,27 @@
 #
 # Table name: orders
 #
-#  id               :bigint           not null, primary key
-#  amount_usd       :decimal(10, 2)
-#  coin_cost        :decimal(10, 2)   not null
-#  description      :text
-#  fulfilled_at     :datetime
-#  hcb_grant_link   :string
-#  kind             :string           not null
-#  quantity         :integer          default(1), not null
-#  region           :string
-#  review_notes     :text
-#  reviewed_at      :datetime
-#  slack_message_ts :string
-#  status           :integer          default("pending"), not null
-#  created_at       :datetime         not null
-#  updated_at       :datetime         not null
-#  assigned_to_id   :bigint
-#  project_id       :bigint
-#  reviewer_id      :bigint
-#  shop_item_id     :bigint
-#  user_id          :bigint           not null
+#  id                 :bigint           not null, primary key
+#  amount_usd         :decimal(10, 2)
+#  coin_cost          :decimal(10, 2)   not null
+#  description        :text
+#  fulfilled_at       :datetime
+#  fulfillment_method :string
+#  hcb_grant_link     :string
+#  kind               :string           not null
+#  quantity           :integer          default(1), not null
+#  region             :string
+#  review_notes       :text
+#  reviewed_at        :datetime
+#  slack_message_ts   :string
+#  status             :integer          default("pending"), not null
+#  created_at         :datetime         not null
+#  updated_at         :datetime         not null
+#  assigned_to_id     :bigint
+#  project_id         :bigint
+#  reviewer_id        :bigint
+#  shop_item_id       :bigint
+#  user_id            :bigint           not null
 #
 # Indexes
 #
@@ -49,6 +50,18 @@ class Order < ApplicationRecord
   has_paper_trail
 
   KINDS = %w[direct_grant shop_item].freeze
+  FULFILLMENT_METHODS = %w[grant physical_product].freeze
+  ALLOWED_SCREENSHOT_CONTENT_TYPES = %w[
+    image/png
+    image/jpeg
+    image/gif
+    image/webp
+    image/bmp
+    image/tiff
+    image/heic
+    image/heif
+    image/avif
+  ].freeze
   DIRECT_GRANT_RATIO = 1.0
 
   belongs_to :user
@@ -57,9 +70,12 @@ class Order < ApplicationRecord
   belongs_to :reviewer, class_name: "User", optional: true
   belongs_to :assigned_to, class_name: "User", optional: true
 
+  has_one_attached :shipping_screenshot
+
   enum :status, { pending: 0, approved: 1, fulfilled: 2, rejected: 3 }
 
   validates :kind, inclusion: { in: KINDS }
+  validates :fulfillment_method, inclusion: { in: FULFILLMENT_METHODS }, allow_nil: true
   validates :coin_cost, numericality: { greater_than: 0 }
   validates :quantity, numericality: { only_integer: true, greater_than: 0 }
   validates :amount_usd, numericality: { greater_than: 0 }, if: :direct_grant?
