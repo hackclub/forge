@@ -175,6 +175,7 @@ class Admin::OrdersController < Admin::ApplicationController
     return nil if user.address_line1.blank?
 
     {
+      recipient_name: [user.first_name, user.last_name].compact_blank.join(" ").presence || user.display_name,
       address_line1: user.address_line1,
       address_line2: user.address_line2,
       city: user.city,

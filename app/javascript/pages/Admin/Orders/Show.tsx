@@ -41,6 +41,7 @@ interface OrderDetail {
 }
 
 interface ShippingAddress {
+  recipient_name: string
   address_line1: string
   address_line2: string | null
   city: string | null
@@ -277,6 +278,7 @@ export default function AdminOrdersShow({
             <CardContent>
               {order.shipping_address ? (
                 <div className="text-sm space-y-0.5">
+                  <p className="font-medium">{order.shipping_address.recipient_name}</p>
                   <p>{order.shipping_address.address_line1}</p>
                   {order.shipping_address.address_line2 && <p>{order.shipping_address.address_line2}</p>}
                   <p>
