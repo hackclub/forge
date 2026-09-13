@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Head, Link, router } from '@inertiajs/react'
-import { ArrowLeft, AlertTriangle, Info, Check, X, CheckCircle2, ExternalLink, Search } from 'lucide-react'
+import { ArrowLeft, AlertTriangle, Info, Check, X, CheckCircle2, ExternalLink, Search, Image as ImageIcon } from 'lucide-react'
 import { Badge } from '@/components/admin/ui/badge'
 import { Button } from '@/components/admin/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/admin/ui/card'
@@ -18,6 +18,8 @@ interface OrderDetail {
   description: string | null
   review_notes: string | null
   hcb_grant_link: string | null
+  fulfillment_method: 'grant' | 'physical_product' | null
+  shipping_screenshot_url: string | null
   internal_order_link: string | null
   internal_price_usd: number | null
   user_id: number
@@ -94,6 +96,20 @@ export default function AdminOrdersShow({
   const [reviewNotes, setReviewNotes] = useState('')
   const [grantLink, setGrantLink] = useState('')
   const [grantSearch, setGrantSearch] = useState('')
+  const [fulfillmentMethod, setFulfillmentMethod] = useState<'grant' | 'physical_product'>('grant')
+  const [shippingScreenshot, setShippingScreenshot] = useState<File | null>(null)
+  const [screenshotPreviewUrl, setScreenshotPreviewUrl] = useState<string | null>(null)
+  const [dragOver, setDragOver] = useState(false)
+  const [fulfilling, setFulfilling] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  function pickShippingScreenshot(file: File | null) {
+    setShippingScreenshot(file)
+    setScreenshotPreviewUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev)
+      return file ? URL.createObjectURL(file) : null
+    })
+  }
 
   const filteredGrants = previous_grants.filter((g) => {
     const query = grantSearch.trim().toLowerCase()
@@ -127,11 +143,33 @@ export default function AdminOrdersShow({
   }
 
   function fulfill() {
+    const method = order.kind === 'shop_item' ? fulfillmentMethod : 'grant'
+
+    if (method === 'physical_product') {
+      if (!shippingScreenshot) {
+        alert('Attach a shipping screenshot first.')
+        return
+      }
+      const formData = new FormData()
+      formData.append('fulfillment_method', 'physical_product')
+      formData.append('shipping_screenshot', shippingScreenshot)
+      const csrfToken = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content
+      setFulfilling(true)
+      fetch(`/admin/orders/${order.id}/fulfill`, {
+        method: 'POST',
+        headers: csrfToken ? { 'X-CSRF-Token': csrfToken } : {},
+        body: formData,
+      })
+        .then(() => router.reload())
+        .finally(() => setFulfilling(false))
+      return
+    }
+
     if (!grantLink.trim()) {
       alert('Paste the HCB grant link first.')
       return
     }
-    router.post(`/admin/orders/${order.id}/fulfill`, { hcb_grant_link: grantLink })
+    router.post(`/admin/orders/${order.id}/fulfill`, { fulfillment_method: 'grant', hcb_grant_link: grantLink })
   }
 
   return (
@@ -438,22 +476,95 @@ export default function AdminOrdersShow({
               <CardTitle>Mark fulfilled</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <p className="text-sm text-muted-foreground">
-                Open HCB with the amount and recipient prefilled, create the grant, then paste the link back here.
-              </p>
-              <Button asChild variant="outline">
-                <a href={hcbGrantUrl} target="_blank" rel="noopener noreferrer">
-                  <ExternalLink className="size-4" />
-                  Create HCB grant (prefilled)
-                </a>
-              </Button>
-              <Input
-                type="url"
-                value={grantLink}
-                onChange={(e) => setGrantLink(e.target.value)}
-                placeholder="https://hcb.hackclub.com/..."
-              />
-              <Button onClick={fulfill}>
+              {order.kind === 'shop_item' && (
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant={fulfillmentMethod === 'grant' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setFulfillmentMethod('grant')}
+                  >
+                    HCB grant
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={fulfillmentMethod === 'physical_product' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setFulfillmentMethod('physical_product')}
+                  >
+                    Physical product shipped
+                  </Button>
+                </div>
+              )}
+
+              {fulfillmentMethod === 'grant' ? (
+                <>
+                  <p className="text-sm text-muted-foreground">
+                    Open HCB with the amount and recipient prefilled, create the grant, then paste the link back here.
+                  </p>
+                  <Button asChild variant="outline">
+                    <a href={hcbGrantUrl} target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="size-4" />
+                      Create HCB grant (prefilled)
+                    </a>
+                  </Button>
+                  <Input
+                    type="url"
+                    value={grantLink}
+                    onChange={(e) => setGrantLink(e.target.value)}
+                    placeholder="https://hcb.hackclub.com/..."
+                  />
+                </>
+              ) : (
+                <>
+                  <p className="text-sm text-muted-foreground">
+                    Upload a screenshot showing the product was purchased/shipped to the user.
+                  </p>
+                  <div
+                    onClick={() => fileInputRef.current?.click()}
+                    onDragOver={(e) => {
+                      e.preventDefault()
+                      setDragOver(true)
+                    }}
+                    onDragLeave={() => setDragOver(false)}
+                    onDrop={(e) => {
+                      e.preventDefault()
+                      setDragOver(false)
+                      pickShippingScreenshot(e.dataTransfer.files?.[0] ?? null)
+                    }}
+                    className={`flex min-h-64 cursor-pointer flex-col items-center justify-center gap-3 rounded-md border-2 border-dashed p-6 text-center transition-colors ${
+                      dragOver ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted/40'
+                    }`}
+                  >
+                    {screenshotPreviewUrl ? (
+                      <img
+                        src={screenshotPreviewUrl}
+                        alt="Shipping screenshot preview"
+                        className="max-h-56 max-w-full rounded-md border border-border object-contain"
+                      />
+                    ) : (
+                      <>
+                        <ImageIcon className="size-8 text-muted-foreground" />
+                        <p className="text-sm text-muted-foreground">
+                          Drag and drop a screenshot here, or click to browse
+                        </p>
+                      </>
+                    )}
+                    {shippingScreenshot && (
+                      <p className="text-xs text-muted-foreground">{shippingScreenshot.name}</p>
+                    )}
+                  </div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => pickShippingScreenshot(e.target.files?.[0] ?? null)}
+                    className="hidden"
+                  />
+                </>
+              )}
+
+              <Button onClick={fulfill} disabled={fulfilling}>
                 <CheckCircle2 className="size-4" />
                 Mark Fulfilled
               </Button>
@@ -461,7 +572,7 @@ export default function AdminOrdersShow({
           </Card>
         )}
 
-        {order.status === 'fulfilled' && order.hcb_grant_link && (
+        {order.status === 'fulfilled' && order.fulfillment_method !== 'physical_product' && order.hcb_grant_link && (
           <Card>
             <CardHeader>
               <CardTitle>Grant link</CardTitle>
@@ -474,6 +585,24 @@ export default function AdminOrdersShow({
                 className="text-sm break-all hover:underline"
               >
                 {order.hcb_grant_link}
+              </a>
+              {order.fulfilled_at && <p className="text-xs text-muted-foreground">Fulfilled on {order.fulfilled_at}</p>}
+            </CardContent>
+          </Card>
+        )}
+
+        {order.status === 'fulfilled' && order.fulfillment_method === 'physical_product' && order.shipping_screenshot_url && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Shipping screenshot</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <a href={order.shipping_screenshot_url} target="_blank" rel="noopener noreferrer">
+                <img
+                  src={order.shipping_screenshot_url}
+                  alt="Shipping screenshot"
+                  className="max-h-96 rounded-md border border-border"
+                />
               </a>
               {order.fulfilled_at && <p className="text-xs text-muted-foreground">Fulfilled on {order.fulfilled_at}</p>}
             </CardContent>

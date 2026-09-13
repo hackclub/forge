@@ -1,6 +1,6 @@
 class Admin::OrdersController < Admin::ApplicationController
   before_action :require_orders_permission!
-  before_action :set_order, only: [ :show, :approve, :reject, :fulfill, :reassign ]
+  before_action :set_order, only: [ :show, :approve, :reject, :fulfill, :reassign, :shipping_screenshot ]
 
   def index
     scope = Order.includes(:user, :project, :shop_item, :reviewer, :assigned_to).order(created_at: :desc)
@@ -68,21 +68,54 @@ class Admin::OrdersController < Admin::ApplicationController
   end
 
   def fulfill
-    grant_link = params[:hcb_grant_link].to_s.strip
-    if grant_link.blank?
-      redirect_to admin_order_path(@order), alert: "Paste the HCB grant link before marking fulfilled."
+    method = @order.shop_item? ? params[:fulfillment_method].to_s.presence || "grant" : "grant"
+
+    case method
+    when "physical_product"
+      screenshot = params[:shipping_screenshot]
+      unless screenshot.respond_to?(:read)
+        redirect_to admin_order_path(@order), alert: "Attach a shipping screenshot before marking fulfilled."
+        return
+      end
+
+      @order.shipping_screenshot.attach(screenshot)
+      @order.update!(
+        status: :fulfilled,
+        fulfillment_method: "physical_product",
+        hcb_grant_link: nil,
+        fulfilled_at: Time.current,
+        reviewer: @order.reviewer || current_user
+      )
+      audit!("order.fulfilled", target: @order, label: @order.kind_label, metadata: { fulfillment_method: "physical_product" })
+    else
+      grant_link = params[:hcb_grant_link].to_s.strip
+      if grant_link.blank?
+        redirect_to admin_order_path(@order), alert: "Paste the HCB grant link before marking fulfilled."
+        return
+      end
+
+      @order.update!(
+        status: :fulfilled,
+        fulfillment_method: @order.shop_item? ? "grant" : nil,
+        hcb_grant_link: grant_link,
+        fulfilled_at: Time.current,
+        reviewer: @order.reviewer || current_user
+      )
+      audit!("order.fulfilled", target: @order, label: @order.kind_label, metadata: { hcb_grant_link: grant_link })
+    end
+
+    FulfillmentNotifyJob.perform_later(@order.id)
+    redirect_to admin_order_path(@order), notice: "Order marked fulfilled."
+  end
+
+  def shipping_screenshot
+    blob = @order.shipping_screenshot
+    unless blob.attached?
+      redirect_to admin_order_path(@order), alert: "No shipping screenshot on file."
       return
     end
 
-    @order.update!(
-      status: :fulfilled,
-      hcb_grant_link: grant_link,
-      fulfilled_at: Time.current,
-      reviewer: @order.reviewer || current_user
-    )
-    audit!("order.fulfilled", target: @order, label: @order.kind_label, metadata: { hcb_grant_link: grant_link })
-    FulfillmentNotifyJob.perform_later(@order.id)
-    redirect_to admin_order_path(@order), notice: "Order marked fulfilled."
+    send_data blob.download, type: blob.content_type, disposition: "inline", filename: blob.filename.to_s
   end
 
   def reassign
@@ -145,6 +178,8 @@ class Admin::OrdersController < Admin::ApplicationController
       description: order.description,
       review_notes: order.review_notes,
       hcb_grant_link: order.hcb_grant_link,
+      fulfillment_method: order.fulfillment_method,
+      shipping_screenshot_url: shipping_screenshot_url(order),
       internal_order_link: order.shop_item&.internal_order_link,
       internal_price_usd: order.shop_item&.internal_price_usd&.to_f,
       user_id: order.user_id,
@@ -168,6 +203,12 @@ class Admin::OrdersController < Admin::ApplicationController
     }
   end
 
+  def shipping_screenshot_url(order)
+    return nil unless order.shipping_screenshot.attached?
+
+    shipping_screenshot_admin_order_path(order)
+  end
+
   def shipping_address(order)
     return nil unless order.shop_item?
 
@@ -175,7 +216,7 @@ class Admin::OrdersController < Admin::ApplicationController
     return nil if user.address_line1.blank?
 
     {
-      recipient_name: [user.first_name, user.last_name].compact_blank.join(" ").presence || user.display_name,
+      recipient_name: [ user.first_name, user.last_name ].compact_blank.join(" ").presence || user.display_name,
       address_line1: user.address_line1,
       address_line2: user.address_line2,
       city: user.city,

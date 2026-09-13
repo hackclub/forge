@@ -390,6 +390,7 @@ Rails.application.routes.draw do
           post :reject
           post :fulfill
           post :reassign
+          get :shipping_screenshot
         end
       end
       resources :shop_items, only: [ :index, :create, :update, :destroy ]
