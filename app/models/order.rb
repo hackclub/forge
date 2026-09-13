@@ -51,6 +51,17 @@ class Order < ApplicationRecord
 
   KINDS = %w[direct_grant shop_item].freeze
   FULFILLMENT_METHODS = %w[grant physical_product].freeze
+  ALLOWED_SCREENSHOT_CONTENT_TYPES = %w[
+    image/png
+    image/jpeg
+    image/gif
+    image/webp
+    image/bmp
+    image/tiff
+    image/heic
+    image/heif
+    image/avif
+  ].freeze
   DIRECT_GRANT_RATIO = 1.0
 
   belongs_to :user

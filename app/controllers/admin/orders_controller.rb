@@ -79,6 +79,12 @@ class Admin::OrdersController < Admin::ApplicationController
       end
 
       @order.shipping_screenshot.attach(screenshot)
+      unless Order::ALLOWED_SCREENSHOT_CONTENT_TYPES.include?(@order.shipping_screenshot.content_type)
+        @order.shipping_screenshot.purge
+        redirect_to admin_order_path(@order), alert: "Unsupported file type. Upload a PNG, JPEG, GIF, WEBP, BMP, TIFF, HEIC, or AVIF image."
+        return
+      end
+
       @order.update!(
         status: :fulfilled,
         fulfillment_method: "physical_product",
@@ -115,7 +121,8 @@ class Admin::OrdersController < Admin::ApplicationController
       return
     end
 
-    send_data blob.download, type: blob.content_type, disposition: "inline", filename: blob.filename.to_s
+    disposition = Order::ALLOWED_SCREENSHOT_CONTENT_TYPES.include?(blob.content_type) ? "inline" : "attachment"
+    send_data blob.download, type: blob.content_type, disposition: disposition, filename: blob.filename.to_s
   end
 
   def reassign
