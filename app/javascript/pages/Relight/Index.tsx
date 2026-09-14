@@ -49,7 +49,7 @@ export default function Index({ stats, my_hours }: { stats: RelightStats; my_hou
     return () => cancelAnimationFrame(frame)
   }, [stats.percent])
 
-  const relit = stats.percent >= 100 && shared.relight_forge_enabled
+  const relit = stats.percent >= 100
 
   const embers = useMemo(
     () =>
