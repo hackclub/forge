@@ -51,6 +51,7 @@ class ApplicationController < ActionController::Base
   inertia_share reels_enabled: -> { reels_enabled? }
   inertia_share guilds_enabled: -> { guilds_enabled? }
   inertia_share relight_enabled: -> { relight_enabled? }
+  inertia_share relight_forge_enabled: -> { relight_forge_enabled? }
   inertia_share forge_ui_enabled: -> { forge_ui_enabled? }
   inertia_share sign_in_path: -> { signin_path }
   inertia_share sign_out_path: -> { signout_path }
@@ -83,6 +84,10 @@ class ApplicationController < ActionController::Base
 
   def require_relight_enabled!
     raise ActionController::RoutingError, "Not Found" unless relight_enabled?
+  end
+
+  def relight_forge_enabled?
+    FeatureFlag.enabled?("relight_forge") || current_user&.admin?
   end
 
   private
