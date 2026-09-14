@@ -53,11 +53,23 @@ export default function ForgeHud({
   coinBalance: number
   relightPercent?: number | null
 }) {
-  const user = usePage<SharedProps>().props.auth.user
+  const { auth, relight_forge_enabled: relightForgeEnabled } = usePage<SharedProps>().props
+  const user = auth.user
   if (!user) return null
+
+  const relit = relightForgeEnabled && relightPercent != null && relightPercent >= 100
 
   return (
     <>
+      <style>{`
+        .forge-hud-relit { animation: forge-hud-relit 2.6s ease-in-out infinite; }
+        @keyframes forge-hud-relit {
+          0%, 100% { filter: drop-shadow(0 2px 6px rgba(0,0,0,0.7)) drop-shadow(0 0 6px rgba(255,150,50,0.55)); }
+          50% { filter: drop-shadow(0 2px 6px rgba(0,0,0,0.7)) drop-shadow(0 0 16px rgba(255,150,50,0.95)); }
+        }
+        @media (prefers-reduced-motion: reduce) { .forge-hud-relit { animation: none; } }
+      `}</style>
+
       <Link
         href="/settings"
         title="Settings"
@@ -101,9 +113,15 @@ export default function ForgeHud({
 
       <div className="absolute right-5 top-4 z-30 hidden items-center gap-4 md:flex xl:gap-5">
         {relightPercent != null && (
-          <Link href="/relight" className="group relative flex items-center gap-1" title="Relight the Forge">
+          <Link
+            href="/relight"
+            className="group relative flex items-center gap-1"
+            title={relit ? 'The Forge burns once more' : 'Relight the Forge'}
+          >
             <span
-              className="material-symbols-outlined text-2xl text-[#ca5924] xl:text-3xl"
+              className={`material-symbols-outlined text-2xl xl:text-3xl ${
+                relit ? 'text-[#ffb595] forge-hud-relit' : 'text-[#ca5924]'
+              }`}
               style={{ fontVariationSettings: "'FILL' 1", filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.7))' }}
             >
               local_fire_department

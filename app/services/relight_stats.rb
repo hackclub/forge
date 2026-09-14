@@ -27,8 +27,12 @@ class RelightStats
   end
 
   def self.personal_hours(user)
-    Devlog.unscope(:order)
-      .where(user_id: user.id, created_at: START_AT..END_AT)
+    new.personal_hours(user)
+  end
+
+  def personal_hours(user)
+    visible_devlogs
+      .where(devlogs: { user_id: user.id, created_at: window })
       .sum(:time_hours).to_f.round(1)
   end
 

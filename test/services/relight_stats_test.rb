@@ -96,4 +96,15 @@ class RelightStatsTest < ActiveSupport::TestCase
 
     assert_equal 3.0, RelightStats.personal_hours(user)
   end
+
+  test "personal hours ignores devlogs on projects the forge total excludes" do
+    user = make_user
+    make_devlog(user, hours: 3)
+    make_devlog(user, hours: 7, project_attrs: { hidden: true })
+    make_devlog(user, hours: 9, project_attrs: { shadow_banned: true })
+    make_devlog(user, hours: 11, project_attrs: { discarded_at: Time.current })
+    make_devlog(user, hours: 13, project_attrs: { status: :rejected })
+
+    assert_equal 3.0, RelightStats.personal_hours(user)
+  end
 end

@@ -49,19 +49,20 @@ export default function Index({ stats, my_hours }: { stats: RelightStats; my_hou
     return () => cancelAnimationFrame(frame)
   }, [stats.percent])
 
+  const relit = stats.percent >= 100 && shared.relight_forge_enabled
+
   const embers = useMemo(
     () =>
-      Array.from({ length: 6 + Math.round(stats.percent / 8) }, () => ({
+      Array.from({ length: relit ? 40 : 6 + Math.round(stats.percent / 8) }, () => ({
         left: `${5 + Math.random() * 90}%`,
-        animationDelay: `${Math.random() * 4}s`,
-        animationDuration: `${2.5 + Math.random() * 3}s`,
+        animationDelay: `${Math.random() * (relit ? 2.5 : 4)}s`,
+        animationDuration: `${(relit ? 1.8 : 2.5) + Math.random() * 3}s`,
       })),
-    [stats.percent],
+    [stats.percent, relit],
   )
 
   const currentMilestone = [...stats.milestones].reverse().find((m) => m.reached)
   const nextMilestone = stats.milestones.find((m) => !m.reached)
-  const relit = stats.percent >= 100
 
   const heroHeight = shared.forge_ui_enabled
     ? 'min-h-[calc(100vh-3.5rem)]'
@@ -81,10 +82,15 @@ export default function Index({ stats, my_hours }: { stats: RelightStats; my_hou
       <section className={`relative ${heroHeight} overflow-hidden bg-[#0e0e0e] flex items-center justify-center`}>
         <div
           className="absolute inset-0"
-          style={{ ...fireLayer, filter: 'grayscale(1) brightness(0.35)', opacity: 0.5 }}
+          style={{
+            ...fireLayer,
+            filter: 'grayscale(1) brightness(0.35)',
+            opacity: relit ? 0 : 0.5,
+            transition: 'opacity 1.6s ease-out',
+          }}
         />
         <div
-          className="absolute inset-0 forge-overlay-idle"
+          className={`absolute inset-0 ${relit ? 'forge-overlay-relit' : 'forge-overlay-idle'}`}
           style={{
             ...fireLayer,
             clipPath: `inset(${100 - revealed}% 0 0 0)`,
@@ -92,7 +98,9 @@ export default function Index({ stats, my_hours }: { stats: RelightStats; my_hou
           }}
         />
         <div
-          className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#ca5924]/20 to-transparent pointer-events-none"
+          className={`absolute inset-x-0 bottom-0 bg-gradient-to-t to-transparent pointer-events-none ${
+            relit ? 'from-[#ca5924]/45' : 'from-[#ca5924]/20'
+          }`}
           style={{ height: `${Math.max(revealed, 8)}%`, transition: 'height 1.2s ease-out' }}
         />
         {embers.map((e, i) => (
@@ -101,17 +109,29 @@ export default function Index({ stats, my_hours }: { stats: RelightStats; my_hou
 
         <div className="relative z-10 text-center px-6 max-w-3xl mx-auto">
           <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-stone-500 mb-3">
-            A community quest &middot; {stats.days_remaining} days remaining
+            A community quest &middot; {relit ? 'goal reached' : `${stats.days_remaining} days remaining`}
           </p>
           <h1 className="text-5xl sm:text-7xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-4">
             Relight the Forge
           </h1>
           <p className="text-stone-400 text-sm sm:text-base mb-6">
-            The great forge has gone cold. Every project you build feeds the flame. Your job as a community is to keep
-            feeding the fire and then together we&apos;ll bring the forge{' '}
-            <span className="text-[#e3b24c] font-bold">roaring back to life</span>!
+            {relit ? (
+              <>
+                The great forge is cold no longer. Every hour you logged fed the flame, and together you brought it{' '}
+                <span className="text-[#e3b24c] font-bold">roaring back to life</span>. Read #forge-bulletin for more
+                info.
+              </>
+            ) : (
+              <>
+                The great forge has gone cold. Every project you build feeds the flame. Your job as a community is to
+                keep feeding the fire and then together we&apos;ll bring the forge{' '}
+                <span className="text-[#e3b24c] font-bold">roaring back to life</span>!
+              </>
+            )}
           </p>
-          <p className="text-2xl sm:text-3xl font-headline text-[#ca5924]">
+          <p
+            className={`text-2xl sm:text-3xl font-headline ${relit ? 'text-[#e3b24c] forge-relit-glow' : 'text-[#ca5924]'}`}
+          >
             {relit ? 'The Forge burns once more.' : (currentMilestone?.name ?? 'Cold Coals')}
           </p>
           {!relit && nextMilestone && (
@@ -132,7 +152,7 @@ export default function Index({ stats, my_hours }: { stats: RelightStats; my_hou
           </div>
           <div className="h-3 bg-[#0e0e0e] ghost-border overflow-hidden">
             <div
-              className="h-full signature-smolder transition-all duration-500"
+              className={`h-full signature-smolder transition-all duration-500 ${relit ? 'forge-bar-relit' : ''}`}
               style={{ width: `${stats.percent}%` }}
             />
           </div>
@@ -240,6 +260,26 @@ export default function Index({ stats, my_hours }: { stats: RelightStats; my_hou
         @keyframes forge-idle {
           0%, 100% { filter: brightness(1); }
           50% { filter: brightness(1.08) drop-shadow(0 0 8px rgba(202,89,36,0.22)); }
+        }
+        .forge-overlay-relit { animation: forge-roar 2.6s ease-in-out infinite; }
+        @keyframes forge-roar {
+          0%, 100% { filter: brightness(1.15) saturate(1.15) drop-shadow(0 0 18px rgba(202,89,36,0.45)); }
+          50% { filter: brightness(1.38) saturate(1.3) drop-shadow(0 0 34px rgba(255,150,50,0.6)); }
+        }
+        .forge-relit-glow { animation: forge-relit-glow 2.6s ease-in-out infinite; }
+        @keyframes forge-relit-glow {
+          0%, 100% { text-shadow: 0 0 12px rgba(227,178,76,0.35); }
+          50% { text-shadow: 0 0 26px rgba(255,150,50,0.75); }
+        }
+        .forge-bar-relit { animation: forge-bar-relit 2.6s ease-in-out infinite; }
+        @keyframes forge-bar-relit {
+          0%, 100% { box-shadow: 0 0 8px rgba(202,89,36,0.5); }
+          50% { box-shadow: 0 0 20px rgba(255,150,50,0.85); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .forge-overlay-idle, .forge-overlay-relit, .forge-relit-glow, .forge-bar-relit, .forge-ember {
+            animation: none;
+          }
         }
         .forge-ember {
           position: absolute; bottom: 0; width: 3px; height: 3px; border-radius: 9999px;
