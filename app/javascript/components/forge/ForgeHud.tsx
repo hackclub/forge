@@ -53,11 +53,10 @@ export default function ForgeHud({
   coinBalance: number
   relightPercent?: number | null
 }) {
-  const { auth, relight_forge_enabled: relightForgeEnabled } = usePage<SharedProps>().props
-  const user = auth.user
+  const user = usePage<SharedProps>().props.auth.user
   if (!user) return null
 
-  const relit = relightForgeEnabled && relightPercent != null && relightPercent >= 100
+  const relit = relightPercent != null && relightPercent >= 100
 
   return (
     <>

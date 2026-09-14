@@ -34,6 +34,26 @@ class RelightStatsTest < ActiveSupport::TestCase
     assert_not props.key?(:goal_hours)
   end
 
+  test "relight_forge flag declares the forge fully relit" do
+    user = make_user
+    make_devlog(user, hours: 100)
+    assert_equal 0.67, RelightStats.new.shared_props[:percent]
+
+    FeatureFlag.create!(name: "relight_forge", enabled: true)
+
+    props = RelightStats.new.shared_props
+    assert_equal 100.0, props[:percent]
+    assert props[:milestones].all? { |m| m[:reached] }
+  end
+
+  test "relight_forge flag leaves personal hours untouched" do
+    user = make_user
+    make_devlog(user, hours: 100)
+    FeatureFlag.create!(name: "relight_forge", enabled: true)
+
+    assert_equal 100.0, RelightStats.personal_hours(user)
+  end
+
   test "milestones flag reached thresholds" do
     user = make_user
     make_devlog(user, hours: 1_200)

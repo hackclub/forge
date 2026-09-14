@@ -2,7 +2,7 @@ class RelightStats
   GOAL_HOURS = 15_000.0
   START_AT = Time.utc(2026, 8, 7)
   END_AT = Time.utc(2026, 11, 7)
-  CACHE_KEY = "relight/shared/v1".freeze
+  CACHE_KEY = "relight/shared/v2".freeze
   CACHE_TTL = 1.minute
   FEED_LIMIT = 12
 
@@ -37,7 +37,7 @@ class RelightStats
   end
 
   def shared_props
-    total = total_hours
+    total = declared_relit? ? GOAL_HOURS : total_hours
     {
       percent: (total / GOAL_HOURS * 100).clamp(0, 100).round(2),
       starts_at: START_AT.iso8601,
@@ -50,6 +50,10 @@ class RelightStats
   end
 
   private
+
+  def declared_relit?
+    FeatureFlag.enabled?("relight_forge")
+  end
 
   def window
     START_AT..END_AT

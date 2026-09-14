@@ -44,19 +44,6 @@ class RelightControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
-  test "relight_forge flag is shared with the frontend" do
-    FeatureFlag.create!(name: "relight", enabled: true)
-    sign_in_as(make_user)
-
-    get relight_path
-    assert_response :success
-    assert_not inertia.props[:relight_forge_enabled]
-
-    FeatureFlag.create!(name: "relight_forge", enabled: true)
-    get relight_path
-    assert inertia.props[:relight_forge_enabled]
-  end
-
   test "redirects logged out visitors" do
     get relight_path
     assert_response :redirect
