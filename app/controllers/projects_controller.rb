@@ -439,8 +439,8 @@ class ProjectsController < ApplicationController
     end
 
     @project.cover_image.attach(file)
-    @project.update!(cover_image_url: nil)
-    redirect_to @project, notice: "Cover image uploaded. Processing..."
+    UploadCoverImageJob.perform_now(@project.id)
+    redirect_to @project, notice: "Cover image uploaded."
   end
 
   def ai_check
