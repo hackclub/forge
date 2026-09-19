@@ -33,9 +33,9 @@ class Reel < ApplicationRecord
   MAX_DURATION_SECONDS = 60
   MAX_IMAGES = 10
 
-  COINS_PER_VIEW = 0.01
-  COINS_PER_KUDO = 0.05
-  MAX_PAYOUT_COINS = 25.0
+  COINS_PER_VIEW = 0.03
+  COINS_PER_KUDO = 0.075
+  MAX_PAYOUT_COINS = 35.0
 
   has_paper_trail
 
