@@ -30,7 +30,7 @@ interface ShopItem {
 
 interface Order {
   id: number
-  kind: 'direct_grant' | 'shop_item'
+  kind: 'direct_grant' | 'shop_item' | 'supercon_ticket' | 'flight_reimbursement'
   kind_label: string
   status: 'pending' | 'approved' | 'fulfilled' | 'rejected'
   quantity: number
@@ -56,9 +56,21 @@ interface StreakFreezes {
   cost: number
 }
 
+interface SuperconTicket {
+  cost: number
+  ordered: boolean
+}
+
+interface FlightReimbursement {
+  cost: number
+  usd: number
+}
+
 interface Props {
   balance: Balance
   streak_freezes: StreakFreezes
+  supercon_ticket: SuperconTicket
+  flight_reimbursement: FlightReimbursement
   can_buy_shop_items: boolean
   eligible_projects: EligibleProject[]
   shop_items: ShopItem[]
@@ -79,6 +91,8 @@ const STATUS_STYLES: Record<Order['status'], string> = {
 export default function ShopIndex({
   balance,
   streak_freezes,
+  supercon_ticket,
+  flight_reimbursement,
   can_buy_shop_items,
   eligible_projects,
   shop_items,
@@ -123,6 +137,8 @@ export default function ShopIndex({
   }
 
   const [quantities, setQuantities] = useState<Record<number, number>>({})
+  const [flightQty, setFlightQty] = useState(1)
+  const flightCost = flight_reimbursement.cost * flightQty
 
   function getQuantity(item: ShopItem) {
     return quantities[item.id] ?? 1
@@ -142,6 +158,26 @@ export default function ShopIndex({
     if (streak_freezes.cost > balance.balance) return
     if (!confirm(`Spend ${streak_freezes.cost}c on a streak freeze?`)) return
     router.post('/shop/orders', { kind: 'streak_freeze', quantity: 1 })
+  }
+
+  function buySuperconTicket() {
+    if (!isSignedIn) {
+      window.location.href = shared.sign_in_path
+      return
+    }
+    if (supercon_ticket.ordered || supercon_ticket.cost > balance.balance) return
+    if (!confirm(`Spend ${supercon_ticket.cost}c on a Supercon ticket?`)) return
+    router.post('/shop/orders', { kind: 'supercon_ticket' })
+  }
+
+  function buyFlightReimbursement() {
+    if (!isSignedIn) {
+      window.location.href = shared.sign_in_path
+      return
+    }
+    if (flightCost > balance.balance) return
+    if (!confirm(`Spend ${flightCost}c on $${flight_reimbursement.usd * flightQty} of flight reimbursement?`)) return
+    router.post('/shop/orders', { kind: 'flight_reimbursement', quantity: flightQty })
   }
 
   function buyItem(item: ShopItem) {
@@ -323,89 +359,181 @@ export default function ShopIndex({
           </div>
         )}
 
-        <section>
-          {shop_items.length === 0 ? (
-            <div className="bg-[#1c1b1b] ghost-border p-12 text-center">
-              <p className="text-stone-500 text-sm">No items in the shop yet. Check back soon.</p>
+        <section className="space-y-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="col-span-2 bg-[#1c1b1b] ghost-border flex flex-col min-w-0 overflow-hidden">
+              <div className="aspect-[2/1] bg-[#0e0e0e] flex flex-col items-center justify-center gap-1.5 p-3 text-center">
+                <span className="material-symbols-outlined text-4xl text-[#ffb595]">confirmation_number</span>
+                <span className="font-headline font-bold text-3xl leading-none tracking-tight text-[#e5e2e1]">
+                  SUPERCON
+                </span>
+                <span className="font-headline text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500">
+                  Ticket
+                </span>
+              </div>
+              <div className="p-4 flex-1 flex flex-col">
+                <h3 className="font-headline font-bold text-[#e5e2e1] tracking-tight mb-1 break-words text-sm">
+                  Supercon ticket
+                </h3>
+                <p className="text-stone-400 text-sm leading-relaxed mb-3 break-words">
+                  A super cool ticket to hackaday supercon with housing/food included!!
+                </p>
+                <div className="mt-auto space-y-2">
+                  <p className="text-[#ca5924] font-headline font-bold text-sm">{supercon_ticket.cost}c</p>
+                  <button
+                    onClick={buySuperconTicket}
+                    disabled={isSignedIn && (supercon_ticket.ordered || supercon_ticket.cost > balance.balance)}
+                    className={`w-full py-2 text-[10px] font-bold uppercase tracking-[0.15em] transition-colors ${!isSignedIn || (!supercon_ticket.ordered && supercon_ticket.cost <= balance.balance) ? 'signature-smolder text-[#4c1a00] cursor-pointer' : 'bg-stone-700/40 text-stone-500 cursor-not-allowed'}`}
+                  >
+                    {!isSignedIn
+                      ? 'Sign in to buy'
+                      : supercon_ticket.ordered
+                        ? 'Ordered'
+                        : supercon_ticket.cost > balance.balance
+                          ? "Can't afford"
+                          : 'Buy'}
+                  </button>
+                </div>
+              </div>
             </div>
-          ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {shop_items.map((item) => {
-                const qty = getQuantity(item)
-                const totalCost = +(item.coin_cost * qty).toFixed(2)
-                const affordable = totalCost <= balance.balance
-                const enabled = isSignedIn ? can_buy_shop_items && affordable : true
-                const max = item.max_quantity ?? 999
-                const showQuantity = max > 1
-                return (
-                  <div key={item.id} className="bg-[#1c1b1b] ghost-border flex flex-col min-w-0 overflow-hidden">
-                    <div className="aspect-square bg-[#0e0e0e] flex items-center justify-center">
-                      {item.image_url ? (
-                        <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
-                      ) : (
-                        <span className="text-5xl">📦</span>
+
+            <div className="bg-[#1c1b1b] ghost-border flex flex-col min-w-0 overflow-hidden">
+              <div className="aspect-square bg-[#0e0e0e] flex flex-col items-center justify-center gap-1.5 p-3 text-center">
+                <span className="material-symbols-outlined text-3xl text-[#ffb595]">flight_takeoff</span>
+                <span className="font-headline font-bold text-xl leading-none tracking-tight text-[#e5e2e1]">
+                  ${flight_reimbursement.usd * flightQty}
+                </span>
+                <span className="font-headline text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500">
+                  Flight
+                </span>
+              </div>
+              <div className="p-4 flex-1 flex flex-col">
+                <h3 className="font-headline font-bold text-[#e5e2e1] tracking-tight mb-1 break-words text-sm">
+                  ${flight_reimbursement.usd} flight reimbursement
+                </h3>
+                <p className="text-stone-400 text-sm leading-relaxed mb-3 break-words">
+                  Put coins toward getting to the event. Stack as many as your flight needs.
+                </p>
+                <div className="mt-auto space-y-2">
+                  <p className="text-[#ca5924] font-headline font-bold text-sm">
+                    {flight_reimbursement.cost}c{flightQty > 1 ? ` × ${flightQty} = ${flightCost}c` : ''}
+                  </p>
+                  <div className="flex items-center justify-between bg-[#0e0e0e] ghost-border px-2 py-1">
+                    <button
+                      type="button"
+                      onClick={() => setFlightQty((q) => Math.max(1, q - 1))}
+                      disabled={flightQty <= 1}
+                      className="text-stone-400 hover:text-[#ffb595] disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer w-6 text-center"
+                    >
+                      &minus;
+                    </button>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      value={flightQty}
+                      onChange={(e) => setFlightQty(Math.max(1, parseInt(e.target.value.replace(/\D/g, '')) || 1))}
+                      className="bg-transparent border-none text-center text-[#e5e2e1] text-sm w-12 focus:outline-none focus:ring-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setFlightQty((q) => q + 1)}
+                      className="text-stone-400 hover:text-[#ffb595] cursor-pointer w-6 text-center"
+                    >
+                      +
+                    </button>
+                  </div>
+                  <button
+                    onClick={buyFlightReimbursement}
+                    disabled={isSignedIn && flightCost > balance.balance}
+                    className={`w-full py-2 text-[10px] font-bold uppercase tracking-[0.15em] transition-colors ${!isSignedIn || flightCost <= balance.balance ? 'signature-smolder text-[#4c1a00] cursor-pointer' : 'bg-stone-700/40 text-stone-500 cursor-not-allowed'}`}
+                  >
+                    {!isSignedIn ? 'Sign in to buy' : flightCost > balance.balance ? "Can't afford" : 'Buy'}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {shop_items.map((item) => {
+              const qty = getQuantity(item)
+              const totalCost = +(item.coin_cost * qty).toFixed(2)
+              const affordable = totalCost <= balance.balance
+              const enabled = isSignedIn ? can_buy_shop_items && affordable : true
+              const max = item.max_quantity ?? 999
+              const showQuantity = max > 1
+              return (
+                <div key={item.id} className="bg-[#1c1b1b] ghost-border flex flex-col min-w-0 overflow-hidden">
+                  <div className="aspect-square bg-[#0e0e0e] flex items-center justify-center">
+                    {item.image_url ? (
+                      <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-5xl">📦</span>
+                    )}
+                  </div>
+                  <div className="p-4 flex-1 flex flex-col">
+                    <h3 className="font-headline font-bold text-[#e5e2e1] tracking-tight mb-1 break-words text-sm">
+                      {item.name}
+                    </h3>
+                    <ItemDescription description={item.description} />
+                    <div className="mt-auto space-y-2">
+                      <p className="text-[#ca5924] font-headline font-bold text-sm">
+                        {item.coin_cost}c{qty > 1 ? ` × ${qty} = ${totalCost}c` : ''}
+                      </p>
+                      {showQuantity && (
+                        <div className="flex items-center justify-between bg-[#0e0e0e] ghost-border px-2 py-1">
+                          <button
+                            type="button"
+                            onClick={() => setQuantity(item, qty - 1)}
+                            disabled={qty <= 1}
+                            className="text-stone-400 hover:text-[#ffb595] disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer w-6 text-center"
+                          >
+                            −
+                          </button>
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            value={qty}
+                            onChange={(e) => setQuantity(item, parseInt(e.target.value.replace(/\D/g, '')) || 1)}
+                            className="bg-transparent border-none text-center text-[#e5e2e1] text-sm w-12 focus:outline-none focus:ring-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setQuantity(item, qty + 1)}
+                            disabled={qty >= max}
+                            className="text-stone-400 hover:text-[#ffb595] disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer w-6 text-center"
+                          >
+                            +
+                          </button>
+                        </div>
                       )}
-                    </div>
-                    <div className="p-4 flex-1 flex flex-col">
-                      <h3 className="font-headline font-bold text-[#e5e2e1] tracking-tight mb-1 break-words text-sm">
-                        {item.name}
-                      </h3>
-                      <ItemDescription description={item.description} />
-                      <div className="mt-auto space-y-2">
-                        <p className="text-[#ca5924] font-headline font-bold text-sm">
-                          {item.coin_cost}c{qty > 1 ? ` × ${qty} = ${totalCost}c` : ''}
+                      {item.max_quantity != null && (
+                        <p className="text-stone-600 text-[9px] uppercase tracking-wider text-center">
+                          Max {item.max_quantity} per order
                         </p>
-                        {showQuantity && (
-                          <div className="flex items-center justify-between bg-[#0e0e0e] ghost-border px-2 py-1">
-                            <button
-                              type="button"
-                              onClick={() => setQuantity(item, qty - 1)}
-                              disabled={qty <= 1}
-                              className="text-stone-400 hover:text-[#ffb595] disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer w-6 text-center"
-                            >
-                              −
-                            </button>
-                            <input
-                              type="text"
-                              inputMode="numeric"
-                              pattern="[0-9]*"
-                              value={qty}
-                              onChange={(e) => setQuantity(item, parseInt(e.target.value.replace(/\D/g, '')) || 1)}
-                              className="bg-transparent border-none text-center text-[#e5e2e1] text-sm w-12 focus:outline-none focus:ring-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => setQuantity(item, qty + 1)}
-                              disabled={qty >= max}
-                              className="text-stone-400 hover:text-[#ffb595] disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer w-6 text-center"
-                            >
-                              +
-                            </button>
-                          </div>
-                        )}
-                        {item.max_quantity != null && (
-                          <p className="text-stone-600 text-[9px] uppercase tracking-wider text-center">
-                            Max {item.max_quantity} per order
-                          </p>
-                        )}
-                        <button
-                          onClick={() => buyItem(item)}
-                          disabled={!enabled}
-                          className={`w-full py-2 text-[10px] font-bold uppercase tracking-[0.15em] transition-colors ${enabled ? 'signature-smolder text-[#4c1a00] cursor-pointer' : 'bg-stone-700/40 text-stone-500 cursor-not-allowed'}`}
-                        >
-                          {!isSignedIn
-                            ? 'Sign in to buy'
-                            : !can_buy_shop_items
-                              ? 'Locked'
-                              : affordable
-                                ? 'Buy'
-                                : "Can't afford"}
-                        </button>
-                      </div>
+                      )}
+                      <button
+                        onClick={() => buyItem(item)}
+                        disabled={!enabled}
+                        className={`w-full py-2 text-[10px] font-bold uppercase tracking-[0.15em] transition-colors ${enabled ? 'signature-smolder text-[#4c1a00] cursor-pointer' : 'bg-stone-700/40 text-stone-500 cursor-not-allowed'}`}
+                      >
+                        {!isSignedIn
+                          ? 'Sign in to buy'
+                          : !can_buy_shop_items
+                            ? 'Locked'
+                            : affordable
+                              ? 'Buy'
+                              : "Can't afford"}
+                      </button>
                     </div>
                   </div>
-                )
-              })}
+                </div>
+              )
+            })}
+          </div>
+          {shop_items.length === 0 && (
+            <div className="bg-[#1c1b1b] ghost-border p-12 text-center">
+              <p className="text-stone-500 text-sm">No items in the shop yet. Check back soon.</p>
             </div>
           )}
         </section>

@@ -24,6 +24,14 @@ module ShopProps
         owned: current_user&.streak_freezes || 0,
         cost: User::STREAK_FREEZE_COST
       },
+      supercon_ticket: {
+        cost: Order::SUPERCON_TICKET_COST,
+        ordered: orders.any? { |o| o.kind == "supercon_ticket" && !o.rejected? }
+      },
+      flight_reimbursement: {
+        cost: Order::FLIGHT_REIMBURSEMENT_COST,
+        usd: Order::FLIGHT_REIMBURSEMENT_USD
+      },
       can_buy_shop_items: current_user&.can_buy_shop_items? || false,
       eligible_projects: eligible_projects.map { |p|
         {

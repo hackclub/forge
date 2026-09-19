@@ -9,7 +9,7 @@ import { Input } from '@/components/admin/ui/input'
 
 interface OrderDetail {
   id: number
-  kind: 'direct_grant' | 'shop_item'
+  kind: 'direct_grant' | 'shop_item' | 'supercon_ticket' | 'flight_reimbursement'
   kind_label: string
   status: 'pending' | 'approved' | 'fulfilled' | 'rejected'
   quantity: number
@@ -120,7 +120,7 @@ export default function AdminOrdersShow({
   })
 
   const grantAmountUsd =
-    order.kind === 'direct_grant'
+    order.kind !== 'shop_item'
       ? order.amount_usd
       : order.internal_price_usd != null
         ? order.internal_price_usd * order.quantity

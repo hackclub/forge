@@ -49,7 +49,7 @@ class Order < ApplicationRecord
 
   has_paper_trail
 
-  KINDS = %w[direct_grant shop_item].freeze
+  KINDS = %w[direct_grant shop_item supercon_ticket flight_reimbursement].freeze
   FULFILLMENT_METHODS = %w[grant physical_product].freeze
   ALLOWED_SCREENSHOT_CONTENT_TYPES = %w[
     image/png
@@ -63,6 +63,14 @@ class Order < ApplicationRecord
     image/avif
   ].freeze
   DIRECT_GRANT_RATIO = 1.0
+  SUPERCON_TICKET_COST = 350
+  FLIGHT_REIMBURSEMENT_COST = 8
+  FLIGHT_REIMBURSEMENT_USD = 10
+  KIND_LABELS = {
+    "direct_grant" => "Direct project grant",
+    "supercon_ticket" => "Supercon ticket",
+    "flight_reimbursement" => "$#{FLIGHT_REIMBURSEMENT_USD} flight reimbursement"
+  }.freeze
 
   belongs_to :user
   belongs_to :project, optional: true
@@ -95,8 +103,16 @@ class Order < ApplicationRecord
     kind == "shop_item"
   end
 
+  def supercon_ticket?
+    kind == "supercon_ticket"
+  end
+
+  def flight_reimbursement?
+    kind == "flight_reimbursement"
+  end
+
   def kind_label
-    direct_grant? ? "Direct project grant" : (shop_item&.name || "Shop item")
+    KIND_LABELS[kind] || shop_item&.name || "Shop item"
   end
 
   def self.direct_grant_cost(amount_usd)
