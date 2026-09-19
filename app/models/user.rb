@@ -381,13 +381,13 @@ class User < ApplicationRecord
       raise StandardError, "No identity data in HCA response"
     end
 
-    if ysws_ineligible?(identity)
-      raise StandardError, "Sorry, Forge is for YSWS-eligible teen builders. You're not eligible to participate."
-    end
-
     hca_id = identity["id"]
     email = identity["primary_email"]
     user = User.find_by(hca_id: hca_id)
+
+    if user.blank? && ysws_ineligible?(identity)
+      raise StandardError, "Sorry, Forge is for YSWS-eligible teen builders. You're not eligible to participate."
+    end
 
     if user.present?
       Rails.logger.tagged("UserCreation") do

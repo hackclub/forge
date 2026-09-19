@@ -12,6 +12,16 @@ class Admin::OrdersController < Admin::ApplicationController
     scope = scope.where(kind: params[:kind]) if params[:kind].present?
     scope = scope.where(region: params[:region]) if params[:region].present?
     scope = scope.where(assigned_to_id: current_user.id) if params[:assigned_to] == "me"
+
+    scope = scope.where(shop_item_id: params[:shop_item_id]) if params[:shop_item_id].present?
+
+    search_term = params[:search].to_s.strip
+    if search_term.present?
+      scope = scope
+        .where("users.display_name ILIKE :term OR orders.hcb_grant_link ILIKE :term", term: "%#{search_term}%")
+        .references(:user)
+    end
+
     @pagy, @orders = pagy(scope, limit: 50)
 
     render inertia: "Admin/Orders/Index", props: {
@@ -21,7 +31,9 @@ class Admin::OrdersController < Admin::ApplicationController
         status: params.key?(:status) ? params[:status].to_s : "pending",
         kind: params[:kind].to_s,
         region: params[:region].to_s,
-        assigned_to: params[:assigned_to].to_s
+        assigned_to: params[:assigned_to].to_s,
+        shop_item_id: params[:shop_item_id].to_s,
+        search: search_term
       },
       counts: {
         all: Order.count,
@@ -31,7 +43,8 @@ class Admin::OrdersController < Admin::ApplicationController
         rejected: Order.rejected.count
       },
       regions: HasRegion::REGIONS,
-      fulfillment_users: fulfillment_users_list
+      fulfillment_users: fulfillment_users_list,
+      shop_items: ShopItem.order(:name).pluck(:id, :name).map { |id, name| { id: id, name: name } }
     }
   end
 
