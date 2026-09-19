@@ -17,6 +17,10 @@ class ShopController < ApplicationController
       create_shop_item_order
     when "streak_freeze"
       create_streak_freeze
+    when "supercon_ticket"
+      create_supercon_ticket
+    when "flight_reimbursement"
+      create_flight_reimbursement
     else
       redirect_back fallback_location: shop_path, alert: "Invalid order type."
     end
@@ -142,5 +146,52 @@ class ShopController < ApplicationController
     redirect_back fallback_location: shop_path, notice: "Purchased #{quantity} streak freeze#{'s' if quantity > 1}."
   rescue ActiveRecord::RecordInvalid => e
     redirect_back fallback_location: shop_path, alert: e.message
+  end
+
+  def create_supercon_ticket
+    if current_user.orders.where(kind: "supercon_ticket").where.not(status: :rejected).exists?
+      redirect_back fallback_location: shop_path, alert: "You've already ordered a Supercon ticket."
+      return
+    end
+
+    cost = Order::SUPERCON_TICKET_COST
+    if cost > current_user.coin_balance
+      redirect_back fallback_location: shop_path, alert: "Not enough steel coins. Need #{cost}c, have #{current_user.coin_balance}c."
+      return
+    end
+
+    order = current_user.orders.build(kind: "supercon_ticket", coin_cost: cost)
+
+    if order.save
+      audit!("order.created", target: order, label: order.kind_label, metadata: { kind: "supercon_ticket", coin_cost: cost })
+      redirect_back fallback_location: shop_path, notice: "Supercon ticket ordered. Awaiting staff review."
+    else
+      redirect_back fallback_location: shop_path, alert: order.errors.full_messages.join(", ")
+    end
+  end
+
+  def create_flight_reimbursement
+    quantity = params[:quantity].to_i
+    quantity = 1 if quantity < 1
+    total_cost = Order::FLIGHT_REIMBURSEMENT_COST * quantity
+
+    if total_cost > current_user.coin_balance
+      redirect_back fallback_location: shop_path, alert: "Not enough steel coins. Need #{total_cost}c, have #{current_user.coin_balance}c."
+      return
+    end
+
+    order = current_user.orders.build(
+      kind: "flight_reimbursement",
+      quantity: quantity,
+      amount_usd: Order::FLIGHT_REIMBURSEMENT_USD * quantity,
+      coin_cost: total_cost
+    )
+
+    if order.save
+      audit!("order.created", target: order, label: order.kind_label, metadata: { kind: "flight_reimbursement", quantity: quantity, amount_usd: order.amount_usd.to_f, coin_cost: total_cost })
+      redirect_back fallback_location: shop_path, notice: "Flight reimbursement ordered. Awaiting staff review."
+    else
+      redirect_back fallback_location: shop_path, alert: order.errors.full_messages.join(", ")
+    end
   end
 end

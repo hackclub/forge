@@ -21,7 +21,7 @@ class FulfillmentNotifyJob < ApplicationJob
     region_label = order.region.present? ? HasRegion::REGIONS[order.region] : nil
     assignee_label = order.assigned_to ? "Assigned to *#{order.assigned_to.display_name}*" : "_Unassigned_"
 
-    cost = if order.direct_grant?
+    cost = if order.amount_usd.present?
       "$#{format('%.2f', order.amount_usd.to_f)} (#{format_coin(order.coin_cost)} Coins)"
     else
       "#{format_coin(order.coin_cost)} Coins × #{order.quantity}"

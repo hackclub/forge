@@ -24,7 +24,7 @@ interface ShopItem {
 
 interface Order {
   id: number
-  kind: 'direct_grant' | 'shop_item'
+  kind: 'direct_grant' | 'shop_item' | 'supercon_ticket' | 'flight_reimbursement'
   kind_label: string
   status: 'pending' | 'approved' | 'fulfilled' | 'rejected'
   quantity: number
@@ -48,6 +48,8 @@ interface Transaction {
 interface ShopData {
   balance: Balance
   streak_freezes: { owned: number; cost: number }
+  supercon_ticket: { cost: number; ordered: boolean }
+  flight_reimbursement: { cost: number; usd: number }
   can_buy_shop_items: boolean
   eligible_projects: EligibleProject[]
   shop_items: ShopItem[]
@@ -80,12 +82,15 @@ export default function ShopPopup() {
   const [amount, setAmount] = useState('')
   const [description, setDescription] = useState('')
   const [quantities, setQuantities] = useState<Record<number, number>>({})
+  const [flightQty, setFlightQty] = useState(1)
 
   if (!data) return <ForgeLoading />
 
   const {
     balance,
     streak_freezes,
+    supercon_ticket,
+    flight_reimbursement,
     can_buy_shop_items,
     eligible_projects,
     shop_items,
@@ -100,6 +105,7 @@ export default function ShopPopup() {
   const numericAmount = parseFloat(amount) || 0
   const directCost = +(numericAmount * direct_grant_ratio).toFixed(2)
   const canAffordDirect = directCost > 0 && directCost <= balance.balance && !!activeProjectId
+  const flightCost = flight_reimbursement.cost * flightQty
 
   function getQuantity(item: ShopItem) {
     return quantities[item.id] ?? 1
@@ -131,6 +137,18 @@ export default function ShopPopup() {
     if (streak_freezes.cost > balance.balance) return
     if (!confirm(`Spend ${streak_freezes.cost}c on a streak freeze?`)) return
     router.post('/shop/orders', { kind: 'streak_freeze', quantity: 1 }, MUTATE)
+  }
+
+  function buySuperconTicket() {
+    if (supercon_ticket.ordered || supercon_ticket.cost > balance.balance) return
+    if (!confirm(`Spend ${supercon_ticket.cost}c on a Supercon ticket?`)) return
+    router.post('/shop/orders', { kind: 'supercon_ticket' }, MUTATE)
+  }
+
+  function buyFlightReimbursement() {
+    if (flightCost > balance.balance) return
+    if (!confirm(`Spend ${flightCost}c on $${flight_reimbursement.usd * flightQty} of flight reimbursement?`)) return
+    router.post('/shop/orders', { kind: 'flight_reimbursement', quantity: flightQty }, MUTATE)
   }
 
   function buyItem(item: ShopItem) {
@@ -285,77 +303,167 @@ export default function ShopPopup() {
         </div>
       )}
 
-      <section>
-        {shop_items.length === 0 ? (
-          <div className="bg-[#0e0e0e] p-12 text-center ghost-border">
-            <p className="text-sm text-stone-500">No items in the shop yet. Check back soon.</p>
+      <section className="space-y-4">
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+          <div className="col-span-2 flex min-w-0 flex-col overflow-hidden bg-[#0e0e0e] ghost-border">
+            <div className="flex aspect-[2/1] flex-col items-center justify-center gap-1.5 bg-[#1c1b1b] p-3 text-center">
+              <span className="material-symbols-outlined text-4xl text-[#ffb595]">confirmation_number</span>
+              <span className="font-headline text-3xl font-bold leading-none tracking-tight text-[#e5e2e1]">
+                SUPERCON
+              </span>
+              <span className="font-headline text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500">
+                Ticket
+              </span>
+            </div>
+            <div className="flex flex-1 flex-col p-3">
+              <h3 className="mb-1 break-words font-headline text-sm font-bold tracking-tight text-[#e5e2e1]">
+                Supercon ticket
+              </h3>
+              <p className="mb-3 break-words text-sm leading-relaxed text-stone-400">
+                A super cool ticket to hackaday supercon with housing/food included!!
+              </p>
+              <div className="mt-auto space-y-2">
+                <p className="font-headline text-sm font-bold text-[#ca5924]">{supercon_ticket.cost}c</p>
+                <button
+                  onClick={buySuperconTicket}
+                  disabled={supercon_ticket.ordered || supercon_ticket.cost > balance.balance}
+                  className={`w-full py-2 text-[10px] font-bold uppercase tracking-[0.15em] transition-colors ${supercon_ticket.ordered || supercon_ticket.cost > balance.balance ? 'cursor-not-allowed bg-stone-700/40 text-stone-500' : 'signature-smolder cursor-pointer text-[#4c1a00]'}`}
+                >
+                  {supercon_ticket.ordered
+                    ? 'Ordered'
+                    : supercon_ticket.cost > balance.balance
+                      ? "Can't afford"
+                      : 'Buy'}
+                </button>
+              </div>
+            </div>
           </div>
-        ) : (
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
-            {shop_items.map((item) => {
-              const qty = getQuantity(item)
-              const totalCost = +(item.coin_cost * qty).toFixed(2)
-              const affordable = totalCost <= balance.balance
-              const enabled = can_buy_shop_items && affordable
-              const max = item.max_quantity ?? 999
-              return (
-                <div key={item.id} className="flex min-w-0 flex-col overflow-hidden bg-[#0e0e0e] ghost-border">
-                  <div className="flex aspect-square items-center justify-center bg-[#1c1b1b]">
-                    {item.image_url ? (
-                      <img src={item.image_url} alt={item.name} className="h-full w-full object-cover" />
-                    ) : (
-                      <span className="text-5xl">📦</span>
+
+          <div className="flex min-w-0 flex-col overflow-hidden bg-[#0e0e0e] ghost-border">
+            <div className="flex aspect-square flex-col items-center justify-center gap-1.5 bg-[#1c1b1b] p-3 text-center">
+              <span className="material-symbols-outlined text-3xl text-[#ffb595]">flight_takeoff</span>
+              <span className="font-headline text-xl font-bold leading-none tracking-tight text-[#e5e2e1]">
+                ${flight_reimbursement.usd * flightQty}
+              </span>
+              <span className="font-headline text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500">
+                Flight
+              </span>
+            </div>
+            <div className="flex flex-1 flex-col p-3">
+              <h3 className="mb-1 break-words font-headline text-sm font-bold tracking-tight text-[#e5e2e1]">
+                ${flight_reimbursement.usd} flight reimbursement
+              </h3>
+              <p className="mb-3 break-words text-sm leading-relaxed text-stone-400">
+                Put coins toward getting to the event. Stack as many as your flight needs.
+              </p>
+              <div className="mt-auto space-y-2">
+                <p className="font-headline text-sm font-bold text-[#ca5924]">
+                  {flight_reimbursement.cost}c{flightQty > 1 ? ` × ${flightQty} = ${flightCost}c` : ''}
+                </p>
+                <div className="flex items-center justify-between bg-[#1c1b1b] px-2 py-1 ghost-border">
+                  <button
+                    type="button"
+                    onClick={() => setFlightQty((q) => Math.max(1, q - 1))}
+                    disabled={flightQty <= 1}
+                    className="w-6 cursor-pointer text-center text-stone-400 hover:text-[#ffb595] disabled:cursor-not-allowed disabled:opacity-30"
+                  >
+                    &minus;
+                  </button>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    value={flightQty}
+                    onChange={(e) => setFlightQty(Math.max(1, parseInt(e.target.value.replace(/\D/g, '')) || 1))}
+                    className="w-12 border-none bg-transparent text-center text-sm text-[#e5e2e1] focus:outline-none focus:ring-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setFlightQty((q) => q + 1)}
+                    className="w-6 cursor-pointer text-center text-stone-400 hover:text-[#ffb595]"
+                  >
+                    +
+                  </button>
+                </div>
+                <button
+                  onClick={buyFlightReimbursement}
+                  disabled={flightCost > balance.balance}
+                  className={`w-full py-2 text-[10px] font-bold uppercase tracking-[0.15em] transition-colors ${flightCost > balance.balance ? 'cursor-not-allowed bg-stone-700/40 text-stone-500' : 'signature-smolder cursor-pointer text-[#4c1a00]'}`}
+                >
+                  {flightCost > balance.balance ? "Can't afford" : 'Buy'}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {shop_items.map((item) => {
+            const qty = getQuantity(item)
+            const totalCost = +(item.coin_cost * qty).toFixed(2)
+            const affordable = totalCost <= balance.balance
+            const enabled = can_buy_shop_items && affordable
+            const max = item.max_quantity ?? 999
+            return (
+              <div key={item.id} className="flex min-w-0 flex-col overflow-hidden bg-[#0e0e0e] ghost-border">
+                <div className="flex aspect-square items-center justify-center bg-[#1c1b1b]">
+                  {item.image_url ? (
+                    <img src={item.image_url} alt={item.name} className="h-full w-full object-cover" />
+                  ) : (
+                    <span className="text-5xl">📦</span>
+                  )}
+                </div>
+                <div className="flex flex-1 flex-col p-3">
+                  <h3 className="mb-1 break-words font-headline text-sm font-bold tracking-tight text-[#e5e2e1]">
+                    {item.name}
+                  </h3>
+                  <ItemDescription description={item.description} />
+                  <div className="mt-auto space-y-2">
+                    <p className="font-headline text-sm font-bold text-[#ca5924]">
+                      {item.coin_cost}c{qty > 1 ? ` × ${qty} = ${totalCost}c` : ''}
+                    </p>
+                    {max > 1 && (
+                      <div className="flex items-center justify-between bg-[#1c1b1b] px-2 py-1 ghost-border">
+                        <button
+                          type="button"
+                          onClick={() => setQuantity(item, qty - 1)}
+                          disabled={qty <= 1}
+                          className="w-6 cursor-pointer text-center text-stone-400 hover:text-[#ffb595] disabled:cursor-not-allowed disabled:opacity-30"
+                        >
+                          −
+                        </button>
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
+                          value={qty}
+                          onChange={(e) => setQuantity(item, parseInt(e.target.value.replace(/\D/g, '')) || 1)}
+                          className="w-12 border-none bg-transparent text-center text-sm text-[#e5e2e1] focus:outline-none focus:ring-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setQuantity(item, qty + 1)}
+                          disabled={qty >= max}
+                          className="w-6 cursor-pointer text-center text-stone-400 hover:text-[#ffb595] disabled:cursor-not-allowed disabled:opacity-30"
+                        >
+                          +
+                        </button>
+                      </div>
                     )}
-                  </div>
-                  <div className="flex flex-1 flex-col p-3">
-                    <h3 className="mb-1 break-words font-headline text-sm font-bold tracking-tight text-[#e5e2e1]">
-                      {item.name}
-                    </h3>
-                    <ItemDescription description={item.description} />
-                    <div className="mt-auto space-y-2">
-                      <p className="font-headline text-sm font-bold text-[#ca5924]">
-                        {item.coin_cost}c{qty > 1 ? ` × ${qty} = ${totalCost}c` : ''}
-                      </p>
-                      {max > 1 && (
-                        <div className="flex items-center justify-between bg-[#1c1b1b] px-2 py-1 ghost-border">
-                          <button
-                            type="button"
-                            onClick={() => setQuantity(item, qty - 1)}
-                            disabled={qty <= 1}
-                            className="w-6 cursor-pointer text-center text-stone-400 hover:text-[#ffb595] disabled:cursor-not-allowed disabled:opacity-30"
-                          >
-                            −
-                          </button>
-                          <input
-                            type="text"
-                            inputMode="numeric"
-                            pattern="[0-9]*"
-                            value={qty}
-                            onChange={(e) => setQuantity(item, parseInt(e.target.value.replace(/\D/g, '')) || 1)}
-                            className="w-12 border-none bg-transparent text-center text-sm text-[#e5e2e1] focus:outline-none focus:ring-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setQuantity(item, qty + 1)}
-                            disabled={qty >= max}
-                            className="w-6 cursor-pointer text-center text-stone-400 hover:text-[#ffb595] disabled:cursor-not-allowed disabled:opacity-30"
-                          >
-                            +
-                          </button>
-                        </div>
-                      )}
-                      <button
-                        onClick={() => buyItem(item)}
-                        disabled={!enabled}
-                        className={`w-full py-2 text-[10px] font-bold uppercase tracking-[0.15em] transition-colors ${enabled ? 'signature-smolder cursor-pointer text-[#4c1a00]' : 'cursor-not-allowed bg-stone-700/40 text-stone-500'}`}
-                      >
-                        {!can_buy_shop_items ? 'Locked' : affordable ? 'Buy' : "Can't afford"}
-                      </button>
-                    </div>
+                    <button
+                      onClick={() => buyItem(item)}
+                      disabled={!enabled}
+                      className={`w-full py-2 text-[10px] font-bold uppercase tracking-[0.15em] transition-colors ${enabled ? 'signature-smolder cursor-pointer text-[#4c1a00]' : 'cursor-not-allowed bg-stone-700/40 text-stone-500'}`}
+                    >
+                      {!can_buy_shop_items ? 'Locked' : affordable ? 'Buy' : "Can't afford"}
+                    </button>
                   </div>
                 </div>
-              )
-            })}
+              </div>
+            )
+          })}
+        </div>
+        {shop_items.length === 0 && (
+          <div className="bg-[#0e0e0e] p-12 text-center ghost-border">
+            <p className="text-sm text-stone-500">No items in the shop yet. Check back soon.</p>
           </div>
         )}
       </section>
