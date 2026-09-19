@@ -1,8 +1,10 @@
+import { useState } from 'react'
 import { Head, Link, router } from '@inertiajs/react'
-import { User, AlertTriangle } from 'lucide-react'
+import { User, AlertTriangle, Search } from 'lucide-react'
 import { Badge } from '@/components/admin/ui/badge'
 import { Button } from '@/components/admin/ui/button'
 import { Card, CardContent } from '@/components/admin/ui/card'
+import { Input } from '@/components/admin/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/admin/ui/table'
 import AdminPagination from '@/components/admin/AdminPagination'
 import { cn } from '@/components/admin/lib/cn'
@@ -31,10 +33,18 @@ interface OrderRow {
 interface Props {
   orders: OrderRow[]
   pagy: PagyProps
-  filters: { status: string; kind: string; region: string; assigned_to: string }
+  filters: {
+    status: string
+    kind: string
+    region: string
+    assigned_to: string
+    shop_item_id: string
+    search: string
+  }
   counts: { all: number; pending: number; approved: number; fulfilled: number; rejected: number }
   regions: Record<string, string>
   fulfillment_users: { id: number; display_name: string }[]
+  shop_items: { id: number; name: string }[]
 }
 
 function statusBadge(status: OrderRow['status']) {
@@ -50,9 +60,16 @@ function statusBadge(status: OrderRow['status']) {
   }
 }
 
-export default function AdminOrdersIndex({ orders, pagy, filters, counts, regions }: Props) {
+export default function AdminOrdersIndex({ orders, pagy, filters, counts, regions, shop_items }: Props) {
+  const [searchQuery, setSearchQuery] = useState(filters.search)
+
   function applyFilter(key: string, value: string) {
     router.get('/admin/orders', { ...filters, [key]: value }, { preserveState: true })
+  }
+
+  function submitSearch(e: React.FormEvent) {
+    e.preventDefault()
+    applyFilter('search', searchQuery)
   }
 
   return (
@@ -104,6 +121,35 @@ export default function AdminOrdersIndex({ orders, pagy, filters, counts, region
               </option>
             ))}
           </select>
+
+          <select
+            value={filters.shop_item_id}
+            onChange={(e) => applyFilter('shop_item_id', e.target.value)}
+            className="h-9 rounded-md border border-border bg-background px-3 text-sm cursor-pointer"
+          >
+            <option value="">All Shop Items</option>
+            {shop_items.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.name}
+              </option>
+            ))}
+          </select>
+
+          <form onSubmit={submitSearch} className="flex gap-2 items-center ml-auto">
+            <div className="relative">
+              <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+              <Input
+                type="search"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search by user or HCB grant link…"
+                className="pl-9 w-72"
+              />
+            </div>
+            <Button type="submit" variant="outline" size="sm">
+              Search
+            </Button>
+          </form>
         </div>
 
         {orders.length === 0 ? (
