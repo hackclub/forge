@@ -52,7 +52,6 @@ class SyncJournalJob < ApplicationJob
     end
 
     project.update_column(:journal_parse_failed, false)
-
     current_titles = entries.map { |e| e[:title] }
     preserved_lapse_urls = {}
 
