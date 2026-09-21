@@ -25,7 +25,7 @@ class SlackPitchJob < ApplicationJob
       tags: parsed[:tags],
       red_flags: parsed[:red_flags],
       green_flags: parsed[:green_flags],
-      status: :pitch_pending,
+      status: :pitch_draft,
       tier: "tier_1",
       slack_channel_id: channel_id,
       slack_message_ts: message_ts
@@ -33,7 +33,7 @@ class SlackPitchJob < ApplicationJob
 
     app_url = ENV.fetch("APP_URL", "https://forge.hackclub.com")
     project_url = "#{app_url}/projects/#{project.id}"
-    post_reply(channel_id, message_ts, "Your pitch for *#{project.name}* has been received and is now pending review! :eyes:\n\nYou'll hear back here once it's been reviewed.\n\n<#{project_url}|View Project>")
+    post_draft_reply(channel_id, message_ts, project)
     react_to_message(channel_id, message_ts, "eyes")
   rescue StandardError => e
     Rails.logger.error("SlackPitchJob failed: #{e.class}: #{e.message}\n#{e.backtrace&.first(10)&.join("\n")}")
@@ -122,6 +122,43 @@ class SlackPitchJob < ApplicationJob
     Rails.logger.info("Slack: reply sent, ok=#{result['ok']}")
   rescue StandardError => e
     Rails.logger.error("Slack reply failed: #{e.class}: #{e.message}")
+  end
+
+  def post_draft_reply(channel, thread_ts, project)
+    app_url = ENV.fetch("APP_URL", "https://forge.hackclub.com")
+    project_url = "#{app_url}/projects/#{project.id}"
+    text = "Your pitch for *#{project.name}* has been received! :eyes:\n\n<#{project_url}|View Project> You can still edit your message above. Hit submit when you're ready for a review!"
+    Rails.logger.info("Slack: posting draft reply to #{channel} thread #{thread_ts}")
+    result = slack_client.chat_postMessage(
+      channel: channel,
+      thread_ts: thread_ts,
+      text: text,
+      blocks: [
+        { type: "section", text: { type: "mrkdwn", text: text } },
+        {
+          type: "actions",
+          elements: [
+            {
+              type: "button",
+              text: { type: "plain_text", text: "Submit for Review", emoji: true },
+              style: "primary",
+              action_id: "pitch_submit_review",
+              value: project.id.to_s
+            },
+            {
+              type: "button",
+              text: { type: "plain_text", text: "Delete Project", emoji: true },
+              style: "danger",
+              action_id: "pitch_delete_draft",
+              value: project.id.to_s
+            }
+          ]
+        }
+      ]
+    )
+    Rails.logger.info("Slack: draft reply sent, ok=#{result['ok']}")
+  rescue StandardError => e
+    Rails.logger.error("Slack draft reply failed: #{e.class}: #{e.message}")
   end
 
   def react_to_message(channel, timestamp, emoji)

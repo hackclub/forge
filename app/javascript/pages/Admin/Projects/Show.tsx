@@ -62,6 +62,7 @@ const statusConfig: Record<
   approved: { label: 'Approved', variant: 'success' },
   returned: { label: 'Returned', variant: 'warning' },
   rejected: { label: 'Rejected', variant: 'destructive' },
+  pitch_draft: { label: 'Pitch Draft', variant: 'secondary' },
   pitch_approved: { label: 'Pitch Approved', variant: 'success' },
   pitch_pending: { label: 'Pitch Review', variant: 'warning' },
 }

@@ -22,6 +22,7 @@ export const STATUS_LABELS: Record<ProjectStatus, string> = {
   approved: 'Approved',
   returned: 'Returned',
   rejected: 'Rejected',
+  pitch_draft: 'Pitch Draft',
   pitch_approved: 'Pitch Approved',
   pitch_pending: 'Pitch Review',
 }
@@ -32,6 +33,7 @@ export const STATUS_COLORS: Record<ProjectStatus, string> = {
   approved: 'bg-emerald-500/15 text-emerald-400',
   returned: 'bg-orange-500/15 text-orange-400',
   rejected: 'bg-red-500/15 text-red-400',
+  pitch_draft: 'bg-stone-500/15 text-stone-400',
   pitch_approved: 'bg-emerald-500/15 text-emerald-400',
   pitch_pending: 'bg-amber-500/15 text-amber-400',
 }

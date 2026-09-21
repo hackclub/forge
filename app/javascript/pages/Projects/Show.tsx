@@ -300,6 +300,7 @@ const statusConfig: Record<ProjectStatus, { label: string; bg: string; text: str
   approved: { label: 'Approved', bg: 'bg-emerald-500/10', text: 'text-emerald-400', icon: 'check_circle' },
   returned: { label: 'Returned', bg: 'bg-orange-500/10', text: 'text-orange-400', icon: 'undo' },
   rejected: { label: 'Rejected', bg: 'bg-red-500/10', text: 'text-red-400', icon: 'cancel' },
+  pitch_draft: { label: 'Pitch Draft', bg: 'bg-stone-500/10', text: 'text-stone-400', icon: 'edit_note' },
   pitch_approved: { label: 'Pitch Approved', bg: 'bg-emerald-500/10', text: 'text-emerald-400', icon: 'check_circle' },
   pitch_pending: { label: 'Pitch Under Review', bg: 'bg-amber-500/10', text: 'text-amber-400', icon: 'schedule' },
 }
@@ -1973,6 +1974,21 @@ export default function ProjectsShow({
 
               <p className="text-stone-600 text-[10px] uppercase tracking-[0.15em] mt-3 leading-relaxed">
                 Please be warned, this is an estimate only! Your actual payout may change due to deflation/other factors
+              </p>
+            </div>
+          )}
+
+          {can.update && project.status === 'pitch_draft' && (
+            <div className="bg-stone-500/5 ghost-border p-8">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="material-symbols-outlined text-stone-400 text-lg">edit_note</span>
+                <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-400 font-headline">
+                  Pitch Draft
+                </h4>
+              </div>
+              <p className="text-stone-400 text-sm">
+                Your pitch is still a draft. Edit your message in Slack, then hit Submit for Review when you're
+                ready.
               </p>
             </div>
           )}
