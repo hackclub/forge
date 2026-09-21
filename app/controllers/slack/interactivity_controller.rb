@@ -46,7 +46,7 @@ class Slack::InteractivityController < ApplicationController
     return unless project&.pitch_draft?
 
     unless owns_pitch?(project, slack_user_id)
-      ephemeral_nudge(response_url, "only the person who pitched this project can submit it for review")
+      ephemeral_nudge(response_url, "only the person who pitched this project can submit it for review", thread_ts: project.slack_message_ts)
       return
     end
 
@@ -63,7 +63,7 @@ class Slack::InteractivityController < ApplicationController
     return if project.discarded?
 
     unless owns_pitch?(project, slack_user_id)
-      ephemeral_nudge(response_url, "only the person who pitched this project can delete it")
+      ephemeral_nudge(response_url, "only the person who pitched this project can delete it", thread_ts: project.slack_message_ts)
       return
     end
 
@@ -138,7 +138,7 @@ class Slack::InteractivityController < ApplicationController
     ticket = SupportTicket.find_by(id: ticket_id)
     return unless ticket
     unless can_act_on_ticket?(ticket, slack_user_id)
-      ephemeral_nudge(response_url, "only the asker or support staff can mark this resolved")
+      ephemeral_nudge(response_url, "only the asker or support staff can mark this resolved", thread_ts: ticket.thread_ts)
       return
     end
 
@@ -149,7 +149,7 @@ class Slack::InteractivityController < ApplicationController
     ticket = SupportTicket.find_by(id: ticket_id)
     return unless ticket
     unless can_act_on_ticket?(ticket, slack_user_id)
-      ephemeral_nudge(response_url, "only the asker or support staff can reopen this")
+      ephemeral_nudge(response_url, "only the asker or support staff can reopen this", thread_ts: ticket.thread_ts)
       return
     end
     return unless ticket.resolved?
@@ -236,13 +236,16 @@ class Slack::InteractivityController < ApplicationController
     User.find_by(slack_id: slack_user_id)&.has_permission?("support") || false
   end
 
-  def ephemeral_nudge(response_url, text)
+  def ephemeral_nudge(response_url, text, thread_ts: nil)
     return if response_url.blank?
+
+    body = { response_type: "ephemeral", replace_original: false, text: text }
+    body[:thread_ts] = thread_ts if thread_ts.present?
 
     uri = URI.parse(response_url)
     Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == "https") do |http|
       req = Net::HTTP::Post.new(uri.request_uri, "Content-Type" => "application/json")
-      req.body = { response_type: "ephemeral", replace_original: false, text: text }.to_json
+      req.body = body.to_json
       http.request(req)
     end
   rescue StandardError => e
