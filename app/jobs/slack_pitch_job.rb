@@ -125,6 +125,8 @@ class SlackPitchJob < ApplicationJob
   end
 
   def post_draft_reply(channel, thread_ts, project)
+    app_url = ENV.fetch("APP_URL", "https://forge.hackclub.com")
+    project_url = "#{app_url}/projects/#{project.id}"
     text = "Your pitch for *#{project.name}* has been received! :eyes:\n\n<#{project_url}|View Project> You can still edit your message above. Hit submit when you're ready for a review!"
     Rails.logger.info("Slack: posting draft reply to #{channel} thread #{thread_ts}")
     result = slack_client.chat_postMessage(
