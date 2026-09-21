@@ -1,9 +1,9 @@
 module Auditable
   extend ActiveSupport::Concern
 
-  def audit!(action, target: nil, metadata: {}, label: nil)
+  def audit!(action, target: nil, actor: current_user, metadata: {}, label: nil)
     AuditEvent.create!(
-      actor: current_user,
+      actor: actor,
       action: action.to_s,
       target: target,
       target_label: label || resolve_target_label(target),

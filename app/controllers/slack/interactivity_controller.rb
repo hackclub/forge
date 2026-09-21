@@ -34,7 +34,72 @@ class Slack::InteractivityController < ApplicationController
       handle_public_resolve(action["value"], slack_user_id, display_name, response_url)
     when "support_public_reopen"
       handle_public_reopen(action["value"], slack_user_id, response_url)
+    when "pitch_submit_review"
+      handle_pitch_submit(action["value"], slack_user_id, response_url)
+    when "pitch_delete_draft"
+      handle_pitch_delete(action["value"], slack_user_id, response_url)
     end
+  end
+
+  def handle_pitch_submit(project_id, slack_user_id, response_url)
+    project = Project.find_by(id: project_id)
+    return unless project&.pitch_draft?
+
+    unless owns_pitch?(project, slack_user_id)
+      ephemeral_nudge(response_url, "only the person who pitched this project can submit it for review")
+      return
+    end
+
+    project.update!(status: :pitch_pending)
+    audit!("project.submitted_for_review", target: project, actor: project.user, metadata: { via: "slack" })
+    swap_pitch_reaction(project, "clock1")
+    replace_pitch_message(response_url, ":clock1: Submitted! Your pitch for *#{project.name}* is now in the review queue.")
+    RefetchPitchTextJob.perform_later(project.id)
+  end
+
+  def handle_pitch_delete(project_id, slack_user_id, response_url)
+    project = Project.find_by(id: project_id)
+    return unless project&.pitch_draft?
+    return if project.discarded?
+
+    unless owns_pitch?(project, slack_user_id)
+      ephemeral_nudge(response_url, "only the person who pitched this project can delete it")
+      return
+    end
+
+    name = project.name
+    swap_pitch_reaction(project, nil)
+    project.discard
+    audit!("project.soft_deleted", target: project, actor: project.user, metadata: { via: "slack" })
+    replace_pitch_message(response_url, "Deleted *#{name}*.")
+  end
+
+  def owns_pitch?(project, slack_user_id)
+    project.user.slack_id == slack_user_id
+  end
+
+  def swap_pitch_reaction(project, new_emoji)
+    %w[eyes clock1 yay x].each do |old_emoji|
+      slack_client.reactions_remove(channel: project.slack_channel_id, timestamp: project.slack_message_ts, name: old_emoji)
+    rescue Slack::Web::Api::Errors::NoReaction
+      nil
+    end
+    slack_client.reactions_add(channel: project.slack_channel_id, timestamp: project.slack_message_ts, name: new_emoji) if new_emoji
+  rescue StandardError => e
+    Rails.logger.error("Failed to update pitch reaction: #{e.message}")
+  end
+
+  def replace_pitch_message(response_url, text)
+    return if response_url.blank?
+
+    uri = URI.parse(response_url)
+    Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == "https") do |http|
+      req = Net::HTTP::Post.new(uri.request_uri, "Content-Type" => "application/json")
+      req.body = { replace_original: true, text: text }.to_json
+      http.request(req)
+    end
+  rescue StandardError => e
+    Rails.logger.error("Failed to replace pitch message: #{e.message}")
   end
 
   def handle_claim(ticket_id, slack_user_id, display_name)
@@ -177,7 +242,7 @@ class Slack::InteractivityController < ApplicationController
     uri = URI.parse(response_url)
     Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == "https") do |http|
       req = Net::HTTP::Post.new(uri.request_uri, "Content-Type" => "application/json")
-      req.body = { response_type: "ephemeral", text: text }.to_json
+      req.body = { response_type: "ephemeral", replace_original: false, text: text }.to_json
       http.request(req)
     end
   rescue StandardError => e

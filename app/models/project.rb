@@ -114,7 +114,7 @@ class Project < ApplicationRecord
   after_update_commit :maybe_award_orph_quest, if: :saved_change_to_status?
   after_update_commit :process_cover_image_upload, if: -> { cover_image.attached? && cover_image_url.blank? }
 
-  enum :status, { draft: 0, pending: 1, approved: 2, returned: 3, rejected: 4, pitch_approved: 7, pitch_pending: 8 }
+  enum :status, { draft: 0, pending: 1, approved: 2, returned: 3, rejected: 4, pitch_approved: 7, pitch_pending: 8, pitch_draft: 9 }
 
   MAX_TEAM_SIZE = 5 # owner + 4 collaborators
 

@@ -51,6 +51,7 @@ export type ProjectStatus =
   | 'approved'
   | 'returned'
   | 'rejected'
+  | 'pitch_draft'
   | 'pitch_approved'
   | 'pitch_pending'
 
