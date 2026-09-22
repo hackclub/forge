@@ -528,10 +528,12 @@ export default function ProjectsShow({
       body: formData,
     })
       .then(() => {
-        setUploadingCover(false)
         router.reload()
       })
-      .catch(() => setUploadingCover(false))
+      .finally(() => {
+        setUploadingCover(false)
+        e.target.value = ''
+      })
   }
 
   function deleteProject() {
