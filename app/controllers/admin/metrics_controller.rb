@@ -1,6 +1,7 @@
 class Admin::MetricsController < Admin::ApplicationController
   COIN_USD_VALUE = 1.0
   TOP_COIN_HOLDERS_LIMIT = 100
+  DEVLOG_DAY = "COALESCE(devlogs.entry_date, DATE(devlogs.created_at AT TIME ZONE 'UTC' AT TIME ZONE 'America/New_York'))".freeze
 
   def index
     days = (params[:days].presence || 30).to_i.clamp(7, 180)
@@ -22,12 +23,14 @@ class Admin::MetricsController < Admin::ApplicationController
     active_now = User.kept.where("last_seen_at > ?", 5.minutes.ago).count
     avg_dau = totals.size.positive? ? (totals.sum.to_f / totals.size).round(1) : 0
 
-    hours_by_day = Devlog
+    devlogs_in_range = Devlog
       .unscope(:order)
       .joins(:project)
       .where(projects: { shadow_banned: false })
-      .where(devlogs: { created_at: start_date.beginning_of_day..today.end_of_day })
-      .group(Arel.sql("DATE(devlogs.created_at)"))
+      .where("#{DEVLOG_DAY} BETWEEN ? AND ?", start_date, today)
+
+    hours_by_day = devlogs_in_range
+      .group(Arel.sql(DEVLOG_DAY))
       .sum(:time_hours)
       .transform_keys { |k| k.is_a?(String) ? Date.parse(k) : k }
 
@@ -38,11 +41,7 @@ class Admin::MetricsController < Admin::ApplicationController
     hours_range_total = daily_hours.sum { |d| d[:hours] }
     avg_hours_per_day = daily_hours.size.positive? ? (hours_range_total / daily_hours.size).round(1) : 0
 
-    builders_in_range = Devlog
-      .joins(:project)
-      .where(projects: { shadow_banned: false })
-      .where(devlogs: { created_at: start_date.beginning_of_day..today.end_of_day })
-      .distinct.count(:user_id)
+    builders_in_range = devlogs_in_range.distinct.count(:user_id)
     avg_hours_per_person = builders_in_range.positive? ? (hours_range_total / builders_in_range).round(1) : 0
 
     approved_hours_range = Project.kept.approved.not_shadow_banned
