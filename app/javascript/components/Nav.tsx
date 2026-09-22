@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { usePage, Link } from '@inertiajs/react'
 import type { SharedProps } from '@/types'
 import FireIcon from '@/components/FireIcon'
+import { onAvatarError } from '@/lib/avatar'
 
 type NavItem = {
   href: string
@@ -178,6 +179,7 @@ export default function Nav() {
                   <img
                     src={shared.auth.user.avatar}
                     alt={shared.auth.user.display_name}
+                    onError={onAvatarError}
                     className="w-10 h-10 rounded-full border border-white/10 shrink-0"
                   />
                   <div className="flex flex-col min-w-0 flex-1">

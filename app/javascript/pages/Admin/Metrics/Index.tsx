@@ -46,6 +46,13 @@ interface Summary {
   pending_queue_hours: number
 }
 
+interface Submissions {
+  today: number
+  range_total: number
+  avg_per_day: number
+  unique_projects: number
+}
+
 interface Referrals {
   total: number
   approved: number
@@ -214,6 +221,8 @@ export default function AdminMetricsIndex({
   summary,
   daily,
   daily_hours,
+  daily_submissions,
+  submissions,
   hours_goal,
   streak_buckets,
   referrals,
@@ -232,6 +241,8 @@ export default function AdminMetricsIndex({
   summary: Summary
   daily: DailyPoint[]
   daily_hours: DailyHoursPoint[]
+  daily_submissions: DailyPoint[]
+  submissions: Submissions
   hours_goal: HoursGoal
   streak_buckets: Record<string, number>
   referrals: Referrals
@@ -248,6 +259,7 @@ export default function AdminMetricsIndex({
 }) {
   const max = Math.max(1, ...daily.map((d) => d.count))
   const maxHours = Math.max(1, ...daily_hours.map((d) => d.hours))
+  const maxSubmissions = Math.max(1, ...daily_submissions.map((d) => d.count))
   const ranges = [7, 30, 60, 90, 180]
   const bucketMax = Math.max(1, ...Object.values(streak_buckets))
   const rateMax = Math.max(1, ...tier_breakdown.map((t) => Math.max(t.base_rate, t.effective_rate)))
@@ -429,6 +441,49 @@ export default function AdminMetricsIndex({
           <div className="flex justify-between text-[10px] text-muted-foreground mt-2 font-mono">
             <span>{daily[0]?.label}</span>
             <span>{daily[daily.length - 1]?.label}</span>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Projects submitted — last {range_days} days</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+            <Stat label="Submitted today" value={submissions.today} hint="sent to the review queue" accent />
+            <Stat label={`Submitted in ${range_days}d`} value={submissions.range_total} hint="includes resubmissions" />
+            <Stat label="Avg/day" value={submissions.avg_per_day} hint={`mean across ${range_days} days`} />
+            <Stat
+              label="Distinct projects"
+              value={submissions.unique_projects}
+              hint={`unique projects submitted in ${range_days}d`}
+            />
+          </div>
+
+          <div className="flex items-end gap-1 h-48">
+            {daily_submissions.map((d) => {
+              const pct = (d.count / maxSubmissions) * 100
+              return (
+                <div
+                  key={d.date}
+                  className="flex-1 h-full flex flex-col justify-end items-center group relative min-w-0"
+                  title={`${d.label}: ${d.count}`}
+                >
+                  <span className="invisible group-hover:visible absolute -top-6 text-[10px] font-mono bg-background border border-border rounded px-1 z-10 whitespace-nowrap">
+                    {d.count}
+                  </span>
+                  <div
+                    className="w-full rounded-t-sm bg-amber-500/70 group-hover:bg-amber-500 transition-colors min-h-[1px]"
+                    style={{ height: `${pct}%` }}
+                  />
+                </div>
+              )
+            })}
+          </div>
+          <div className="flex justify-between text-[10px] text-muted-foreground mt-2 font-mono">
+            <span>{daily_submissions[0]?.label}</span>
+            <span>{daily_submissions[daily_submissions.length - 1]?.label}</span>
           </div>
         </CardContent>
       </Card>

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Head, Link, router } from '@inertiajs/react'
 import type { ProjectStatus } from '@/types'
 import FireIcon from '@/components/FireIcon'
+import { onAvatarError } from '@/lib/avatar'
 
 interface ProfileUser {
   id: number
@@ -187,7 +188,12 @@ export default function UsersShow({ user, stats, projects, kudos, badges, can_gi
       <Head title={`${user.display_name} - Forge`} />
       <div className="p-5 md:p-12 max-w-6xl mx-auto space-y-10">
         <section className="bg-[#1c1b1b] ghost-border p-5 md:p-8 flex flex-col sm:flex-row items-center gap-6 text-center sm:text-left">
-          <img src={user.avatar} alt={user.display_name} className="w-24 h-24 border border-white/10 shrink-0" />
+          <img
+            src={user.avatar}
+            alt={user.display_name}
+            onError={onAvatarError}
+            className="w-24 h-24 border border-white/10 shrink-0"
+          />
           <div className="min-w-0 flex-1">
             <h1 className="text-4xl font-headline font-bold text-[#e5e2e1] tracking-tight break-words">
               {user.display_name}
@@ -509,6 +515,7 @@ export default function UsersShow({ user, stats, projects, kudos, badges, can_gi
                     <img
                       src={kudo.author_avatar}
                       alt={kudo.author_name}
+                      onError={onAvatarError}
                       className="w-8 h-8 border border-white/10 shrink-0"
                     />
                     <div className="min-w-0 flex-1">

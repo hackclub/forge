@@ -150,11 +150,16 @@ class Admin::UsersController < Admin::ApplicationController
 
     identity = HcaService.identity(@user.hca_token)
     if identity.blank?
-      redirect_to admin_user_path(@user), alert: "Couldn't reach HCA."
+      redirect_to admin_user_path(@user), alert: "Couldn't reach HCA. Their token may have expired - they'll need to sign in again."
       return
     end
 
-    @user.apply_hca_identity(identity)
+    unless @user.apply_hca_identity(identity)
+      redirect_to admin_user_path(@user), alert: "HCA sent details we couldn't save: #{@user.errors.full_messages.to_sentence}"
+      return
+    end
+
+    @user.refresh_profile_from_slack
     audit!("user.idv_synced", target: @user, metadata: { from: "hca" })
     redirect_to admin_user_path(@user), notice: "Refreshed #{@user.display_name}'s identity from HCA."
   end
