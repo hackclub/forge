@@ -1,6 +1,7 @@
 import { Link, usePage } from '@inertiajs/react'
 import type { SharedProps } from '@/types'
 import FireIcon from '@/components/FireIcon'
+import { onAvatarError } from '@/lib/avatar'
 
 export default function ForgeTopBar() {
   const shared = usePage<SharedProps>().props
@@ -46,7 +47,12 @@ export default function ForgeTopBar() {
               </span>
             )}
             <Link href="/settings" className="group flex items-center gap-2" title="Settings">
-              <img src={user.avatar} alt={user.display_name} className="h-8 w-8 rounded-full border border-white/10" />
+              <img
+                src={user.avatar}
+                alt={user.display_name}
+                onError={onAvatarError}
+                className="h-8 w-8 rounded-full border border-white/10"
+              />
               <span className="hidden font-headline text-xs font-bold text-[#e5e2e1] transition-colors group-hover:text-[#ffb595] md:inline">
                 {user.display_name}
               </span>

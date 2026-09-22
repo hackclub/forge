@@ -1,6 +1,7 @@
 import { Link, router, Head } from '@inertiajs/react'
 import { useEffect, useRef, useState } from 'react'
 import { usePerformanceMode } from '@/hooks/usePerformanceMode'
+import { onAvatarError } from '@/lib/avatar'
 
 const PFP_SIZE = 1024
 
@@ -62,7 +63,7 @@ function ForgePfpSection({ avatar }: { avatar: string }) {
       <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">Forge PFP</h2>
       <div className="flex flex-col sm:flex-row sm:items-center gap-6">
         <div className="flex items-center gap-3 shrink-0">
-          <img src={avatar} alt="Current avatar" className="w-24 h-24 border border-white/10" />
+          <img src={avatar} alt="Current avatar" onError={onAvatarError} className="w-24 h-24 border border-white/10" />
           <span className="material-symbols-outlined text-stone-500">arrow_forward</span>
           <div className="relative w-24 h-24">
             <canvas ref={canvasRef} className="w-24 h-24 border border-white/10" />
@@ -171,7 +172,7 @@ export default function SettingsShow({
     router.patch('/settings/timezone', { timezone }, { preserveScroll: true, onFinish: () => setSavingTimezone(false) })
   }
 
-  function refreshAddress() {
+  function refreshProfile() {
     router.post('/profile/sync_address', {}, { preserveScroll: true })
   }
 
@@ -198,19 +199,33 @@ export default function SettingsShow({
           <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">Account</h2>
           <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:justify-between">
             <div className="flex items-center gap-4 min-w-0">
-              <img src={user.avatar} alt={user.display_name} className="w-14 h-14 border border-white/10 shrink-0" />
+              <img
+                src={user.avatar}
+                alt={user.display_name}
+                onError={onAvatarError}
+                className="w-14 h-14 border border-white/10 shrink-0"
+              />
               <div className="min-w-0">
                 <p className="text-[#e5e2e1] font-headline font-bold truncate">{user.display_name}</p>
                 <p className="text-stone-500 text-xs truncate">{user.email}</p>
               </div>
             </div>
-            <Link
-              href={`/users/${user.id}`}
-              className="ghost-border bg-[#0e0e0e] hover:bg-[#2a2a2a] text-stone-400 hover:text-[#ffb595] px-4 py-2 uppercase tracking-wider text-[10px] font-bold inline-flex items-center justify-center gap-2 transition-colors shrink-0"
-            >
-              <span className="material-symbols-outlined text-sm">person</span>
-              View Public Profile
-            </Link>
+            <div className="flex flex-col sm:flex-row gap-2 shrink-0">
+              <button
+                onClick={refreshProfile}
+                className="ghost-border bg-[#0e0e0e] hover:bg-[#2a2a2a] text-stone-400 hover:text-[#ffb595] px-4 py-2 uppercase tracking-wider text-[10px] font-bold inline-flex items-center justify-center gap-2 cursor-pointer transition-colors"
+              >
+                <span className="material-symbols-outlined text-sm">sync</span>
+                Refresh Name &amp; Avatar
+              </button>
+              <Link
+                href={`/users/${user.id}`}
+                className="ghost-border bg-[#0e0e0e] hover:bg-[#2a2a2a] text-stone-400 hover:text-[#ffb595] px-4 py-2 uppercase tracking-wider text-[10px] font-bold inline-flex items-center justify-center gap-2 transition-colors"
+              >
+                <span className="material-symbols-outlined text-sm">person</span>
+                View Public Profile
+              </Link>
+            </div>
           </div>
         </section>
 
@@ -316,7 +331,7 @@ export default function SettingsShow({
               </a>
             )}
             <button
-              onClick={refreshAddress}
+              onClick={refreshProfile}
               className="ghost-border bg-[#0e0e0e] hover:bg-[#2a2a2a] text-stone-400 hover:text-[#ffb595] px-4 py-2 uppercase tracking-wider text-[10px] font-bold flex items-center justify-center gap-2 cursor-pointer transition-colors"
             >
               <span className="material-symbols-outlined text-sm">sync</span>
@@ -352,14 +367,17 @@ function PerformanceSection() {
 
   return (
     <section className="bg-[#1c1b1b] ghost-border p-6 md:p-8 mt-6">
-      <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">Performance & Graphics</h2>
+      <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 font-headline mb-4">
+        Performance & Graphics
+      </h2>
       <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:justify-between">
         <div>
           <p className="text-[#e5e2e1] font-headline font-bold text-base">
             Eco / Performance Mode ({performanceMode ? 'Enabled' : 'Disabled'})
           </p>
           <p className="text-stone-400 text-sm mt-1">
-            Reduces CPU and GPU usage by disabling heavy full-screen blur filters, floating particles, embers, and mouse parallax effects.
+            Reduces CPU and GPU usage by disabling heavy full-screen blur filters, floating particles, embers, and mouse
+            parallax effects.
           </p>
         </div>
         <button

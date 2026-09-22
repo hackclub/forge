@@ -66,6 +66,24 @@ class Admin::MetricsController < Admin::ApplicationController
     end
     days_to_goal = hours_goal_remaining > 0 && avg_hours_per_day.positive? ? (hours_goal_remaining / avg_hours_per_day).ceil : 0
 
+    submissions_in_range = AuditEvent
+      .for_action("project.submitted_for_review")
+      .where(target_type: "Project", created_at: start_date.beginning_of_day..today.end_of_day)
+      .where(target_id: Project.kept.not_shadow_banned.select(:id))
+
+    submissions_by_day = submissions_in_range
+      .group(Arel.sql("DATE(audit_events.created_at)"))
+      .count
+      .transform_keys { |k| k.is_a?(String) ? Date.parse(k) : k }
+
+    daily_submissions = (start_date..today).map do |d|
+      { date: d.strftime("%Y-%m-%d"), label: d.strftime("%b %d"), count: submissions_by_day[d] || 0 }
+    end
+    submissions_today = submissions_by_day[today] || 0
+    submissions_range_total = daily_submissions.sum { |d| d[:count] }
+    avg_submissions_per_day = daily_submissions.size.positive? ? (submissions_range_total.to_f / daily_submissions.size).round(1) : 0
+    submissions_unique_projects = submissions_in_range.distinct.count(:target_id)
+
     streaks = StreakDay.streak_counting.joins(:user).where(date: (today - 1)..today).distinct.pluck(:user_id).map do |uid|
       User.find(uid).current_streak
     end
@@ -201,6 +219,13 @@ class Admin::MetricsController < Admin::ApplicationController
       },
       daily: daily,
       daily_hours: daily_hours,
+      daily_submissions: daily_submissions,
+      submissions: {
+        today: submissions_today,
+        range_total: submissions_range_total,
+        avg_per_day: avg_submissions_per_day,
+        unique_projects: submissions_unique_projects
+      },
       hours_goal: {
         target: hours_goal_target,
         total_logged: total_hours_logged,

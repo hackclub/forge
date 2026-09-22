@@ -411,11 +411,9 @@ class User < ApplicationRecord
   end
 
   def apply_hca_identity(identity)
-    return if identity.blank?
+    return false if identity.blank?
 
-    addr = Array(identity["addresses"]).first
-    addr = identity["address"] if addr.blank? && identity["address"].is_a?(Hash)
-    addr ||= {}
+    addr = primary_hca_address(identity)
 
     birthday_val = begin
       Date.parse(identity["birthday"].to_s)
@@ -424,18 +422,37 @@ class User < ApplicationRecord
     end
 
     attrs = {
-      address_line1: pick(addr, %w[line_1 address_line_1 address_line1 line1 street]).presence,
-      address_line2: pick(addr, %w[line_2 address_line_2 address_line2 line2]).presence,
-      city: pick(addr, %w[city locality]).presence,
-      state: pick(addr, %w[state state_province province region]).presence,
-      country: pick(addr, %w[country country_code]).presence,
-      postal_code: pick(addr, %w[postal_code zip zip_code postcode]).presence,
-      phone_number: (pick(identity, %w[phone_number phone]).presence || pick(addr, %w[phone_number phone]).presence),
       birthday: birthday_val,
       verification_status: identity["verification_status"].presence
     }.compact
 
-    update(attrs) if attrs.any?
+    if addr.present?
+      attrs.merge!(
+        address_line1: pick(addr, %w[line_1 address_line_1 address_line1 line1 street]).presence,
+        address_line2: pick(addr, %w[line_2 address_line_2 address_line2 line2]).presence,
+        city: pick(addr, %w[city locality]).presence,
+        state: pick(addr, %w[state state_province province region]).presence,
+        country: pick(addr, %w[country country_code]).presence,
+        postal_code: pick(addr, %w[postal_code zip zip_code postcode]).presence
+      )
+    end
+
+    phone = pick(identity, %w[phone_number phone]).presence || pick(addr || {}, %w[phone_number phone]).presence
+    attrs[:phone_number] = phone if phone.present?
+
+    return true if attrs.empty?
+
+    update(attrs).tap do |saved|
+      unless saved
+        Rails.logger.tagged("HcaIdentity") do
+          Rails.logger.warn({
+            event: "apply_hca_identity_failed",
+            user_id: id,
+            errors: errors.full_messages
+          }.to_json)
+        end
+      end
+    end
   end
 
   def self.create_from_hca(identity, access_token)
@@ -556,6 +573,13 @@ class User < ApplicationRecord
   end
 
   private
+
+  def primary_hca_address(identity)
+    addresses = Array(identity["addresses"]).select { |a| a.is_a?(Hash) }
+    addr = addresses.find { |a| a["primary"] || a[:primary] } || addresses.first
+    addr = identity["address"] if addr.blank? && identity["address"].is_a?(Hash)
+    addr
+  end
 
   def pick(hash, keys)
     return "" unless hash.is_a?(Hash)
