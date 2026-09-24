@@ -62,6 +62,7 @@ export interface ReviewDevlog {
   user_display_name: string
   user_avatar: string
   meets_requirements: boolean
+  content_lost: boolean
   validation: { content_length: number; has_image: boolean }
 }
 

@@ -551,6 +551,7 @@ class Admin::ReviewsController < Admin::ApplicationController
       user_display_name: devlog.user.display_name,
       user_avatar: devlog.user.avatar,
       meets_requirements: devlog.meets_submission_requirements?,
+      content_lost: devlog.content_lost,
       validation: {
         content_length: details[:content_length],
         has_image: details[:has_image]

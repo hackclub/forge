@@ -215,6 +215,7 @@ export function ContentTabs({
                       </a>
                     </>
                   )}
+                  {entry.content_lost && <Badge variant="destructive">Content vanished</Badge>}
                   {!entry.meets_requirements && <Badge variant="warning">Below requirements</Badge>}
                   {!isGitJournal && <CopyDevlogLink url={`${origin}/projects/${project.id}/devlogs/${entry.id}`} />}
                 </div>

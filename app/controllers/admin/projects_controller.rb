@@ -1140,6 +1140,7 @@ class Admin::ProjectsController < Admin::ApplicationController
       lapse_url: devlog.lapse_url,
       created_at: devlog.created_at.strftime("%b %d, %Y"),
       meets_requirements: devlog.meets_submission_requirements?,
+      content_lost: devlog.content_lost,
       validation: {
         content_length: details[:content_length],
         min_content_length: details[:min_content_length],
