@@ -108,6 +108,7 @@ interface DevlogEntry {
   user_avatar: string
   can_edit: boolean
   meets_requirements: boolean
+  content_lost: boolean
   validation: {
     content_length: number
     min_content_length: number
@@ -1269,7 +1270,22 @@ export default function ProjectsShow({
                           </div>
                         </div>
                       )}
-                      {(can.update || is_admin_view) && !entry.meets_requirements && (
+                      {entry.content_lost && (
+                        <div className="bg-red-900/40 border-2 border-red-600 rounded-none p-4 mb-4 flex items-start gap-3">
+                          <span className="material-symbols-outlined text-red-400 text-2xl shrink-0 mt-0.5">
+                            error
+                          </span>
+                          <div className="text-sm text-red-100">
+                            <p className="font-bold mb-2">Content vanished</p>
+                            <p className="text-red-100/90">
+                              The text of this entry was lost in a database incident on our side. Your title, date and
+                              logged hours are intact, and this won't count against you in review. If you still have
+                              what you wrote, you can edit the entry and paste it back.
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                      {(can.update || is_admin_view) && !entry.content_lost && !entry.meets_requirements && (
                         <div className="bg-amber-900/40 border-2 border-amber-600 rounded-none p-4 mb-4 flex items-start gap-3">
                           <span className="material-symbols-outlined text-amber-400 text-2xl shrink-0 mt-0.5">
                             warning
@@ -1587,7 +1603,22 @@ export default function ProjectsShow({
                           </div>
                         </div>
                       )}
-                      {(can.update || is_admin_view) && !entry.meets_requirements && (
+                      {entry.content_lost && (
+                        <div className="bg-red-900/40 border-2 border-red-600 rounded-none p-4 mb-4 flex items-start gap-3">
+                          <span className="material-symbols-outlined text-red-400 text-2xl shrink-0 mt-0.5">
+                            error
+                          </span>
+                          <div className="text-sm text-red-100">
+                            <p className="font-bold mb-2">Content vanished</p>
+                            <p className="text-red-100/90">
+                              The text of this entry was lost in a database incident on our side. Your title, date and
+                              logged hours are intact, and this won't count against you in review. If you still have
+                              what you wrote, you can edit the entry and paste it back.
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                      {(can.update || is_admin_view) && !entry.content_lost && !entry.meets_requirements && (
                         <div className="bg-amber-900/40 border-2 border-amber-600 rounded-none p-4 mb-4 flex items-start gap-3">
                           <span className="material-symbols-outlined text-amber-400 text-2xl shrink-0 mt-0.5">
                             warning

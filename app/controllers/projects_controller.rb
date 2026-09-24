@@ -621,6 +621,7 @@ class ProjectsController < ApplicationController
       user_avatar: devlog.user.avatar,
       can_edit: current_user.present? && policy(devlog).update?,
       meets_requirements: devlog.meets_submission_requirements?,
+      content_lost: devlog.content_lost,
       validation: {
         content_length: details[:content_length],
         min_content_length: details[:min_content_length],

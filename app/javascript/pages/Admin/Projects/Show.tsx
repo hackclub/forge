@@ -572,7 +572,7 @@ export default function AdminProjectsShow({
                             </p>
                           </div>
                         )}
-                        {!entry.meets_requirements && (
+                        {!entry.content_lost && !entry.meets_requirements && (
                           <div className="rounded-md border border-amber-500/40 bg-amber-500/10 p-2 text-xs text-amber-700 dark:text-amber-400">
                             <p className="font-bold">Entry doesn't meet requirements</p>
                             <ul className="space-y-0.5 mt-1 ml-4 list-disc">
