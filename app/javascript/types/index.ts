@@ -249,6 +249,7 @@ export interface AdminDevlog {
   lapse_url: string | null
   created_at: string
   meets_requirements: boolean
+  content_lost: boolean
   validation: {
     content_length: number
     min_content_length: number

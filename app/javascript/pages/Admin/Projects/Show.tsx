@@ -563,6 +563,15 @@ export default function AdminProjectsShow({
                             </span>
                           </div>
                         )}
+                        {entry.content_lost && (
+                          <div className="rounded-md border border-red-500/40 bg-red-500/10 p-2 text-xs text-red-700 dark:text-red-400">
+                            <p className="font-bold">Content vanished</p>
+                            <p className="mt-1">
+                              Entry body was lost in the database incident. Title and hours are intact — do not
+                              penalize the builder for this.
+                            </p>
+                          </div>
+                        )}
                         {!entry.meets_requirements && (
                           <div className="rounded-md border border-amber-500/40 bg-amber-500/10 p-2 text-xs text-amber-700 dark:text-amber-400">
                             <p className="font-bold">Entry doesn't meet requirements</p>
