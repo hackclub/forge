@@ -91,8 +91,13 @@ class ApplicationController < ActionController::Base
     return unless FeatureFlag.enabled?("maintenance_mode")
     return if current_user&.staff? || current_user&.maintenance_bypass?
 
-    render inertia: "Maintenance", props: {}
+    if request.get?
+      render inertia: "Maintenance", props: {}
+    else
+      render json: { error: "Forge is in maintenance — your changes were not saved." }, status: :service_unavailable
+    end
   end
+
 
   def track_user_activity
     return unless user_signed_in?
