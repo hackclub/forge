@@ -166,7 +166,7 @@ export default function ShopIndex({
       return
     }
     if (supercon_ticket.ordered || supercon_ticket.cost > balance.balance) return
-    if (!confirm(`Spend ${supercon_ticket.cost}c on a Supercon ticket?`)) return
+    if (!confirm(`Spend ${supercon_ticket.cost}c on a Hackaday Supercon ticket?`)) return
     router.post('/shop/orders', { kind: 'supercon_ticket' })
   }
 
@@ -365,7 +365,7 @@ export default function ShopIndex({
               <div className="aspect-[2/1] bg-[#0e0e0e] flex flex-col items-center justify-center gap-1.5 p-3 text-center">
                 <span className="material-symbols-outlined text-4xl text-[#ffb595]">confirmation_number</span>
                 <span className="font-headline font-bold text-3xl leading-none tracking-tight text-[#e5e2e1]">
-                  SUPERCON
+                  Hackaday Supercon 2026
                 </span>
                 <span className="font-headline text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500">
                   Ticket
@@ -373,10 +373,10 @@ export default function ShopIndex({
               </div>
               <div className="p-4 flex-1 flex flex-col">
                 <h3 className="font-headline font-bold text-[#e5e2e1] tracking-tight mb-1 break-words text-sm">
-                  Supercon ticket
+                  Hackaday Supercon ticket
                 </h3>
                 <p className="text-stone-400 text-sm leading-relaxed mb-3 break-words">
-                  A super cool ticket to hackaday supercon with housing/food included!!
+                  A ticket to Hackaday Supercon 2026 from Nov 5th to 9th with food and accomodations included!
                 </p>
                 <div className="mt-auto space-y-2">
                   <p className="text-[#ca5924] font-headline font-bold text-sm">{supercon_ticket.cost}c</p>
