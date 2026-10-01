@@ -20,5 +20,5 @@
 class OrphanedLapseLink < ApplicationRecord
   belongs_to :project
 
-  validates :lapse_url, format: { with: /\Ahttps?:\/\/\S+\z/i, message: "must be a valid URL" }, allow_blank: false
+  validates :lapse_url, presence: true
 end
