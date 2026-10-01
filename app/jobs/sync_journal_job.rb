@@ -56,7 +56,7 @@ class SyncJournalJob < ApplicationJob
     preserved_lapse_urls = {}
 
     if clear
-      project.devlogs.where.not(lapse_url: nil).find_each do |d|
+      project.devlogs.where.not(lapse_url: [ nil, "" ]).find_each do |d|
         if current_titles.include?(d.title)
           preserved_lapse_urls[d.title] = d.lapse_url
         else
@@ -110,7 +110,7 @@ class SyncJournalJob < ApplicationJob
         project.devlogs.where(title: title).update_all(lapse_url: lapse_url)
       end
     else
-      project.devlogs.where.not(lapse_url: nil).where.not(title: current_titles).find_each do |d|
+      project.devlogs.where.not(lapse_url: [ nil, "" ]).where.not(title: current_titles).find_each do |d|
         stash_orphaned_lapse_link!(project, d.title, d.lapse_url)
         d.update_column(:lapse_url, nil)
       end
