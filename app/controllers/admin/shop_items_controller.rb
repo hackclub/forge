@@ -6,7 +6,8 @@ class Admin::ShopItemsController < Admin::ApplicationController
 
     render inertia: "Admin/ShopItems/Index", props: {
       items: items.map { |i| serialize_item(i) },
-      regions: HasRegion::REGIONS
+      regions: HasRegion::REGIONS,
+      hcb_purpose_limit: ShopItem::HCB_PURPOSE_LIMIT
     }
   end
 
@@ -48,7 +49,7 @@ class Admin::ShopItemsController < Admin::ApplicationController
   def item_params
     params.require(:shop_item).permit(
       :name, :description, :image_url, :coin_cost, :enabled,
-      :internal_order_link, :internal_price_usd, :max_quantity,
+      :internal_order_link, :internal_price_usd, :max_quantity, :hcb_purpose, :hcb_description,
       shop_item_regions_attributes: [ :id, :region, :coin_cost, :enabled, :_destroy ]
     )
   end
@@ -63,6 +64,8 @@ class Admin::ShopItemsController < Admin::ApplicationController
       enabled: item.enabled,
       internal_order_link: item.internal_order_link,
       internal_price_usd: item.internal_price_usd&.to_f,
+      hcb_purpose: item.hcb_purpose,
+      hcb_description: item.hcb_description,
       max_quantity: item.max_quantity,
       region_pricing: item.shop_item_regions.map { |sir|
         { id: sir.id, region: sir.region, coin_cost: sir.coin_cost.to_f, enabled: sir.enabled }

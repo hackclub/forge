@@ -23,6 +23,8 @@ interface ShopItem {
   enabled: boolean
   internal_order_link: string | null
   internal_price_usd: number | null
+  hcb_purpose: string | null
+  hcb_description: string | null
   max_quantity: number | null
   region_pricing: RegionPricing[]
 }
@@ -42,15 +44,19 @@ const blank = {
   enabled: true,
   internal_order_link: '',
   internal_price_usd: '',
+  hcb_purpose: '',
+  hcb_description: '',
   max_quantity: '',
 }
 
 export default function AdminShopItemsIndex({
   items,
   regions,
+  hcb_purpose_limit,
 }: {
   items: ShopItem[]
   regions: Record<string, string>
+  hcb_purpose_limit: number
 }) {
   const [editingId, setEditingId] = useState<number | null>(null)
   const [showForm, setShowForm] = useState(false)
@@ -78,6 +84,8 @@ export default function AdminShopItemsIndex({
       enabled: item.enabled,
       internal_order_link: item.internal_order_link || '',
       internal_price_usd: item.internal_price_usd?.toString() || '',
+      hcb_purpose: item.hcb_purpose || '',
+      hcb_description: item.hcb_description || '',
       max_quantity: item.max_quantity?.toString() || '',
     })
     const existing = Object.keys(regions).map((r) => {
@@ -222,6 +230,35 @@ export default function AdminShopItemsIndex({
                         placeholder="0.00"
                       />
                     </div>
+                  </div>
+                </div>
+
+                <div className="border-t border-border pt-4 space-y-3">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">HCB grant prefill</p>
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs text-muted-foreground">Purpose</label>
+                      <span
+                        className={`text-[11px] ${form.hcb_purpose.length >= hcb_purpose_limit ? 'text-destructive' : 'text-muted-foreground'}`}
+                      >
+                        {form.hcb_purpose.length}/{hcb_purpose_limit}
+                      </span>
+                    </div>
+                    <Input
+                      maxLength={hcb_purpose_limit}
+                      value={form.hcb_purpose}
+                      onChange={(e) => setForm({ ...form, hcb_purpose: e.target.value })}
+                      placeholder={(form.name || 'Item name').slice(0, hcb_purpose_limit)}
+                    />
+                    <p className="text-[11px] text-muted-foreground">Leave blank to use the item name.</p>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs text-muted-foreground">Description</label>
+                    <Textarea
+                      value={form.hcb_description}
+                      onChange={(e) => setForm({ ...form, hcb_description: e.target.value })}
+                      placeholder="Only use this card to buy the item you ordered."
+                    />
                   </div>
                 </div>
 

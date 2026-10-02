@@ -5,6 +5,7 @@
 #  id              :bigint           not null, primary key
 #  approved_hours  :decimal(, )
 #  content         :text
+#  content_lost    :boolean          default(FALSE), not null
 #  entry_date      :date
 #  lapse_url       :string
 #  review_feedback :text
