@@ -96,7 +96,6 @@ class CollaborationInvite < ApplicationRecord
   def project_is_invitable
     return unless project
 
-    errors.add(:project, "build reviews can't have collaborators") if project.build_review?
     errors.add(:project, "is no longer accepting members") if project.discarded? || !self.class.invitable_status?(project)
   end
 end

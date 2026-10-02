@@ -27,17 +27,12 @@ class ProjectCollaborator < ApplicationRecord
 
   validates :user_id, uniqueness: { scope: :project_id, message: "is already a collaborator on this project" }
   validate :user_is_not_owner
-  validate :project_allows_collaborators
   validate :team_size_within_cap, on: :create
 
   private
 
   def user_is_not_owner
     errors.add(:user, "already owns this project") if project && user_id == project.user_id
-  end
-
-  def project_allows_collaborators
-    errors.add(:project, "build reviews can't have collaborators") if project&.build_review?
   end
 
   def team_size_within_cap
