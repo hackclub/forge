@@ -51,13 +51,13 @@ class ProjectPolicyTest < ActiveSupport::TestCase
     assert_not policy(@stranger).manage_team?
   end
 
-  test "build review owners cannot manage a team" do
+  test "build review owners can manage a team" do
     approved = Project.create!(user: @owner, name: "Base", tier: "tier_4", status: :approved)
     build_review = Project.create!(
       user: @owner, name: "BR", tier: Project::BUILD_REVIEW_TIER,
       build_review: true, linked_project: approved
     )
-    assert_not policy(@owner, build_review).manage_team?
+    assert policy(@owner, build_review).manage_team?
   end
 
   test "lapse links are manageable by admins, reviewers, and project members only" do

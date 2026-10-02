@@ -46,15 +46,14 @@ class ProjectCollaboratorTest < ActiveSupport::TestCase
     assert_not dup.valid?
   end
 
-  test "rejects collaborators on build review projects" do
+  test "allows collaborators on build review projects" do
     approved = Project.create!(user: @owner, name: "Base", tier: "tier_4", status: :approved)
     build_review = Project.create!(
       user: @owner, name: "Build Review", tier: Project::BUILD_REVIEW_TIER,
       build_review: true, linked_project: approved
     )
     record = build_review.project_collaborators.build(user: users(:two))
-    assert_not record.valid?
-    assert_match(/build reviews/, record.errors.full_messages.join)
+    assert record.valid?
   end
 
   test "enforces the team size cap" do

@@ -63,7 +63,7 @@ class ProjectPolicy < ApplicationPolicy
 
   def manage_team?
     return false if record.discarded?
-    owner? && !record.build_review?
+    owner?
   end
 
   def manage_lapse_links?
