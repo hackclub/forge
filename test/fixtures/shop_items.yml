@@ -12,6 +12,8 @@
 #  coin_cost           :decimal(10, 2)   not null
 #  description         :text
 #  enabled             :boolean          default(TRUE), not null
+#  hcb_description     :text
+#  hcb_purpose         :string(30)
 #  image_url           :string
 #  internal_order_link :string
 #  internal_price_usd  :decimal(10, 2)

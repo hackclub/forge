@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_13_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_02_111335) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -172,6 +172,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_13_120000) do
   create_table "devlogs", force: :cascade do |t|
     t.decimal "approved_hours"
     t.text "content"
+    t.boolean "content_lost", default: false, null: false
     t.datetime "created_at", null: false
     t.date "entry_date"
     t.string "lapse_url"
@@ -556,6 +557,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_13_120000) do
     t.datetime "created_at", null: false
     t.text "description"
     t.boolean "enabled", default: true, null: false
+    t.text "hcb_description"
+    t.string "hcb_purpose", limit: 30
     t.string "image_url"
     t.string "internal_order_link"
     t.decimal "internal_price_usd", precision: 10, scale: 2

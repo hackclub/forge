@@ -202,6 +202,8 @@ class Admin::OrdersController < Admin::ApplicationController
       shipping_screenshot_url: shipping_screenshot_url(order),
       internal_order_link: order.shop_item&.internal_order_link,
       internal_price_usd: order.shop_item&.internal_price_usd&.to_f,
+      grant_purpose: order.shop_item&.grant_purpose,
+      grant_description: order.shop_item&.hcb_description,
       user_id: order.user_id,
       user_display_name: order.user.display_name,
       user_avatar: order.user.avatar,

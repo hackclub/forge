@@ -1,6 +1,17 @@
 import { useRef, useState } from 'react'
 import { Head, Link, router } from '@inertiajs/react'
-import { ArrowLeft, AlertTriangle, Info, Check, X, CheckCircle2, ExternalLink, Search, Image as ImageIcon } from 'lucide-react'
+import {
+  ArrowLeft,
+  AlertTriangle,
+  Info,
+  Check,
+  Copy,
+  X,
+  CheckCircle2,
+  ExternalLink,
+  Search,
+  Image as ImageIcon,
+} from 'lucide-react'
 import { Badge } from '@/components/admin/ui/badge'
 import { Button } from '@/components/admin/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/admin/ui/card'
@@ -22,6 +33,8 @@ interface OrderDetail {
   shipping_screenshot_url: string | null
   internal_order_link: string | null
   internal_price_usd: number | null
+  grant_purpose: string | null
+  grant_description: string | null
   user_id: number
   user_display_name: string
   user_avatar: string
@@ -65,6 +78,33 @@ interface PreviousGrant {
   amount_usd: number | null
   hcb_grant_link: string
   fulfilled_at: string | null
+}
+
+function CopyField({ label, value }: { label: string; value: string }) {
+  const [copied, setCopied] = useState(false)
+
+  return (
+    <div className="flex items-start gap-2 rounded-md bg-muted p-2">
+      <div className="min-w-0 flex-1">
+        <p className="text-xs text-muted-foreground uppercase tracking-wide">{label}</p>
+        <p className="text-sm whitespace-pre-wrap break-words">{value}</p>
+      </div>
+      <Button
+        size="sm"
+        title={`Copy ${label.toLowerCase()}`}
+        type="button"
+        variant="ghost"
+        onClick={() =>
+          navigator.clipboard.writeText(value).then(() => {
+            setCopied(true)
+            setTimeout(() => setCopied(false), 1500)
+          })
+        }
+      >
+        {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
+      </Button>
+    </div>
+  )
 }
 
 function statusBadge(status: OrderDetail['status']) {
@@ -127,6 +167,8 @@ export default function AdminOrdersShow({
         : null
   const hcbGrantParams = new URLSearchParams({ email: order.user_email })
   if (grantAmountUsd != null) hcbGrantParams.set('amount_cents', String(Math.round(grantAmountUsd * 100)))
+  if (order.grant_purpose) hcbGrantParams.set('purpose', order.grant_purpose)
+  if (order.grant_description) hcbGrantParams.set('instructions', order.grant_description)
   const hcbGrantUrl = `https://hcb.hackclub.com/forge/card-grants/new?${hcbGrantParams.toString()}`
 
   function approve() {
@@ -502,6 +544,12 @@ export default function AdminOrdersShow({
                   <p className="text-sm text-muted-foreground">
                     Open HCB with the amount and recipient prefilled, create the grant, then paste the link back here.
                   </p>
+                  {(order.grant_purpose || order.grant_description) && (
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      {order.grant_purpose && <CopyField label="Purpose" value={order.grant_purpose} />}
+                      {order.grant_description && <CopyField label="Description" value={order.grant_description} />}
+                    </div>
+                  )}
                   <Button asChild variant="outline">
                     <a href={hcbGrantUrl} target="_blank" rel="noopener noreferrer">
                       <ExternalLink className="size-4" />
@@ -550,9 +598,7 @@ export default function AdminOrdersShow({
                         </p>
                       </>
                     )}
-                    {shippingScreenshot && (
-                      <p className="text-xs text-muted-foreground">{shippingScreenshot.name}</p>
-                    )}
+                    {shippingScreenshot && <p className="text-xs text-muted-foreground">{shippingScreenshot.name}</p>}
                   </div>
                   <input
                     ref={fileInputRef}
@@ -591,23 +637,27 @@ export default function AdminOrdersShow({
           </Card>
         )}
 
-        {order.status === 'fulfilled' && order.fulfillment_method === 'physical_product' && order.shipping_screenshot_url && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Shipping screenshot</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <a href={order.shipping_screenshot_url} target="_blank" rel="noopener noreferrer">
-                <img
-                  src={order.shipping_screenshot_url}
-                  alt="Shipping screenshot"
-                  className="max-h-96 rounded-md border border-border"
-                />
-              </a>
-              {order.fulfilled_at && <p className="text-xs text-muted-foreground">Fulfilled on {order.fulfilled_at}</p>}
-            </CardContent>
-          </Card>
-        )}
+        {order.status === 'fulfilled' &&
+          order.fulfillment_method === 'physical_product' &&
+          order.shipping_screenshot_url && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Shipping screenshot</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <a href={order.shipping_screenshot_url} target="_blank" rel="noopener noreferrer">
+                  <img
+                    src={order.shipping_screenshot_url}
+                    alt="Shipping screenshot"
+                    className="max-h-96 rounded-md border border-border"
+                  />
+                </a>
+                {order.fulfilled_at && (
+                  <p className="text-xs text-muted-foreground">Fulfilled on {order.fulfilled_at}</p>
+                )}
+              </CardContent>
+            </Card>
+          )}
       </div>
     </>
   )

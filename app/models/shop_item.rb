@@ -6,6 +6,8 @@
 #  coin_cost           :decimal(10, 2)   not null
 #  description         :text
 #  enabled             :boolean          default(TRUE), not null
+#  hcb_description     :text
+#  hcb_purpose         :string(30)
 #  image_url           :string
 #  internal_order_link :string
 #  internal_price_usd  :decimal(10, 2)
@@ -17,6 +19,8 @@
 class ShopItem < ApplicationRecord
   include HasRegion
 
+  HCB_PURPOSE_LIMIT = 30
+
   has_paper_trail
 
   has_many :orders, dependent: :nullify
@@ -26,12 +30,17 @@ class ShopItem < ApplicationRecord
   validates :name, presence: true
   validates :coin_cost, numericality: { greater_than: 0 }
   validates :max_quantity, numericality: { only_integer: true, greater_than: 0 }, allow_nil: true
+  validates :hcb_purpose, length: { maximum: HCB_PURPOSE_LIMIT }
 
   scope :enabled, -> { where(enabled: true) }
   scope :sorted, -> { order(:name) }
 
   def coin_cost_for_region(region)
     shop_item_regions.find { |sir| sir.region == region }&.coin_cost || coin_cost
+  end
+
+  def grant_purpose
+    hcb_purpose.presence || name.truncate(HCB_PURPOSE_LIMIT)
   end
 
   def enabled_for_region?(region)
