@@ -167,14 +167,14 @@ class Admin::ProjectsController < Admin::ApplicationController
     if @project.build_review?
       @project.update!(build_review: false, tier: Project::TIERS.last, linked_project_id: nil)
       audit!("project.review_type_changed", target: @project, metadata: { to: "design" })
-      redirect_to admin_review_path(@project), notice: "Converted to a design review."
+      redirect_back fallback_location: admin_review_path(@project), notice: "Converted to a design review."
     else
       @project.update!(build_review: true, tier: Project::BUILD_REVIEW_TIER, linked_project_id: nil)
       audit!("project.review_type_changed", target: @project, metadata: { to: "build" })
-      redirect_to admin_review_path(@project), notice: "Converted to a build review."
+      redirect_back fallback_location: admin_review_path(@project), notice: "Converted to a build review."
     end
   rescue ActiveRecord::RecordInvalid => e
-    redirect_to admin_review_path(@project), alert: "Couldn't convert: #{e.record.errors.full_messages.to_sentence}"
+    redirect_back fallback_location: admin_review_path(@project), alert: "Couldn't convert: #{e.record.errors.full_messages.to_sentence}"
   end
 
   def reverse_review
