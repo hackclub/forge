@@ -105,6 +105,17 @@ export default function AdminProjectsShow({
     return [...project.devlogs].sort((a, b) => (devlogOrder === 'newest' ? b.id - a.id : a.id - b.id))
   }, [project.devlogs, devlogOrder])
 
+  function convertReviewType() {
+    const toBuild = !project.build_review
+    if (
+      !confirm(
+        `Convert this to a ${toBuild ? 'build' : 'design'} review? It moves to the ${toBuild ? 'build' : 'design'} queue.`,
+      )
+    )
+      return
+    router.post(`/admin/projects/${project.id}/convert_review_type`)
+  }
+
   function handleRestore() {
     if (!confirm(`Restore "${project.name}"?`)) return
     router.post(`/admin/projects/${project.id}/restore`)
@@ -837,6 +848,22 @@ export default function AdminProjectsShow({
                     Originally a Slack pitch — tier was changed by staff.
                   </p>
                 )}
+              </CardContent>
+            </Card>
+          )}
+
+          {can.review && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Review Type</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <p className="text-xs text-muted-foreground">
+                  Currently a {project.build_review ? 'build' : 'design'} review.
+                </p>
+                <Button variant="outline" className="w-full" onClick={convertReviewType}>
+                  {project.build_review ? 'Convert to design review' : 'Convert to build review'}
+                </Button>
               </CardContent>
             </Card>
           )}
