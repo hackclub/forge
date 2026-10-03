@@ -141,7 +141,7 @@ export default function ShopPopup() {
 
   function buySuperconTicket() {
     if (supercon_ticket.ordered || supercon_ticket.cost > balance.balance) return
-    if (!confirm(`Spend ${supercon_ticket.cost}c on a Supercon ticket?`)) return
+    if (!confirm(`Spend ${supercon_ticket.cost}c on a Hackaday Supercon ticket?`)) return
     router.post('/shop/orders', { kind: 'supercon_ticket' }, MUTATE)
   }
 
@@ -309,7 +309,7 @@ export default function ShopPopup() {
             <div className="flex aspect-[2/1] flex-col items-center justify-center gap-1.5 bg-[#1c1b1b] p-3 text-center">
               <span className="material-symbols-outlined text-4xl text-[#ffb595]">confirmation_number</span>
               <span className="font-headline text-3xl font-bold leading-none tracking-tight text-[#e5e2e1]">
-                SUPERCON
+                Hackaday Supercon 2026
               </span>
               <span className="font-headline text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500">
                 Ticket
@@ -317,10 +317,10 @@ export default function ShopPopup() {
             </div>
             <div className="flex flex-1 flex-col p-3">
               <h3 className="mb-1 break-words font-headline text-sm font-bold tracking-tight text-[#e5e2e1]">
-                Supercon ticket
+                Hackaday Supercon ticket
               </h3>
               <p className="mb-3 break-words text-sm leading-relaxed text-stone-400">
-                A super cool ticket to hackaday supercon with housing/food included!!
+                  A ticket to Hackaday Supercon 2026 from Nov 5th to 9th with food and accomodations included!
               </p>
               <div className="mt-auto space-y-2">
                 <p className="font-headline text-sm font-bold text-[#ca5924]">{supercon_ticket.cost}c</p>
