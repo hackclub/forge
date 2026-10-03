@@ -45,6 +45,16 @@ class ProjectPolicyTest < ActiveSupport::TestCase
     assert_not policy(@collaborator).destroy?
   end
 
+  test "owners cannot destroy an approved project" do
+    builder = make_user
+    project = Project.create!(user: builder, name: "Mine", tier: "tier_4", status: :draft)
+    assert policy(builder, project).destroy?
+
+    project.update!(status: :approved)
+    assert_not policy(builder, project).destroy?
+    assert policy(@owner, project).destroy?
+  end
+
   test "only the owner manages the team" do
     assert policy(@owner).manage_team?
     assert_not policy(@collaborator).manage_team?

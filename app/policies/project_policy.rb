@@ -32,7 +32,8 @@ class ProjectPolicy < ApplicationPolicy
 
   def destroy?
     return admin? if record.discarded?
-    admin? || owner?
+    return true if admin?
+    owner? && !record.approved?
   end
 
   def submit_for_review?
