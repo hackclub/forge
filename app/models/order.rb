@@ -115,6 +115,16 @@ class Order < ApplicationRecord
     KIND_LABELS[kind] || shop_item&.name || "Shop item"
   end
 
+  def grant_purpose
+    direct_grant? ? "Project Funding" : shop_item&.grant_purpose
+  end
+
+  def grant_description
+    return shop_item&.hcb_description unless direct_grant?
+
+    "please only spend this on parts/hardware for your forge project! (#{project&.name})"
+  end
+
   def self.direct_grant_cost(amount_usd)
     (amount_usd.to_f * DIRECT_GRANT_RATIO).round(2)
   end
