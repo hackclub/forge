@@ -1,6 +1,6 @@
 class ProjectsController < ApplicationController
   allow_unauthenticated_access only: %i[show]
-  before_action :set_project, only: %i[show edit update destroy submit_for_review ai_check run_ai_check ai_check_status sync_journal set_devlog_mode link_repo set_journal_branch resubmit_pitch upload_cover_image export_devlogs add_kudo destroy_kudo]
+  before_action :set_project, only: %i[show edit update destroy submit_for_review ai_check run_ai_check ai_check_status sync_journal set_devlog_mode link_repo set_journal_branch resubmit_pitch upload_cover_image crop_cover_image export_devlogs add_kudo destroy_kudo]
 
   def show
     authorize @project
@@ -441,6 +441,26 @@ class ProjectsController < ApplicationController
     @project.cover_image.attach(file)
     @project.update!(cover_image_url: nil)
     redirect_to @project, notice: "Cover image uploaded. Processing..."
+  end
+
+  def crop_cover_image
+    authorize @project, :update?
+
+    if @project.cover_image_url.blank?
+      redirect_to @project, alert: "There's no cover image to crop."
+      return
+    end
+
+    permitted = params.require(:crop).permit(:x, :y, :width, :height)
+    crop = %w[x y width height].index_with { |key| permitted[key].to_f }
+
+    if crop["width"] <= 0 || crop["height"] <= 0 || crop["x"] < 0 || crop["y"] < 0
+      redirect_to @project, alert: "Invalid crop region."
+      return
+    end
+
+    CropCoverImageJob.perform_later(@project.id, crop)
+    redirect_to @project, notice: "Cropping your cover image..."
   end
 
   def ai_check

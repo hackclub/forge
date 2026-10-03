@@ -531,6 +531,7 @@ Rails.application.routes.draw do
       get :export_devlogs
       post :resubmit_pitch
       post :upload_cover_image
+      post :crop_cover_image
       patch :set_devlog_mode
       patch :link_repo
       patch :set_journal_branch

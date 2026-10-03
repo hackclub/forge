@@ -8,6 +8,7 @@ import type { ProjectDetail, ProjectMember, ProjectStatus, SharedProps } from '@
 import { formatCoinRate } from '@/lib/tiers'
 import ReviewTimeline, { type ReviewEvent } from '@/components/ReviewTimeline'
 import HackatimePicker from '@/components/HackatimePicker'
+import CoverImageCropper, { type CropRegion } from '@/components/CoverImageCropper'
 
 function isSafeUrl(url: string | null): boolean {
   if (!url) return false
@@ -387,6 +388,8 @@ export default function ProjectsShow({
   const [editingBranch, setEditingBranch] = useState(false)
   const [branchDraft, setBranchDraft] = useState(project.journal_branch || '')
   const [uploadingCover, setUploadingCover] = useState(false)
+  const [croppingCover, setCroppingCover] = useState(false)
+  const [savingCrop, setSavingCrop] = useState(false)
   const [editingSubtitle, setEditingSubtitle] = useState(false)
   const [subtitleDraft, setSubtitleDraft] = useState(project.subtitle || '')
   const [devlogValidationErrors, setDevlogValidationErrors] = useState<string[]>([])
@@ -533,6 +536,21 @@ export default function ProjectsShow({
         router.reload()
       })
       .catch(() => setUploadingCover(false))
+  }
+
+  function cropCoverImage(crop: CropRegion) {
+    setSavingCrop(true)
+    router.post(
+      `/projects/${project.id}/crop_cover_image`,
+      { crop },
+      {
+        preserveScroll: true,
+        onFinish: () => {
+          setSavingCrop(false)
+          setCroppingCover(false)
+        },
+      },
+    )
   }
 
   function deleteProject() {
@@ -765,17 +783,26 @@ export default function ProjectsShow({
           <div className="relative group">
             <img src={project.cover_image_url} alt={project.name} className="w-full max-h-[320px] object-cover" />
             {showCoverUpload && (
-              <label className="absolute top-3 right-3 bg-black/70 hover:bg-black/90 text-white px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.15em] flex items-center gap-2 cursor-pointer transition-all opacity-0 group-hover:opacity-100">
-                <span className="material-symbols-outlined text-sm">upload</span>
-                {uploadingCover ? 'Uploading...' : 'Replace'}
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={uploadCoverImage}
-                  className="hidden"
-                  disabled={uploadingCover}
-                />
-              </label>
+              <div className="absolute top-3 right-3 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                <button
+                  onClick={() => setCroppingCover(true)}
+                  className="bg-black/70 hover:bg-black/90 text-white px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.15em] flex items-center gap-2 cursor-pointer transition-colors"
+                >
+                  <span className="material-symbols-outlined text-sm">crop</span>
+                  Crop
+                </button>
+                <label className="bg-black/70 hover:bg-black/90 text-white px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.15em] flex items-center gap-2 cursor-pointer transition-colors">
+                  <span className="material-symbols-outlined text-sm">upload</span>
+                  {uploadingCover ? 'Uploading...' : 'Replace'}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={uploadCoverImage}
+                    className="hidden"
+                    disabled={uploadingCover}
+                  />
+                </label>
+              </div>
             )}
           </div>
         ) : showCoverUpload ? (
@@ -2127,6 +2154,15 @@ export default function ProjectsShow({
               </div>
               <p className="text-stone-400 text-sm">Your project has been approved and is being processed.</p>
             </div>
+          )}
+
+          {croppingCover && project.cover_image_url && (
+            <CoverImageCropper
+              src={project.cover_image_url}
+              busy={savingCrop}
+              onCancel={() => setCroppingCover(false)}
+              onCrop={cropCoverImage}
+            />
           )}
 
           {showSubmitWarning && (
