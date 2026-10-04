@@ -12,6 +12,7 @@ import {
   Sparkles,
   Loader2,
   Table as TableIcon,
+  ImageOff,
   type LucideIcon,
 } from 'lucide-react'
 import { Badge } from '@/components/admin/ui/badge'
@@ -53,6 +54,8 @@ interface QueueItemDetail {
   error: string | null
   created_at: string
   payload: Record<string, unknown>
+  screenshot_url: string | null
+  builder_name: string | null
 }
 
 const statusInfo: Record<
@@ -248,6 +251,38 @@ export default function AdminAirtableQueueShow({
           <p className="text-sm text-muted-foreground mb-3">
             Double-check every field below. This is exactly what will be upserted.
           </p>
+
+          <div className="mb-4 grid grid-cols-1 sm:grid-cols-[minmax(0,320px)_1fr] gap-4 items-start">
+            <div>
+              <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1.5">Screenshot</p>
+              {item.screenshot_url ? (
+                <a href={item.screenshot_url} target="_blank" rel="noopener noreferrer" className="block group">
+                  <img
+                    src={item.screenshot_url}
+                    alt="Cover image that will be sent to Airtable"
+                    className="w-full border border-border bg-muted/40 object-contain max-h-56 group-hover:opacity-90 transition-opacity"
+                  />
+                  <span className="mt-1 block text-xs text-muted-foreground group-hover:text-foreground break-all">
+                    Open full size
+                  </span>
+                </a>
+              ) : (
+                <div className="flex flex-col items-center justify-center gap-2 h-32 border border-dashed border-border text-muted-foreground">
+                  <ImageOff className="size-5" />
+                  <span className="text-xs">No screenshot in payload</span>
+                </div>
+              )}
+            </div>
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground uppercase tracking-wide">Ships to</p>
+              <p className={`text-sm ${item.builder_name ? '' : 'text-destructive'}`}>
+                {item.builder_name || 'No name in payload'}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                The screenshot and name go out exactly as shown. Run the AI check below if either looks off.
+              </p>
+            </div>
+          </div>
           <Table>
             <TableHeader>
               <TableRow>
@@ -293,7 +328,7 @@ export default function AdminAirtableQueueShow({
         <CardContent className="space-y-3">
           <div className="flex flex-col md:flex-row gap-2 md:items-center justify-between">
             <p className="text-sm text-muted-foreground">
-              Audits the justification against the Unified DB standard before it goes out.
+              Audits the justification and the builder's name against the Unified DB standard before it goes out.
             </p>
             <Button variant="outline" size="sm" onClick={runCheck} disabled={checking}>
               {checking ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}

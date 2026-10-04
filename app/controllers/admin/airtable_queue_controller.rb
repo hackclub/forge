@@ -167,6 +167,14 @@ class Admin::AirtableQueueController < Admin::ApplicationController
     true
   end
 
+  # The payload mirrors Airtable's attachment shape, so the preview reads the URL
+  # out of it rather than the project — the queued image is what actually ships.
+  def screenshot_url(item)
+    entry = Array(item.payload.to_h["Screenshot"]).first
+    url = entry.is_a?(Hash) ? entry["url"].to_s : ""
+    url if url.start_with?("http://", "https://")
+  end
+
   def serialize(item, full: false)
     project = item.project
     data = {
@@ -185,7 +193,11 @@ class Admin::AirtableQueueController < Admin::ApplicationController
       error: item.error,
       created_at: item.created_at.strftime("%b %d, %Y %H:%M")
     }
-    data[:payload] = item.payload if full
+    if full
+      data[:payload] = item.payload
+      data[:screenshot_url] = screenshot_url(item)
+      data[:builder_name] = [ item.payload.to_h["First Name"], item.payload.to_h["Last Name"] ].compact_blank.join(" ").presence
+    end
     data
   end
 end
