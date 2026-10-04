@@ -1,4 +1,6 @@
 class ProjectsController < ApplicationController
+  CROP_BOUND = 10
+
   allow_unauthenticated_access only: %i[show]
   before_action :set_project, only: %i[show edit update destroy submit_for_review ai_check run_ai_check ai_check_status sync_journal set_devlog_mode link_repo set_journal_branch resubmit_pitch upload_cover_image crop_cover_image export_devlogs add_kudo destroy_kudo]
 
@@ -454,7 +456,7 @@ class ProjectsController < ApplicationController
     permitted = params.require(:crop).permit(:x, :y, :width, :height)
     crop = %w[x y width height].index_with { |key| permitted[key].to_f }
 
-    if crop["width"] <= 0 || crop["height"] <= 0 || crop["x"] < 0 || crop["y"] < 0
+    if crop["width"] <= 0 || crop["height"] <= 0 || crop.values.any? { |v| v.abs > CROP_BOUND }
       redirect_to @project, alert: "Invalid crop region."
       return
     end
