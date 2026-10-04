@@ -103,19 +103,21 @@ module AiRequirementsChecker
   end
 
   def check_justification(item)
+    payload = item.payload.to_h
     audit_justification(
-      text: item.payload.to_h["Optional - Override Hours Spent Justification"].to_s,
-      hours: item.payload.to_h["Optional - Override Hours Spent"],
-      project: item.project
+      text: payload["Optional - Override Hours Spent Justification"].to_s,
+      hours: payload["Optional - Override Hours Spent"],
+      project: item.project,
+      name: { first: payload["First Name"].to_s, last: payload["Last Name"].to_s }
     )
   end
 
   # Audits a justification that has not been submitted anywhere yet, so a
   # reviewer can see the verdict before approving rather than after a fine.
-  def audit_justification(text:, hours:, project:)
+  def audit_justification(text:, hours:, project:, name: nil)
     ensure_configured!
 
-    parsed = complete_json(justification_prompt(text: text, hours: hours, project: project), schema: JUSTIFICATION_SCHEMA)
+    parsed = complete_json(justification_prompt(text: text, hours: hours, project: project, name: name), schema: JUSTIFICATION_SCHEMA)
     checks = Array(parsed["checks"]).filter_map do |row|
       next unless row.is_a?(Hash)
       name = row["name"].to_s.strip
@@ -138,24 +140,25 @@ module AiRequirementsChecker
     }
   end
 
-  def justification_prompt(text:, hours:, project:)
+  def justification_prompt(text:, hours:, project:, name: nil)
     justification = text.to_s
     kind = project&.build_review? ? "build review" : "design review"
+    standard_count = name.present? ? 5 : 4
 
     <<~PROMPT
-      You are auditing a Hack Club Forge "Override Hours Spent Justification" before it enters the YSWS Unified Database. This text is an INTERNAL reviewer record. Judge ONLY the justification text against the standard below — do not re-review the project itself.
+      You are auditing a Hack Club Forge record before it enters the YSWS Unified Database. The justification is an INTERNAL reviewer record. Judge ONLY the fields given below against the standards — do not re-review the project itself.
 
-      ## The standard — a compliant justification must
+      ## The standards — a compliant justification must
       1. Specific and verifiable — cite concrete numbers and links another reviewer could independently check.
       2. Time evidence stated — what the journal/devlog entries and GitHub commit history (and timelapse, if provided) show, including the period covered. Forge time is journal-tracked, not Hackatime.
       3. Hour adjustment documented — if approved hours are lower than claimed, it states the claimed hours, the approved hours, and the reason for the deflation.
       4. Scope justified — explains what was built and why the scope is consistent with the approved hours.
-
+      #{name_standard_text if name.present?}
       ## Project facts
       - Project type: #{kind}
       - Override (approved) hours in payload: #{hours.nil? ? '(none)' : hours}
       - Repo: #{project&.repo_link.presence || '(none)'}
-
+      #{name_facts_text(name) if name.present?}
       ## Forge requirements docs (context)
       #{requirements_docs_text}
 
@@ -163,8 +166,23 @@ module AiRequirementsChecker
       #{justification.strip.presence || '(empty)'}
 
       ## Output
-      Give a verdict for each of the 4 standards above, echoing a short name for each. The summary should be one or two sentences on whether this justification is safe to submit to the Unified DB; each reasoning should be one short sentence.
+      Give a verdict for each of the #{standard_count} standards above, echoing a short name for each. The summary should be one or two sentences on whether this record is safe to submit to the Unified DB; each reasoning should be one short sentence.
     PROMPT
+  end
+
+  # The name is shipped to the Unified DB and used to physically fulfil grants, so a
+  # handle or placeholder here costs a real package.
+  def name_standard_text
+    <<~TEXT.strip
+      5. Builder name usable — "First Name" and "Last Name" together read as a real human name that could go on a shipping label. Fail it for a Slack handle or username, a placeholder ("test", "idk", "asdf", "n/a"), gibberish, a single initial standing in for a full name, a project or company name, or a missing/empty part. Do NOT fail it merely for being lowercase, for being a non-English or non-Latin name, for a mononym culture, or for an unusual but plausible name.
+    TEXT
+  end
+
+  def name_facts_text(name)
+    <<~TEXT.strip
+      - First Name in payload: #{name[:first].presence || '(empty)'}
+      - Last Name in payload: #{name[:last].presence || '(empty)'}
+    TEXT
   end
 
   def requirements_docs_text
