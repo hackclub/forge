@@ -1,6 +1,9 @@
 require "vips"
 
 class CropCoverImageJob < ApplicationJob
+  MAX_DIMENSION = 4000
+  MAX_SCALE = 5
+
   queue_as :default
 
   def perform(project_id, crop)
@@ -11,7 +14,10 @@ class CropCoverImageJob < ApplicationJob
     return if source.blank?
 
     image = Vips::Image.new_from_buffer(source, "")
-    cropped = image.crop(*pixel_region(image, crop)).write_to_buffer(".png")
+    result = render(image, pixel_region(image, crop))
+    return if result.nil?
+
+    cropped = result.write_to_buffer(".png")
 
     filename = "cover-#{project.id}.png"
     io = StringIO.new(cropped)
@@ -45,11 +51,29 @@ class CropCoverImageJob < ApplicationJob
     nil
   end
 
+  # The region may extend past the image when the user zooms out; the overhang is
+  # filled with transparency so the whole cover is kept instead of being cut.
+  def render(image, region)
+    left, top, width, height = region
+    inner_left = left.clamp(0, image.width)
+    inner_top = top.clamp(0, image.height)
+    inner_right = (left + width).clamp(0, image.width)
+    inner_bottom = (top + height).clamp(0, image.height)
+    return nil if inner_right <= inner_left || inner_bottom <= inner_top
+
+    piece = image.extract_area(inner_left, inner_top, inner_right - inner_left, inner_bottom - inner_top)
+    piece = piece.add_alpha unless piece.has_alpha?
+    canvas = piece.embed(inner_left - left, inner_top - top, width, height, extend: :background, background: [ 0, 0, 0, 0 ])
+
+    longest = [ width, height ].max
+    longest > MAX_DIMENSION ? canvas.resize(MAX_DIMENSION.to_f / longest) : canvas
+  end
+
   def pixel_region(image, crop)
-    left = (crop["x"].to_f * image.width).round.clamp(0, image.width - 1)
-    top = (crop["y"].to_f * image.height).round.clamp(0, image.height - 1)
-    width = (crop["width"].to_f * image.width).round.clamp(1, image.width - left)
-    height = (crop["height"].to_f * image.height).round.clamp(1, image.height - top)
+    left = (crop["x"].to_f * image.width).round
+    top = (crop["y"].to_f * image.height).round
+    width = (crop["width"].to_f * image.width).round.clamp(1, image.width * MAX_SCALE)
+    height = (crop["height"].to_f * image.height).round.clamp(1, image.height * MAX_SCALE)
     [ left, top, width, height ]
   end
 end
