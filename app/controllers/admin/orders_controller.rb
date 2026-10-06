@@ -1,6 +1,6 @@
 class Admin::OrdersController < Admin::ApplicationController
   before_action :require_orders_permission!
-  before_action :set_order, only: [ :show, :approve, :reject, :fulfill, :reassign, :shipping_screenshot ]
+  before_action :set_order, only: [ :show, :approve, :reject, :fulfill, :create_grant, :reassign, :shipping_screenshot ]
 
   def index
     scope = Order.includes(:user, :project, :shop_item, :reviewer, :assigned_to).order(created_at: :desc)
@@ -54,7 +54,8 @@ class Admin::OrdersController < Admin::ApplicationController
       warnings: build_warnings(@order),
       regions: HasRegion::REGIONS,
       fulfillment_users: fulfillment_users_list,
-      previous_grants: previous_grants(@order)
+      previous_grants: previous_grants(@order),
+      hcb_connected: HcbService.connected?
     }
   end
 
@@ -125,6 +126,41 @@ class Admin::OrdersController < Admin::ApplicationController
 
     FulfillmentNotifyJob.perform_later(@order.id)
     redirect_to admin_order_path(@order), notice: "Order marked fulfilled."
+  end
+
+  def create_grant
+    grant = nil
+    @order.with_lock do
+      next unless @order.approved?
+
+      grant = HcbService.create_card_grant!(@order)
+      @order.update!(
+        status: :fulfilled,
+        fulfillment_method: @order.shop_item? ? "grant" : nil,
+        hcb_grant_link: grant[:link],
+        fulfilled_at: Time.current,
+        reviewer: @order.reviewer || current_user
+      )
+    end
+
+    if grant.nil?
+      redirect_to admin_order_path(@order), alert: "Only approved orders can be fulfilled."
+      return
+    end
+
+    audit!("order.fulfilled", target: @order, label: @order.kind_label, metadata: {
+      hcb_grant_link: grant[:link],
+      hcb_card_grant_id: grant[:id],
+      amount_cents: grant[:amount_cents],
+      via: "hcb_api"
+    })
+    FulfillmentNotifyJob.perform_later(@order.id)
+    redirect_to admin_order_path(@order), notice: "HCB grant created and order marked fulfilled."
+  rescue HcbService::Error => e
+    redirect_to admin_order_path(@order), alert: e.message
+  rescue StandardError
+    Rails.logger.error("HCB grant #{grant[:link]} was created for order ##{@order.id} but the order could not be updated") if grant
+    raise
   end
 
   def shipping_screenshot

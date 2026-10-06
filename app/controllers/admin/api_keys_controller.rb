@@ -29,7 +29,8 @@ class Admin::ApiKeysController < Admin::ApplicationController
 
   def index
     render inertia: "Admin/ApiKeys/Show", props: {
-      providers: PROVIDERS.map { |id, cfg| provider_payload(id, cfg) }
+      providers: PROVIDERS.map { |id, cfg| provider_payload(id, cfg) },
+      hcb: HcbService.connection_status
     }
   end
 
