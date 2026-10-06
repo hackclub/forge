@@ -11,6 +11,7 @@ import {
   ExternalLink,
   Search,
   Image as ImageIcon,
+  Zap,
 } from 'lucide-react'
 import { Badge } from '@/components/admin/ui/badge'
 import { Button } from '@/components/admin/ui/button'
@@ -126,15 +127,18 @@ export default function AdminOrdersShow({
   regions,
   fulfillment_users,
   previous_grants,
+  hcb_connected,
 }: {
   order: OrderDetail
   warnings: Warning[]
   regions: Record<string, string>
   fulfillment_users: { id: number; display_name: string }[]
   previous_grants: PreviousGrant[]
+  hcb_connected: boolean
 }) {
   const [reviewNotes, setReviewNotes] = useState('')
   const [grantLink, setGrantLink] = useState('')
+  const [creatingGrant, setCreatingGrant] = useState(false)
   const [grantSearch, setGrantSearch] = useState('')
   const [fulfillmentMethod, setFulfillmentMethod] = useState<'grant' | 'physical_product'>('grant')
   const [shippingScreenshot, setShippingScreenshot] = useState<File | null>(null)
@@ -212,6 +216,24 @@ export default function AdminOrdersShow({
       return
     }
     router.post(`/admin/orders/${order.id}/fulfill`, { fulfillment_method: 'grant', hcb_grant_link: grantLink })
+  }
+
+  function createGrant() {
+    if (grantAmountUsd == null) return
+    if (
+      !confirm(
+        `Send a $${grantAmountUsd.toFixed(2)} HCB card grant to ${order.user_email}? This moves real money and marks the order fulfilled.`,
+      )
+    )
+      return
+    router.post(
+      `/admin/orders/${order.id}/create_grant`,
+      {},
+      {
+        onStart: () => setCreatingGrant(true),
+        onFinish: () => setCreatingGrant(false),
+      },
+    )
   }
 
   return (
@@ -541,8 +563,30 @@ export default function AdminOrdersShow({
 
               {fulfillmentMethod === 'grant' ? (
                 <>
+                  {hcb_connected && grantAmountUsd != null ? (
+                    <div className="rounded-md border border-primary/40 bg-primary/5 p-3 space-y-2">
+                      <p className="text-sm">
+                        Forge can create this grant for you: <strong>${grantAmountUsd.toFixed(2)}</strong> to{' '}
+                        <span className="font-mono">{order.user_email}</span>. The order is marked fulfilled as soon as
+                        HCB confirms the grant.
+                      </p>
+                      <Button onClick={createGrant} disabled={creatingGrant}>
+                        <Zap className="size-4" />
+                        {creatingGrant ? 'Creating grant…' : 'Create HCB grant & fulfill'}
+                      </Button>
+                    </div>
+                  ) : hcb_connected ? (
+                    <p className="text-sm text-amber-600">
+                      This order has no dollar amount, so the grant has to be created on HCB by hand.
+                    </p>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">
+                      Connect HCB under Admin → API Keys to create grants without leaving Forge.
+                    </p>
+                  )}
                   <p className="text-sm text-muted-foreground">
-                    Open HCB with the amount and recipient prefilled, create the grant, then paste the link back here.
+                    {hcb_connected && grantAmountUsd != null ? 'Or open' : 'Open'} HCB with the amount and recipient
+                    prefilled, create the grant, then paste the link back here.
                   </p>
                   {(order.grant_purpose || order.grant_description) && (
                     <div className="grid gap-2 sm:grid-cols-2">

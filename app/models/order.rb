@@ -125,6 +125,18 @@ class Order < ApplicationRecord
     "please only spend this on parts/hardware for your forge project! (#{project&.name})"
   end
 
+  def grant_amount_usd
+    return amount_usd&.to_f unless shop_item?
+    return nil if shop_item&.internal_price_usd.blank?
+
+    (shop_item.internal_price_usd.to_f * quantity).round(2)
+  end
+
+  def grant_amount_cents
+    usd = grant_amount_usd
+    usd && (usd * 100).round
+  end
+
   def self.direct_grant_cost(amount_usd)
     (amount_usd.to_f * DIRECT_GRANT_RATIO).round(2)
   end

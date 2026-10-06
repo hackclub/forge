@@ -389,6 +389,7 @@ Rails.application.routes.draw do
           post :approve
           post :reject
           post :fulfill
+          post :create_grant
           post :reassign
           get :shipping_screenshot
         end
@@ -469,6 +470,13 @@ Rails.application.routes.draw do
   get "auth/hca/start" => "auth#new", as: :hca_start
   get "auth/hca/callback" => "auth#create", as: :hca_callback
   delete "auth/signout" => "auth#destroy", as: :signout
+
+  constraints StaffConstraint.new do
+    get "auth/hcb/start" => "admin/hcb_connections#new", as: :hcb_start
+    get "auth/hcb/callback" => "admin/hcb_connections#create", as: :hcb_callback
+    post "auth/hcb/test" => "admin/hcb_connections#test", as: :hcb_test
+    delete "auth/hcb" => "admin/hcb_connections#destroy", as: :hcb_disconnect
+  end
 
   post "impersonate/:user_id" => "impersonations#create", as: :impersonate
   delete "impersonate" => "impersonations#destroy", as: :stop_impersonating
