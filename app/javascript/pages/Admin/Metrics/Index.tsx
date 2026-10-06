@@ -32,6 +32,51 @@ interface HoursGoal {
   progression: GoalPoint[]
 }
 
+function GoalLineChart({ progression, target }: { progression: GoalPoint[]; target: number }) {
+  const width = 100
+  const height = 48
+  const n = progression.length
+  const points = progression.map((d, i) => ({
+    d,
+    x: n > 1 ? (i / (n - 1)) * width : width / 2,
+    y: height - Math.min(1, d.cumulative / target) * height,
+  }))
+  const line = points.map((p) => `${p.x},${p.y}`).join(' ')
+
+  return (
+    <div className="relative h-48">
+      <svg viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" className="w-full h-full overflow-visible">
+        {[0, 0.25, 0.5, 0.75, 1].map((f) => (
+          <line
+            key={f}
+            x1={0}
+            x2={width}
+            y1={height - f * height}
+            y2={height - f * height}
+            className="stroke-border"
+            strokeWidth={0.3}
+            vectorEffect="non-scaling-stroke"
+          />
+        ))}
+        <polyline
+          points={line}
+          fill="none"
+          className="stroke-emerald-500"
+          strokeWidth={2}
+          strokeLinejoin="round"
+          strokeLinecap="round"
+          vectorEffect="non-scaling-stroke"
+        />
+        {points.map(({ d, x, y }) => (
+          <circle key={d.date} cx={x} cy={y} r={2.5} className="fill-emerald-500 opacity-0 hover:opacity-100">
+            <title>{`${d.label}: ${d.cumulative.toLocaleString()}h (${((d.cumulative / target) * 100).toFixed(1)}%)`}</title>
+          </circle>
+        ))}
+      </svg>
+    </div>
+  )
+}
+
 interface Summary {
   total_users: number
   active_in_range: number
@@ -386,26 +431,7 @@ export default function AdminMetricsIndex({
             Cumulative hours logged over the last {range_days} days, scaled to the {hours_goal.target.toLocaleString()}h
             goal.
           </p>
-          <div className="flex items-end gap-1 h-48">
-            {hours_goal.progression.map((d) => {
-              const pct = Math.min(100, (d.cumulative / hours_goal.target) * 100)
-              return (
-                <div
-                  key={d.date}
-                  className="flex-1 h-full flex flex-col justify-end items-center group relative min-w-0"
-                  title={`${d.label}: ${d.cumulative.toLocaleString()}h (${((d.cumulative / hours_goal.target) * 100).toFixed(1)}%)`}
-                >
-                  <span className="invisible group-hover:visible absolute -top-6 text-[10px] font-mono bg-background border border-border rounded px-1 z-10 whitespace-nowrap">
-                    {d.cumulative.toLocaleString()}h
-                  </span>
-                  <div
-                    className="w-full rounded-t-sm bg-emerald-500/60 group-hover:bg-emerald-500 transition-colors min-h-[1px]"
-                    style={{ height: `${pct}%` }}
-                  />
-                </div>
-              )
-            })}
-          </div>
+          <GoalLineChart progression={hours_goal.progression} target={hours_goal.target} />
           <div className="flex justify-between text-[10px] text-muted-foreground mt-2 font-mono">
             <span>{hours_goal.progression[0]?.label}</span>
             <span>{hours_goal.progression[hours_goal.progression.length - 1]?.label}</span>
