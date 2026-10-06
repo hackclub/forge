@@ -13,6 +13,7 @@
 #  airtable_record_id :string
 #  enqueued_by_id     :bigint
 #  forge_id           :string           not null
+#  justification_check :jsonb
 #  project_id         :bigint
 #  sent_by_id         :bigint
 #
@@ -37,6 +38,8 @@ class AirtableQueueItem < ApplicationRecord
   belongs_to :sent_by, class_name: "User", optional: true
 
   enum :status, { pending: 0, sent: 1, cancelled: 2, failed: 3 }
+
+  after_create_commit :enqueue_justification_check
 
   scope :recent, -> { order(created_at: :desc) }
 
@@ -65,5 +68,11 @@ class AirtableQueueItem < ApplicationRecord
   rescue StandardError => e
     update!(status: :failed, sent_by: actor, sent_at: Time.current, error: "#{e.class}: #{e.message}")
     false
+  end
+
+  private
+
+  def enqueue_justification_check
+    RunJustificationCheckJob.perform_later(id) if pending?
   end
 end

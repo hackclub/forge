@@ -54,6 +54,7 @@ interface QueueItemDetail {
   error: string | null
   created_at: string
   payload: Record<string, unknown>
+  justification_check: JustificationCheck | null
   screenshot_url: string | null
   builder_name: string | null
 }
@@ -98,7 +99,7 @@ export default function AdminAirtableQueueShow({
   const fieldKeys = Object.keys(item.payload || {})
 
   const [checking, setChecking] = useState(false)
-  const [aiResult, setAiResult] = useState<JustificationCheck | null>(null)
+  const [aiResult, setAiResult] = useState<JustificationCheck | null>(item.justification_check ?? null)
 
   async function runCheck() {
     setChecking(true)
