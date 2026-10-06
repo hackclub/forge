@@ -195,8 +195,8 @@ export default function ProjectsForm({
           {macondo_enabled && !showMacondoImport && (
             <button
               type="button"
-              onClick={() => setShowMacondoImport(true)}
-              className="border border-[#684d3a]/40 bg-[#eacfb3] hover:bg-[#e2c19e] text-[#684d3a] px-5 h-12 text-xs font-bold uppercase tracking-[0.2em] transition-colors flex items-center gap-3 w-full justify-center"
+              disabled
+              className="border border-[#684d3a]/40 bg-[#eacfb3] text-[#684d3a] px-5 h-12 text-xs font-bold uppercase tracking-[0.2em] flex items-center gap-3 w-full justify-center opacity-40 grayscale cursor-not-allowed"
             >
               <span className="material-symbols-outlined text-lg">download</span>
               <span>
