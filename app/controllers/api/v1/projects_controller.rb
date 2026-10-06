@@ -54,7 +54,9 @@ class Api::V1::ProjectsController < Api::V1::BaseController
       user: {
         id: project.user.id,
         display_name: project.user.display_name,
-        avatar: project.user.avatar
+        avatar: project.user.avatar,
+        # Lets other Hack Club programs (e.g. Coral) confirm who owns a project before importing it.
+        slack_id: project.user.slack_id
       },
       created_at: project.created_at.iso8601,
       updated_at: project.updated_at.iso8601
