@@ -87,6 +87,7 @@ class Admin::AirtableQueueController < Admin::ApplicationController
   def check_justification
     item = AirtableQueueItem.find(params[:id])
     result = AiRequirementsChecker.check_justification(item)
+    item.update_columns(justification_check: result)
     audit!("airtable.justification_ai_check", target: item.project, metadata: { queue_item_id: item.id, overall: result["overall"] })
     render json: { result: result }
   rescue AiRequirementsChecker::Error => e
@@ -195,6 +196,7 @@ class Admin::AirtableQueueController < Admin::ApplicationController
     }
     if full
       data[:payload] = item.payload
+      data[:justification_check] = item.justification_check
       data[:screenshot_url] = screenshot_url(item)
       data[:builder_name] = [ item.payload.to_h["First Name"], item.payload.to_h["Last Name"] ].compact_blank.join(" ").presence
     end
