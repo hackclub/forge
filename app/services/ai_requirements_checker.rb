@@ -5,6 +5,7 @@ module AiRequirementsChecker
   module_function
 
   DEFAULT_MODEL = "claude-opus-4-8".freeze
+  JUSTIFICATION_MODEL = "claude-sonnet-5-5".freeze
   AUTH_TOKEN_SETTING = "anthropic_auth_token".freeze
   EVALUATION_TIMEOUT = 120
   MAX_RETRIES = 4
@@ -117,7 +118,7 @@ module AiRequirementsChecker
   def audit_justification(text:, hours:, project:, name: nil)
     ensure_configured!
 
-    parsed = complete_json(justification_prompt(text: text, hours: hours, project: project, name: name), schema: JUSTIFICATION_SCHEMA)
+    parsed = complete_json(justification_prompt(text: text, hours: hours, project: project, name: name), schema: JUSTIFICATION_SCHEMA, model: justification_model)
     checks = Array(parsed["checks"]).filter_map do |row|
       next unless row.is_a?(Hash)
       name = row["name"].to_s.strip
@@ -135,7 +136,7 @@ module AiRequirementsChecker
       "summary" => parsed["summary"].to_s.truncate(400).presence || build_summary(checks),
       "checks" => checks,
       "checked_at" => Time.current.iso8601,
-      "model" => model,
+      "model" => justification_model,
       "provider" => "anthropic"
     }
   end
@@ -361,7 +362,7 @@ module AiRequirementsChecker
     PROMPT
   end
 
-  def complete_json(prompt, schema:)
+  def complete_json(prompt, schema:, model: self.model)
     ensure_configured!
 
     params = {
@@ -371,7 +372,7 @@ module AiRequirementsChecker
       messages: [ { role: "user", content: prompt } ],
       request_options: request_options
     }
-    params[:thinking] = { type: :adaptive } if adaptive_thinking?
+    params[:thinking] = { type: :adaptive } if adaptive_thinking?(model)
     response = client.messages.create(**params)
 
     if response.stop_reason == :refusal
@@ -444,7 +445,11 @@ module AiRequirementsChecker
     ENV.fetch("AI_REQUIREMENTS_MODEL", DEFAULT_MODEL)
   end
 
-  def adaptive_thinking?
+  def justification_model
+    ENV.fetch("AI_JUSTIFICATION_MODEL", JUSTIFICATION_MODEL)
+  end
+
+  def adaptive_thinking?(model = self.model)
     Rails.cache.fetch([ "ai_requirements_checker", "adaptive_thinking", model ], expires_in: 12.hours) do
       info = client.models.retrieve(model, request_options: request_options)
       info.capabilities&.thinking&.types&.adaptive&.supported == true
