@@ -62,7 +62,8 @@ class Admin::ApplicationController < ApplicationController
       third_party: user.has_permission?("third_party"),
       support: user.has_permission?("support"),
       orders: user.has_permission?("orders"),
-      referrals: user.has_permission?("referrals")
+      referrals: user.has_permission?("referrals"),
+      nda: user.has_permission?("nda")
     }
   end
 end
