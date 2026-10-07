@@ -29,6 +29,7 @@ import {
   PlayCircle,
   DollarSign,
   FileText,
+  FileSignature,
   Users2,
 } from 'lucide-react'
 import type { SharedProps } from '@/types'
@@ -70,6 +71,7 @@ interface AdminPermissions {
   support: boolean
   orders: boolean
   referrals: boolean
+  nda: boolean
 }
 
 type PermKey = keyof AdminPermissions
@@ -182,6 +184,7 @@ function buildSections(): { items: NavItem[] }[] {
         { label: 'Airtable Sync', href: '/admin/airtable_sync', icon: Database, permission: 'is_admin' },
         { label: 'Slack Pings', href: '/admin/slack_pings', icon: MessageSquare, permission: 'is_admin' },
         { label: 'Review Audits', href: '/admin/review_audits', icon: Activity, permission: 'is_superadmin' },
+        { label: 'NDA', href: '/admin/nda', icon: FileSignature, permission: 'nda' },
         { label: 'Metrics', href: '/admin/metrics', icon: BarChart3, permission: 'audit_log' },
         { label: 'Database', href: '/admin/database', icon: Database, permission: 'is_admin' },
         { label: 'API Keys', href: '/admin/api_keys', icon: Bot, permission: 'is_superadmin' },

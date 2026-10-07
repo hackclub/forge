@@ -427,6 +427,9 @@ Rails.application.routes.draw do
           post :ban_all
         end
       end
+      resource :nda, only: [ :show ], controller: "nda" do
+        post :refresh
+      end
       get "metrics" => "metrics#index", as: :metrics
       get "airtable_sync" => "airtable_sync#index", as: :airtable_sync
       post "airtable_sync/recheck" => "airtable_sync#recheck", as: :airtable_sync_recheck

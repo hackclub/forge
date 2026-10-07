@@ -270,6 +270,7 @@ class User < ApplicationRecord
     third_party
     support
     hackatime
+    nda
     orders
     referrals
     superadmin

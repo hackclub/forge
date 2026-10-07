@@ -12,6 +12,7 @@ import {
   Users2,
   Flag,
   ScrollText,
+  FileSignature,
   BarChart3,
   Database,
   Briefcase,
@@ -161,7 +162,7 @@ export default function AdminStaticPagesIndex({
         </Section>
       )}
 
-      {(can('feature_flags') || can('audit_log') || can('jobs') || is_admin || is_superadmin) && (
+      {(can('feature_flags') || can('audit_log') || can('nda') || can('jobs') || is_admin || is_superadmin) && (
         <Section title="Engineering">
           {can('feature_flags') && (
             <Tile href="/admin/feature_flags" label="Feature Flags" icon={Flag} badge={counts.feature_flags} />
@@ -169,6 +170,7 @@ export default function AdminStaticPagesIndex({
           {can('audit_log') && <Tile href="/admin/metrics" label="Metrics" icon={BarChart3} />}
           {can('audit_log') && <Tile href="/admin/audit_log" label="Audit Log" icon={ScrollText} />}
           {can('hackatime') && <Tile href="/admin/hackatime_bans" label="Hackatime Bans" icon={ShieldX} />}
+          {can('nda') && <Tile href="/admin/nda" label="NDA" icon={FileSignature} />}
           {is_admin && <Tile href="/admin/database" label="Database" icon={Database} />}
           {can('jobs') && <Tile href="/admin/jobs" label="Background Jobs" icon={Briefcase} external />}
           {is_superadmin && <Tile href="/admin/reel_payouts" label="Reel Payouts" icon={DollarSign} />}
