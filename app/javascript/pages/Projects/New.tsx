@@ -64,23 +64,42 @@ const PATHS: Path[] = [
   },
 ]
 
-export default function ProjectsNew({ step = 'choose' }: { step?: 'choose' | 'tiers' }) {
+export default function ProjectsNew({
+  step = 'choose',
+  parent_project,
+}: {
+  step?: 'choose' | 'tiers'
+  parent_project?: { id: number; name: string; tier: string } | null
+}) {
   if (step === 'tiers') {
+    const tiers = parent_project ? TIERS.filter((t) => !t.pitch && t.tier >= parent_project.tier) : TIERS
+    const parentQuery = parent_project ? `&parent_project_id=${parent_project.id}` : ''
+
     return (
       <div className="p-5 md:p-12 max-w-4xl mx-auto text-center min-h-screen flex flex-col justify-center">
-        <h1 className="text-4xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-3">Pick a tier</h1>
-        <p className="text-stone-400 text-sm mb-2">
-          Each tier earns a different rate of steel coins per hour you log on the project.
-        </p>
+        <h1 className="text-4xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-3">
+          {parent_project ? 'Pick a subproject tier' : 'Pick a tier'}
+        </h1>
+        {parent_project ? (
+          <p className="text-stone-400 text-sm mb-2">
+            A subproject of <span className="text-[#ffb595] font-bold">{parent_project.name}</span> is reviewed as its
+            own project, at up to {parent_project.name}'s tier. Once {parent_project.name} is approved, you'll be topped
+            up to its tier's rate.
+          </p>
+        ) : (
+          <p className="text-stone-400 text-sm mb-2">
+            Each tier earns a different rate of steel coins per hour you log on the project.
+          </p>
+        )}
         <p className="text-stone-500 text-sm mb-10">
           Not sure what tier to pitch? Ask in <span className="text-[#ffb595] font-bold">#forge-help</span>!
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {TIERS.map((t) => (
+          {tiers.map((t) => (
             <Link
               key={t.tier}
-              href={`/projects/new?tier=${t.tier}`}
+              href={`/projects/new?tier=${t.tier}${parentQuery}`}
               className={`group bg-[#1c1b1b] ghost-border p-7 hover:bg-[#2a2a2a] transition-colors flex flex-col gap-3 text-center items-center corner-accents ${t.pitch ? 'border border-[#ca5924]/20' : ''}`}
             >
               <div className="flex items-center justify-center gap-3">
@@ -102,7 +121,7 @@ export default function ProjectsNew({ step = 'choose' }: { step?: 'choose' | 'ti
 
         <div className="mt-8 flex justify-center">
           <Link
-            href="/projects/new"
+            href={parent_project ? `/projects/${parent_project.id}` : '/projects/new'}
             className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 hover:text-[#ffb595] transition-colors flex items-center gap-1"
           >
             <span className="material-symbols-outlined text-sm">arrow_back</span>

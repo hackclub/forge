@@ -345,7 +345,7 @@ class Admin::ReviewsController < Admin::ApplicationController
   end
 
   def set_project
-    @project = Project.includes(:user, :linked_project, :build_review_for_project, :ships).find(params[:id])
+    @project = Project.includes(:user, :linked_project, :build_review_for_project, :parent_project, :ships).find(params[:id])
   end
 
   def ensure_session(project)
@@ -427,6 +427,9 @@ class Admin::ReviewsController < Admin::ApplicationController
       budget: project.budget,
       build_review: project.build_review,
       linked_project: project.linked_project ? { id: project.linked_project.id, name: project.linked_project.name } : nil,
+      parent_project: project.parent_project ? { id: project.parent_project.id, name: project.parent_project.name, tier: project.parent_project.tier, status: project.parent_project.status } : nil,
+      subprojects: project.subprojects.kept.order(:created_at).map { |sub| { id: sub.id, name: sub.name, tier: sub.tier, status: sub.status } },
+      subproject_note: JustificationTemplate.subproject_note(project),
       coin_rate: project.coin_rate,
       total_hours: project.total_hours.to_f.round(1),
       devlog_hours: project.devlog_hours.to_f.round(1),

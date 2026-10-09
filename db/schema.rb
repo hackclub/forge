@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_06_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_09_082752) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -149,10 +149,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_06_120000) do
     t.bigint "actor_id"
     t.decimal "amount", precision: 10, scale: 2, null: false
     t.datetime "created_at", null: false
+    t.bigint "project_id"
     t.text "reason", null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.index ["actor_id"], name: "index_coin_adjustments_on_actor_id"
+    t.index ["project_id"], name: "index_coin_adjustments_on_project_id"
     t.index ["user_id"], name: "index_coin_adjustments_on_user_id"
   end
 
@@ -341,6 +343,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_06_120000) do
     t.string "name", null: false
     t.decimal "override_hours"
     t.text "override_hours_justification"
+    t.bigint "parent_project_id"
     t.text "pitch_text"
     t.text "readme_cache"
     t.datetime "readme_fetched_at"
@@ -372,6 +375,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_06_120000) do
     t.index ["flagged_by_id"], name: "index_projects_on_flagged_by_id"
     t.index ["flagged_for_review_at"], name: "index_projects_on_flagged_for_review_at"
     t.index ["linked_project_id"], name: "index_projects_on_linked_project_id_for_build_reviews", unique: true, where: "(build_review = true)"
+    t.index ["parent_project_id"], name: "index_projects_on_parent_project_id"
     t.index ["requirements_checked_at"], name: "index_projects_on_requirements_checked_at"
     t.index ["requirements_checked_by_id"], name: "index_projects_on_requirements_checked_by_id"
     t.index ["staff_pick_at"], name: "index_projects_on_staff_pick_at"
@@ -823,6 +827,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_06_120000) do
   add_foreign_key "audit_events", "users", column: "actor_id"
   add_foreign_key "badges", "users"
   add_foreign_key "badges", "users", column: "awarder_id"
+  add_foreign_key "coin_adjustments", "projects"
   add_foreign_key "coin_adjustments", "users"
   add_foreign_key "coin_adjustments", "users", column: "actor_id"
   add_foreign_key "collaboration_invites", "projects"
@@ -849,6 +854,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_06_120000) do
   add_foreign_key "project_views", "projects"
   add_foreign_key "project_views", "users"
   add_foreign_key "projects", "projects", column: "linked_project_id"
+  add_foreign_key "projects", "projects", column: "parent_project_id"
   add_foreign_key "projects", "users"
   add_foreign_key "projects", "users", column: "flagged_by_id"
   add_foreign_key "projects", "users", column: "requirements_checked_by_id"

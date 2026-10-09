@@ -79,6 +79,13 @@ export interface LinkedProjectSummary {
   name: string
 }
 
+export interface SubprojectSummary {
+  id: number
+  name: string
+  tier: ProjectTier
+  status: ProjectStatus
+}
+
 export interface ProjectMember {
   id: number
   display_name: string
@@ -113,12 +120,15 @@ export interface ProjectDetail {
   tier: ProjectTier
   coin_rate: number
   payout: ProjectPayout | null
+  stowed_subproject_coins: { coins: number; count: number } | null
   from_slack: boolean
   cover_image_url: string | null
   built_at: string | null
   build_proof_url: string | null
   build_review: boolean
   linked_project: LinkedProjectSummary | null
+  parent_project: (LinkedProjectSummary & { coin_rate: number; approved: boolean }) | null
+  subprojects: SubprojectSummary[]
   airtable_sent: boolean
   hca_address_portal_url: string
   user_id: number
@@ -145,6 +155,7 @@ export interface ProjectForm {
   devlog_mode?: string | null
   build_review?: boolean
   linked_project_id?: number | null
+  parent_project_id?: number | null
   uses_ai: boolean
   ai_usage: string
   hackatime_projects?: string[]
@@ -293,6 +304,8 @@ export interface AdminProjectDetail {
   build_proof_url: string | null
   build_review: boolean
   linked_project: LinkedProjectSummary | null
+  parent_project: SubprojectSummary | null
+  subprojects: SubprojectSummary[]
   is_discarded: boolean
   discarded_at: string | null
   user_id: number

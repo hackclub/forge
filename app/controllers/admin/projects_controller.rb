@@ -138,7 +138,10 @@ class Admin::ProjectsController < Admin::ApplicationController
     if old_tier == "tier_1" && new_tier != "tier_1" && (@project.pitch_pending? || @project.draft?)
       attrs[:status] = :draft
     end
-    @project.update!(attrs)
+    unless @project.update(attrs)
+      redirect_to admin_project_path(@project), alert: @project.errors.full_messages.to_sentence
+      return
+    end
     audit!("project.tier_changed", target: @project, metadata: { old_tier: old_tier, new_tier: new_tier, auto_pending: attrs[:status] == :pending })
 
     if old_tier == "tier_1" && @project.slack_channel_id.present? && @project.slack_message_ts.present?
@@ -202,6 +205,7 @@ class Admin::ProjectsController < Admin::ApplicationController
 
     payouts = @project.project_payouts.includes(:user).to_a
     refunded_members = []
+    clawed_back_bonuses = []
     Project.transaction do
       @project.update!(
         status: :pending,
@@ -235,6 +239,7 @@ class Admin::ProjectsController < Admin::ApplicationController
             reason: "Review reversed for project #{@project.name} (##{@project.id}): #{reason}"
           )
         end
+        clawed_back_bonuses = SubprojectBonus.claw_back_for(@project, actor: current_user, reason: reason)
       end
     end
 
@@ -271,6 +276,7 @@ class Admin::ProjectsController < Admin::ApplicationController
       previous_coins_earned: previous_coins_earned,
       refunded: refund_requested && (refunded_members.any? || previous_coins_earned.to_f.positive?),
       refunded_members: refunded_members.presence,
+      subproject_bonus_clawed_back: clawed_back_bonuses.any? ? -clawed_back_bonuses.sum(&:amount).to_f : nil,
       cancelled_airtable: cancel_airtable,
       notified_slack: notify_slack_flag
     }.compact)
@@ -449,6 +455,7 @@ class Admin::ProjectsController < Admin::ApplicationController
         )
         cascade_target = @project.build_review? ? @project.linked_project : nil
         payout_shares = nil
+        subproject_bonuses = []
         Project.transaction do
           @project.update!(
             status: :approved,
@@ -478,6 +485,7 @@ class Admin::ProjectsController < Admin::ApplicationController
             @project.update_column(:coins_awarded, @project.computed_coins)
           end
           cascade_target&.update!(built_at: Time.current)
+          subproject_bonuses = SubprojectBonus.award_for(@project, actor: current_user)
         end
         end_active_review_session(decision: "approved")
         audit!("project.approved", target: @project, metadata: {
@@ -490,6 +498,7 @@ class Admin::ProjectsController < Admin::ApplicationController
           duplicate_acknowledgement: params[:duplicate_acknowledgement].presence,
           approved_hours: approved_hours.to_f,
           coins_awarded: @project.coins_awarded.to_f,
+          subproject_bonus: subproject_bonuses.any? ? subproject_bonuses.sum(&:amount).to_f : nil,
           member_breakdown: payout_shares&.map { |s|
             { user_id: s.user.id, display_name: s.user.display_name, hours: s.hours, coins: s.coins,
               streak_multiplier: s.streak_multiplier, guild_multiplier: s.guild_multiplier }
@@ -1108,6 +1117,8 @@ class Admin::ProjectsController < Admin::ApplicationController
       build_proof_url: project.build_proof_url,
       build_review: project.build_review,
       linked_project: project.linked_project ? { id: project.linked_project.id, name: project.linked_project.name } : nil,
+      parent_project: project.parent_project ? { id: project.parent_project.id, name: project.parent_project.name, tier: project.parent_project.tier, status: project.parent_project.status } : nil,
+      subprojects: project.subprojects.kept.order(:created_at).map { |sub| { id: sub.id, name: sub.name, tier: sub.tier, status: sub.status } },
       user_id: project.user_id,
       user_display_name: project.user.display_name,
       user_email: project.user.email,

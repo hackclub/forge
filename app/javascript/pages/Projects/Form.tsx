@@ -33,6 +33,8 @@ export default function ProjectsForm({
   submit_url,
   method,
   linkable_projects,
+  parent_project,
+  tier_editable,
   hackatime_enabled,
   macondo_enabled,
 }: {
@@ -41,6 +43,8 @@ export default function ProjectsForm({
   submit_url: string
   method: string
   linkable_projects?: { id: number; name: string }[]
+  parent_project?: { id: number; name: string; tier: ProjectTier } | null
+  tier_editable?: boolean
   hackatime_enabled?: boolean
   macondo_enabled?: boolean
 }) {
@@ -64,6 +68,7 @@ export default function ProjectsForm({
     tier: project.tier,
     devlog_mode: project.devlog_mode || '',
     linked_project_id: project.linked_project_id ?? '',
+    parent_project_id: project.parent_project_id ?? '',
     uses_ai: project.uses_ai,
     ai_usage: project.ai_usage,
     hackatime_projects: project.hackatime_projects ?? [],
@@ -179,6 +184,13 @@ export default function ProjectsForm({
   return (
     <div className="p-5 md:p-12 max-w-2xl mx-auto">
       <h1 className="text-4xl font-headline font-bold text-[#e5e2e1] tracking-tight mb-8">{title}</h1>
+
+      {parent_project && (
+        <div className="bg-[#1c1b1b] ghost-border p-4 mb-8 text-sm text-stone-400">
+          Subproject of <span className="text-[#ffb595] font-bold">{parent_project.name}</span>. It gets its own journal
+          and review, and is topped up to {parent_project.name}'s tier rate once both are approved.
+        </div>
+      )}
 
       {method === 'post' && !isBuildReview && (!showImport || (macondo_enabled && !showMacondoImport)) && (
         <div className="space-y-3 mb-8">
@@ -444,7 +456,7 @@ export default function ProjectsForm({
           </div>
         )}
 
-        {method === 'patch' && form.data.tier !== 'tier_1' && (
+        {method === 'patch' && tier_editable && (
           <div>
             <label htmlFor="tier" className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
               Tier
@@ -456,8 +468,12 @@ export default function ProjectsForm({
               className="w-full bg-[#0e0e0e] border-none rounded-lg px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30"
             >
               <option value="tier_4">Tier 4 - {tierCoinRate('tier_4')} (Basic, $0–50)</option>
-              <option value="tier_3">Tier 3 - {tierCoinRate('tier_3')} (Standard, $0–100)</option>
-              <option value="tier_2">Tier 2 - {tierCoinRate('tier_2')} (Bigger, $0–200)</option>
+              {(!parent_project || parent_project.tier <= 'tier_3') && (
+                <option value="tier_3">Tier 3 - {tierCoinRate('tier_3')} (Standard, $0–100)</option>
+              )}
+              {(!parent_project || parent_project.tier <= 'tier_2') && (
+                <option value="tier_2">Tier 2 - {tierCoinRate('tier_2')} (Bigger, $0–200)</option>
+              )}
             </select>
             <p className="text-stone-600 text-xs mt-2">
               Higher tiers earn more coins per hour but are expected to be more ambitious.

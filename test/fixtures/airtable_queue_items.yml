@@ -3,19 +3,20 @@
 #
 # Table name: airtable_queue_items
 #
-#  id                 :bigint           not null, primary key
-#  error              :text
-#  payload            :jsonb            not null
-#  sent_at            :datetime
-#  status             :integer          default("pending"), not null
-#  table_name         :string           not null
-#  created_at         :datetime         not null
-#  updated_at         :datetime         not null
-#  airtable_record_id :string
-#  enqueued_by_id     :bigint
-#  forge_id           :string           not null
-#  project_id         :bigint
-#  sent_by_id         :bigint
+#  id                  :bigint           not null, primary key
+#  error               :text
+#  justification_check :jsonb
+#  payload             :jsonb            not null
+#  sent_at             :datetime
+#  status              :integer          default("pending"), not null
+#  table_name          :string           not null
+#  created_at          :datetime         not null
+#  updated_at          :datetime         not null
+#  airtable_record_id  :string
+#  enqueued_by_id      :bigint
+#  forge_id            :string           not null
+#  project_id          :bigint
+#  sent_by_id          :bigint
 #
 # Indexes
 #

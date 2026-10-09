@@ -329,6 +329,7 @@ export default function ProjectsShow({
     give_kudos: boolean
     create_devlog: boolean
     manage_team: boolean
+    create_subproject: boolean
     leave: boolean
   }
   is_admin_view: boolean
@@ -747,6 +748,18 @@ export default function ProjectsShow({
   const isPitchReturn = isReturned && !isNormalTier && project.from_slack && devlogs.length === 0
 
   const totalHours = Math.round(devlogs.reduce((sum, entry) => sum + (entry.time_hours ?? 0), 0) * 10) / 10
+  const parentProject = project.parent_project
+  const stowedFactor =
+    parentProject && project.coin_rate > 0 ? Math.max(0, parentProject.coin_rate / project.coin_rate - 1) : 0
+  const stowedLabel = parentProject
+    ? parentProject.approved
+      ? `topped up from ${parentProject.name}`
+      : `stowed until ${parentProject.name} ships`
+    : ''
+  const stowedFromSubprojects = project.stowed_subproject_coins
+  const stowedFromSubprojectsLabel = stowedFromSubprojects
+    ? `stowed from ${stowedFromSubprojects.count} ${stowedFromSubprojects.count === 1 ? 'subproject' : 'subprojects'}, paid when ${project.status === 'approved' ? 'they are approved' : 'this ships'}`
+    : ''
 
   const sortedDevlogs = useMemo(() => {
     return [...devlogs].sort((a, b) => {
@@ -847,6 +860,15 @@ export default function ProjectsShow({
                 For: {project.linked_project.name}
               </Link>
             )}
+            {project.parent_project && (
+              <Link
+                href={`/projects/${project.parent_project.id}`}
+                className="bg-[#ffb595]/10 text-[#ffb595] hover:text-[#ca5924] px-3 py-1 text-[10px] uppercase font-bold tracking-widest flex items-center gap-1.5 transition-colors"
+              >
+                <span className="material-symbols-outlined text-sm">account_tree</span>
+                Subproject of: {project.parent_project.name}
+              </Link>
+            )}
             {project.built_at && (
               <span className="bg-emerald-500/10 text-emerald-400 px-3 py-1 text-[10px] uppercase font-bold tracking-widest flex items-center gap-1.5">
                 <span className="material-symbols-outlined text-sm">verified</span>
@@ -940,6 +962,45 @@ export default function ProjectsShow({
                   </span>
                 ))}
               </div>
+            </div>
+          )}
+
+          {(project.subprojects.length > 0 || can.create_subproject) && (
+            <div className="ghost-border bg-[#1c1b1b] p-4 mb-4 max-w-2xl">
+              <div className="flex items-center justify-between gap-3 mb-2">
+                <p className="text-[10px] uppercase tracking-[0.2em] text-stone-500 font-bold flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-sm">account_tree</span>
+                  Subprojects
+                </p>
+                {can.create_subproject && (
+                  <Link
+                    href={`/projects/new?parent_project_id=${project.id}`}
+                    className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-500 hover:text-[#ffb595] transition-colors flex items-center gap-1"
+                  >
+                    <span className="material-symbols-outlined text-sm">add</span>
+                    Add subproject
+                  </Link>
+                )}
+              </div>
+              {project.subprojects.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {project.subprojects.map((sub) => (
+                    <Link
+                      key={sub.id}
+                      href={`/projects/${sub.id}`}
+                      className="bg-[#0e0e0e] px-2 py-1 text-xs font-bold text-[#ffb595] hover:text-[#ca5924] transition-colors"
+                    >
+                      {sub.name}
+                      <span className="text-stone-600 font-normal"> · {statusConfig[sub.status].label}</span>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-stone-500">
+                  Split part of this build into its own project. Subprojects are reviewed on their own and topped up to
+                  this project's tier rate once this project is approved.
+                </p>
+              )}
             </div>
           )}
 
@@ -2002,6 +2063,18 @@ export default function ProjectsShow({
                 {project.payout.coins.toFixed(2)}
                 <span className="text-xl text-stone-500 ml-1">c</span>
               </p>
+              {stowedFactor > 0 && (
+                <p className="text-lg font-headline font-bold text-[#ffb595]/80 mt-1">
+                  +{(project.payout.coins * stowedFactor).toFixed(2)}c{' '}
+                  <span className="text-xs font-normal text-stone-400">{stowedLabel}</span>
+                </p>
+              )}
+              {stowedFromSubprojects && (
+                <p className="text-lg font-headline font-bold text-[#ffb595]/80 mt-1">
+                  +{stowedFromSubprojects.coins.toFixed(2)}c{' '}
+                  <span className="text-xs font-normal text-stone-400">{stowedFromSubprojectsLabel}</span>
+                </p>
+              )}
               <div className="mt-3 space-y-1 text-xs text-stone-500">
                 <p>
                   {project.payout.hours}h approved
@@ -2031,6 +2104,18 @@ export default function ProjectsShow({
                 {(totalHours * project.coin_rate).toFixed(2)}
                 <span className="text-xl text-stone-500 ml-1">c</span>
               </p>
+              {stowedFactor > 0 && (
+                <p className="text-lg font-headline font-bold text-[#ffb595]/80 mt-1">
+                  +{(totalHours * project.coin_rate * stowedFactor).toFixed(2)}c{' '}
+                  <span className="text-xs font-normal text-stone-400">{stowedLabel}</span>
+                </p>
+              )}
+              {stowedFromSubprojects && (
+                <p className="text-lg font-headline font-bold text-[#ffb595]/80 mt-1">
+                  +{stowedFromSubprojects.coins.toFixed(2)}c{' '}
+                  <span className="text-xs font-normal text-stone-400">{stowedFromSubprojectsLabel}</span>
+                </p>
+              )}
 
               <p className="text-stone-600 text-[10px] uppercase tracking-[0.15em] mt-3 leading-relaxed">
                 Please be warned, this is an estimate only! Your actual payout may change due to deflation/other factors

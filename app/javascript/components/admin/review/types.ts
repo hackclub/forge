@@ -1,4 +1,4 @@
-import type { ProjectStatus, ProjectTier, SubmissionRequirement } from '@/types'
+import type { ProjectStatus, ProjectTier, SubmissionRequirement, SubprojectSummary } from '@/types'
 
 /** Field the review form flashes red when a submit is blocked. */
 export type InvalidReviewField = 'conclusion' | 'technical' | 'feedback' | 'override' | 'checklist' | 'duplicate'
@@ -204,6 +204,9 @@ export interface ReviewProject {
   budget: string | null
   build_review: boolean
   linked_project: { id: number; name: string } | null
+  parent_project: SubprojectSummary | null
+  subprojects: SubprojectSummary[]
+  subproject_note: string
   coin_rate: number
   total_hours: number
   devlog_hours: number

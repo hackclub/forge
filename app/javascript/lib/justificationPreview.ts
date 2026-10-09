@@ -20,6 +20,7 @@ export interface JustificationContext {
   assessment: string
   additional_justification: string
   deflation_reason: string
+  subproject_note: string
 }
 
 function present(value: string | null | undefined): string {
@@ -144,7 +145,7 @@ ${deflation} hours of deflation was applied to meet our requirements${deflationS
 The final reviewer was asked to justify why this ship meets the standards of the Unified DB:
 
 ${reasoning}
-${additionalBlock}
+${additionalBlock}${ctx.subproject_note}
 !! To inspect the full review for this ship, including timelapses & journals, see: ${ctx.admin_url}
 
 For any questions, please reach out to aarav@hackclub.com.

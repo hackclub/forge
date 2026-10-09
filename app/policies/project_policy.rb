@@ -41,6 +41,11 @@ class ProjectPolicy < ApplicationPolicy
     record.reviewable?
   end
 
+  def create_subproject?
+    return false if record.discarded? || record.build_review? || record.subproject?
+    owner?
+  end
+
   def restore?
     admin? && record.discarded?
   end
