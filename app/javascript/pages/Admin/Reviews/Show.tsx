@@ -6,6 +6,7 @@ import { ReviewTopBar } from '@/components/admin/review/ReviewTopBar'
 import { ConcurrentReviewersBanner } from '@/components/admin/review/ConcurrentReviewersBanner'
 import { ClaimBanner, type ClaimState } from '@/components/admin/review/ClaimBanner'
 import { SiblingReviewPanel } from '@/components/admin/review/SiblingReviewPanel'
+import { SubprojectsPanel } from '@/components/admin/review/SubprojectsPanel'
 import { FlagBanner } from '@/components/admin/review/FlagBanner'
 import { FlagDialog } from '@/components/admin/review/FlagDialog'
 import { ProjectOverviewCard } from '@/components/admin/review/ProjectOverviewCard'
@@ -411,6 +412,7 @@ export default function AdminReviewsShow({
         assessment: reasoning,
         additional_justification: additionalJustification,
         deflation_reason: overrideJustification,
+        subproject_note: project.subproject_note,
       }),
     [
       project,
@@ -924,6 +926,7 @@ export default function AdminReviewsShow({
 
         <div className="w-[440px] shrink-0 overflow-y-auto p-4 space-y-4">
           {project.sibling && <SiblingReviewPanel sibling={project.sibling} />}
+          <SubprojectsPanel parent={project.parent_project} subprojects={project.subprojects} />
           {isTerminal ? (
             <ReadOnlyDecision project={project} next_pending_id={next_pending_id} />
           ) : requirementsOnly ? (

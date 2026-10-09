@@ -11,8 +11,9 @@ module DuplicateScan
 
   CACHE_TTL = 30.minutes
 
-  # A design ship and its build ship legitimately share a repo, as do updates to
-  # a project already shipped on Forge — those are related, not duplicates.
+  # A design ship and its build ship legitimately share a repo, as do
+  # subprojects and updates to a project already shipped on Forge — those are
+  # related, not duplicates.
   def run(project, refresh: false)
     slug = UnifiedDbService.repo_slug(project.repo_link)
     return empty_result("No GitHub/GitLab repo linked — nothing to compare.") if slug.blank?
@@ -60,9 +61,9 @@ module DuplicateScan
   end
 
   # Other Forge projects on the same repo, excluding this project's own
-  # design/build counterpart.
+  # design/build counterpart and subproject family.
   def forge_matches(project, slug)
-    related_ids = [ project.id, project.linked_project_id, project.build_review_for_project&.id ].compact
+    related_ids = [ project.id, project.linked_project_id, project.build_review_for_project&.id, *project.subproject_family_sharing_repo.map(&:id) ].compact
 
     Project.where.not(id: related_ids)
            .where("repo_link ILIKE ?", "%#{slug}%")

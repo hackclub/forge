@@ -251,6 +251,22 @@ export default function AdminProjectsShow({
                     </Badge>
                   </Link>
                 )}
+                {project.parent_project && (
+                  <Link href={`/admin/projects/${project.parent_project.id}`}>
+                    <Badge variant="outline" className="hover:bg-accent">
+                      Subproject of: {project.parent_project.name}
+                      <ExternalLink className="size-3" />
+                    </Badge>
+                  </Link>
+                )}
+                {project.subprojects.map((sub) => (
+                  <Link key={sub.id} href={`/admin/projects/${sub.id}`}>
+                    <Badge variant="outline" className="hover:bg-accent">
+                      Subproject: {sub.name}
+                      <ExternalLink className="size-3" />
+                    </Badge>
+                  </Link>
+                ))}
                 {project.is_discarded && <Badge variant="destructive">Deleted {project.discarded_at}</Badge>}
                 {project.slack_url && (
                   <a href={project.slack_url} target="_blank" rel="noopener noreferrer">

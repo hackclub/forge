@@ -27,7 +27,7 @@ class JustificationTemplate
     The final reviewer was asked to justify why this ship meets the standards of the Unified DB:
 
     %{review_justification}
-    %{additional_justification}%{duplicate_note}
+    %{additional_justification}%{duplicate_note}%{subproject_note}
     !! To inspect the full review for this ship, including timelapses & journals, see: %{forge_admin_link}
 
     For any questions, please reach out to aarav@hackclub.com.
@@ -77,6 +77,7 @@ class JustificationTemplate
       review_justification: fields[:assessment].to_s.strip.presence || "(no justification provided)",
       additional_justification: additional_justification(fields),
       duplicate_note: duplicate_note(fields),
+      subproject_note: subproject_note(project),
       forge_admin_link: forge_admin_link
     )
   end
@@ -97,6 +98,27 @@ class JustificationTemplate
     return "" if text.blank?
 
     "\nThis repository already appears in the Unified Database. The reviewer addressed it as follows:\n#{text}\n"
+  end
+
+  # Subprojects are their own Forge projects, often in the parent's repo, so
+  # the whole family is listed with its current state and any shared Code URL
+  # is called out rather than reading as a double-dip.
+  def self.subproject_note(project)
+    family = project.subproject_family.to_a
+    return "" if family.empty?
+
+    relation = if project.subproject?
+      "This is a subproject of #{project.parent_project.name}, reviewed and paid as its own Forge project."
+    else
+      "This project has subprojects that are reviewed and paid as their own Forge projects."
+    end
+    lines = family.map do |other|
+      role = other.id == project.parent_project_id ? "parent project" : "subproject"
+      shared = project.shares_repo_with?(other) ? ", shares this repository" : ""
+      "- #{other.name} (#{role}, #{other.tier.humanize}, currently #{other.status.humanize.downcase}#{shared}): #{admin_project_url(other)}"
+    end
+
+    "\n#{relation} Related projects:\n#{lines.join("\n")}\nEach Forge project is approved only on its own journal entries, so no hours are counted twice.\n"
   end
 
   def self.supporting_evidence(project, fields)

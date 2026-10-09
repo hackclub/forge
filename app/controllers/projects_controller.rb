@@ -26,6 +26,7 @@ class ProjectsController < ApplicationController
         give_kudos: current_user.present? && !@project.member?(current_user),
         create_devlog: current_user.present? && policy(@project).create_devlog?,
         manage_team: current_user.present? && policy(@project).manage_team?,
+        create_subproject: current_user.present? && policy(@project).create_subproject?,
         leave: current_user.present? && @project.member?(current_user) && @project.user_id != current_user.id
       },
       hackatime_enabled: HackatimeService.enabled?,
@@ -39,13 +40,16 @@ class ProjectsController < ApplicationController
     @project = current_user.projects.build
     authorize @project
 
+    parent = parent_project_for_new
+
     case params[:tier]
     when "tier_1"
       render inertia: "Projects/AdvancedPitch", props: {}
     when "tier_2", "tier_3", "tier_4"
       render inertia: "Projects/Form", props: {
-        project: { name: "", subtitle: "", repo_link: "", tags: [], tier: params[:tier], uses_ai: false, ai_usage: "", hackatime_projects: [] },
-        title: "New Project",
+        project: { name: "", subtitle: "", repo_link: parent&.repo_link.to_s, tags: [], tier: params[:tier], parent_project_id: parent&.id, uses_ai: false, ai_usage: "", hackatime_projects: [] },
+        parent_project: parent && { id: parent.id, name: parent.name, tier: parent.tier },
+        title: parent ? "New Subproject" : "New Project",
         submit_url: projects_path,
         method: "post",
         hackatime_enabled: HackatimeService.enabled?,
@@ -63,7 +67,8 @@ class ProjectsController < ApplicationController
       }
     else
       render inertia: "Projects/New", props: {
-        step: params[:path] == "project_review" ? "tiers" : "choose"
+        step: params[:path] == "project_review" || parent ? "tiers" : "choose",
+        parent_project: parent && { id: parent.id, name: parent.name, tier: parent.tier }
       }
     end
   end
@@ -72,6 +77,7 @@ class ProjectsController < ApplicationController
     macondo_project_id = (params.dig(:project, :macondo_project_id) || params[:macondo_project_id]).presence
 
     @project = current_user.projects.build(project_params)
+    @project.parent_project_id = params.dig(:project, :parent_project_id).presence
     @project.status = :draft
     @project.devlog_mode = "website" if macondo_project_id
     if @project.tier == Project::BUILD_REVIEW_TIER
@@ -80,12 +86,12 @@ class ProjectsController < ApplicationController
     authorize @project
 
     if @project.save
-      audit!("project.created", target: @project, metadata: { tier: @project.tier, build_review: @project.build_review })
+      audit!("project.created", target: @project, metadata: { tier: @project.tier, build_review: @project.build_review, parent_project_id: @project.parent_project_id }.compact)
       ImportMacondoDataJob.perform_now(@project.id, macondo_project_id) if macondo_project_id
       redirect_to @project, notice: @project.build_review? ? "Build review created as draft." : "Project created as draft."
     else
       fallback_tier = @project.build_review? ? Project::BUILD_REVIEW_TIER : @project.tier
-      redirect_back fallback_location: new_project_path(tier: fallback_tier), inertia: { errors: @project.errors.messages }
+      redirect_back fallback_location: new_project_path(tier: fallback_tier, parent_project_id: @project.parent_project_id), inertia: { errors: @project.errors.messages }
     end
   end
 
@@ -105,6 +111,7 @@ class ProjectsController < ApplicationController
         ai_usage: @project.ai_usage.to_s,
         hackatime_projects: @project.hackatime_projects
       },
+      parent_project: @project.parent_project && { id: @project.parent_project.id, name: @project.parent_project.name, tier: @project.parent_project.tier },
       title: "Edit Project",
       submit_url: project_path(@project),
       method: "patch",
@@ -519,6 +526,14 @@ class ProjectsController < ApplicationController
     params.expect(project: [ :name, :subtitle, :repo_link, :tier, :devlog_mode, :linked_project_id, :uses_ai, :ai_usage, tags: [], hackatime_projects: [] ])
   end
 
+  def parent_project_for_new
+    return nil if params[:parent_project_id].blank?
+
+    parent = current_user.projects.kept.find(params[:parent_project_id])
+    authorize parent, :create_subproject?
+    parent
+  end
+
   def linkable_projects_for(user)
     linked_ids = Project.kept.where(build_review: true).where.not(linked_project_id: nil).select(:linked_project_id)
 
@@ -551,12 +566,15 @@ class ProjectsController < ApplicationController
       tier: project.tier,
       coin_rate: project.coin_rate,
       payout: can_view_private_project_data ? serialize_payout(project) : nil,
+      stowed_subproject_coins: can_view_private_project_data ? stowed_subproject_coins(project) : nil,
       from_slack: project.slack_message_ts.present?,
       cover_image_url: project.cover_image_url,
       built_at: project.built_at&.strftime("%b %d, %Y"),
       build_proof_url: project.build_proof_url,
       build_review: project.build_review,
       linked_project: project.linked_project ? { id: project.linked_project.id, name: project.linked_project.name } : nil,
+      parent_project: project.parent_project && policy(project.parent_project).show? ? { id: project.parent_project.id, name: project.parent_project.name, coin_rate: project.parent_project.coin_rate, approved: project.parent_project.approved? } : nil,
+      subprojects: project.subprojects.kept.order(:created_at).select { |sub| policy(sub).show? }.map { |sub| { id: sub.id, name: sub.name, tier: sub.tier, status: sub.status } },
       airtable_sent: can_view_private_project_data && project.airtable_sent?,
       user_id: project.user_id,
       user_display_name: project.user.display_name,
@@ -607,6 +625,28 @@ class ProjectsController < ApplicationController
         team_total: nil
       }
     end
+  end
+
+  # Top-ups the viewer is still owed from this project's subprojects: estimated
+  # from logged hours until a subproject is approved, then from their share.
+  def stowed_subproject_coins(project)
+    subprojects = project.subprojects.kept.where.not(status: :rejected).includes(:devlogs, :project_payouts).to_a
+    stowed = subprojects.filter_map do |sub|
+      next if sub.coin_rate <= 0 || project.coin_rate <= sub.coin_rate
+      next if project.approved? && sub.approved?
+
+      base = if sub.approved? && sub.project_payouts.any?
+        sub.project_payouts.find { |p| p.user_id == current_user.id }&.coins.to_f
+      elsif sub.approved?
+        sub.user_id == current_user.id ? sub.coins_earned : 0.0
+      else
+        sub.devlog_hours.to_f * sub.coin_rate
+      end
+      base * ((project.coin_rate / sub.coin_rate) - 1)
+    end
+    return nil if stowed.sum.zero?
+
+    { coins: stowed.sum.round(2), count: stowed.size }
   end
 
   def serialize_members(project)

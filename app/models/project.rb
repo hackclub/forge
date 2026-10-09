@@ -54,6 +54,7 @@
 #  updated_at                   :datetime         not null
 #  flagged_by_id                :bigint
 #  linked_project_id            :bigint
+#  parent_project_id            :bigint
 #  requirements_checked_by_id   :bigint
 #  reviewer_id                  :bigint
 #  slack_channel_id             :string
@@ -65,6 +66,7 @@
 #  index_projects_on_flagged_by_id                        (flagged_by_id)
 #  index_projects_on_flagged_for_review_at                (flagged_for_review_at)
 #  index_projects_on_linked_project_id_for_build_reviews  (linked_project_id) UNIQUE WHERE (build_review = true)
+#  index_projects_on_parent_project_id                    (parent_project_id)
 #  index_projects_on_requirements_checked_at              (requirements_checked_at)
 #  index_projects_on_requirements_checked_by_id           (requirements_checked_by_id)
 #  index_projects_on_staff_pick_at                        (staff_pick_at)
@@ -77,6 +79,7 @@
 #
 #  fk_rails_...  (flagged_by_id => users.id)
 #  fk_rails_...  (linked_project_id => projects.id)
+#  fk_rails_...  (parent_project_id => projects.id)
 #  fk_rails_...  (requirements_checked_by_id => users.id)
 #  fk_rails_...  (reviewer_id => users.id)
 #  fk_rails_...  (user_id => users.id)
@@ -95,6 +98,9 @@ class Project < ApplicationRecord
   belongs_to :requirements_checked_by, class_name: "User", optional: true
   belongs_to :linked_project, class_name: "Project", optional: true
   has_one :build_review_for_project, class_name: "Project", foreign_key: :linked_project_id, dependent: :nullify, inverse_of: :linked_project
+  belongs_to :parent_project, class_name: "Project", optional: true
+  has_many :subprojects, class_name: "Project", foreign_key: :parent_project_id, dependent: :nullify, inverse_of: :parent_project
+  has_many :coin_adjustments, dependent: :nullify
   has_many :ships, dependent: :destroy
   has_many :devlogs, dependent: :destroy
   has_many :orphaned_lapse_links, dependent: :destroy
@@ -136,6 +142,8 @@ class Project < ApplicationRecord
   validates :tier, inclusion: { in: ALL_TIERS }
   validate :build_review_consistency
   validate :linked_project_must_be_approved_and_owned
+  validate :parent_project_must_be_owned_top_level_project
+  validate :subproject_tier_within_parent
 
   # Build reviews carry tier_build_review, so for review routing they inherit
   # the tier of the design project they're linked to (tier_4 when unlinked).
@@ -229,6 +237,31 @@ class Project < ApplicationRecord
     return result.merge("status" => "done") if result["status"].blank? && result["overall"].present?
 
     result
+  end
+
+  def subproject?
+    parent_project_id.present?
+  end
+
+  # Kept parent, sibling and child projects, so the Unified DB record explains
+  # how this project relates to them up front.
+  def subproject_family
+    return Project.none if !subproject? && !subprojects.exists?
+
+    root_id = parent_project_id || id
+    Project.kept
+      .where(id: root_id).or(Project.kept.where(parent_project_id: root_id))
+      .where.not(id: id)
+      .order(:id)
+  end
+
+  def shares_repo_with?(other)
+    key = repo_key(repo_link)
+    key.present? && repo_key(other.repo_link) == key
+  end
+
+  def subproject_family_sharing_repo
+    subproject_family.select { |other| shares_repo_with?(other) }
   end
 
   def advanced?
@@ -393,6 +426,35 @@ class Project < ApplicationRecord
       errors.add(:linked_project_id, "must be your own project")
     elsif !target.approved?
       errors.add(:linked_project_id, "must be an approved project")
+    end
+  end
+
+  def repo_key(url)
+    UnifiedDbService.repo_slug(url) || url.to_s.strip.downcase.chomp("/").presence
+  end
+
+  def parent_project_must_be_owned_top_level_project
+    return if parent_project_id.blank?
+
+    target = parent_project
+    if target.nil? || target.discarded?
+      errors.add(:parent_project_id, "not found")
+    elsif target.id == id
+      errors.add(:parent_project_id, "cannot be the project itself")
+    elsif build_review? || target.build_review?
+      errors.add(:parent_project_id, "is not available for build reviews")
+    elsif target.subproject? || (persisted? && subprojects.exists?)
+      errors.add(:parent_project_id, "cannot nest subprojects")
+    elsif target.user_id != user_id
+      errors.add(:parent_project_id, "must be your own project")
+    end
+  end
+
+  def subproject_tier_within_parent
+    if subproject? && parent_project && TIERS.index(tier).to_i < TIERS.index(parent_project.tier).to_i
+      errors.add(:tier, "can't be higher than the parent project's tier (#{parent_project.tier.humanize})")
+    elsif persisted? && will_save_change_to_tier? && subprojects.kept.any? { |sub| TIERS.index(sub.tier).to_i < TIERS.index(tier).to_i }
+      errors.add(:tier, "can't be lower than any of this project's subprojects")
     end
   end
 

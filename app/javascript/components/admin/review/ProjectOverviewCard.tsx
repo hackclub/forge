@@ -79,6 +79,19 @@ export function ProjectOverviewCard({
                     </a>
                   </>
                 )}
+                {project.parent_project && (
+                  <>
+                    <span>·</span>
+                    <a
+                      href={`/admin/projects/${project.parent_project.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:underline text-foreground"
+                    >
+                      subproject of: {project.parent_project.name} ↗
+                    </a>
+                  </>
+                )}
                 <span>·</span>
                 <span>started {project.created_at}</span>
                 {project.from_slack && project.slack_url && (
