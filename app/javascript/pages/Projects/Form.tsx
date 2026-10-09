@@ -34,6 +34,7 @@ export default function ProjectsForm({
   method,
   linkable_projects,
   parent_project,
+  tier_editable,
   hackatime_enabled,
   macondo_enabled,
 }: {
@@ -43,6 +44,7 @@ export default function ProjectsForm({
   method: string
   linkable_projects?: { id: number; name: string }[]
   parent_project?: { id: number; name: string; tier: ProjectTier } | null
+  tier_editable?: boolean
   hackatime_enabled?: boolean
   macondo_enabled?: boolean
 }) {
@@ -454,7 +456,7 @@ export default function ProjectsForm({
           </div>
         )}
 
-        {method === 'patch' && form.data.tier !== 'tier_1' && (
+        {method === 'patch' && tier_editable && (
           <div>
             <label htmlFor="tier" className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
               Tier

@@ -112,6 +112,7 @@ class ProjectsController < ApplicationController
         hackatime_projects: @project.hackatime_projects
       },
       parent_project: @project.parent_project && { id: @project.parent_project.id, name: @project.parent_project.name, tier: @project.parent_project.tier },
+      tier_editable: @project.tier_editable_by_owner?,
       title: "Edit Project",
       submit_url: project_path(@project),
       method: "patch",
@@ -121,6 +122,12 @@ class ProjectsController < ApplicationController
 
   def update
     authorize @project
+
+    new_tier = project_params[:tier]
+    if new_tier.present? && new_tier != @project.tier && !(@project.tier_editable_by_owner? && Project::TIERS.drop(1).include?(new_tier))
+      redirect_back fallback_location: edit_project_path(@project), inertia: { errors: { tier: [ "can only be changed between tiers 2–4 while the project is a draft or returned" ] } }
+      return
+    end
 
     if @project.update(project_params)
       audit!("project.updated", target: @project, metadata: { changed: project_params.keys, changes: audit_changes_for(@project) })

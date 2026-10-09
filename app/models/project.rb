@@ -264,6 +264,12 @@ class Project < ApplicationRecord
     subproject_family.select { |other| shares_repo_with?(other) }
   end
 
+  # Payouts and subproject top-ups are priced off tier, so builders can only
+  # move between the self-serve tiers before the project is in review.
+  def tier_editable_by_owner?
+    (draft? || returned?) && TIERS.drop(1).include?(tier)
+  end
+
   def advanced?
     tier == "tier_1"
   end
