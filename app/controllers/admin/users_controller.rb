@@ -37,7 +37,7 @@ class Admin::UsersController < Admin::ApplicationController
       },
       coin_adjustments: @user.coin_adjustments.includes(:actor).order(created_at: :desc).map { |a| serialize_adjustment(a) },
       hackatime: hackatime ? serialize_hackatime(hackatime) : nil,
-      can: { destroy: policy(@user).destroy?, restore: policy(@user).restore?, impersonate: !@user.staff? },
+      can: { destroy: policy(@user).destroy?, restore: policy(@user).restore?, impersonate: !@user.staff?, nda_bypass: current_user.has_permission?("nda") },
       available_roles: %w[user admin reviewer support fulfillment forge_ui],
       available_permissions: User::AVAILABLE_PERMISSIONS,
       available_regions: HasRegion::REGIONS,
@@ -132,6 +132,16 @@ class Admin::UsersController < Admin::ApplicationController
     @user.update!(maintenance_bypass: !@user.maintenance_bypass)
     audit!("user.maintenance_bypass_toggled", target: @user, metadata: { maintenance_bypass: @user.maintenance_bypass })
     status = @user.maintenance_bypass? ? "can now bypass maintenance" : "no longer bypasses maintenance"
+    redirect_to admin_user_path(@user), notice: "#{@user.display_name} #{status}."
+  end
+
+  def toggle_nda_bypass
+    require_permission!("nda")
+    @user = User.find(params[:id])
+    authorize @user, :update?
+    @user.update!(nda_bypass: !@user.nda_bypass)
+    audit!("user.nda_bypass_toggled", target: @user, metadata: { nda_bypass: @user.nda_bypass })
+    status = @user.nda_bypass? ? "can now bypass the NDA check" : "no longer bypasses the NDA check"
     redirect_to admin_user_path(@user), notice: "#{@user.display_name} #{status}."
   end
 
@@ -392,6 +402,7 @@ class Admin::UsersController < Admin::ApplicationController
       ban_reason: user.ban_reason,
       shop_unlocked: user.shop_unlocked,
       maintenance_bypass: user.maintenance_bypass,
+      nda_bypass: user.nda_bypass,
       verification_status: user.idv_display_status,
       bypass_idv: user.bypass_idv,
       idv_verified: user.idv_verified?,

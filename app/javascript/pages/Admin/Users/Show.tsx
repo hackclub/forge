@@ -143,7 +143,7 @@ export default function AdminUsersShow({
   coins: CoinSummary
   coin_adjustments: CoinAdjustment[]
   hackatime: HackatimeInfo | null
-  can: { destroy: boolean; restore: boolean; impersonate: boolean }
+  can: { destroy: boolean; restore: boolean; impersonate: boolean; nda_bypass: boolean }
   available_roles: string[]
   available_permissions: string[]
   available_regions: Record<string, string>
@@ -734,6 +734,29 @@ export default function AdminUsersShow({
               />
             </button>
           </div>
+
+          {can.nda_bypass && (
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-medium">NDA bypass</p>
+                <p className="text-xs text-muted-foreground">Allow admin access without a verified NDA.</p>
+              </div>
+              <button
+                onClick={() => router.post(`/admin/users/${user.id}/toggle_nda_bypass`)}
+                className={cn(
+                  'relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer shrink-0',
+                  user.nda_bypass ? 'bg-primary' : 'bg-muted',
+                )}
+              >
+                <span
+                  className={cn(
+                    'inline-block h-4 w-4 transform rounded-full bg-background transition-transform shadow',
+                    user.nda_bypass ? 'translate-x-6' : 'translate-x-1',
+                  )}
+                />
+              </button>
+            </div>
+          )}
 
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">

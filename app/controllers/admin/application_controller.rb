@@ -1,13 +1,23 @@
 class Admin::ApplicationController < ApplicationController
+  include NdaGate
+
   before_action :require_staff!
+  before_action :require_nda!
 
   inertia_share admin_stats: -> { admin_stats_payload }
   inertia_share admin_permissions: -> { admin_permissions_payload }
+  inertia_share nda_bypassed: -> { current_user&.nda_bypass? && !nda_signed? }
 
   private
 
   def require_staff!
     raise ActionController::RoutingError, "Not Found" unless current_user&.staff?
+  end
+
+  def require_nda!
+    return if nda_cleared?
+
+    render inertia: "Admin/NdaGate", props: { nda_url: "https://nda.hackclub.com/" }
   end
 
   def require_admin!
@@ -19,6 +29,8 @@ class Admin::ApplicationController < ApplicationController
   end
 
   def admin_stats_payload
+    return {} unless nda_cleared?
+
     Rails.cache.fetch("admin/sidebar_stats", expires_in: 1.minute) do
       tier_counts = Project.kept.where(status: :pending).group(Arel.sql(Project::REVIEW_TIER_SQL)).count
       {

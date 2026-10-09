@@ -192,6 +192,7 @@ export interface AdminUserDetail {
   ban_reason: string | null
   shop_unlocked: boolean
   maintenance_bypass: boolean
+  nda_bypass: boolean
   verification_status: string | null
   bypass_idv: boolean
   idv_verified: boolean

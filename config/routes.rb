@@ -359,6 +359,7 @@ Rails.application.routes.draw do
           get :coin_history
           post :toggle_shop_unlocked
           post :toggle_maintenance_bypass
+          post :toggle_nda_bypass
           post :toggle_bypass_idv
           post :sync_idv
           post :generate_referral_code
@@ -427,6 +428,7 @@ Rails.application.routes.draw do
           post :ban_all
         end
       end
+      post "nda_check" => "nda_checks#create", as: :nda_check
       resource :nda, only: [ :show ], controller: "nda" do
         post :refresh
       end
