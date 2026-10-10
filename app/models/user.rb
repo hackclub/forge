@@ -99,6 +99,7 @@ class User < ApplicationRecord
   has_many :collaboration_invites_sent, class_name: "CollaborationInvite", foreign_key: :inviter_id, dependent: :destroy, inverse_of: :inviter
   has_many :referrals_made, class_name: "Referral", foreign_key: :referrer_id, dependent: :destroy, inverse_of: :referrer
   has_one :referral_received, class_name: "Referral", foreign_key: :referred_id, dependent: :destroy, inverse_of: :referred
+  has_many :referral_pins, dependent: :destroy
   has_many :streak_days, dependent: :destroy
   has_many :login_days, class_name: "UserLoginDay", dependent: :destroy
   has_many :badges, dependent: :destroy

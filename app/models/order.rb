@@ -49,7 +49,7 @@ class Order < ApplicationRecord
 
   has_paper_trail
 
-  KINDS = %w[direct_grant shop_item supercon_ticket flight_reimbursement].freeze
+  KINDS = %w[direct_grant shop_item supercon_ticket flight_reimbursement referral_pin].freeze
   FULFILLMENT_METHODS = %w[grant physical_product].freeze
   ALLOWED_SCREENSHOT_CONTENT_TYPES = %w[
     image/png
@@ -69,7 +69,8 @@ class Order < ApplicationRecord
   KIND_LABELS = {
     "direct_grant" => "Direct project grant",
     "supercon_ticket" => "Supercon ticket",
-    "flight_reimbursement" => "$#{FLIGHT_REIMBURSEMENT_USD} flight reimbursement"
+    "flight_reimbursement" => "$#{FLIGHT_REIMBURSEMENT_USD} flight reimbursement",
+    "referral_pin" => "Forge referral pin"
   }.freeze
 
   belongs_to :user
@@ -79,19 +80,21 @@ class Order < ApplicationRecord
   belongs_to :assigned_to, class_name: "User", optional: true
 
   has_one_attached :shipping_screenshot
+  has_one :referral_pin, dependent: :destroy
 
   enum :status, { pending: 0, approved: 1, fulfilled: 2, rejected: 3 }
 
   validates :kind, inclusion: { in: KINDS }
   validates :fulfillment_method, inclusion: { in: FULFILLMENT_METHODS }, allow_nil: true
-  validates :coin_cost, numericality: { greater_than: 0 }
+  validates :coin_cost, numericality: { greater_than: 0 }, unless: :referral_pin?
+  validates :coin_cost, numericality: { equal_to: 0 }, if: :referral_pin?
   validates :quantity, numericality: { only_integer: true, greater_than: 0 }
   validates :amount_usd, numericality: { greater_than: 0 }, if: :direct_grant?
   validates :region, inclusion: { in: REGION_KEYS }, allow_nil: true
   validate :direct_grant_must_have_owned_project
   validate :shop_item_must_be_present
 
-  before_create :assign_fulfillment_user, if: :shop_item?
+  before_create :assign_fulfillment_user, if: :physical?
 
   scope :open, -> { where(status: %i[pending approved]) }
 
@@ -109,6 +112,14 @@ class Order < ApplicationRecord
 
   def flight_reimbursement?
     kind == "flight_reimbursement"
+  end
+
+  def referral_pin?
+    kind == "referral_pin"
+  end
+
+  def physical?
+    shop_item? || referral_pin?
   end
 
   def kind_label

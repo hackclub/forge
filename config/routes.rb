@@ -94,9 +94,6 @@
 #                                 admin_rsvp DELETE /admin/rsvps/:id(.:format)                                                                        admin/rsvps#destroy
 #                 approve_all_admin_referral POST   /admin/referrals/:id/approve_all(.:format)                                                        admin/referrals#approve_all
 #                approve_one_admin_referrals POST   /admin/referrals/approve/:referral_id(.:format)                                                   admin/referrals#approve_one
-#          force_approve_all_admin_referrals POST   /admin/referrals/force_approve_all(.:format)                                                      admin/referrals#force_approve_all
-#                draw_winner_admin_referrals POST   /admin/referrals/draw_winner(.:format)                                                            admin/referrals#draw_winner
-#                 reset_pool_admin_referrals POST   /admin/referrals/reset_pool(.:format)                                                             admin/referrals#reset_pool
 #                            admin_referrals GET    /admin/referrals(.:format)                                                                        admin/referrals#index
 #                             admin_referral GET    /admin/referrals/:id(.:format)                                                                    admin/referrals#show
 #      send_to_airtable_admin_airtable_queue POST   /admin/airtable_queue/:id/send_to_airtable(.:format)                                              admin/airtable_queue#send_to_airtable
@@ -408,9 +405,6 @@ Rails.application.routes.draw do
         end
         collection do
           post "approve/:referral_id" => "referrals#approve_one", as: :approve_one
-          post :force_approve_all
-          post :draw_winner
-          post :reset_pool
         end
       end
       resources :airtable_queue, only: [ :index, :show ] do

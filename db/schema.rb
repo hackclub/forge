@@ -475,11 +475,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_09_100844) do
     t.index ["user_id"], name: "index_reels_on_user_id"
   end
 
-  create_table "referral_prize_pools", force: :cascade do |t|
-    t.decimal "amount", precision: 10, scale: 2, default: "0.0", null: false
+  create_table "referral_pins", force: :cascade do |t|
     t.datetime "created_at", null: false
-    t.decimal "total_paid_out", precision: 10, scale: 2, default: "0.0", null: false
+    t.integer "milestone", null: false
+    t.bigint "order_id", null: false
     t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["order_id"], name: "index_referral_pins_on_order_id"
+    t.index ["user_id", "milestone"], name: "index_referral_pins_on_user_id_and_milestone", unique: true
+    t.index ["user_id"], name: "index_referral_pins_on_user_id"
   end
 
   create_table "referrals", force: :cascade do |t|
@@ -872,6 +876,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_09_100844) do
   add_foreign_key "reel_views", "users"
   add_foreign_key "reels", "projects"
   add_foreign_key "reels", "users"
+  add_foreign_key "referral_pins", "orders"
+  add_foreign_key "referral_pins", "users"
   add_foreign_key "referrals", "coin_adjustments", column: "payout_adjustment_id"
   add_foreign_key "referrals", "projects", column: "qualifying_project_id"
   add_foreign_key "referrals", "users", column: "approver_id"

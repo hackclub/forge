@@ -24,7 +24,7 @@ interface ShopItem {
 
 interface Order {
   id: number
-  kind: 'direct_grant' | 'shop_item' | 'supercon_ticket' | 'flight_reimbursement'
+  kind: 'direct_grant' | 'shop_item' | 'supercon_ticket' | 'flight_reimbursement' | 'referral_pin'
   kind_label: string
   status: 'pending' | 'approved' | 'fulfilled' | 'rejected'
   quantity: number
@@ -320,7 +320,7 @@ export default function ShopPopup() {
                 Hackaday Supercon ticket
               </h3>
               <p className="mb-3 break-words text-sm leading-relaxed text-stone-400">
-                  A ticket to Hackaday Supercon 2026 from Nov 5th to 9th with food and accomodations included!
+                A ticket to Hackaday Supercon 2026 from Nov 5th to 9th with food and accomodations included!
               </p>
               <div className="mt-auto space-y-2">
                 <p className="font-headline text-sm font-bold text-[#ca5924]">{supercon_ticket.cost}c</p>
