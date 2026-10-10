@@ -396,6 +396,7 @@ Rails.application.routes.draw do
         end
       end
       resources :shop_items, only: [ :index, :create, :update, :destroy ]
+      resources :grant_merges, only: [ :index, :create ]
       resources :rsvps, only: [ :index, :destroy ] do
         collection do
           get :export
