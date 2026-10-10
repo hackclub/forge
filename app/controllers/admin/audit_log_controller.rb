@@ -139,6 +139,8 @@ class Admin::AuditLogController < Admin::ApplicationController
     "order.approved" => "Approved order",
     "order.rejected" => "Rejected order",
     "order.fulfilled" => "Fulfilled order",
+    "grant_merge.completed" => "Merged HCB grants for",
+    "grant_merge.failed" => "Failed to merge HCB grants for",
     "shop_item.created" => "Created shop item",
     "shop_item.updated" => "Updated shop item",
     "shop_item.destroyed" => "Deleted shop item",

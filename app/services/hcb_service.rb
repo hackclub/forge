@@ -135,24 +135,52 @@ module HcbService
     amount_cents = order.grant_amount_cents
     raise Error, "This order has no dollar amount to grant." unless amount_cents.to_i.positive?
 
-    body = {
+    issue_card_grant!(
       amount_cents: amount_cents,
       email: order.user.email,
       purpose: order.grant_purpose,
       instructions: order.grant_description
+    )
+  end
+
+  def issue_card_grant!(amount_cents:, email:, purpose:, instructions:)
+    body = {
+      amount_cents: amount_cents,
+      email: email,
+      purpose: purpose,
+      instructions: instructions
     }.compact_blank
 
-    grant = v4_post("organizations/#{ORG_SLUG}/card_grants", body)
+    serialize_card_grant(v4_post("organizations/#{ORG_SLUG}/card_grants", body))
+  end
+
+  def fetch_card_grant(public_id)
+    serialize_card_grant(v4_get("card_grants/#{public_id}?expand=balance_cents"))
+  end
+
+  def cancel_card_grant!(public_id)
+    serialize_card_grant(v4_post("card_grants/#{public_id}/cancel", {}))
+  end
+
+  def serialize_card_grant(grant)
     {
       id: grant["id"],
       link: grant_link(grant["id"]),
       status: grant["status"],
-      amount_cents: grant["amount_cents"]
+      amount_cents: grant["amount_cents"],
+      balance_cents: grant["balance_cents"]
     }
   end
 
   def grant_link(public_id)
     "#{HOST}/grants/#{public_id.to_s.delete_prefix(CARD_GRANT_ID_PREFIX)}"
+  end
+
+  def grant_public_id(link)
+    match = URI.parse(link.to_s.strip).path.to_s.match(%r{\A/grants/([A-Za-z0-9]+)/?\z})
+    match && "#{CARD_GRANT_ID_PREFIX}#{match[1]}"
+  rescue URI::InvalidURIError
+    nil
   end
 
   def access_token
