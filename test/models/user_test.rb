@@ -32,6 +32,7 @@
 #  onboarded_at          :datetime
 #  permissions           :string           default([]), not null, is an Array
 #  phone_number          :string
+#  placeholder           :boolean          default(FALSE), not null
 #  postal_code           :string
 #  referral_code         :string
 #  region                :string           default("rest_of_world")
