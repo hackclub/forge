@@ -66,6 +66,16 @@ export function ProjectOverviewCard({
                     </Badge>
                   </>
                 )}
+                {project.macondo_url && (
+                  <>
+                    <span>·</span>
+                    <a href={project.macondo_url} target="_blank" rel="noopener noreferrer">
+                      <Badge className="bg-sky-500/15 text-sky-700 dark:text-sky-300 border border-sky-500/30">
+                        Imported from Macondo ↗
+                      </Badge>
+                    </a>
+                  </>
+                )}
                 {project.linked_project && (
                   <>
                     <span>·</span>

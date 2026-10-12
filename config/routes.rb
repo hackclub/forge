@@ -447,6 +447,8 @@ Rails.application.routes.draw do
       get "audit_log/:id" => "audit_log#show", as: :audit_log_entry
       get "database" => "database#index", as: :database
       post "database/query" => "database#query"
+      get "macondo_import" => "macondo_imports#show", as: :macondo_import
+      post "macondo_import" => "macondo_imports#create"
       get "api_keys" => "api_keys#index", as: :api_keys
       post "api_keys/:id" => "api_keys#update", as: :api_key
       post "api_keys/:id/test" => "api_keys#test", as: :api_key_test
@@ -538,6 +540,7 @@ Rails.application.routes.draw do
     end
     member do
       post :submit_for_review
+      post :confirm_macondo_tier
       get :ai_check
       post :run_ai_check
       get :ai_check_status

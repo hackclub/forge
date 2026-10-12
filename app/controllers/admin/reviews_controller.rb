@@ -415,6 +415,7 @@ class Admin::ReviewsController < Admin::ApplicationController
       devlog_mode: project.devlog_mode,
       uses_ai: project.uses_ai,
       ai_usage: project.ai_usage,
+      macondo_url: project.macondo_url,
       git_journal_url: git_journal_url_for(project),
       build_proof_url: project.build_proof_url,
       submission_requirements: SubmissionRequirements.for_project(project),

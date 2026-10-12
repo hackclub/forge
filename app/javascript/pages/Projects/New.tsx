@@ -1,41 +1,5 @@
 import { Link } from '@inertiajs/react'
-import { formatCoinRate, TIER_COIN_RATES, tierCoinRate } from '@/lib/tiers'
-
-interface TierOption {
-  tier: 'tier_1' | 'tier_2' | 'tier_3' | 'tier_4'
-  label: string
-  description: string
-  pitch: boolean
-}
-
-const TIERS: TierOption[] = [
-  {
-    tier: 'tier_4',
-    label: 'Tier 4',
-    description:
-      'Basic project. The simplest starting point for things like PCB Buisness Cards, LED timers, DIY Mouse. Should be $0-50',
-    pitch: false,
-  },
-  {
-    tier: 'tier_3',
-    label: 'Tier 3',
-    description: 'Standard projects such as a macropad on wheels, custom bluetooth speakers, Devboard. Around $0-100',
-    pitch: false,
-  },
-  {
-    tier: 'tier_2',
-    label: 'Tier 2',
-    description: 'Bigger builds. Eg DIY game console, Full Split Keyboard, Custom Flipper Zero. Around $0-200',
-    pitch: false,
-  },
-  {
-    tier: 'tier_1',
-    label: 'Tier 1',
-    description:
-      'Advanced project ($200+).Requires a Slack pitch. Eg a DIY 3d printer, Battlebot with custom attachements. For projects $0-200+',
-    pitch: true,
-  },
-]
+import { formatCoinRate, TIER_COIN_RATES, TIER_OPTIONS, tierCoinRate } from '@/lib/tiers'
 
 interface Path {
   key: 'project_review' | 'build_review'
@@ -72,7 +36,7 @@ export default function ProjectsNew({
   parent_project?: { id: number; name: string; tier: string } | null
 }) {
   if (step === 'tiers') {
-    const tiers = parent_project ? TIERS.filter((t) => !t.pitch && t.tier >= parent_project.tier) : TIERS
+    const tiers = parent_project ? TIER_OPTIONS.filter((t) => !t.pitch && t.tier >= parent_project.tier) : TIER_OPTIONS
     const parentQuery = parent_project ? `&parent_project_id=${parent_project.id}` : ''
 
     return (
