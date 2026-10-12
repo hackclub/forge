@@ -15,3 +15,39 @@ export function formatCoinRate(rate: number): string {
 export function tierCoinRate(tier: ProjectTier): string {
   return formatCoinRate(TIER_COIN_RATES[tier])
 }
+
+export interface TierOption {
+  tier: Exclude<ProjectTier, 'tier_build_review'>
+  label: string
+  description: string
+  pitch: boolean
+}
+
+export const TIER_OPTIONS: TierOption[] = [
+  {
+    tier: 'tier_4',
+    label: 'Tier 4',
+    description:
+      'Basic project. The simplest starting point for things like PCB Buisness Cards, LED timers, DIY Mouse. Should be $0-50',
+    pitch: false,
+  },
+  {
+    tier: 'tier_3',
+    label: 'Tier 3',
+    description: 'Standard projects such as a macropad on wheels, custom bluetooth speakers, Devboard. Around $0-100',
+    pitch: false,
+  },
+  {
+    tier: 'tier_2',
+    label: 'Tier 2',
+    description: 'Bigger builds. Eg DIY game console, Full Split Keyboard, Custom Flipper Zero. Around $0-200',
+    pitch: false,
+  },
+  {
+    tier: 'tier_1',
+    label: 'Tier 1',
+    description:
+      'Advanced project ($200+).Requires a Slack pitch. Eg a DIY 3d printer, Battlebot with custom attachements. For projects $0-200+',
+    pitch: true,
+  },
+]

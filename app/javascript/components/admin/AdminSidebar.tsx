@@ -32,6 +32,7 @@ import {
   FileText,
   FileSignature,
   Users2,
+  Import,
 } from 'lucide-react'
 import type { SharedProps } from '@/types'
 import { cn } from './lib/cn'
@@ -190,6 +191,7 @@ function buildSections(): { items: NavItem[] }[] {
         { label: 'Metrics', href: '/admin/metrics', icon: BarChart3, permission: 'audit_log' },
         { label: 'Database', href: '/admin/database', icon: Database, permission: 'is_admin' },
         { label: 'API Keys', href: '/admin/api_keys', icon: Bot, permission: 'is_superadmin' },
+        { label: 'Macondo Import', href: '/admin/macondo_import', icon: Import, permission: 'is_superadmin' },
         { label: 'Airtable Queue', href: '/admin/airtable_queue', icon: TableProperties, permission: 'is_superadmin' },
         { label: 'Jobs', href: '/admin/jobs', icon: Briefcase, external: true, permission: 'jobs' },
         { label: 'Sentry', href: 'https://sentry.io', icon: Activity, external: true, permission: 'third_party' },
