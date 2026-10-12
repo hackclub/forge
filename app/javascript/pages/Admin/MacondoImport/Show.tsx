@@ -24,8 +24,8 @@ interface LastRun {
   filename: string | null
   imported: ImportedRow[]
   already_imported: number
-  missing_owners: SkippedRow[]
-  missing_collaborators: SkippedRow[]
+  placeholder_owners: SkippedRow[]
+  placeholder_collaborators: SkippedRow[]
   failures: SkippedRow[]
 }
 
@@ -91,8 +91,9 @@ export default function AdminMacondoImportShow({
           <p className="text-sm text-muted-foreground">
             Each row becomes a draft project owned by the builder with that email, with every journal entry imported as
             a devlog. Projects land on tier 4 and the builder reconfirms their Forge tier from a prompt on the project
-            page. Rows already imported are skipped, so re-running the same file is safe. Nothing is read from the
-            Macondo API.
+            page. Builders without a Forge account get a placeholder one that their real account adopts the first time
+            they sign in. Rows already imported are skipped, so re-running the same file is safe. Nothing is read from
+            the Macondo API.
           </p>
 
           <div className="flex gap-6 text-sm">
@@ -162,8 +163,8 @@ export default function AdminMacondoImportShow({
               </div>
             )}
 
-            <RowList label="No Forge account for the owner" rows={last_run.missing_owners} />
-            <RowList label="No Forge account for a collaborator" rows={last_run.missing_collaborators} />
+            <RowList label="Placeholder account created for the owner" rows={last_run.placeholder_owners} />
+            <RowList label="Placeholder account created for a collaborator" rows={last_run.placeholder_collaborators} />
             <RowList label="Failed" rows={last_run.failures} />
           </CardContent>
         </Card>

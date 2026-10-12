@@ -57,8 +57,8 @@ class Admin::MacondoImportsController < Admin::ApplicationController
       filename: event.metadata["filename"],
       imported: event.metadata["imported"] || [],
       already_imported: event.metadata["already_imported"].to_i,
-      missing_owners: event.metadata["missing_owners"] || [],
-      missing_collaborators: event.metadata["missing_collaborators"] || [],
+      placeholder_owners: event.metadata["placeholder_owners"] || [],
+      placeholder_collaborators: event.metadata["placeholder_collaborators"] || [],
       failures: event.metadata["failures"] || []
     }
   end
