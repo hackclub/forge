@@ -32,6 +32,7 @@
 #  onboarded_at          :datetime
 #  permissions           :string           default([]), not null, is an Array
 #  phone_number          :string
+#  placeholder           :boolean          default(FALSE), not null
 #  postal_code           :string
 #  referral_code         :string
 #  region                :string           default("rest_of_world")
@@ -70,6 +71,7 @@ class User < ApplicationRecord
 
   enum :guild, { rivendell: 0, erebor: 1, edoras: 2, valinor: 3 }
   scope :in_guild, ->(name) { where(guild: name) }
+  scope :placeholders, -> { where(placeholder: true) }
 
   after_commit :enqueue_guild_channel_invite, on: %i[create update], if: :saved_change_to_guild?
 
@@ -210,8 +212,8 @@ class User < ApplicationRecord
   encrypts :hca_token
 
   validates :avatar, :display_name, :email, :timezone, presence: true
-  validates :slack_id, presence: true
-  validates :hca_id, presence: true
+  validates :slack_id, presence: true, unless: :placeholder?
+  validates :hca_id, presence: true, unless: :placeholder?
   validates :roles, presence: true
   validates :is_banned, inclusion: { in: [ true, false ] }
   validates :region, inclusion: { in: REGION_KEYS }, allow_nil: true
@@ -385,11 +387,13 @@ class User < ApplicationRecord
 
     hca_id = identity["id"]
     email = identity["primary_email"]
-    user = User.find_by(hca_id: hca_id)
+    user = User.where(placeholder: false).find_by(hca_id: hca_id)
 
     if user.blank? && ysws_ineligible?(identity)
       raise StandardError, "Sorry, Forge is for YSWS-eligible teen builders. You're not eligible to participate."
     end
+
+    user ||= claim_placeholder(identity, access_token)
 
     if user.present?
       Rails.logger.tagged("UserCreation") do
@@ -457,21 +461,65 @@ class User < ApplicationRecord
     end
   end
 
-  def self.create_from_hca(identity, access_token)
-    email = identity["primary_email"]
+  PLACEHOLDER_AVATAR = "/static-assets/pfp_fallback.webp".freeze
+
+  def self.find_or_create_placeholder!(email)
+    normalized = email.to_s.strip.downcase
+    raise ArgumentError, "placeholder needs an email" unless normalized =~ URI::MailTo::EMAIL_REGEXP
+
+    kept.find_by("LOWER(email) = ?", normalized) || create!(
+      email: normalized,
+      display_name: normalized.split("@").first,
+      avatar: PLACEHOLDER_AVATAR,
+      timezone: "UTC",
+      slack_id: "",
+      hca_id: "",
+      placeholder: true,
+      roles: [ "user" ]
+    )
+  end
+
+  def self.claim_placeholder(identity, access_token)
+    email = identity["primary_email"].to_s.strip.downcase
+    return nil if email.blank?
+
+    placeholder = kept.placeholders.find_by("LOWER(email) = ?", email)
+    return nil unless placeholder
+
+    placeholder.update!(hca_attributes(identity, access_token).merge(placeholder: false))
+    placeholder
+  end
+
+  def self.hca_attributes(identity, access_token)
     first_name = identity["first_name"] || ""
     last_name = identity["last_name"] || ""
-    display_name = first_name.presence || identity["id"] || "User"
-    avatar = identity["profile_picture"].presence || "/static-assets/pfp_fallback.webp"
-    timezone = "UTC"
-    slack_id = identity["slack_id"] || ""
-    verification_status = identity["verification_status"] || ""
-    is_adult = determine_is_adult(identity)
     birthday = begin
       Date.parse(identity["birthday"].to_s)
     rescue StandardError
       nil
     end
+
+    {
+      email: identity["primary_email"],
+      display_name: first_name.presence || identity["id"] || "User",
+      first_name: first_name.presence,
+      last_name: last_name.presence,
+      birthday: birthday,
+      avatar: identity["profile_picture"].presence || PLACEHOLDER_AVATAR,
+      timezone: "UTC",
+      slack_id: identity["slack_id"] || "",
+      verification_status: identity["verification_status"] || "",
+      hca_token: access_token,
+      hca_id: identity["id"],
+      is_adult: determine_is_adult(identity),
+      is_banned: false,
+      roles: [ "user" ]
+    }
+  end
+
+  def self.create_from_hca(identity, access_token)
+    email = identity["primary_email"]
+    attrs = hca_attributes(identity, access_token)
 
     if email.blank? || !(email =~ URI::MailTo::EMAIL_REGEXP)
       Rails.logger.warn({
@@ -486,28 +534,13 @@ class User < ApplicationRecord
       Rails.logger.info({
         event: "hca_user_found",
         email: email,
-        display_name: display_name,
-        slack_id: slack_id,
-        is_adult: is_adult
+        display_name: attrs[:display_name],
+        slack_id: attrs[:slack_id],
+        is_adult: attrs[:is_adult]
       }.to_json)
     end
 
-    User.create!(
-      email: email,
-      display_name: display_name,
-      first_name: first_name.presence,
-      last_name: last_name.presence,
-      birthday: birthday,
-      avatar: avatar,
-      timezone: timezone,
-      slack_id: slack_id,
-      verification_status: verification_status,
-      hca_token: access_token,
-      hca_id: identity["id"],
-      is_adult: is_adult,
-      is_banned: false,
-      roles: [ "user" ]
-    )
+    User.create!(attrs)
   end
 
   def refresh_profile_from_slack

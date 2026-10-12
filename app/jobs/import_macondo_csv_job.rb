@@ -19,8 +19,8 @@ class ImportMacondoCsvJob < ApplicationJob
         filename: blob.filename.to_s,
         imported: result[:imported],
         already_imported: result[:already_imported],
-        missing_owners: result[:missing_owners],
-        missing_collaborators: result[:missing_collaborators],
+        placeholder_owners: result[:placeholder_owners],
+        placeholder_collaborators: result[:placeholder_collaborators],
         failures: result[:failures]
       }
     )
