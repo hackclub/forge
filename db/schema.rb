@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_12_030512) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_12_104041) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -795,6 +795,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_12_030512) do
     t.datetime "onboarded_at"
     t.string "permissions", default: [], null: false, array: true
     t.string "phone_number"
+    t.boolean "placeholder", default: false, null: false
     t.string "postal_code"
     t.string "referral_code"
     t.string "region", default: "rest_of_world"

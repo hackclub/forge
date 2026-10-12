@@ -7,7 +7,7 @@ module MacondoCsvImport
   module_function
 
   def call(csv_content, dry_run: false)
-    result = { imported: [], already_imported: 0, missing_owners: [], missing_collaborators: [], failures: [] }
+    result = { imported: [], already_imported: 0, placeholder_owners: [], placeholder_collaborators: [], failures: [] }
 
     CSV.parse(csv_content, headers: true) do |row|
       import_row(row, result, dry_run: dry_run)
@@ -28,15 +28,11 @@ module MacondoCsvImport
       return
     end
 
-    owner = find_user(row["author_email"])
-    if owner.nil?
-      result[:missing_owners] << { macondo_project_id: macondo_project_id, email: row["author_email"] }
-      return
-    end
-
     journals = json_array(row["journals"])
+    owner = nil
 
     ActiveRecord::Base.transaction do
+      owner = resolve_user(row["author_email"], macondo_project_id, result, :placeholder_owners)
       project = create_project(row, owner, macondo_project_id)
       add_collaborators(project, row, owner, result)
       add_devlogs(project, journals, owner)
@@ -68,15 +64,20 @@ module MacondoCsvImport
 
   def add_collaborators(project, row, owner, result)
     json_array(row["collaborator_emails"]).each do |email|
-      collaborator = find_user(email)
-      if collaborator.nil?
-        result[:missing_collaborators] << { macondo_project_id: project.macondo_project_id, email: email }
-        next
-      end
+      collaborator = resolve_user(email, project.macondo_project_id, result, :placeholder_collaborators)
       next if collaborator.id == owner.id
 
       project.project_collaborators.create!(user: collaborator)
     end
+  end
+
+  def resolve_user(email, macondo_project_id, result, key)
+    existing = find_user(email)
+    return existing if existing
+
+    placeholder = User.find_or_create_placeholder!(email)
+    result[key] << { macondo_project_id: macondo_project_id, email: placeholder.email }
+    placeholder
   end
 
   def add_devlogs(project, journals, owner)

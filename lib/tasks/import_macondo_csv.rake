@@ -14,10 +14,10 @@ namespace :macondo do
     puts "\n" + ("=" * 70)
     puts "Imported: #{result[:imported].size}"
     puts "Already imported: #{result[:already_imported]}"
-    puts "No Forge account for the owner: #{result[:missing_owners].size}"
-    result[:missing_owners].each { |row| puts "  - #{row[:macondo_project_id]}: #{row[:email]}" }
-    puts "No Forge account for a collaborator: #{result[:missing_collaborators].size}"
-    result[:missing_collaborators].each { |row| puts "  - #{row[:macondo_project_id]}: #{row[:email]}" }
+    puts "Placeholder account created for the owner: #{result[:placeholder_owners].size}"
+    result[:placeholder_owners].each { |row| puts "  - #{row[:macondo_project_id]}: #{row[:email]}" }
+    puts "Placeholder account created for a collaborator: #{result[:placeholder_collaborators].size}"
+    result[:placeholder_collaborators].each { |row| puts "  - #{row[:macondo_project_id]}: #{row[:email]}" }
     puts "Failed: #{result[:failures].size}"
     result[:failures].each { |row| puts "  - #{row[:macondo_project_id]}: #{row[:message]}" }
   end
