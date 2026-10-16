@@ -1,7 +1,7 @@
 class ProjectsController < ApplicationController
   CROP_BOUND = 10
   MAX_COVER_IMAGE_BYTES = 10.megabytes
-  COVER_IMAGE_TYPES = %w[image/png image/jpeg image/gif image/webp].freeze
+  COVER_IMAGE_TYPES = %w[image/png image/jpeg image/webp].freeze
 
   allow_unauthenticated_access only: %i[show]
   before_action :set_project, only: %i[show edit update destroy submit_for_review confirm_macondo_tier ai_check run_ai_check ai_check_status sync_journal set_devlog_mode link_repo set_journal_branch resubmit_pitch upload_cover_image crop_cover_image export_devlogs add_kudo destroy_kudo]
@@ -473,7 +473,7 @@ class ProjectsController < ApplicationController
     end
 
     unless Marcel::MimeType.for(file.to_io, name: file.original_filename).in?(COVER_IMAGE_TYPES)
-      redirect_to @project, alert: "Cover image must be a PNG, JPEG, GIF or WebP image."
+      redirect_to @project, alert: "Cover image must be a PNG, JPEG or WebP image."
       return
     end
 

@@ -813,7 +813,7 @@ export default function ProjectsShow({
                   {uploadingCover ? 'Uploading...' : 'Replace'}
                   <input
                     type="file"
-                    accept="image/png,image/jpeg,image/gif,image/webp"
+                    accept="image/png,image/jpeg,image/webp"
                     onChange={uploadCoverImage}
                     className="hidden"
                     disabled={uploadingCover}
@@ -828,7 +828,7 @@ export default function ProjectsShow({
             {uploadingCover ? 'Uploading...' : 'Upload Cover Image'}
             <input
               type="file"
-              accept="image/png,image/jpeg,image/gif,image/webp"
+              accept="image/png,image/jpeg,image/webp"
               onChange={uploadCoverImage}
               className="hidden"
               disabled={uploadingCover}

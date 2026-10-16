@@ -42,14 +42,14 @@ class ProjectsCoverImageTest < ActionDispatch::IntegrationTest
     upload("%PDF-1.4\n", filename: "cover.pdf", content_type: "application/pdf")
 
     assert_redirected_to project_path(@project)
-    assert_match(/PNG, JPEG, GIF or WebP/, flash[:alert])
+    assert_match(/PNG, JPEG or WebP/, flash[:alert])
     assert_not @project.reload.cover_image.attached?
   end
 
   test "rejects a non-image renamed to look like one" do
     upload("%PDF-1.4\n", filename: "cover.png", content_type: "image/png")
 
-    assert_match(/PNG, JPEG, GIF or WebP/, flash[:alert])
+    assert_match(/PNG, JPEG or WebP/, flash[:alert])
     assert_not @project.reload.cover_image.attached?
   end
 
