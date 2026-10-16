@@ -103,6 +103,7 @@ class Admin::MetricsController < Admin::ApplicationController
     referrals_eligible = referrals_scope.where(status: Referral.statuses[:eligible]).count
     referrals_pending = referrals_scope.where(status: Referral.statuses[:pending]).count
     referral_conversion = referrals_total.positive? ? ((referrals_approved.to_f / referrals_total) * 100).round(1) : 0
+    referral_pins_earned = ReferralPin.where(created_at: start_date.beginning_of_day..today.end_of_day).count
 
     payouts_total = CoinAdjustment.where(created_at: start_date.beginning_of_day..today.end_of_day).sum(:amount).to_f
     payouts_positive = CoinAdjustment.where(created_at: start_date.beginning_of_day..today.end_of_day).where("amount > 0").sum(:amount).to_f
@@ -140,14 +141,6 @@ class Admin::MetricsController < Admin::ApplicationController
       balance: (balance_earned + balance_adjustments - balance_spent).round(2)
     }
     top_holders = top_coin_holders(earned_by_user, adjusted_by_user, spent_by_user)
-
-    approved_referrals_count = Referral.approved.count
-    referral_per_unit = Referral::PAYOUT_AMOUNT + Referral::PRIZE_POOL_CONTRIBUTION
-    referral_economy = {
-      count: approved_referrals_count,
-      per_unit: referral_per_unit,
-      total_coins: (approved_referrals_count * referral_per_unit).round(2)
-    }
 
     reels_with_payouts = Reel.where("lifetime_payout_coins > 0")
     reel_economy = {
@@ -240,7 +233,8 @@ class Admin::MetricsController < Admin::ApplicationController
         approved: referrals_approved,
         eligible: referrals_eligible,
         pending: referrals_pending,
-        conversion_percent: referral_conversion
+        conversion_percent: referral_conversion,
+        pins_earned: referral_pins_earned
       },
       payouts: {
         total: payouts_total.round(2),
@@ -253,11 +247,10 @@ class Admin::MetricsController < Admin::ApplicationController
         total_hours: total_hours_all.round(1),
         total_coins: total_coins_all.round(2),
         avg_coins_per_hour: avg_coins_per_hour,
-        grand_total: (total_coins_all + referral_economy[:total_coins] + reel_economy[:total_coins]).round(2),
+        grand_total: (total_coins_all + reel_economy[:total_coins]).round(2),
         in_accounts: coins_in_accounts
       },
       top_coin_holders: top_holders,
-      referral_economy: referral_economy,
       reel_economy: reel_economy,
       location_distribution: location_distribution,
       reviews: review_stats,
