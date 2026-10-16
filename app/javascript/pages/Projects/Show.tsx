@@ -526,21 +526,18 @@ export default function ProjectsShow({
     const file = e.target.files?.[0]
     if (!file) return
     setUploadingCover(true)
-    const formData = new FormData()
-    formData.append('cover_image', file)
-    const csrfToken = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content
-    fetch(`/projects/${project.id}/upload_cover_image`, {
-      method: 'POST',
-      headers: csrfToken ? { 'X-CSRF-Token': csrfToken } : {},
-      body: formData,
-    })
-      .then(() => {
-        router.reload()
-      })
-      .finally(() => {
-        setUploadingCover(false)
-        e.target.value = ''
-      })
+    router.post(
+      `/projects/${project.id}/upload_cover_image`,
+      { cover_image: file },
+      {
+        forceFormData: true,
+        preserveScroll: true,
+        onFinish: () => {
+          setUploadingCover(false)
+          e.target.value = ''
+        },
+      },
+    )
   }
 
   function cropCoverImage(crop: CropRegion) {
@@ -816,7 +813,7 @@ export default function ProjectsShow({
                   {uploadingCover ? 'Uploading...' : 'Replace'}
                   <input
                     type="file"
-                    accept="image/*"
+                    accept="image/png,image/jpeg,image/webp"
                     onChange={uploadCoverImage}
                     className="hidden"
                     disabled={uploadingCover}
@@ -831,7 +828,7 @@ export default function ProjectsShow({
             {uploadingCover ? 'Uploading...' : 'Upload Cover Image'}
             <input
               type="file"
-              accept="image/*"
+              accept="image/png,image/jpeg,image/webp"
               onChange={uploadCoverImage}
               className="hidden"
               disabled={uploadingCover}
