@@ -11,6 +11,7 @@ import HackatimePicker from '@/components/HackatimePicker'
 import CoverImageCropper, { type CropRegion } from '@/components/CoverImageCropper'
 import LapseUrlsInput from '@/components/LapseUrlsInput'
 import TimeSpentHint from '@/components/TimeSpentHint'
+import MacondoImportPrompt from '@/components/MacondoImportPrompt'
 
 function isSafeUrl(url: string | null): boolean {
   if (!url) return false
@@ -333,6 +334,7 @@ export default function ProjectsShow({
     manage_team: boolean
     create_subproject: boolean
     leave: boolean
+    confirm_macondo_tier: boolean
   }
   is_admin_view: boolean
   pending_invites: PendingInvite[]
@@ -526,21 +528,18 @@ export default function ProjectsShow({
     const file = e.target.files?.[0]
     if (!file) return
     setUploadingCover(true)
-    const formData = new FormData()
-    formData.append('cover_image', file)
-    const csrfToken = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content
-    fetch(`/projects/${project.id}/upload_cover_image`, {
-      method: 'POST',
-      headers: csrfToken ? { 'X-CSRF-Token': csrfToken } : {},
-      body: formData,
-    })
-      .then(() => {
-        router.reload()
-      })
-      .finally(() => {
-        setUploadingCover(false)
-        e.target.value = ''
-      })
+    router.post(
+      `/projects/${project.id}/upload_cover_image`,
+      { cover_image: file },
+      {
+        forceFormData: true,
+        preserveScroll: true,
+        onFinish: () => {
+          setUploadingCover(false)
+          e.target.value = ''
+        },
+      },
+    )
   }
 
   function cropCoverImage(crop: CropRegion) {
@@ -775,6 +774,9 @@ export default function ProjectsShow({
 
   return (
     <div className="p-5 md:p-12 max-w-[1400px] mx-auto">
+      {can.confirm_macondo_tier && project.macondo_import && (
+        <MacondoImportPrompt projectId={project.id} macondoImport={project.macondo_import} />
+      )}
       {is_admin_view && (
         <div className="mb-6 border border-amber-500/40 bg-amber-500/10 px-5 py-3 flex items-center gap-3 flex-wrap">
           <span className="material-symbols-outlined text-amber-400">shield_person</span>
@@ -813,7 +815,7 @@ export default function ProjectsShow({
                   {uploadingCover ? 'Uploading...' : 'Replace'}
                   <input
                     type="file"
-                    accept="image/*"
+                    accept="image/png,image/jpeg,image/webp"
                     onChange={uploadCoverImage}
                     className="hidden"
                     disabled={uploadingCover}
@@ -828,7 +830,7 @@ export default function ProjectsShow({
             {uploadingCover ? 'Uploading...' : 'Upload Cover Image'}
             <input
               type="file"
-              accept="image/*"
+              accept="image/png,image/jpeg,image/webp"
               onChange={uploadCoverImage}
               className="hidden"
               disabled={uploadingCover}
@@ -882,6 +884,17 @@ export default function ProjectsShow({
                 <span className="material-symbols-outlined text-sm">auto_awesome</span>
                 Made with AI
               </span>
+            )}
+            {project.macondo_import && (
+              <a
+                href={project.macondo_import.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-sky-500/10 text-sky-300 hover:text-sky-200 px-3 py-1 text-[10px] uppercase font-bold tracking-widest flex items-center gap-1.5 transition-colors"
+              >
+                <span className="material-symbols-outlined text-sm">move_down</span>
+                Project Imported from Macondo
+              </a>
             )}
           </div>
 

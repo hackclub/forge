@@ -25,6 +25,8 @@
 #  journal_parse_failed         :boolean          default(FALSE), not null
 #  journal_synced_at            :datetime
 #  kudos_count                  :integer          default(0), not null
+#  macondo_tier                 :integer
+#  macondo_tier_confirmed_at    :datetime
 #  name                         :string           not null
 #  override_hours               :decimal(, )
 #  override_hours_justification :text
@@ -54,6 +56,7 @@
 #  updated_at                   :datetime         not null
 #  flagged_by_id                :bigint
 #  linked_project_id            :bigint
+#  macondo_project_id           :string
 #  parent_project_id            :bigint
 #  requirements_checked_by_id   :bigint
 #  reviewer_id                  :bigint
@@ -66,6 +69,7 @@
 #  index_projects_on_flagged_by_id                        (flagged_by_id)
 #  index_projects_on_flagged_for_review_at                (flagged_for_review_at)
 #  index_projects_on_linked_project_id_for_build_reviews  (linked_project_id) UNIQUE WHERE ((build_review = true) AND (discarded_at IS NULL))
+#  index_projects_on_macondo_project_id                   (macondo_project_id) UNIQUE
 #  index_projects_on_parent_project_id                    (parent_project_id)
 #  index_projects_on_requirements_checked_at              (requirements_checked_at)
 #  index_projects_on_requirements_checked_by_id           (requirements_checked_by_id)

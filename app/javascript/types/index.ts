@@ -122,6 +122,7 @@ export interface ProjectDetail {
   payout: ProjectPayout | null
   stowed_subproject_coins: { coins: number; count: number } | null
   from_slack: boolean
+  macondo_import: MacondoImport | null
   cover_image_url: string | null
   built_at: string | null
   build_proof_url: string | null
@@ -144,6 +145,13 @@ export interface ProjectDetail {
 }
 
 export type ProjectTier = 'tier_1' | 'tier_2' | 'tier_3' | 'tier_4' | 'tier_build_review'
+
+export interface MacondoImport {
+  url: string
+  tier: number | null
+  confirmed: boolean
+  selectable_tiers: ProjectTier[]
+}
 
 export interface ProjectForm {
   id?: number

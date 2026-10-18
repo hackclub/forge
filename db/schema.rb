@@ -340,6 +340,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_103030) do
     t.datetime "journal_synced_at"
     t.integer "kudos_count", default: 0, null: false
     t.bigint "linked_project_id"
+    t.string "macondo_project_id"
+    t.integer "macondo_tier"
+    t.datetime "macondo_tier_confirmed_at"
     t.string "name", null: false
     t.decimal "override_hours"
     t.text "override_hours_justification"
@@ -375,6 +378,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_103030) do
     t.index ["flagged_by_id"], name: "index_projects_on_flagged_by_id"
     t.index ["flagged_for_review_at"], name: "index_projects_on_flagged_for_review_at"
     t.index ["linked_project_id"], name: "index_projects_on_linked_project_id_for_build_reviews", unique: true, where: "((build_review = true) AND (discarded_at IS NULL))"
+    t.index ["macondo_project_id"], name: "index_projects_on_macondo_project_id", unique: true
     t.index ["parent_project_id"], name: "index_projects_on_parent_project_id"
     t.index ["requirements_checked_at"], name: "index_projects_on_requirements_checked_at"
     t.index ["requirements_checked_by_id"], name: "index_projects_on_requirements_checked_by_id"
@@ -791,6 +795,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_103030) do
     t.datetime "onboarded_at"
     t.string "permissions", default: [], null: false, array: true
     t.string "phone_number"
+    t.boolean "placeholder", default: false, null: false
     t.string "postal_code"
     t.string "referral_code"
     t.string "region", default: "rest_of_world"

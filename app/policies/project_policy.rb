@@ -41,6 +41,12 @@ class ProjectPolicy < ApplicationPolicy
     record.reviewable?
   end
 
+  def confirm_macondo_tier?
+    return false if record.discarded?
+
+    owner? && record.imported_from_macondo? && !record.macondo_tier_confirmed?
+  end
+
   def create_subproject?
     return false if record.discarded? || record.build_review? || record.subproject?
     owner?

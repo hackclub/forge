@@ -1,8 +1,10 @@
 class ProjectsController < ApplicationController
   CROP_BOUND = 10
+  MAX_COVER_IMAGE_BYTES = 10.megabytes
+  COVER_IMAGE_TYPES = %w[image/png image/jpeg image/webp].freeze
 
   allow_unauthenticated_access only: %i[show]
-  before_action :set_project, only: %i[show edit update destroy submit_for_review ai_check run_ai_check ai_check_status sync_journal set_devlog_mode link_repo set_journal_branch resubmit_pitch upload_cover_image crop_cover_image export_devlogs add_kudo destroy_kudo]
+  before_action :set_project, only: %i[show edit update destroy submit_for_review confirm_macondo_tier ai_check run_ai_check ai_check_status sync_journal set_devlog_mode link_repo set_journal_branch resubmit_pitch upload_cover_image crop_cover_image export_devlogs add_kudo destroy_kudo]
 
   def show
     authorize @project
@@ -27,7 +29,8 @@ class ProjectsController < ApplicationController
         create_devlog: current_user.present? && policy(@project).create_devlog?,
         manage_team: current_user.present? && policy(@project).manage_team?,
         create_subproject: current_user.present? && policy(@project).create_subproject?,
-        leave: current_user.present? && @project.member?(current_user) && @project.user_id != current_user.id
+        leave: current_user.present? && @project.member?(current_user) && @project.user_id != current_user.id,
+        confirm_macondo_tier: current_user.present? && policy(@project).confirm_macondo_tier?
       },
       hackatime_enabled: HackatimeService.enabled?,
       pending_invites: policy(@project).manage_team? ? serialize_pending_invites(@project) : [],
@@ -425,6 +428,21 @@ class ProjectsController < ApplicationController
     redirect_to @project, notice: "Project submitted for review."
   end
 
+  def confirm_macondo_tier
+    authorize @project
+
+    tier = params[:tier].to_s
+    unless @project.macondo_selectable_tiers.include?(tier)
+      redirect_to @project, alert: "That tier isn't available for this project."
+      return
+    end
+
+    previous_tier = @project.tier
+    @project.update!(tier: tier, macondo_tier_confirmed_at: Time.current)
+    audit!("project.macondo_tier_confirmed", target: @project, metadata: { tier: tier, previous_tier: previous_tier, macondo_tier: @project.macondo_tier })
+    redirect_to @project, notice: "Thanks! Your tier is confirmed."
+  end
+
   def resubmit_pitch
     authorize @project, :update?
 
@@ -451,6 +469,16 @@ class ProjectsController < ApplicationController
     file = params[:cover_image]
     unless file.respond_to?(:read)
       redirect_to @project, alert: "No file uploaded."
+      return
+    end
+
+    unless Marcel::MimeType.for(file.to_io, name: file.original_filename).in?(COVER_IMAGE_TYPES)
+      redirect_to @project, alert: "Cover image must be a PNG, JPEG or WebP image."
+      return
+    end
+
+    if file.size > MAX_COVER_IMAGE_BYTES
+      redirect_to @project, alert: "Cover image must be #{MAX_COVER_IMAGE_BYTES / 1.megabyte} MB or smaller."
       return
     end
 
@@ -577,6 +605,12 @@ class ProjectsController < ApplicationController
       payout: can_view_private_project_data ? serialize_payout(project) : nil,
       stowed_subproject_coins: can_view_private_project_data ? stowed_subproject_coins(project) : nil,
       from_slack: project.slack_message_ts.present?,
+      macondo_import: project.imported_from_macondo? ? {
+        url: project.macondo_url,
+        tier: project.macondo_tier,
+        confirmed: project.macondo_tier_confirmed?,
+        selectable_tiers: project.macondo_selectable_tiers
+      } : nil,
       cover_image_url: project.cover_image_url,
       built_at: project.built_at&.strftime("%b %d, %Y"),
       build_proof_url: project.build_proof_url,

@@ -192,6 +192,7 @@ export interface ReviewProject {
   devlog_mode: 'website' | 'git' | null
   uses_ai: boolean
   ai_usage: string | null
+  macondo_url: string | null
   git_journal_url: string | null
   build_proof_url: string | null
   submission_requirements: SubmissionRequirement[]

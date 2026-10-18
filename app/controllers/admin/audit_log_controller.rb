@@ -149,6 +149,9 @@ class Admin::AuditLogController < Admin::ApplicationController
     "devlog.created" => "Added devlog",
     "devlog.updated" => "Edited devlog",
     "devlog.destroyed" => "Deleted devlog from project",
+    "macondo.csv_upload" => "Queued a Macondo CSV import",
+    "macondo.csv_imported" => "Ran a Macondo CSV import",
+    "project.macondo_tier_confirmed" => "Confirmed the Forge tier on imported project",
     "project.marked_built" => "Marked built",
     "project.kudo_added" => "Kudos added on",
     "project.kudo_destroyed" => "Kudos removed from"

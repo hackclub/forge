@@ -79,7 +79,7 @@ namespace :devlogs do
         puts "  orphan devlogs: #{r[:orphans].size}  headings in journal: #{r[:heading_count]}  hours: #{r[:hours].round(2)}"
         puts "  journal format: #{r[:journal_format]}"
         r[:orphans].each do |d|
-          flag = d.lapse_url.present? ? " [has lapse_url]" : ""
+          flag = d.lapse_urls.any? ? " [has lapse_urls]" : ""
           puts "    ##{d.id}  #{d.entry_date}  #{d.time_hours.to_f.round(2)}h  #{d.title.truncate(60).inspect}#{flag}"
         end
         puts

@@ -20,6 +20,10 @@ module MacondoService
     url.to_s[URL_PATTERN, 1]
   end
 
+  def project_url(id)
+    "https://macondo.hackclub.com/projects/#{id}" if id.present?
+  end
+
   def get_project(id)
     return nil unless enabled? && id.present?
 
