@@ -55,7 +55,7 @@ export interface ReviewDevlog {
   content: string
   time_spent: string | null
   time_hours: number | null
-  lapse_url: string | null
+  lapse_urls: string[]
   created_at: string
   created_at_iso: string
   user_id: number
@@ -101,7 +101,7 @@ export interface JournalDigestItem {
   hours: number
   chars: number
   has_image: boolean
-  lapse_url: string | null
+  lapse_urls: string[]
   written_on: string
   backfilled: boolean
   outlier: boolean

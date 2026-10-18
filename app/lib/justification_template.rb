@@ -128,7 +128,7 @@ class JustificationTemplate
       "- Public project page: #{public_project_url(project)}",
       "- Devlogs: #{count} #{count == 1 ? 'entry' : 'entries'}"
     ]
-    lapse_urls = project.devlogs.map(&:lapse_url).map(&:presence).compact.uniq
+    lapse_urls = project.devlogs.flat_map(&:lapse_urls).uniq
     lines << "- Timelapse links: #{lapse_urls.join(', ')}" if lapse_urls.any?
     fields[:evidence].to_s.split("\n").map(&:strip).reject(&:blank?).each { |line| lines << "- #{line}" }
     lines.join("\n")

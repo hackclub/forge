@@ -6,10 +6,10 @@ class JournalDigestTest < ActiveSupport::TestCase
     @user = @project.user
   end
 
-  def entry(entry_date:, hours:, content: "x" * 300, created_at: nil, lapse_url: nil, title: "Entry")
+  def entry(entry_date:, hours:, content: "x" * 300, created_at: nil, lapse_urls: [], title: "Entry")
     @project.devlogs.create!(
       user: @user, title: title, content: content, time_hours: hours,
-      entry_date: entry_date, lapse_url: lapse_url,
+      entry_date: entry_date, lapse_urls: lapse_urls,
       created_at: created_at || entry_date.to_time
     )
   end
@@ -72,7 +72,7 @@ class JournalDigestTest < ActiveSupport::TestCase
 
   test "counts images and timelapse links" do
     entry(entry_date: Date.new(2026, 2, 3), hours: 1.0, content: "progress ![shot](a.png) #{'x' * 200}")
-    entry(entry_date: Date.new(2026, 2, 4), hours: 1.0, lapse_url: "https://example.com/lapse")
+    entry(entry_date: Date.new(2026, 2, 4), hours: 1.0, lapse_urls: [ "https://example.com/lapse" ])
 
     digest = JournalDigest.build(@project)
     assert_equal 1, digest["with_images"]

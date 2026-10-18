@@ -9,6 +9,8 @@ import { formatCoinRate } from '@/lib/tiers'
 import ReviewTimeline, { type ReviewEvent } from '@/components/ReviewTimeline'
 import HackatimePicker from '@/components/HackatimePicker'
 import CoverImageCropper, { type CropRegion } from '@/components/CoverImageCropper'
+import LapseUrlsInput from '@/components/LapseUrlsInput'
+import TimeSpentHint from '@/components/TimeSpentHint'
 import MacondoImportPrompt from '@/components/MacondoImportPrompt'
 
 function isSafeUrl(url: string | null): boolean {
@@ -103,7 +105,7 @@ interface DevlogEntry {
   content: string
   time_spent: string | null
   time_hours: number | null
-  lapse_url: string | null
+  lapse_urls: string[]
   created_at: string
   user_id: number
   user_display_name: string
@@ -404,7 +406,7 @@ export default function ProjectsShow({
     title: '',
     content: '',
     time_spent: '',
-    lapse_url: '',
+    lapse_urls: [] as string[],
   })
 
   const devlogDraftKey = `forge:devlog-draft:${project.id}`
@@ -419,9 +421,9 @@ export default function ProjectsShow({
           title: draft.title || '',
           content: draft.content || '',
           time_spent: draft.time_spent || '',
-          lapse_url: draft.lapse_url || '',
+          lapse_urls: Array.isArray(draft.lapse_urls) ? draft.lapse_urls : [],
         }
-        if (next.title || next.content || next.time_spent || next.lapse_url) {
+        if (next.title || next.content || next.time_spent || next.lapse_urls.some(Boolean)) {
           devlogForm.setData(next)
           setShowDevlogForm(true)
         }
@@ -435,7 +437,7 @@ export default function ProjectsShow({
     if (!devlogDraftRestored.current) return
     const d = devlogForm.data
     try {
-      if (d.title || d.content || d.time_spent || d.lapse_url) {
+      if (d.title || d.content || d.time_spent || d.lapse_urls.some(Boolean)) {
         localStorage.setItem(devlogDraftKey, JSON.stringify(d))
       } else {
         localStorage.removeItem(devlogDraftKey)
@@ -449,7 +451,7 @@ export default function ProjectsShow({
     title: '',
     content: '',
     time_spent: '',
-    lapse_url: '',
+    lapse_urls: [] as string[],
   })
 
   function startEditDevlog(entry: DevlogEntry) {
@@ -458,7 +460,7 @@ export default function ProjectsShow({
       title: entry.title,
       content: entry.content,
       time_spent: entry.time_spent || '',
-      lapse_url: entry.lapse_url || '',
+      lapse_urls: entry.lapse_urls,
     })
   }
 
@@ -479,11 +481,11 @@ export default function ProjectsShow({
   }
 
   const [editingLapseId, setEditingLapseId] = useState<number | null>(null)
-  const lapseForm = useForm({ lapse_url: '' })
+  const lapseForm = useForm({ lapse_urls: [] as string[] })
 
   function startEditLapse(entry: DevlogEntry) {
     setEditingLapseId(entry.id)
-    lapseForm.setData('lapse_url', entry.lapse_url || '')
+    lapseForm.setData('lapse_urls', entry.lapse_urls)
   }
 
   function cancelEditLapse() {
@@ -1457,14 +1459,13 @@ export default function ProjectsShow({
                               ))}
                             </div>
                           )}
+                          <LapseUrlsInput
+                            value={lapseForm.data.lapse_urls}
+                            onChange={(urls) => lapseForm.setData('lapse_urls', urls)}
+                            inputClassName="bg-[#0e0e0e] border-none px-3 py-2 text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 text-xs"
+                            placeholder="https://lapse.hackclub.com/timelapse"
+                          />
                           <div className="flex items-center gap-2">
-                            <input
-                              type="url"
-                              value={lapseForm.data.lapse_url}
-                              onChange={(e) => lapseForm.setData('lapse_url', e.target.value)}
-                              className="flex-1 bg-[#0e0e0e] border-none px-3 py-2 text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 text-xs"
-                              placeholder="https://lapse.hackclub.com/timelapse"
-                            />
                             <button
                               type="submit"
                               disabled={lapseForm.processing}
@@ -1483,17 +1484,18 @@ export default function ProjectsShow({
                         </form>
                       ) : (
                         <div className="mt-3 pt-3 border-t border-stone-800 flex items-center gap-3">
-                          {entry.lapse_url && (
+                          {entry.lapse_urls.map((url, i) => (
                             <a
-                              href={entry.lapse_url}
+                              key={url}
+                              href={url}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-[#ffb595] hover:text-[#ca5924] text-xs flex items-center gap-1"
                             >
                               <span className="material-symbols-outlined text-xs">videocam</span>
-                              Lapse
+                              Lapse{entry.lapse_urls.length > 1 ? ` ${i + 1}` : ''}
                             </a>
-                          )}
+                          ))}
                           {entry.can_edit && (
                             <button
                               onClick={() => startEditLapse(entry)}
@@ -1501,7 +1503,7 @@ export default function ProjectsShow({
                               aria-label="Edit lapse link"
                             >
                               <span className="material-symbols-outlined text-sm">edit</span>
-                              {entry.lapse_url ? 'Edit Lapse Link' : 'Add Lapse Link'}
+                              {entry.lapse_urls.length > 0 ? 'Edit Lapse Links' : 'Add Lapse Link'}
                             </button>
                           )}
                         </div>
@@ -1654,17 +1656,17 @@ export default function ProjectsShow({
                       className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 text-sm"
                       placeholder="e.g. 3 hours"
                     />
+                    <TimeSpentHint value={devlogForm.data.time_spent} />
                   </div>
                   <div>
                     <label className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
-                      Lapse Link{' '}
+                      Lapse Links{' '}
                       <span className="text-[#ffb595] normal-case tracking-normal">(highly recommended)</span>
                     </label>
-                    <input
-                      type="url"
-                      value={devlogForm.data.lapse_url}
-                      onChange={(e) => devlogForm.setData('lapse_url', e.target.value)}
-                      className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 text-sm"
+                    <LapseUrlsInput
+                      value={devlogForm.data.lapse_urls}
+                      onChange={(urls) => devlogForm.setData('lapse_urls', urls)}
+                      inputClassName="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 text-sm"
                       placeholder="https://lapse.hackclub.com/timelapse/create"
                     />
                     <p className="text-xs text-stone-500 mt-1.5">
@@ -1813,10 +1815,11 @@ export default function ProjectsShow({
                               className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 text-sm"
                               placeholder="e.g. 3 or 3 hours"
                             />
+                            <TimeSpentHint value={editDevlogForm.data.time_spent} />
                           </div>
                           <div>
                             <label className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
-                              Lapse Link{' '}
+                              Lapse Links{' '}
                               <span className="text-[#ffb595] normal-case tracking-normal">(highly recommended)</span>
                             </label>
                             {orphaned_lapse_links.length > 0 && (
@@ -1833,11 +1836,10 @@ export default function ProjectsShow({
                                 ))}
                               </div>
                             )}
-                            <input
-                              type="url"
-                              value={editDevlogForm.data.lapse_url}
-                              onChange={(e) => editDevlogForm.setData('lapse_url', e.target.value)}
-                              className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 text-sm"
+                            <LapseUrlsInput
+                              value={editDevlogForm.data.lapse_urls}
+                              onChange={(urls) => editDevlogForm.setData('lapse_urls', urls)}
+                              inputClassName="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 text-sm"
                               placeholder="https://lapse.hackclub.com/timelapse"
                             />
                           </div>
@@ -1885,17 +1887,18 @@ export default function ProjectsShow({
                                     {entry.time_spent}
                                   </span>
                                 )}
-                                {entry.lapse_url && (
+                                {entry.lapse_urls.map((url, i) => (
                                   <a
-                                    href={entry.lapse_url}
+                                    key={url}
+                                    href={url}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="text-[#ffb595] hover:text-[#ca5924] text-xs flex items-center gap-1"
                                   >
                                     <span className="material-symbols-outlined text-xs">videocam</span>
-                                    Lapse
+                                    Lapse{entry.lapse_urls.length > 1 ? ` ${i + 1}` : ''}
                                   </a>
-                                )}
+                                ))}
                               </div>
                             </div>
                             {entry.can_edit && (

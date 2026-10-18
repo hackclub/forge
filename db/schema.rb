@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_12_104041) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_14_103030) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -178,7 +178,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_12_104041) do
     t.boolean "content_lost", default: false, null: false
     t.datetime "created_at", null: false
     t.date "entry_date"
-    t.string "lapse_url"
+    t.string "lapse_urls", default: [], null: false, array: true
     t.bigint "project_id", null: false
     t.text "review_feedback"
     t.datetime "reviewed_at"
@@ -377,7 +377,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_12_104041) do
     t.index ["discarded_at"], name: "index_projects_on_discarded_at"
     t.index ["flagged_by_id"], name: "index_projects_on_flagged_by_id"
     t.index ["flagged_for_review_at"], name: "index_projects_on_flagged_for_review_at"
-    t.index ["linked_project_id"], name: "index_projects_on_linked_project_id_for_build_reviews", unique: true, where: "(build_review = true)"
+    t.index ["linked_project_id"], name: "index_projects_on_linked_project_id_for_build_reviews", unique: true, where: "((build_review = true) AND (discarded_at IS NULL))"
     t.index ["macondo_project_id"], name: "index_projects_on_macondo_project_id", unique: true
     t.index ["parent_project_id"], name: "index_projects_on_parent_project_id"
     t.index ["requirements_checked_at"], name: "index_projects_on_requirements_checked_at"

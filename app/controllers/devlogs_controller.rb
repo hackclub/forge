@@ -22,7 +22,7 @@ class DevlogsController < ApplicationController
         content: @devlog.content,
         time_spent: @devlog.time_spent,
         time_hours: @devlog.time_hours&.to_f,
-        lapse_url: policy(@devlog).view_lapse_url? ? @devlog.lapse_url : nil,
+        lapse_urls: policy(@devlog).view_lapse_url? ? @devlog.lapse_urls : [],
         created_at: @devlog.created_at.strftime("%B %d, %Y"),
         user_id: @devlog.user_id,
         user_display_name: @devlog.user.display_name,
@@ -130,9 +130,9 @@ class DevlogsController < ApplicationController
 
   def devlog_params
     if @project.devlog_mode == "git"
-      params.expect(devlog: [ :lapse_url ])
+      params.expect(devlog: [ lapse_urls: [] ])
     else
-      attrs = params.expect(devlog: [ :title, :content, :time_spent, :lapse_url ])
+      attrs = params.expect(devlog: [ :title, :content, :time_spent, lapse_urls: [] ])
       attrs[:time_spent] = normalize_time_spent(attrs[:time_spent])
       attrs[:time_hours] = TimeSpentParser.parse(attrs[:time_spent])
       attrs

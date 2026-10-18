@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import Markdown from 'react-markdown'
 import rehypeRaw from 'rehype-raw'
 import rehypeSanitize from 'rehype-sanitize'
@@ -202,19 +202,19 @@ export function ContentTabs({
                       </span>
                     </>
                   )}
-                  {entry.lapse_url && (
-                    <>
+                  {entry.lapse_urls.map((url, i) => (
+                    <Fragment key={url}>
                       <span className="text-muted-foreground">·</span>
                       <a
-                        href={entry.lapse_url}
+                        href={url}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center gap-1 text-foreground hover:underline"
                       >
-                        Lapse ↗
+                        Lapse{entry.lapse_urls.length > 1 ? ` ${i + 1}` : ''} ↗
                       </a>
-                    </>
-                  )}
+                    </Fragment>
+                  ))}
                   {entry.content_lost && <Badge variant="destructive">Content vanished</Badge>}
                   {!entry.content_lost && !entry.meets_requirements && <Badge variant="warning">Below requirements</Badge>}
                   {!isGitJournal && <CopyDevlogLink url={`${origin}/projects/${project.id}/devlogs/${entry.id}`} />}

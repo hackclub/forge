@@ -18,7 +18,7 @@ interface Props {
     content: string
     time_spent: string | null
     time_hours: number | null
-    lapse_url: string | null
+    lapse_urls: string[]
     created_at: string
   }
   can_edit: boolean
@@ -38,7 +38,7 @@ export default function DevlogsShow({ project, devlog }: Props) {
         </Link>
 
         <header className="ghost-border bg-[#1c1b1b] p-8 mb-8">
-          {(devlog.time_spent || devlog.lapse_url) && (
+          {(devlog.time_spent || devlog.lapse_urls.length > 0) && (
             <div className="flex items-center gap-3 mb-4 flex-wrap">
               {devlog.time_spent && (
                 <span className="text-[#ffb595] text-xs flex items-center gap-1">
@@ -46,17 +46,18 @@ export default function DevlogsShow({ project, devlog }: Props) {
                   {devlog.time_spent}
                 </span>
               )}
-              {devlog.lapse_url && (
+              {devlog.lapse_urls.map((url, i) => (
                 <a
-                  href={devlog.lapse_url}
+                  key={url}
+                  href={url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-[#ffb595] hover:text-[#ca5924] text-xs flex items-center gap-1"
                 >
                   <span className="material-symbols-outlined text-sm">videocam</span>
-                  Lapse
+                  Lapse{devlog.lapse_urls.length > 1 ? ` ${i + 1}` : ''}
                 </a>
-              )}
+              ))}
             </div>
           )}
 

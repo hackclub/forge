@@ -558,7 +558,9 @@ class ProjectsController < ApplicationController
   end
 
   def project_params
-    params.expect(project: [ :name, :subtitle, :repo_link, :tier, :devlog_mode, :linked_project_id, :uses_ai, :ai_usage, tags: [], hackatime_projects: [] ])
+    fields = [ :name, :subtitle, :repo_link, :tier, :devlog_mode, :uses_ai, :ai_usage, tags: [], hackatime_projects: [] ]
+    fields.unshift(:linked_project_id) if action_name == "create"
+    params.expect(project: fields)
   end
 
   def parent_project_for_new
@@ -717,7 +719,7 @@ class ProjectsController < ApplicationController
       content: devlog.content,
       time_spent: devlog.time_spent,
       time_hours: devlog.time_hours&.to_f,
-      lapse_url: policy(devlog).view_lapse_url? ? devlog.lapse_url : nil,
+      lapse_urls: policy(devlog).view_lapse_url? ? devlog.lapse_urls : [],
       created_at: devlog.created_at.strftime("%B %d, %Y"),
       user_id: devlog.user_id,
       user_display_name: devlog.user.display_name,

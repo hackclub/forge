@@ -379,7 +379,7 @@ export default function AdminReviewsShow({
             approved < claimed - 0.001
               ? `claimed ${claimed.toFixed(1)}h, approved ${approved.toFixed(1)}h`
               : `${claimed.toFixed(1)}h approved in full`
-          const lapse = e.lapse_url ? ` — timelapse: ${e.lapse_url}` : ''
+          const lapse = e.lapse_urls.length > 0 ? ` — timelapse: ${e.lapse_urls.join(', ')}` : ''
           return `${window.location.origin}/projects/${project.id}#devlog-${e.id} — ${e.created_at}: ${e.title} (${verdict})${lapse}`
         })
         .join('\n'),
@@ -403,7 +403,7 @@ export default function AdminReviewsShow({
         approved_hours: approvedHours,
         repo_link: project.repo_link,
         devlog_count: project.devlogs.length,
-        timelapse_urls: [...new Set(project.devlogs.map((d) => (d.lapse_url ?? '').trim()).filter(Boolean))],
+        timelapse_urls: [...new Set(project.devlogs.flatMap((d) => d.lapse_urls))],
         public_url: `${origin}/projects/${project.id}`,
         admin_url: `${origin}/admin/projects/${project.id}`,
         time_summary: timeSummary,
@@ -578,7 +578,7 @@ export default function AdminReviewsShow({
     }
   }, [project.id, justificationPreview, approvedHours, track])
 
-  const hasLapse = useMemo(() => project.devlogs.some((d) => (d.lapse_url ?? '').trim().length > 0), [project.devlogs])
+  const hasLapse = useMemo(() => project.devlogs.some((d) => d.lapse_urls.length > 0), [project.devlogs])
 
   // Runs on every keystroke against the rule table the server sent, so the
   // reviewer sees the problem while writing. The server re-runs the same rules

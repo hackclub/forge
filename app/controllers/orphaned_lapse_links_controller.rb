@@ -8,7 +8,7 @@ class OrphanedLapseLinksController < ApplicationController
     devlog = @project.devlogs.find(params[:devlog_id])
 
     ActiveRecord::Base.transaction do
-      devlog.update!(lapse_url: link.lapse_url)
+      devlog.update!(lapse_urls: devlog.lapse_urls + [ link.lapse_url ])
       link.destroy!
     end
 

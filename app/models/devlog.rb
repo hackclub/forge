@@ -7,7 +7,7 @@
 #  content         :text
 #  content_lost    :boolean          default(FALSE), not null
 #  entry_date      :date
-#  lapse_url       :string
+#  lapse_urls      :string           default([]), not null, is an Array
 #  review_feedback :text
 #  reviewed_at     :datetime
 #  status          :integer          default("draft"), not null
@@ -35,6 +35,9 @@
 #  fk_rails_...  (user_id => users.id)
 #
 class Devlog < ApplicationRecord
+  MAX_LAPSE_URLS = 10
+  LAPSE_URL_FORMAT = /\Ahttps?:\/\/\S+\z/i
+
   has_paper_trail
 
   belongs_to :project
@@ -52,7 +55,9 @@ class Devlog < ApplicationRecord
 
   validates :title, presence: true
   validates :content, presence: true
-  validates :lapse_url, format: { with: /\Ahttps?:\/\/\S+\z/i, message: "must be a valid URL" }, allow_blank: true
+  validate :lapse_urls_must_be_valid
+
+  normalizes :lapse_urls, with: ->(urls) { Array(urls).map { |u| u.to_s.strip }.compact_blank.uniq }, apply_to_nil: true
 
   default_scope { order(id: :desc) }
 
@@ -82,6 +87,11 @@ class Devlog < ApplicationRecord
   end
 
   private
+
+  def lapse_urls_must_be_valid
+    errors.add(:lapse_urls, "can't have more than #{MAX_LAPSE_URLS} links") if lapse_urls.size > MAX_LAPSE_URLS
+    errors.add(:lapse_urls, "must be valid URLs") unless lapse_urls.all? { |u| u.match?(LAPSE_URL_FORMAT) }
+  end
 
   def recredit_streak_day
     return if user.blank?
