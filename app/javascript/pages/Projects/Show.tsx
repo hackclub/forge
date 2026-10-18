@@ -10,6 +10,7 @@ import ReviewTimeline, { type ReviewEvent } from '@/components/ReviewTimeline'
 import HackatimePicker from '@/components/HackatimePicker'
 import CoverImageCropper, { type CropRegion } from '@/components/CoverImageCropper'
 import LapseUrlsInput from '@/components/LapseUrlsInput'
+import TimeSpentHint from '@/components/TimeSpentHint'
 
 function isSafeUrl(url: string | null): boolean {
   if (!url) return false
@@ -1642,6 +1643,7 @@ export default function ProjectsShow({
                       className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 text-sm"
                       placeholder="e.g. 3 hours"
                     />
+                    <TimeSpentHint value={devlogForm.data.time_spent} />
                   </div>
                   <div>
                     <label className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
@@ -1800,6 +1802,7 @@ export default function ProjectsShow({
                               className="w-full bg-[#0e0e0e] border-none px-4 py-3 text-[#e5e2e1] focus:ring-1 focus:ring-[#ca5924]/30 placeholder:text-stone-600 text-sm"
                               placeholder="e.g. 3 or 3 hours"
                             />
+                            <TimeSpentHint value={editDevlogForm.data.time_spent} />
                           </div>
                           <div>
                             <label className="block text-xs font-bold uppercase tracking-[0.2em] text-stone-500 mb-2">
