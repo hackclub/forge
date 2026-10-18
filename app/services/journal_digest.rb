@@ -28,7 +28,7 @@ module JournalDigest
       "last_entry_on" => date_of(entries.last)&.to_s,
       "span_days" => span_days(entries),
       "with_images" => entries.count { |e| image?(e) },
-      "with_lapse" => entries.count { |e| e.lapse_url.present? },
+      "with_lapse" => entries.count { |e| e.lapse_urls.any? },
       "weeks" => weeks,
       "signals" => signals(entries, weeks)
     }
@@ -44,7 +44,7 @@ module JournalDigest
         "entries" => group.size,
         "hours" => group.sum { |e| e.parsed_hours.to_f }.round(1),
         "with_images" => group.count { |e| image?(e) },
-        "lapse_urls" => group.filter_map { |e| e.lapse_url.presence }.uniq,
+        "lapse_urls" => group.flat_map(&:lapse_urls).uniq,
         "items" => group.map { |e| item(e) }
       }
     end
@@ -58,7 +58,7 @@ module JournalDigest
       "hours" => entry.parsed_hours.to_f.round(2),
       "chars" => entry.content.to_s.strip.length,
       "has_image" => image?(entry),
-      "lapse_url" => entry.lapse_url.presence,
+      "lapse_urls" => entry.lapse_urls,
       "written_on" => entry.created_at.to_date.to_s,
       "backfilled" => backfilled?(entry),
       "outlier" => entry.parsed_hours.to_f > OUTLIER_HOURS

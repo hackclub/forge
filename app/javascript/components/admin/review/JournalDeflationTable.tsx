@@ -121,7 +121,7 @@ export function JournalDeflationTable({
                   <span className="flex flex-wrap items-center gap-1.5 text-[10px] text-muted-foreground">
                     <span>{entry.created_at}</span>
                     {isGroupProject && <span>· {entry.user_display_name}</span>}
-                    {entry.lapse_url && (
+                    {entry.lapse_urls.length > 0 && (
                       <span className="flex items-center gap-0.5">
                         · <Film className="size-2.5" /> lapse
                       </span>

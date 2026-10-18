@@ -620,17 +620,18 @@ export default function AdminProjectsShow({
                               {entry.time_spent}
                             </span>
                           )}
-                          {entry.lapse_url && (
+                          {entry.lapse_urls.map((url, i) => (
                             <a
-                              href={entry.lapse_url}
+                              key={url}
+                              href={url}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="flex items-center gap-1 text-foreground hover:underline"
                             >
                               <ExternalLink className="size-3" />
-                              Lapse
+                              Lapse{entry.lapse_urls.length > 1 ? ` ${i + 1}` : ''}
                             </a>
-                          )}
+                          ))}
                           <span className="text-muted-foreground">· {entry.created_at}</span>
                         </div>
                         <div className="markdown-content text-sm">

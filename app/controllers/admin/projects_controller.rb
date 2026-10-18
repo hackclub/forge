@@ -90,7 +90,10 @@ class Admin::ProjectsController < Admin::ApplicationController
 
   def restore
     authorize @project
-    @project.undiscard
+    unless @project.undiscard
+      return redirect_to admin_project_path(@project), alert: "Couldn't restore project: #{@project.errors.full_messages.to_sentence}"
+    end
+
     audit!("project.restored", target: @project)
     redirect_to admin_project_path(@project), notice: "Project '#{@project.name}' has been restored."
   end
@@ -882,7 +885,7 @@ class Admin::ProjectsController < Admin::ApplicationController
       approved_hours: capped_override_hours(project, params[:override_hours]) || project.devlog_hours,
       journal_only: project.devlog_mode.to_s != "git",
       uses_ai: project.uses_ai,
-      has_lapse: project.devlogs.any? { |d| d.lapse_url.present? },
+      has_lapse: project.devlogs.any? { |d| d.lapse_urls.any? },
       red_flags: project.red_flags || []
     )
     blocking = issues.select(&:blocking?)
@@ -1148,7 +1151,7 @@ class Admin::ProjectsController < Admin::ApplicationController
       content: devlog.content,
       time_spent: devlog.time_spent,
       time_hours: devlog.time_hours&.to_f,
-      lapse_url: devlog.lapse_url,
+      lapse_urls: devlog.lapse_urls,
       created_at: devlog.created_at.strftime("%b %d, %Y"),
       meets_requirements: devlog.meets_submission_requirements?,
       content_lost: devlog.content_lost,

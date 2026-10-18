@@ -78,7 +78,7 @@ function dateRange(isoValues: (string | null | undefined)[]): string {
 
 export function buildTimeEvidence(
   project: {
-    devlogs: { created_at_iso: string; lapse_url: string | null }[]
+    devlogs: { created_at_iso: string; lapse_urls: string[] }[]
     devlog_hours: number
     commits_url: string | null
   },
@@ -93,7 +93,7 @@ export function buildTimeEvidence(
       `${count} journal ${count === 1 ? 'entry' : 'entries'}${range}, ${formatHours(project.devlog_hours)} logged.`,
     )
 
-    const timelapses = project.devlogs.filter((d) => (d.lapse_url ?? '').trim()).length
+    const timelapses = project.devlogs.reduce((sum, d) => sum + d.lapse_urls.length, 0)
     if (timelapses > 0) parts.push(`${timelapses} timelapse ${timelapses === 1 ? 'link' : 'links'} attached.`)
   }
 

@@ -65,7 +65,7 @@
 #  index_projects_on_discarded_at                         (discarded_at)
 #  index_projects_on_flagged_by_id                        (flagged_by_id)
 #  index_projects_on_flagged_for_review_at                (flagged_for_review_at)
-#  index_projects_on_linked_project_id_for_build_reviews  (linked_project_id) UNIQUE WHERE (build_review = true)
+#  index_projects_on_linked_project_id_for_build_reviews  (linked_project_id) UNIQUE WHERE ((build_review = true) AND (discarded_at IS NULL))
 #  index_projects_on_parent_project_id                    (parent_project_id)
 #  index_projects_on_requirements_checked_at              (requirements_checked_at)
 #  index_projects_on_requirements_checked_by_id           (requirements_checked_by_id)

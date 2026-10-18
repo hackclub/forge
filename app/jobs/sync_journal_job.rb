@@ -56,11 +56,11 @@ class SyncJournalJob < ApplicationJob
     preserved_lapse_urls = {}
 
     if clear
-      project.devlogs.where.not(lapse_url: [ nil, "" ]).find_each do |d|
+      project.devlogs.where("cardinality(lapse_urls) > 0").find_each do |d|
         if current_titles.include?(d.title)
-          preserved_lapse_urls[d.title] = d.lapse_url
+          preserved_lapse_urls[d.title] = d.lapse_urls
         else
-          stash_orphaned_lapse_link!(project, d.title, d.lapse_url)
+          stash_orphaned_lapse_links!(project, d.title, d.lapse_urls)
         end
       end
       project.devlogs.delete_all
@@ -106,13 +106,13 @@ class SyncJournalJob < ApplicationJob
     end
 
     if clear
-      preserved_lapse_urls.each do |title, lapse_url|
-        project.devlogs.where(title: title).update_all(lapse_url: lapse_url)
+      preserved_lapse_urls.each do |title, lapse_urls|
+        project.devlogs.where(title: title).update_all(lapse_urls: lapse_urls)
       end
     else
-      project.devlogs.where.not(lapse_url: [ nil, "" ]).where.not(title: current_titles).find_each do |d|
-        stash_orphaned_lapse_link!(project, d.title, d.lapse_url)
-        d.update_column(:lapse_url, nil)
+      project.devlogs.where("cardinality(lapse_urls) > 0").where.not(title: current_titles).find_each do |d|
+        stash_orphaned_lapse_links!(project, d.title, d.lapse_urls)
+        d.update_column(:lapse_urls, [])
       end
     end
 
@@ -123,10 +123,10 @@ class SyncJournalJob < ApplicationJob
 
   private
 
-  def stash_orphaned_lapse_link!(project, title, lapse_url)
-    link = OrphanedLapseLink.find_or_initialize_by(project: project, title: title)
-    link.lapse_url = lapse_url
-    link.save!
+  def stash_orphaned_lapse_links!(project, title, lapse_urls)
+    lapse_urls.each do |lapse_url|
+      OrphanedLapseLink.find_or_create_by!(project: project, title: title, lapse_url: lapse_url)
+    end
   end
 
   def parse_repo_url(url)

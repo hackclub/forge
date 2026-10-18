@@ -38,7 +38,7 @@ class OrphanedLapseLinksControllerTest < ActionDispatch::IntegrationTest
     patch relink_project_orphaned_lapse_link_path(@project, @link), params: { devlog_id: @devlog.id }
 
     assert_redirected_to project_path(@project)
-    assert_equal "https://lapse.hackclub.com/timelapse/old", @devlog.reload.lapse_url
+    assert_equal [ "https://lapse.hackclub.com/timelapse/old" ], @devlog.reload.lapse_urls
     assert_not OrphanedLapseLink.exists?(@link.id)
   end
 
@@ -55,7 +55,7 @@ class OrphanedLapseLinksControllerTest < ActionDispatch::IntegrationTest
     sign_in_as(make_user)
 
     patch relink_project_orphaned_lapse_link_path(@project, @link), params: { devlog_id: @devlog.id }
-    assert_nil @devlog.reload.lapse_url
+    assert_empty @devlog.reload.lapse_urls
     assert OrphanedLapseLink.exists?(@link.id)
 
     delete project_orphaned_lapse_link_path(@project, @link)
@@ -67,6 +67,6 @@ class OrphanedLapseLinksControllerTest < ActionDispatch::IntegrationTest
 
     patch relink_project_orphaned_lapse_link_path(@project, @link), params: { devlog_id: @devlog.id }
 
-    assert_equal "https://lapse.hackclub.com/timelapse/old", @devlog.reload.lapse_url
+    assert_equal [ "https://lapse.hackclub.com/timelapse/old" ], @devlog.reload.lapse_urls
   end
 end

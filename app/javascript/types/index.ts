@@ -258,7 +258,7 @@ export interface AdminDevlog {
   content: string
   time_spent: string | null
   time_hours: number | null
-  lapse_url: string | null
+  lapse_urls: string[]
   created_at: string
   meets_requirements: boolean
   content_lost: boolean

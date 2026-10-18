@@ -149,7 +149,7 @@ function WeekRow({
                   {item.entry_date} · {item.chars} chars
                   {!item.has_image && ' · no image'}
                   {item.backfilled && ` · written ${item.written_on}`}
-                  {item.lapse_url && ' · timelapse'}
+                  {item.lapse_urls.length > 0 && ' · timelapse'}
                 </span>
               </a>
               <span

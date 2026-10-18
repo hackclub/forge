@@ -683,7 +683,7 @@ class ProjectsController < ApplicationController
       content: devlog.content,
       time_spent: devlog.time_spent,
       time_hours: devlog.time_hours&.to_f,
-      lapse_url: policy(devlog).view_lapse_url? ? devlog.lapse_url : nil,
+      lapse_urls: policy(devlog).view_lapse_url? ? devlog.lapse_urls : [],
       created_at: devlog.created_at.strftime("%B %d, %Y"),
       user_id: devlog.user_id,
       user_display_name: devlog.user.display_name,
