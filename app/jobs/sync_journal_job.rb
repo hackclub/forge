@@ -124,9 +124,25 @@ class SyncJournalJob < ApplicationJob
   private
 
   def stash_orphaned_lapse_links!(project, title, lapse_urls)
-    lapse_urls.each do |lapse_url|
-      OrphanedLapseLink.find_or_create_by!(project: project, title: title, lapse_url: lapse_url)
+    urls = lapse_urls.uniq
+    return if urls.empty?
+
+    existing_urls = OrphanedLapseLink.where(project: project, title: title, lapse_url: urls).pluck(:lapse_url)
+    missing_urls = urls - existing_urls
+    return if missing_urls.empty?
+
+    now = Time.current
+    rows = missing_urls.map do |lapse_url|
+      {
+        project_id: project.id,
+        title: title,
+        lapse_url: lapse_url,
+        created_at: now,
+        updated_at: now
+      }
     end
+
+    OrphanedLapseLink.insert_all!(rows)
   end
 
   def parse_repo_url(url)
