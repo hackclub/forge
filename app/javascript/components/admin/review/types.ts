@@ -230,6 +230,7 @@ export interface ReviewProject {
   user_display_name: string
   user_email: string
   user_slack_id: string | null
+  aged_out_members: { display_name: string; aged_out_on: string }[]
   user_avatar: string
   coins_earned_preview: number
   is_group_project: boolean
