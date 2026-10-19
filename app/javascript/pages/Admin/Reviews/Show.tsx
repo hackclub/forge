@@ -8,6 +8,7 @@ import { ClaimBanner, type ClaimState } from '@/components/admin/review/ClaimBan
 import { SiblingReviewPanel } from '@/components/admin/review/SiblingReviewPanel'
 import { SubprojectsPanel } from '@/components/admin/review/SubprojectsPanel'
 import { FlagBanner } from '@/components/admin/review/FlagBanner'
+import { AgedOutBanner } from '@/components/admin/review/AgedOutBanner'
 import { FlagDialog } from '@/components/admin/review/FlagDialog'
 import { ProjectOverviewCard } from '@/components/admin/review/ProjectOverviewCard'
 import { FlagCards } from '@/components/admin/review/FlagCards'
@@ -889,6 +890,7 @@ export default function AdminReviewsShow({
           unflagging={unflagging}
         />
       )}
+      <AgedOutBanner members={project.aged_out_members} />
       {claim.locked_by && !requirementsOnly ? (
         <ClaimBanner claim={claim} onTakeOver={takeOver} takingOver={takingOver} />
       ) : (

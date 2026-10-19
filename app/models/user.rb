@@ -333,6 +333,10 @@ class User < ApplicationRecord
     ((Date.current - birthday) / 365.25).floor >= 19
   end
 
+  def aged_out_on
+    birthday + 19.years if over_18_on_file?
+  end
+
   IDV_VERIFIED_STATUSES = %w[verified verified_eligible].freeze
 
   def idv_verified?

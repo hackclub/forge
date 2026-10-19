@@ -457,6 +457,7 @@ class Admin::ReviewsController < Admin::ApplicationController
       coins_earned_preview: project.group_project? ? ProjectPayoutCalculator.new(project).total : project.coin_rate.to_f * project.total_hours.to_f,
       is_group_project: project.group_project?,
       members: serialize_members_for_review(project),
+      aged_out_members: project.members.filter_map { |m| { display_name: m.display_name, aged_out_on: m.aged_out_on.strftime("%b %d, %Y") } if m.aged_out_on },
       devlogs: project.devlogs.includes(:user).order(created_at: :asc).map { |d| serialize_devlog(d) },
       sibling: sibling_review_summary(project),
       ships: project.ships.sort_by(&:created_at).reverse.map { |s| serialize_ship(s) },
