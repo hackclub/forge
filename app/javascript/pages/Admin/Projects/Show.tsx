@@ -952,7 +952,7 @@ export default function AdminProjectsShow({
             </CardContent>
           </Card>
 
-          {can.review && (
+          {can.review && !project.build_review && (
             <Card>
               <CardHeader>
                 <CardTitle>Build Status</CardTitle>

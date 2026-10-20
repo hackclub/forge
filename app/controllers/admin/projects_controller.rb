@@ -290,6 +290,11 @@ class Admin::ProjectsController < Admin::ApplicationController
   def toggle_built
     authorize @project, :review?
 
+    if @project.build_review?
+      redirect_to admin_project_path(@project), alert: "Build reviews can't be marked as built. Toggle the linked project instead."
+      return
+    end
+
     if @project.built?
       previous_proof = @project.build_proof_url
       @project.update!(built_at: nil, build_proof_url: nil)
