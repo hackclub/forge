@@ -44,6 +44,13 @@ import type {
 } from '@/components/admin/review/types'
 import type { ReviewEvent } from '@/components/admin/AdminReviewTimeline'
 
+interface ReviewDraft {
+  reasoning: string
+  technicalFeatures: string
+  additionalJustification: string
+  deflations: Record<number, Deflation>
+}
+
 /**
  * Options for the review page's side-actions — sending a Slack message, changing
  * tier, flagging, taking over, refreshing the README.
@@ -213,15 +220,43 @@ export default function AdminReviewsShow({
   const checklistDone = project.review_checklist.filter((item) => checks[item.key]).length
   const checklistComplete = checklistDone === project.review_checklist.length
 
-  const [reasoning, setReasoning] = useState('')
+  const draftStorageKey = `review:draft:${project.id}`
+  const [storedDraft] = useState<Partial<ReviewDraft>>(() => {
+    try {
+      const stored = localStorage.getItem(draftStorageKey)
+      if (stored) return JSON.parse(stored) as Partial<ReviewDraft>
+    } catch {}
+    return {}
+  })
+  const [reasoning, setReasoning] = useState(storedDraft.reasoning ?? '')
   const [timeSummary, setTimeSummary] = useState(() => buildTimeEvidence(project))
   const autoTimeSummary = useRef(timeSummary)
-  const [technicalFeatures, setTechnicalFeatures] = useState('')
-  const [additionalJustification, setAdditionalJustification] = useState('')
+  const [technicalFeatures, setTechnicalFeatures] = useState(storedDraft.technicalFeatures ?? '')
+  const [additionalJustification, setAdditionalJustification] = useState(storedDraft.additionalJustification ?? '')
   const [duplicateAcknowledgement, setDuplicateAcknowledgement] = useState('')
   // Prefilled with each entry's claimed hours. This is the only place hours are
   // set, so the justification and the submitted total cannot disagree.
-  const [deflations, setDeflations] = useState<Record<number, Deflation>>(() => initialDeflations(project.devlogs))
+  const [deflations, setDeflations] = useState<Record<number, Deflation>>(() => {
+    const initial = initialDeflations(project.devlogs)
+    const stored = storedDraft.deflations ?? {}
+    return Object.fromEntries(Object.entries(initial).map(([id, value]) => [id, stored[Number(id)] ?? value]))
+  })
+  useEffect(() => {
+    const initial = initialDeflations(project.devlogs)
+    const deflationsEdited = Object.entries(deflations).some(
+      ([id, value]) => value.hours !== initial[Number(id)]?.hours || value.reason !== '',
+    )
+    try {
+      if (reasoning || technicalFeatures || additionalJustification || deflationsEdited) {
+        localStorage.setItem(
+          draftStorageKey,
+          JSON.stringify({ reasoning, technicalFeatures, additionalJustification, deflations } satisfies ReviewDraft),
+        )
+      } else {
+        localStorage.removeItem(draftStorageKey)
+      }
+    } catch {}
+  }, [draftStorageKey, project.devlogs, reasoning, technicalFeatures, additionalJustification, deflations])
   const setDeflation = useCallback((id: number, patch: Partial<Deflation>) => {
     setDeflations((current) => {
       const existing = current[id] ?? { hours: '', reason: '' }
@@ -505,9 +540,11 @@ export default function AdminReviewsShow({
           const next = (page.props as { project?: { id?: number; status?: string } }).project
           return next?.id === project.id && next?.status === 'pending'
         },
-        onSuccess: () => {
+        onSuccess: (page) => {
+          const next = (page.props as { project?: { id?: number; status?: string } }).project
           try {
             localStorage.removeItem(checklistStorageKey)
+            if (next?.id !== project.id || next?.status !== 'pending') localStorage.removeItem(draftStorageKey)
           } catch {}
         },
         onFinish: () => setSubmitting(null),
@@ -518,6 +555,7 @@ export default function AdminReviewsShow({
       project.review_checklist,
       checklistComplete,
       checklistStorageKey,
+      draftStorageKey,
       reasoning,
       timeSummary,
       technicalFeatures,
