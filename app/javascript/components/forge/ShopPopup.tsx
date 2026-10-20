@@ -299,7 +299,7 @@ export default function ShopPopup() {
       {!can_buy_shop_items && (
         <div className="flex items-start gap-3 border border-amber-500/20 bg-amber-500/10 p-4 text-sm text-amber-200">
           <span className="material-symbols-outlined shrink-0 text-base">lock</span>
-          <p>Shop items unlock once you've marked at least one project as built.</p>
+          <p>Shop items unlock once you've marked at least one project as built or had a build review approved.</p>
         </div>
       )}
 

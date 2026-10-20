@@ -320,7 +320,7 @@ class User < ApplicationRecord
   end
 
   def has_built_project?
-    projects.kept.where.not(built_at: nil).exists?
+    projects.kept.where.not(built_at: nil).or(projects.kept.build_reviews.approved).exists?
   end
 
   def can_buy_shop_items?
