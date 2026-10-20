@@ -355,7 +355,7 @@ export default function ShopIndex({
         {isSignedIn && !can_buy_shop_items && (
           <div className="bg-amber-500/10 border border-amber-500/20 p-4 text-amber-200 text-sm flex items-start gap-3">
             <span className="material-symbols-outlined text-base shrink-0">lock</span>
-            <p>Shop items unlock once you've marked at least one project as built.</p>
+            <p>Shop items unlock once you've marked at least one project as built or had a build review approved.</p>
           </div>
         )}
 
