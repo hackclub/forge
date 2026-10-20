@@ -3,7 +3,7 @@ class Admin::ProjectsController < Admin::ApplicationController
 
   before_action :require_projects_permission!, except: REVIEW_SCREEN_ACTIONS + [ :unflag_for_review ]
   before_action :require_review_screen_access!, only: REVIEW_SCREEN_ACTIONS
-  before_action :set_project, only: [ :show, :review, :destroy, :restore, :toggle_hidden, :toggle_shadow_ban, :toggle_staff_pick, :change_tier, :add_note, :destroy_note, :update_note, :flag_for_review, :unflag_for_review, :mark_unbuilt, :reverse_review, :ai_requirements_check, :ai_requirements_check_status, :check_draft_justification, :repo_tree, :commit_stats, :changes_since_review, :send_checkpoint_message, :send_dm_message, :convert_review_type ]
+  before_action :set_project, only: [ :show, :review, :destroy, :restore, :toggle_hidden, :toggle_shadow_ban, :toggle_staff_pick, :change_tier, :add_note, :destroy_note, :update_note, :flag_for_review, :unflag_for_review, :toggle_built, :reverse_review, :ai_requirements_check, :ai_requirements_check_status, :check_draft_justification, :repo_tree, :commit_stats, :changes_since_review, :send_checkpoint_message, :send_dm_message, :convert_review_type ]
 
   def index
     scope = policy_scope(Project).includes(:user, :ships)
@@ -287,18 +287,24 @@ class Admin::ProjectsController < Admin::ApplicationController
     redirect_to admin_project_path(@project), notice: airtable_warning || "Review reversed. Project is back to pending."
   end
 
-  def mark_unbuilt
+  def toggle_built
     authorize @project, :review?
 
-    unless @project.built?
-      redirect_to admin_project_path(@project), alert: "Project is not currently marked as built."
+    if @project.build_review?
+      redirect_to admin_project_path(@project), alert: "Build reviews can't be marked as built. Toggle the linked project instead."
       return
     end
 
-    previous_proof = @project.build_proof_url
-    @project.update!(built_at: nil, build_proof_url: nil)
-    audit!("project.marked_unbuilt", target: @project, metadata: { previous_build_proof_url: previous_proof })
-    redirect_to admin_project_path(@project), notice: "Project marked as unbuilt."
+    if @project.built?
+      previous_proof = @project.build_proof_url
+      @project.update!(built_at: nil, build_proof_url: nil)
+      audit!("project.marked_unbuilt", target: @project, metadata: { previous_build_proof_url: previous_proof })
+      redirect_to admin_project_path(@project), notice: "Project marked as unbuilt."
+    else
+      @project.update!(built_at: Time.current)
+      audit!("project.marked_built", target: @project, metadata: { via: "admin_toggle" })
+      redirect_to admin_project_path(@project), notice: "Project marked as built."
+    end
   end
 
   def add_note

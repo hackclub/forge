@@ -171,9 +171,12 @@ export default function AdminProjectsShow({
     router.delete(`/admin/projects/${project.id}/notes/${noteId}`, { preserveScroll: true })
   }
 
-  function markUnbuilt() {
-    if (!confirm(`Mark "${project.name}" as unbuilt? Clears build proof and date.`)) return
-    router.post(`/admin/projects/${project.id}/mark_unbuilt`, {}, { preserveScroll: true })
+  function toggleBuilt() {
+    const message = project.built_at
+      ? `Mark "${project.name}" as unbuilt? Clears build proof and date.`
+      : `Mark "${project.name}" as built? This unlocks the shop for the owner.`
+    if (!confirm(message)) return
+    router.post(`/admin/projects/${project.id}/toggle_built`, {}, { preserveScroll: true })
   }
 
   const [reverseOpen, setReverseOpen] = useState(false)
@@ -949,28 +952,47 @@ export default function AdminProjectsShow({
             </CardContent>
           </Card>
 
-          {can.review && project.built_at && (
+          {can.review && !project.build_review && (
             <Card>
               <CardHeader>
                 <CardTitle>Build Status</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
-                <p className="text-sm text-muted-foreground">Marked as built on {project.built_at}.</p>
+              <CardContent className="space-y-3 text-sm">
+                <div className="flex items-center justify-between">
+                  <div className="pr-3">
+                    <span>Built</span>
+                    <p className="text-xs text-muted-foreground">
+                      {project.built_at
+                        ? `Marked as built on ${project.built_at}.`
+                        : 'Marking as built unlocks the shop.'}
+                    </p>
+                  </div>
+                  <button
+                    onClick={toggleBuilt}
+                    className={cn(
+                      'relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors cursor-pointer',
+                      project.built_at ? 'bg-primary' : 'bg-muted',
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        'inline-block h-4 w-4 transform rounded-full bg-background transition-transform shadow',
+                        project.built_at ? 'translate-x-6' : 'translate-x-1',
+                      )}
+                    />
+                  </button>
+                </div>
                 {project.build_proof_url && (
                   <a
                     href={project.build_proof_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm hover:underline inline-flex items-center gap-1"
+                    className="hover:underline inline-flex items-center gap-1"
                   >
                     View build proof
                     <ExternalLink className="size-3" />
                   </a>
                 )}
-                <Button variant="outline" size="sm" onClick={markUnbuilt}>
-                  <Undo2 className="size-4" />
-                  Mark Unbuilt
-                </Button>
               </CardContent>
             </Card>
           )}
