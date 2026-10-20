@@ -24,7 +24,7 @@
 #                  change_tier_admin_project POST   /admin/projects/:id/change_tier(.:format)                                                         admin/projects#change_tier
 #          convert_review_type_admin_project POST   /admin/projects/:id/convert_review_type(.:format)                                                 admin/projects#convert_review_type
 #                     add_note_admin_project POST   /admin/projects/:id/add_note(.:format)                                                            admin/projects#add_note
-#                 mark_unbuilt_admin_project POST   /admin/projects/:id/mark_unbuilt(.:format)                                                        admin/projects#mark_unbuilt
+#                 toggle_built_admin_project POST   /admin/projects/:id/toggle_built(.:format)                                                        admin/projects#toggle_built
 #               reverse_review_admin_project POST   /admin/projects/:id/reverse_review(.:format)                                                      admin/projects#reverse_review
 #        ai_requirements_check_admin_project POST   /admin/projects/:id/ai_requirements_check(.:format)                                               admin/projects#ai_requirements_check
 # ai_requirements_check_status_admin_project GET    /admin/projects/:id/ai_requirements_check_status(.:format)                                        admin/projects#ai_requirements_check_status
@@ -325,7 +325,7 @@ Rails.application.routes.draw do
           post :change_tier
           post :convert_review_type
           post :add_note
-          post :mark_unbuilt
+          post :toggle_built
           post :reverse_review
           post :ai_requirements_check
           get :ai_requirements_check_status
