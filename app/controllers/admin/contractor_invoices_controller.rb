@@ -49,6 +49,14 @@ class Admin::ContractorInvoicesController < Admin::ApplicationController
     redirect_back fallback_location: admin_contractor_invoice_path(@invoice), notice: "Invoice marked paid."
   end
 
+  def destroy
+    authorize @invoice
+
+    @invoice.destroy!
+    audit!("contractor_invoice.deleted", target: @invoice.user, metadata: { invoice_id: @invoice.id, week_start: @invoice.week_start.iso8601, status: @invoice.status, total_cents: @invoice.total_cents })
+    redirect_to admin_contractor_path(@invoice.user), notice: "Invoice deleted."
+  end
+
   private
 
   def set_invoice

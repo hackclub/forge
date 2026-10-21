@@ -405,7 +405,7 @@ Rails.application.routes.draw do
         end
       end
       resources :contractor_agreements, only: [ :show, :update ]
-      resources :contractor_invoices, only: [ :show ] do
+      resources :contractor_invoices, only: [ :show, :destroy ] do
         member do
           post :sign
           post :mark_paid

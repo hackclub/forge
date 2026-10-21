@@ -164,7 +164,7 @@ export default function AdminContractorShow({
           )}
         </CardHeader>
         <CardContent className="p-0">
-          <InvoiceTable invoices={invoices} canMarkPaid />
+          <InvoiceTable invoices={invoices} canMarkPaid canDelete />
         </CardContent>
       </Card>
     </div>

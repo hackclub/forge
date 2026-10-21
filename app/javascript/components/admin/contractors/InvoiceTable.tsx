@@ -7,10 +7,17 @@ import { formatCents, formatWeek, type ContractorInvoice } from './lib'
 export default function InvoiceTable({
   invoices,
   canMarkPaid = false,
+  canDelete = false,
 }: {
   invoices: ContractorInvoice[]
   canMarkPaid?: boolean
+  canDelete?: boolean
 }) {
+  const deleteInvoice = (invoice: ContractorInvoice) => {
+    if (!confirm(`Delete the invoice for ${formatWeek(invoice.week_start, invoice.week_end)}?`)) return
+    router.delete(`/admin/contractor_invoices/${invoice.id}`, { preserveScroll: true })
+  }
+
   if (invoices.length === 0) {
     return (
       <p className="text-sm text-muted-foreground py-10 text-center">
@@ -27,7 +34,7 @@ export default function InvoiceTable({
           <TableHead>Reviews</TableHead>
           <TableHead>Total</TableHead>
           <TableHead>Status</TableHead>
-          {canMarkPaid && <TableHead />}
+          {(canMarkPaid || canDelete) && <TableHead />}
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -43,15 +50,20 @@ export default function InvoiceTable({
             <TableCell>
               <InvoiceStatusBadge status={invoice.status} />
             </TableCell>
-            {canMarkPaid && (
-              <TableCell className="text-right">
-                {invoice.status === 'signed' && (
+            {(canMarkPaid || canDelete) && (
+              <TableCell className="text-right space-x-2">
+                {canMarkPaid && invoice.status === 'signed' && (
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={() => router.post(`/admin/contractor_invoices/${invoice.id}/mark_paid`)}
                   >
                     Mark paid
+                  </Button>
+                )}
+                {canDelete && (
+                  <Button size="sm" variant="destructive" onClick={() => deleteInvoice(invoice)}>
+                    Delete
                   </Button>
                 )}
               </TableCell>
