@@ -33,6 +33,7 @@ import {
   FileSignature,
   Users2,
   Import,
+  Receipt,
 } from 'lucide-react'
 import type { SharedProps } from '@/types'
 import { cn } from './lib/cn'
@@ -74,6 +75,7 @@ interface AdminPermissions {
   orders: boolean
   referrals: boolean
   nda: boolean
+  contractor: boolean
 }
 
 type PermKey = keyof AdminPermissions
@@ -144,6 +146,7 @@ function buildSections(): { items: NavItem[] }[] {
           permission: 'fraud',
         },
         { label: 'Leaderboard', href: '/admin/reviews/leaderboard', icon: Trophy, permission: 'pending_reviews' },
+        { label: 'My Contract', href: '/admin/my_contract', icon: FileText, permission: 'contractor' },
       ],
     },
     {
@@ -173,6 +176,7 @@ function buildSections(): { items: NavItem[] }[] {
       items: [
         { label: 'Reel Ads', href: '/admin/reel_ads', icon: PlayCircle, permission: 'is_admin' },
         { label: 'Reel Payouts', href: '/admin/reel_payouts', icon: DollarSign, permission: 'is_superadmin' },
+        { label: 'Contractors', href: '/admin/contractors', icon: Receipt, permission: 'is_superadmin' },
       ],
     },
     {
@@ -287,6 +291,8 @@ export default function AdminSidebar({
     support: false,
     orders: false,
     referrals: false,
+    nda: false,
+    contractor: false,
   }
 
   const pathname = typeof window !== 'undefined' ? window.location.pathname : ''
@@ -321,7 +327,7 @@ export default function AdminSidebar({
 
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-50 overflow-hidden border-r border-sidebar-border bg-sidebar text-sidebar-foreground flex flex-col transition-transform sm:transition-[width] duration-200 ease-in-out',
+          'print:hidden fixed inset-y-0 left-0 z-50 overflow-hidden border-r border-sidebar-border bg-sidebar text-sidebar-foreground flex flex-col transition-transform sm:transition-[width] duration-200 ease-in-out',
           collapsed ? '-translate-x-full sm:translate-x-0 w-56 sm:w-12' : 'translate-x-0 w-56',
         )}
       >

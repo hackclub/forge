@@ -75,7 +75,8 @@ class Admin::ApplicationController < ApplicationController
       support: user.has_permission?("support"),
       orders: user.has_permission?("orders"),
       referrals: user.has_permission?("referrals"),
-      nda: user.has_permission?("nda")
+      nda: user.has_permission?("nda"),
+      contractor: user.has_permission?("contractor")
     }
   end
 end

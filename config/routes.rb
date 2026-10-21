@@ -396,6 +396,21 @@ Rails.application.routes.draw do
         end
       end
       resources :shop_items, only: [ :index, :create, :update, :destroy ]
+      resource :my_contract, only: [ :show ], controller: "my_contract" do
+        post :sign
+      end
+      resources :contractors, only: [ :index, :show ] do
+        member do
+          post :mark_all_paid
+        end
+      end
+      resources :contractor_agreements, only: [ :show, :update ]
+      resources :contractor_invoices, only: [ :show ] do
+        member do
+          post :sign
+          post :mark_paid
+        end
+      end
       resources :grant_merges, only: [ :index, :create ]
       resources :rsvps, only: [ :index, :destroy ] do
         collection do

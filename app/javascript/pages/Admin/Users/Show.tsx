@@ -47,6 +47,7 @@ const permissionLabels: Record<string, string> = {
   nda: 'NDA',
   orders: 'Orders',
   referrals: 'Referrals',
+  contractor: 'Contractor',
   superadmin: 'Superadmin',
 }
 
