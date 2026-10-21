@@ -49,6 +49,11 @@ production:
     queue: background
     schedule: every Sunday at 0:00
 
+  contractor_invoices:
+    class: GenerateContractorInvoicesJob
+    queue: background
+    schedule: "5 0 * * 1 America/New_York"
+
   contributors_weekly_ping:
     class: SlackContributorsPingJob
     queue: background

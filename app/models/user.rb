@@ -97,6 +97,8 @@ class User < ApplicationRecord
   has_many :project_collaborations, class_name: "ProjectCollaborator", dependent: :destroy
   has_many :collaborated_projects, through: :project_collaborations, source: :project
   has_many :project_payouts, dependent: :destroy
+  has_one :contractor_agreement, dependent: :destroy
+  has_many :contractor_invoices, dependent: :destroy
   has_many :collaboration_invites_received, class_name: "CollaborationInvite", foreign_key: :invitee_id, dependent: :destroy, inverse_of: :invitee
   has_many :collaboration_invites_sent, class_name: "CollaborationInvite", foreign_key: :inviter_id, dependent: :destroy, inverse_of: :inviter
   has_many :referrals_made, class_name: "Referral", foreign_key: :referrer_id, dependent: :destroy, inverse_of: :referrer
@@ -276,11 +278,12 @@ class User < ApplicationRecord
     nda
     orders
     referrals
+    contractor
     superadmin
   ].freeze
 
   ROLE_DEFAULT_PERMISSIONS = {
-    "admin" => AVAILABLE_PERMISSIONS - %w[superadmin],
+    "admin" => AVAILABLE_PERMISSIONS - %w[superadmin contractor],
     "reviewer" => %w[pending_reviews review_tier_1 review_tier_2 review_tier_3 review_tier_4 review_requirements projects ships hackatime],
     "support" => %w[projects users support],
     "fulfillment" => %w[projects ships orders]

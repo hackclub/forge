@@ -43,6 +43,7 @@ export default function AdminLayout({ children, flush }: { children: ReactNode; 
         className={cn(
           'pt-10 sm:pt-0 min-h-screen flex flex-col transition-[padding] duration-200 ease-in-out',
           collapsed ? 'sm:pl-12' : 'sm:pl-56',
+          'print:!pl-0 print:!pt-0',
         )}
       >
         {nda_bypassed && (

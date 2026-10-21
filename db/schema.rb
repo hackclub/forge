@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_14_103030) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_21_022157) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -170,6 +170,44 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_103030) do
     t.index ["project_id", "invitee_id"], name: "index_collaboration_invites_on_project_invitee_pending", unique: true, where: "(status = 0)"
     t.index ["project_id"], name: "index_collaboration_invites_on_project_id"
     t.index ["status"], name: "index_collaboration_invites_on_status"
+  end
+
+  create_table "contractor_agreements", force: :cascade do |t|
+    t.integer "approve_rate_cents", default: 125, null: false
+    t.datetime "billable_from", null: false
+    t.string "contract_version", null: false
+    t.datetime "created_at", null: false
+    t.integer "reject_rate_cents", default: 75, null: false
+    t.integer "return_rate_cents", default: 75, null: false
+    t.datetime "signed_at", null: false
+    t.string "signed_email"
+    t.string "signed_ip"
+    t.string "signed_name", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["user_id"], name: "index_contractor_agreements_on_user_id", unique: true
+  end
+
+  create_table "contractor_invoices", force: :cascade do |t|
+    t.bigint "contractor_agreement_id", null: false
+    t.datetime "created_at", null: false
+    t.jsonb "line_items", default: [], null: false
+    t.datetime "paid_at"
+    t.bigint "paid_by_id"
+    t.integer "review_count", default: 0, null: false
+    t.datetime "signed_at"
+    t.string "signed_ip"
+    t.string "signed_name"
+    t.integer "status", default: 0, null: false
+    t.integer "total_cents", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.date "week_start", null: false
+    t.index ["contractor_agreement_id"], name: "index_contractor_invoices_on_contractor_agreement_id"
+    t.index ["paid_by_id"], name: "index_contractor_invoices_on_paid_by_id"
+    t.index ["status"], name: "index_contractor_invoices_on_status"
+    t.index ["user_id", "week_start"], name: "index_contractor_invoices_on_user_id_and_week_start", unique: true
+    t.index ["user_id"], name: "index_contractor_invoices_on_user_id"
   end
 
   create_table "devlogs", force: :cascade do |t|
@@ -839,6 +877,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_103030) do
   add_foreign_key "collaboration_invites", "projects"
   add_foreign_key "collaboration_invites", "users", column: "invitee_id"
   add_foreign_key "collaboration_invites", "users", column: "inviter_id"
+  add_foreign_key "contractor_agreements", "users"
+  add_foreign_key "contractor_invoices", "contractor_agreements"
+  add_foreign_key "contractor_invoices", "users"
+  add_foreign_key "contractor_invoices", "users", column: "paid_by_id"
   add_foreign_key "devlogs", "projects"
   add_foreign_key "devlogs", "users"
   add_foreign_key "devlogs", "users", column: "reviewer_id"
