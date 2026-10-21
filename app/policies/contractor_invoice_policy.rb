@@ -11,6 +11,10 @@ class ContractorInvoicePolicy < ApplicationPolicy
     superadmin? && record.signed?
   end
 
+  def destroy?
+    superadmin?
+  end
+
   private
 
   def superadmin?
