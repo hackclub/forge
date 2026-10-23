@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_21_022157) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_23_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -274,6 +274,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_21_022157) do
     t.text "description"
     t.datetime "fulfilled_at"
     t.string "fulfillment_method"
+    t.datetime "hcb_card_frozen_at"
     t.string "hcb_grant_link"
     t.string "kind", null: false
     t.bigint "project_id"

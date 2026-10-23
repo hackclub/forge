@@ -8,6 +8,7 @@
 #  description        :text
 #  fulfilled_at       :datetime
 #  fulfillment_method :string
+#  hcb_card_frozen_at :datetime
 #  hcb_grant_link     :string
 #  kind               :string           not null
 #  quantity           :integer          default(1), not null

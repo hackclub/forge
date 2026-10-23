@@ -285,6 +285,7 @@ class Admin::UsersController < Admin::ApplicationController
     end
     @user.update!(is_banned: true, ban_reason: reason)
     audit!("user.banned", target: @user, metadata: { reason: reason })
+    FreezeBannedUserCardsJob.perform_later(@user.id)
     redirect_to admin_user_path(@user), notice: "#{@user.display_name} has been banned."
   end
 

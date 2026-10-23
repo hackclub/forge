@@ -198,7 +198,8 @@ class Admin::MetricsController < Admin::ApplicationController
       coin_value_usd: shop_coin_value_usd,
       item_cost_usd: shop_item_cost_usd,
       margin_usd: (shop_coin_value_usd - shop_item_cost_usd).round(2),
-      orders_count: fulfilled_shop_orders.count
+      orders_count: fulfilled_shop_orders.count,
+      frozen_cards_count: Order.where.not(hcb_card_frozen_at: nil).distinct.count(:hcb_grant_link)
     }
 
     render inertia: "Admin/Metrics/Index", props: {

@@ -162,13 +162,18 @@ module HcbService
     serialize_card_grant(v4_post("card_grants/#{public_id}/cancel", {}))
   end
 
+  def freeze_card!(card_id)
+    v4_post("cards/freeze", { id: card_id })
+  end
+
   def serialize_card_grant(grant)
     {
       id: grant["id"],
       link: grant_link(grant["id"]),
       status: grant["status"],
       amount_cents: grant["amount_cents"],
-      balance_cents: grant["balance_cents"]
+      balance_cents: grant["balance_cents"],
+      card_id: grant["card_id"]
     }
   end
 
