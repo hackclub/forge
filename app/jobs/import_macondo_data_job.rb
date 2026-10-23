@@ -46,7 +46,6 @@ class ImportMacondoDataJob < ApplicationJob
   end
 
   def import_journals(project, journals)
-    
     ordered = Array(journals).sort_by { |j| parse_time(j["created_at"]) }
 
     ordered.each_with_index do |j, i|
@@ -71,7 +70,7 @@ class ImportMacondoDataJob < ApplicationJob
     Time.at(0)
   end
 
-  
+
   def format_time_spent(hours)
     return nil if hours.blank?
 
