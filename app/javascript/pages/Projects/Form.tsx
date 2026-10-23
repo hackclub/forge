@@ -516,13 +516,13 @@ export default function ProjectsForm({
               <div>
                 <h3 className="text-xl font-headline font-bold text-[#e5e2e1] mb-2">Switching to Git Journal</h3>
                 <p className="text-stone-400 text-sm mb-4">
-                  Git Journal syncs your devlog from a <code className="text-[#ffb595]">JOURNAL.md</code> file in
-                  your repo. If you later resync, any entry that isn't in that file can be cleared from Forge.
+                  Git Journal syncs your devlog from a <code className="text-[#ffb595]">JOURNAL.md</code> file in your
+                  repo. If you later resync, any entry that isn't in that file can be cleared from Forge.
                 </p>
                 <p className="text-stone-400 text-sm">
                   Download an export of your current entries, already formatted as a{' '}
-                  <code className="text-[#ffb595]">JOURNAL.md</code>, so you can commit it to your repo and build
-                  from it.
+                  <code className="text-[#ffb595]">JOURNAL.md</code>, so you can commit it to your repo and build from
+                  it.
                 </p>
               </div>
 

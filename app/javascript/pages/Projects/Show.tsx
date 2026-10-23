@@ -1304,8 +1304,8 @@ export default function ProjectsShow({
                     <p className="text-amber-200 text-sm font-bold mb-1">Couldn't sync JOURNAL.md</p>
                     <p className="text-amber-100/70">
                       Forge couldn't find any journal entries to sync. This can happen if the repo link is invalid,{' '}
-                      <code className="text-amber-100">JOURNAL.md</code> is missing, or it doesn't follow the
-                      expected format. Check the{' '}
+                      <code className="text-amber-100">JOURNAL.md</code> is missing, or it doesn't follow the expected
+                      format. Check the{' '}
                       <a href="/docs/design/journal-format" className="underline hover:text-amber-50">
                         format guide
                       </a>{' '}
@@ -1377,9 +1377,7 @@ export default function ProjectsShow({
                       )}
                       {entry.content_lost && (
                         <div className="bg-red-900/40 border-2 border-red-600 rounded-none p-4 mb-4 flex items-start gap-3">
-                          <span className="material-symbols-outlined text-red-400 text-2xl shrink-0 mt-0.5">
-                            error
-                          </span>
+                          <span className="material-symbols-outlined text-red-400 text-2xl shrink-0 mt-0.5">error</span>
                           <div className="text-sm text-red-100">
                             <p className="font-bold mb-2">Content vanished</p>
                             <p className="text-red-100/90">
@@ -1710,9 +1708,7 @@ export default function ProjectsShow({
                       )}
                       {entry.content_lost && (
                         <div className="bg-red-900/40 border-2 border-red-600 rounded-none p-4 mb-4 flex items-start gap-3">
-                          <span className="material-symbols-outlined text-red-400 text-2xl shrink-0 mt-0.5">
-                            error
-                          </span>
+                          <span className="material-symbols-outlined text-red-400 text-2xl shrink-0 mt-0.5">error</span>
                           <div className="text-sm text-red-100">
                             <p className="font-bold mb-2">Content vanished</p>
                             <p className="text-red-100/90">
@@ -2148,8 +2144,7 @@ export default function ProjectsShow({
                 </h4>
               </div>
               <p className="text-stone-400 text-sm">
-                Your pitch is still a draft. Edit your message in Slack, then hit Submit for Review when you're
-                ready.
+                Your pitch is still a draft. Edit your message in Slack, then hit Submit for Review when you're ready.
               </p>
             </div>
           )}

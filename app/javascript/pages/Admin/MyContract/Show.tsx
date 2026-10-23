@@ -54,7 +54,10 @@ export default function AdminMyContractShow({
 
       <TotalsCards
         totals={totals}
-        extra={{ label: `This week (${current_week.review_count} reviews)`, value: formatCents(current_week.total_cents) }}
+        extra={{
+          label: `This week (${current_week.review_count} reviews)`,
+          value: formatCents(current_week.total_cents),
+        }}
       />
       <p className="text-xs text-muted-foreground -mt-3">
         This week: {formatWeek(current_week.week_start, current_week.week_end)} (Eastern Time). Its invoice is generated
