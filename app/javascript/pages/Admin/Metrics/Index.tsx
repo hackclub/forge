@@ -165,6 +165,7 @@ interface ShopEconomy {
   item_cost_usd: number
   margin_usd: number
   orders_count: number
+  frozen_cards_count: number
 }
 
 interface Budget {
@@ -593,7 +594,7 @@ export default function AdminMetricsIndex({
 
       <div className="space-y-2">
         <h2 className="text-sm font-semibold tracking-wide uppercase text-muted-foreground">Shop economy — all time</h2>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <Stat
             label="Shop margin"
             value={`$${shop_economy.margin_usd}`}
@@ -606,6 +607,7 @@ export default function AdminMetricsIndex({
             hint={`${shop_economy.orders_count} fulfilled · $1/coin`}
           />
           <Stat label="Item cost (ours)" value={`$${shop_economy.item_cost_usd}`} hint="what those items cost us" />
+          <Stat label="Frozen cards" value={shop_economy.frozen_cards_count} hint="HCB cards frozen on ban" />
         </div>
       </div>
 
