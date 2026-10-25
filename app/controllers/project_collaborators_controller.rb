@@ -1,4 +1,21 @@
 class ProjectCollaboratorsController < ApplicationController
+  def update
+    @project = Project.kept.find(params[:project_id])
+    collaborator = @project.project_collaborators.find(params[:id])
+
+    unless collaborator.user_id == current_user&.id
+      raise Pundit::NotAuthorizedError, query: :update?, record: collaborator
+    end
+
+    collaborator.update!(hackatime_projects: params.expect(collaborator: [ hackatime_projects: [] ])[:hackatime_projects])
+    audit!("project_collaborator.hackatime_projects_updated", target: @project, metadata: {
+      user_id: collaborator.user_id,
+      hackatime_projects: collaborator.hackatime_projects
+    })
+
+    redirect_to @project, notice: "Hackatime projects updated."
+  end
+
   def destroy
     @project = Project.kept.find(params[:project_id])
     collaborator = @project.project_collaborators.find(params[:id])

@@ -125,4 +125,41 @@ class ProjectsHackatimeTest < ActionDispatch::IntegrationTest
 
     assert_equal [ "forge", "keyboard-fw" ], project.reload.hackatime_projects
   end
+
+  test "collaborators can link their own hackatime projects" do
+    owner = make_user
+    collaborator = make_user
+    project = owner.projects.create!(name: "Macropad", tier: "tier_4", status: :draft, hackatime_projects: [ "forge" ])
+    membership = project.project_collaborators.create!(user: collaborator)
+    sign_in_as(collaborator)
+
+    patch project_collaborator_path(project, membership), params: { collaborator: { hackatime_projects: [ " keyboard-fw ", "keyboard-fw" ] } }
+
+    assert_redirected_to project_path(project)
+    assert_equal [ "keyboard-fw" ], membership.reload.hackatime_projects
+    assert_equal [ "forge" ], project.reload.hackatime_projects
+  end
+
+  test "collaborators can't edit another member's hackatime projects" do
+    owner = make_user
+    project = owner.projects.create!(name: "Macropad", tier: "tier_4", status: :draft)
+    membership = project.project_collaborators.create!(user: make_user)
+    other = project.project_collaborators.create!(user: make_user)
+    sign_in_as(other.user)
+
+    patch project_collaborator_path(project, membership), params: { collaborator: { hackatime_projects: [ "forge" ] } }
+
+    assert_empty membership.reload.hackatime_projects
+  end
+
+  test "owners can't edit a collaborator's hackatime projects" do
+    owner = make_user
+    project = owner.projects.create!(name: "Macropad", tier: "tier_4", status: :draft)
+    membership = project.project_collaborators.create!(user: make_user)
+    sign_in_as(owner)
+
+    patch project_collaborator_path(project, membership), params: { collaborator: { hackatime_projects: [ "forge" ] } }
+
+    assert_empty membership.reload.hackatime_projects
+  end
 end

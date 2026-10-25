@@ -212,7 +212,9 @@
 #                       project_devlog_image POST   /projects/:project_id/devlog_image(.:format)                                                      devlogs#upload_image
 #              project_collaboration_invites POST   /projects/:project_id/invites(.:format)                                                           collaboration_invites#create
 #               project_collaboration_invite DELETE /projects/:project_id/invites/:id(.:format)                                                       collaboration_invites#destroy
-#                       project_collaborator DELETE /projects/:project_id/collaborators/:id(.:format)                                                 project_collaborators#destroy
+#                       project_collaborator PATCH  /projects/:project_id/collaborators/:id(.:format)                                                 project_collaborators#update
+#                                            PUT    /projects/:project_id/collaborators/:id(.:format)                                                 project_collaborators#update
+#                                            DELETE /projects/:project_id/collaborators/:id(.:format)                                                 project_collaborators#destroy
 #                               project_view POST   /projects/:project_id/view(.:format)                                                              projects/views#create
 #                              project_reels GET    /projects/:project_id/reels(.:format)                                                             reels#manage
 #                                            POST   /projects/:project_id/reels(.:format)                                                             reels#create
@@ -578,7 +580,7 @@ Rails.application.routes.draw do
       end
     end
     resources :collaboration_invites, only: [ :create, :destroy ], path: "invites"
-    resources :collaborators, only: [ :destroy ], controller: "project_collaborators"
+    resources :collaborators, only: [ :update, :destroy ], controller: "project_collaborators"
     resource :view, only: [ :create ], module: :projects, controller: "views"
     resources :reels, only: [ :new, :create ] do
       collection do

@@ -693,9 +693,9 @@ class ProjectsController < ApplicationController
   end
 
   def serialize_members(project)
-    owner = { id: project.user_id, display_name: project.user.display_name, avatar: project.user.avatar, is_owner: true, collaborator_id: nil }
+    owner = { id: project.user_id, display_name: project.user.display_name, avatar: project.user.avatar, is_owner: true, collaborator_id: nil, hackatime_projects: project.hackatime_projects }
     collaborators = project.project_collaborators.includes(:user).map do |pc|
-      { id: pc.user_id, display_name: pc.user.display_name, avatar: pc.user.avatar, is_owner: false, collaborator_id: pc.id }
+      { id: pc.user_id, display_name: pc.user.display_name, avatar: pc.user.avatar, is_owner: false, collaborator_id: pc.id, hackatime_projects: pc.hackatime_projects }
     end
     [ owner ] + collaborators
   end

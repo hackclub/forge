@@ -92,6 +92,7 @@ export interface ProjectMember {
   avatar: string
   is_owner: boolean
   collaborator_id: number | null
+  hackatime_projects: string[]
 }
 
 export interface ProjectPayout {

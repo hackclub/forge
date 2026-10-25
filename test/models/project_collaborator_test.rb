@@ -2,11 +2,12 @@
 #
 # Table name: project_collaborators
 #
-#  id         :bigint           not null, primary key
-#  created_at :datetime         not null
-#  updated_at :datetime         not null
-#  project_id :bigint           not null
-#  user_id    :bigint           not null
+#  id                 :bigint           not null, primary key
+#  hackatime_projects :string           default([]), not null, is an Array
+#  created_at         :datetime         not null
+#  updated_at         :datetime         not null
+#  project_id         :bigint           not null
+#  user_id            :bigint           not null
 #
 # Indexes
 #
