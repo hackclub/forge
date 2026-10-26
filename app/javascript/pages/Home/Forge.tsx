@@ -29,6 +29,7 @@ interface ForgeObject {
   id: PopupId
   label: string
   overlay: string
+  overlayBounds: [number, number, number, number]
   icon: string
   tour?: string
   x: number
@@ -46,7 +47,8 @@ const OBJECTS: ForgeObject[] = [
   {
     id: 'leaderboard',
     label: 'Leaderboard',
-    overlay: '/sign.png',
+    overlay: '/forge/sign.webp',
+    overlayBounds: [288, 287, 839, 700],
     icon: 'emoji_events',
     tour: 'nav-leaderboard',
     x: 12,
@@ -70,7 +72,8 @@ const OBJECTS: ForgeObject[] = [
   {
     id: 'faq',
     label: 'Resources',
-    overlay: '/scroll.png',
+    overlay: '/forge/scroll.webp',
+    overlayBounds: [66, 71, 320, 280],
     icon: 'menu_book',
     tour: 'nav-docs',
     x: 3,
@@ -83,7 +86,8 @@ const OBJECTS: ForgeObject[] = [
   {
     id: 'shop',
     label: 'Shop',
-    overlay: '/table.png?v=2',
+    overlay: '/forge/table.webp',
+    overlayBounds: [725, 924, 514, 338],
     icon: 'storefront',
     tour: 'nav-shop',
     x: 29,
@@ -107,7 +111,8 @@ const OBJECTS: ForgeObject[] = [
   {
     id: 'shipping',
     label: 'Ship',
-    overlay: '/furnace.png',
+    overlay: '/forge/furnace.webp',
+    overlayBounds: [1374, 0, 692, 1254],
     icon: 'local_fire_department',
     tour: 'nav-ship',
     x: 56,
@@ -134,7 +139,8 @@ const OBJECTS: ForgeObject[] = [
   {
     id: 'explore',
     label: 'Explore/Reels',
-    overlay: '/shield.png',
+    overlay: '/forge/shield.webp',
+    overlayBounds: [2098, 801, 327, 324],
     icon: 'explore',
     tour: 'nav-explore',
     x: 84,
@@ -160,7 +166,8 @@ const OBJECTS: ForgeObject[] = [
   {
     id: 'projects',
     label: 'Projects',
-    overlay: '/anvil.png',
+    overlay: '/forge/anvil.webp',
+    overlayBounds: [1954, 1189, 377, 247],
     icon: 'precision_manufacturing',
     tour: 'nav-dashboard',
     x: 77,
@@ -236,7 +243,7 @@ export default function ForgeScene({
   useEffect(() => {
     if (typeof window === 'undefined') return
     const node = parallaxRef.current
-    if (performanceMode || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    if (open || performanceMode || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       if (node) {
         node.style.setProperty('--px', '0px')
         node.style.setProperty('--py', '0px')
@@ -261,6 +268,7 @@ export default function ForgeScene({
       else raf = 0
     }
     const onMove = (e: MouseEvent) => {
+      if (window.innerWidth < 768) return
       const nx = (e.clientX / window.innerWidth) * 2 - 1
       const ny = (e.clientY / window.innerHeight) * 2 - 1
       tx = -nx * max
@@ -273,7 +281,7 @@ export default function ForgeScene({
       window.removeEventListener('mousemove', onMove)
       if (raf) cancelAnimationFrame(raf)
     }
-  }, [performanceMode])
+  }, [performanceMode, open])
 
   if (EDIT_MODE) {
     return (
@@ -300,7 +308,7 @@ export default function ForgeScene({
       <div className="fixed inset-0 overflow-hidden bg-[#0e0e0e]">
         <div
           ref={parallaxRef}
-          className="absolute inset-0 hidden md:block"
+          className={`absolute inset-0 hidden md:block ${open ? 'forge-scene-paused' : ''}`}
           style={{ transform: 'scale(1.03) translate3d(var(--px, 0), var(--py, 0), 0)', willChange: 'transform' }}
         >
           <img
@@ -396,6 +404,10 @@ export default function ForgeScene({
 
       <style>{`
         .forge-overlay-idle { animation: forge-idle 4.5s ease-in-out infinite; }
+        .forge-scene-paused .forge-overlay-idle, .forge-scene-paused .forge-ember { animation-play-state: paused; }
+        @media (prefers-reduced-motion: reduce) {
+          .forge-overlay-idle, .forge-ember { animation: none !important; }
+        }
         @keyframes forge-idle {
           0%, 100% { filter: brightness(1); }
           50% { filter: brightness(1.05) drop-shadow(0 0 8px rgba(202,89,36,0.22)); }
@@ -486,6 +498,7 @@ function ForgeHotspot({
   const lcy = object.ly ?? base.ly
   const tb = object.tbox ?? autoTourBox(object)
   const tourBox = { left: `${tb.x}%`, top: `${tb.y}%`, width: `${tb.w}%`, height: `${tb.h}%` }
+  const [overlayX, overlayY, overlayWidth, overlayHeight] = object.overlayBounds
 
   return (
     <>
@@ -494,14 +507,21 @@ function ForgeHotspot({
         alt=""
         aria-hidden
         draggable={false}
-        className={`pointer-events-none absolute inset-0 h-full w-full object-fill ${active || performanceMode ? '' : 'forge-overlay-idle'}`}
-        style={
-          active
+        className={`pointer-events-none absolute object-fill ${active || performanceMode ? '' : 'forge-overlay-idle'}`}
+        style={{
+          left: `${(overlayX / 2500) * 100}%`,
+          top: `${(overlayY / 1462) * 100}%`,
+          width: `${(overlayWidth / 2500) * 100}%`,
+          height: `${(overlayHeight / 1462) * 100}%`,
+          ...(active
             ? performanceMode
               ? { filter: 'brightness(1.2)' }
-              : { filter: 'brightness(1.15) drop-shadow(0 0 22px rgba(202,89,36,0.7))', transition: 'filter 200ms ease' }
-            : { animationDelay: `${index * 0.6}s` }
-        }
+              : {
+                  filter: 'brightness(1.15) drop-shadow(0 0 22px rgba(202,89,36,0.7))',
+                  transition: 'filter 200ms ease',
+                }
+            : { animationDelay: `${index * 0.6}s` }),
+        }}
       />
       <button
         type="button"
