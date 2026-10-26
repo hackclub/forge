@@ -52,7 +52,7 @@ function LandingParallaxBg({ zooming }: { zooming: boolean }) {
       window.removeEventListener('mousemove', onMove)
       if (rafId) cancelAnimationFrame(rafId)
     }
-  }, [])
+  }, [performanceMode])
 
   return (
     <div ref={parallaxRef} className="login-bg-parallax fixed inset-0 pointer-events-none z-0">
@@ -455,6 +455,7 @@ export default function LandingIndex() {
               <iframe
                 src="https://www.youtube-nocookie.com/embed/LrSKs35nR8k?start=2"
                 title="Hack Club electronics tutorial"
+                loading="lazy"
                 allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
                 className="w-full h-full"
