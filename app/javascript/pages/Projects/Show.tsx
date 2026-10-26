@@ -342,21 +342,6 @@ export default function ProjectsShow({
   orphaned_lapse_links?: UnmatchedLapseLink[]
 }) {
   const [kudoContent, setKudoContent] = useState('')
-  const [hackatimeSelection, setHackatimeSelection] = useState<string[]>(project.hackatime_projects ?? [])
-  const [savingHackatime, setSavingHackatime] = useState(false)
-  const linkedHackatime = project.hackatime_projects ?? []
-  const hackatimeChanged =
-    hackatimeSelection.length !== linkedHackatime.length ||
-    hackatimeSelection.some((name) => !linkedHackatime.includes(name))
-
-  function saveHackatimeProjects() {
-    setSavingHackatime(true)
-    router.patch(
-      `/projects/${project.id}`,
-      { project: { hackatime_projects: hackatimeSelection.length > 0 ? hackatimeSelection : [''] } },
-      { preserveScroll: true, onFinish: () => setSavingHackatime(false) },
-    )
-  }
   const [devlogOrder, setDevlogOrder] = useState<'newest' | 'oldest'>('newest')
 
   useEffect(() => {
@@ -772,6 +757,31 @@ export default function ProjectsShow({
   const isStaff = !!sharedProps.auth.user?.is_staff
   const reelsEnabled = !!sharedProps.reels_enabled
 
+  const selfCollaborator = project.members.find((m) => !m.is_owner && m.id === sharedProps.auth.user?.id)
+  const canEditHackatime = !!selfCollaborator || can.update
+  const linkedHackatime = (selfCollaborator ? selfCollaborator.hackatime_projects : project.hackatime_projects) ?? []
+  const hackatimeMembers = project.members.filter((m) => m.hackatime_projects.length > 0)
+  const [hackatimeSelection, setHackatimeSelection] = useState<string[]>(linkedHackatime)
+  const [savingHackatime, setSavingHackatime] = useState(false)
+  const hackatimeChanged =
+    hackatimeSelection.length !== linkedHackatime.length ||
+    hackatimeSelection.some((name) => !linkedHackatime.includes(name))
+
+  function saveHackatimeProjects() {
+    setSavingHackatime(true)
+    const hackatime_projects = hackatimeSelection.length > 0 ? hackatimeSelection : ['']
+    const options = { preserveScroll: true, onFinish: () => setSavingHackatime(false) }
+    if (selfCollaborator) {
+      router.patch(
+        `/projects/${project.id}/collaborators/${selfCollaborator.collaborator_id}`,
+        { collaborator: { hackatime_projects } },
+        options,
+      )
+    } else {
+      router.patch(`/projects/${project.id}`, { project: { hackatime_projects } }, options)
+    }
+  }
+
   return (
     <div className="p-5 md:p-12 max-w-[1400px] mx-auto">
       {can.confirm_macondo_tier && project.macondo_import && (
@@ -964,17 +974,24 @@ export default function ProjectsShow({
             </div>
           )}
 
-          {project.hackatime_projects && project.hackatime_projects.length > 0 && (
+          {hackatimeMembers.length > 0 && (
             <div className="ghost-border bg-[#1c1b1b] p-4 mb-4 max-w-2xl">
               <p className="text-[10px] uppercase tracking-[0.2em] text-stone-500 font-bold mb-2 flex items-center gap-1.5">
                 <span className="material-symbols-outlined text-sm">schedule</span>
                 Hackatime projects
               </p>
-              <div className="flex flex-wrap gap-2">
-                {project.hackatime_projects.map((name) => (
-                  <span key={name} className="bg-[#0e0e0e] px-2 py-1 text-xs font-bold text-[#ffb595]">
-                    {name}
-                  </span>
+              <div className="space-y-2">
+                {hackatimeMembers.map((member) => (
+                  <div key={member.id}>
+                    {project.members.length > 1 && <p className="text-xs text-stone-500 mb-1">{member.display_name}</p>}
+                    <div className="flex flex-wrap gap-2">
+                      {member.hackatime_projects.map((name) => (
+                        <span key={name} className="bg-[#0e0e0e] px-2 py-1 text-xs font-bold text-[#ffb595]">
+                          {name}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
                 ))}
               </div>
             </div>
@@ -2045,7 +2062,7 @@ export default function ProjectsShow({
               Link Repository
             </button>
           )}
-          {can.update && hackatime_enabled && (
+          {canEditHackatime && hackatime_enabled && (
             <div className="ghost-border bg-[#1c1b1b] p-6">
               <div className="flex items-center gap-2 mb-3">
                 <span className="material-symbols-outlined text-[#ffb595] text-lg">schedule</span>
