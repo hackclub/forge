@@ -277,13 +277,14 @@ class User < ApplicationRecord
     hackatime
     nda
     orders
+    grant_merges
     referrals
     contractor
     superadmin
   ].freeze
 
   ROLE_DEFAULT_PERMISSIONS = {
-    "admin" => AVAILABLE_PERMISSIONS - %w[superadmin contractor],
+    "admin" => AVAILABLE_PERMISSIONS - %w[superadmin contractor grant_merges],
     "reviewer" => %w[pending_reviews review_tier_1 review_tier_2 review_tier_3 review_tier_4 review_requirements projects ships hackatime],
     "support" => %w[projects users support],
     "fulfillment" => %w[projects ships orders]

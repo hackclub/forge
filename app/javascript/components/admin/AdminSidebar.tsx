@@ -73,6 +73,7 @@ interface AdminPermissions {
   third_party: boolean
   support: boolean
   orders: boolean
+  grant_merges: boolean
   referrals: boolean
   nda: boolean
   contractor: boolean
@@ -167,7 +168,7 @@ function buildSections(): { items: NavItem[] }[] {
           permission: 'orders',
         },
         { label: 'Shop Items', href: '/admin/shop_items', icon: Store, permission: 'orders' },
-        { label: 'Grant Merger', href: '/admin/grant_merges', icon: Merge, permission: 'orders' },
+        { label: 'Grant Merger', href: '/admin/grant_merges', icon: Merge, permission: 'grant_merges' },
         { label: 'Referrals', href: '/admin/referrals', icon: Users2, permission: 'referrals' },
         { label: 'RSVPs', href: '/admin/rsvps', icon: Sparkles, permission: 'is_admin' },
       ],

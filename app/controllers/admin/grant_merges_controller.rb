@@ -1,17 +1,20 @@
 class Admin::GrantMergesController < Admin::ApplicationController
-  before_action :require_orders_permission!
+  before_action :require_grant_merges_permission!
 
   MERGED_PURPOSE = "Merged Forge grant".freeze
+  MAX_MATCHES = 20
 
   def index
     query = params[:query].to_s.strip
-    user = find_user(query) if query.present?
+    matches = query.present? ? User.kept.search(query).limit(MAX_MATCHES).to_a : []
+    user = params[:user_id].present? ? User.kept.find_by(id: params[:user_id]) : (matches.first if matches.one?)
 
     render inertia: "Admin/GrantMerges/Index", props: {
       query: query,
+      matches: matches.map { |u| serialize_user(u) },
       user: user && serialize_user(user),
       grants: user ? grants_for(user) : [],
-      not_found: query.present? && user.nil?,
+      not_found: query.present? && matches.empty? && user.nil?,
       hcb_connected: HcbService.connected?
     }
   end
@@ -19,7 +22,7 @@ class Admin::GrantMergesController < Admin::ApplicationController
   def create
     user = User.kept.find(params[:user_id])
     grant_ids = Array(params[:grant_ids]).map(&:to_s).uniq
-    return_path = admin_grant_merges_path(query: params[:query].to_s)
+    return_path = admin_grant_merges_path(query: params[:query].to_s, user_id: user.id)
 
     if grant_ids.size != 2
       redirect_to return_path, alert: "Select exactly two different grants to merge."
@@ -85,13 +88,8 @@ class Admin::GrantMergesController < Admin::ApplicationController
 
   private
 
-  def require_orders_permission!
-    require_permission!("orders")
-  end
-
-  def find_user(query)
-    scope = User.kept
-    query.include?("@") ? scope.find_by("LOWER(email) = ?", query.downcase) : scope.find_by(slack_id: query)
+  def require_grant_merges_permission!
+    require_permission!("grant_merges")
   end
 
   def serialize_user(user)

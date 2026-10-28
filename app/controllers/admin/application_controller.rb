@@ -74,6 +74,7 @@ class Admin::ApplicationController < ApplicationController
       third_party: user.has_permission?("third_party"),
       support: user.has_permission?("support"),
       orders: user.has_permission?("orders"),
+      grant_merges: user.has_permission?("grant_merges"),
       referrals: user.has_permission?("referrals"),
       nda: user.has_permission?("nda"),
       contractor: user.has_permission?("contractor")
