@@ -10,7 +10,12 @@ function NdaGateLayout({ children }: { children: ReactNode }) {
   const [dark] = useAdminDark()
 
   return (
-    <div className={cn('admin bg-background text-foreground min-h-screen flex items-center justify-center p-6', dark && 'dark')}>
+    <div
+      className={cn(
+        'admin bg-background text-foreground min-h-screen flex items-center justify-center p-6',
+        dark && 'dark',
+      )}
+    >
       {children}
     </div>
   )

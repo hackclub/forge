@@ -30,5 +30,8 @@
     "check": "tsc -p tsconfig.json && tsc -p tsconfig.node.json",
     "format:check": "prettier --check 'app/javascript/**/*.{ts,tsx,js}'",
     "format": "prettier --write 'app/javascript/**/*.{ts,tsx,js}'"
+  },
+  "overrides": {
+    "postcss-selector-parser": ">=7.1.6"
   }
 }

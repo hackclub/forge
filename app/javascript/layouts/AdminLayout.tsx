@@ -50,7 +50,12 @@ export default function AdminLayout({ children, flush }: { children: ReactNode; 
           <div className="flex items-center gap-2 border-b border-amber-500/30 bg-amber-500/10 px-6 py-2 text-sm text-amber-600 dark:text-amber-400">
             <AlertTriangle className="size-4 shrink-0" />
             NDA bypass active — you're accessing Forge Admin without a verified NDA.{' '}
-            <a href="https://nda.hackclub.com/" target="_blank" rel="noreferrer" className="underline underline-offset-4">
+            <a
+              href="https://nda.hackclub.com/"
+              target="_blank"
+              rel="noreferrer"
+              className="underline underline-offset-4"
+            >
               Sign the NDA
             </a>
           </div>
