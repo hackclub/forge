@@ -230,8 +230,8 @@ export default function GuildsIndex({
                   recieve the coins based on how much you contributed to the guild!
                 </li>
                 <li>
-                  On top of that, the guild earns a small multiplier (up to 1.04×) on coin gains from projects and
-                  referral payouts, based on how many referrals the guild brought in that week.
+                  On top of that, the guild earns a small multiplier (up to 1.04×) on coin gains from projects, based on
+                  how many referrals the guild brought in that week.
                 </li>
                 <li>Stacking with the streak multiplier, the combined boost is capped at x1.30!</li>
               </ul>
