@@ -291,6 +291,7 @@ export default function AdminSidebar({
     third_party: false,
     support: false,
     orders: false,
+    grant_merges: false,
     referrals: false,
     nda: false,
     contractor: false,

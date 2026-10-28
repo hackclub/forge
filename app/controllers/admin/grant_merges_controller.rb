@@ -89,7 +89,7 @@ class Admin::GrantMergesController < Admin::ApplicationController
   private
 
   def require_grant_merges_permission!
-    require_permission!("grant_merges")
+    raise ActionController::RoutingError, "Not Found" unless current_user&.has_permission?("grant_merges") || current_user&.has_permission?("orders")
   end
 
   def serialize_user(user)
