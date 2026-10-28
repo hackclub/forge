@@ -50,12 +50,14 @@ function statusBadge(grant: Grant) {
 
 export default function AdminGrantMergesIndex({
   query,
+  matches,
   user,
   grants,
   not_found,
   hcb_connected,
 }: {
   query: string
+  matches: GrantUser[]
   user: GrantUser | null
   grants: Grant[]
   not_found: boolean
@@ -125,7 +127,7 @@ export default function AdminGrantMergesIndex({
               <Input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Email or Slack ID"
+                placeholder="Name, email or Slack ID"
                 autoFocus
               />
               <Button type="submit">
@@ -136,6 +138,36 @@ export default function AdminGrantMergesIndex({
             {not_found && <p className="text-sm text-amber-600 mt-2">No user matches “{query}”.</p>}
           </CardContent>
         </Card>
+
+        {matches.length > 1 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>{matches.length} matching users</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-1">
+              {matches.map((m) => (
+                <Link
+                  key={m.id}
+                  href={`/admin/grant_merges?${new URLSearchParams({ query, user_id: String(m.id) })}`}
+                  preserveState
+                  onClick={() => setSelected([])}
+                  className={cn(
+                    'flex items-center gap-3 rounded-md border p-2 transition-colors hover:bg-accent',
+                    user?.id === m.id ? 'border-primary bg-primary/5' : 'border-border',
+                  )}
+                >
+                  <img src={m.avatar} alt={m.display_name} className="size-8 rounded-full border border-border" />
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium">{m.display_name}</p>
+                    <p className="text-xs text-muted-foreground font-mono truncate">
+                      {m.email} · {m.slack_id}
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </CardContent>
+          </Card>
+        )}
 
         {user && (
           <Card>
