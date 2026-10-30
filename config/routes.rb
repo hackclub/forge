@@ -450,6 +450,11 @@ Rails.application.routes.draw do
       resource :nda, only: [ :show ], controller: "nda" do
         post :refresh
       end
+      get "spork" => "spork#index", as: :spork
+      post "spork/sweep" => "spork#sweep", as: :spork_sweep
+      post "spork/screen/:project_id" => "spork#screen", as: :spork_screen
+      post "spork/lookup" => "spork#lookup", as: :spork_lookup
+      get "spork/lookup/:token" => "spork#lookup_status", as: :spork_lookup_status
       get "metrics" => "metrics#index", as: :metrics
       get "airtable_sync" => "airtable_sync#index", as: :airtable_sync
       post "airtable_sync/recheck" => "airtable_sync#recheck", as: :airtable_sync_recheck
