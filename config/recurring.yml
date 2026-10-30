@@ -74,3 +74,8 @@ production:
     queue: background
     args: [ true ]
     schedule: "0 10 * * * America/New_York"
+
+  spork_sweep:
+    class: SporkSweepJob
+    queue: background
+    schedule: every day at 4am

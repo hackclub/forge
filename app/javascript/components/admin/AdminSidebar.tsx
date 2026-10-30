@@ -34,6 +34,7 @@ import {
   Users2,
   Import,
   Receipt,
+  ScanSearch,
 } from 'lucide-react'
 import type { SharedProps } from '@/types'
 import { cn } from './lib/cn'
@@ -146,6 +147,7 @@ function buildSections(): { items: NavItem[] }[] {
           statKey: 'flagged_projects',
           permission: 'fraud',
         },
+        { label: 'Spork', href: '/admin/spork', icon: ScanSearch, permission: 'fraud' },
         { label: 'Leaderboard', href: '/admin/reviews/leaderboard', icon: Trophy, permission: 'pending_reviews' },
         { label: 'My Contract', href: '/admin/my_contract', icon: FileText, permission: 'contractor' },
       ],

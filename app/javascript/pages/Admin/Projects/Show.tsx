@@ -39,6 +39,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/admin/ui/alert-dialog'
 import AdminReviewTimeline, { type ReviewEvent } from '@/components/admin/AdminReviewTimeline'
+import SporkCard, { type SporkCheckDetail } from '@/components/admin/SporkCard'
 import { cn } from '@/components/admin/lib/cn'
 import type { AdminProjectDetail, ProjectStatus, SharedProps } from '@/types'
 import { tierCoinRate } from '@/lib/tiers'
@@ -72,6 +73,7 @@ export default function AdminProjectsShow({
   notes,
   review_history,
   airtable_status,
+  spork,
   can,
 }: {
   project: AdminProjectDetail
@@ -84,6 +86,7 @@ export default function AdminProjectsShow({
   }[]
   review_history: ReviewEvent[]
   airtable_status: { in_airtable: boolean; record_id?: string; queue_status?: string }
+  spork: { enabled: boolean; check: SporkCheckDetail | null } | null
   can: { review: boolean; destroy: boolean; restore: boolean; reverse: boolean }
 }) {
   const isSuperadmin = !!usePage<SharedProps>().props.auth.user?.is_superadmin
@@ -768,6 +771,8 @@ export default function AdminProjectsShow({
               )}
             </CardContent>
           </Card>
+
+          {spork && <SporkCard projectId={project.id} enabled={spork.enabled} check={spork.check} />}
 
           {can.review && isPitchReview && (
             <Card>

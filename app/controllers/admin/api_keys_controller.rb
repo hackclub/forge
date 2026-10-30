@@ -24,6 +24,13 @@ class Admin::ApiKeysController < Admin::ApplicationController
       model: nil,
       setting_key: UnifiedDbService::PAT_SETTING,
       test: ->(token) { UnifiedDbService.test_connection!(token) }
+    },
+    "spork" => {
+      label: "Spork",
+      credential_source: -> { SporkService.enabled? ? "admin_key" : "none" },
+      model: nil,
+      setting_key: SporkService::API_KEY_SETTING,
+      test: ->(token) { SporkService.test_connection!(token) }
     }
   }.freeze
 

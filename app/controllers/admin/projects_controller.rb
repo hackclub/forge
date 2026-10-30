@@ -1,4 +1,6 @@
 class Admin::ProjectsController < Admin::ApplicationController
+  include SporkProps
+
   REVIEW_SCREEN_ACTIONS = %i[review repo_tree commit_stats changes_since_review ai_requirements_check ai_requirements_check_status check_draft_justification].freeze
 
   before_action :require_projects_permission!, except: REVIEW_SCREEN_ACTIONS + [ :unflag_for_review ]
@@ -60,6 +62,7 @@ class Admin::ProjectsController < Admin::ApplicationController
       notes: @notes.map { |n| serialize_note(n) },
       review_history: @project.admin_review_history.map { |e| serialize_review_event(e) },
       airtable_status: airtable_status,
+      spork: current_user.has_permission?("fraud") ? { enabled: SporkService.enabled?, check: spork_check_props(@project.spork_check) } : nil,
       can: { review: policy(@project).review?, destroy: policy(@project).destroy?, restore: policy(@project).restore?, reverse: policy(@project).review? && %w[approved returned rejected].include?(@project.status) }
     }
   end

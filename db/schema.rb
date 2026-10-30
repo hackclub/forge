@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_28_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_30_143345) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -737,6 +737,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_28_120000) do
     t.index ["key"], name: "index_solid_queue_semaphores_on_key", unique: true
   end
 
+  create_table "spork_checks", force: :cascade do |t|
+    t.datetime "checked_at"
+    t.datetime "created_at", null: false
+    t.text "error_message"
+    t.integer "match_count", default: 0, null: false
+    t.bigint "project_id", null: false
+    t.string "repo"
+    t.jsonb "results", default: [], null: false
+    t.jsonb "screen_errors", default: [], null: false
+    t.datetime "updated_at", null: false
+    t.string "verdict"
+    t.index ["project_id"], name: "index_spork_checks_on_project_id", unique: true
+    t.index ["verdict"], name: "index_spork_checks_on_verdict"
+  end
+
   create_table "streak_break_notices", force: :cascade do |t|
     t.date "broke_on", null: false
     t.datetime "created_at", null: false
@@ -937,6 +952,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_28_120000) do
   add_foreign_key "solid_queue_ready_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_recurring_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_scheduled_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
+  add_foreign_key "spork_checks", "projects"
   add_foreign_key "streak_break_notices", "users"
   add_foreign_key "streak_days", "users"
   add_foreign_key "user_login_days", "users"

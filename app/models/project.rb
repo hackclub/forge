@@ -118,6 +118,7 @@ class Project < ApplicationRecord
   has_many :collaborators, through: :project_collaborators, source: :user
   has_many :collaboration_invites, dependent: :destroy
   has_many :project_payouts, dependent: :destroy
+  has_one :spork_check, dependent: :destroy
   has_one_attached :cover_image
 
   after_commit :sync_to_airtable, on: [ :create, :update ], if: -> { approved? && saved_change_to_status? && !airtable_sent? }
@@ -167,6 +168,7 @@ class Project < ApplicationRecord
   # Shadow-banned projects stay fully visible everywhere, but their hours are
   # excluded from the public leaderboard and admin metrics aggregates.
   scope :not_shadow_banned, -> { where(shadow_banned: false) }
+  scope :with_github_repo, -> { where("projects.repo_link ILIKE ?", "%github.com/%") }
 
   def self.fair_feed
     all.sort_by { |p| -p.feed_score }
