@@ -86,7 +86,7 @@ export default function AdminProjectsShow({
   }[]
   review_history: ReviewEvent[]
   airtable_status: { in_airtable: boolean; record_id?: string; queue_status?: string }
-  spork: { enabled: boolean; check: SporkCheckDetail | null } | null
+  spork: { enabled: boolean; flagged: boolean; check: SporkCheckDetail | null } | null
   can: { review: boolean; destroy: boolean; restore: boolean; reverse: boolean }
 }) {
   const isSuperadmin = !!usePage<SharedProps>().props.auth.user?.is_superadmin
@@ -600,8 +600,8 @@ export default function AdminProjectsShow({
                           <div className="rounded-md border border-red-500/40 bg-red-500/10 p-2 text-xs text-red-700 dark:text-red-400">
                             <p className="font-bold">Content vanished</p>
                             <p className="mt-1">
-                              Entry body was lost in the database incident. Title and hours are intact — do not
-                              penalize the builder for this.
+                              Entry body was lost in the database incident. Title and hours are intact — do not penalize
+                              the builder for this.
                             </p>
                           </div>
                         )}
@@ -772,7 +772,15 @@ export default function AdminProjectsShow({
             </CardContent>
           </Card>
 
-          {spork && <SporkCard projectId={project.id} enabled={spork.enabled} check={spork.check} />}
+          {spork && (
+            <SporkCard
+              projectId={project.id}
+              projectName={project.name}
+              enabled={spork.enabled}
+              flagged={spork.flagged}
+              check={spork.check}
+            />
+          )}
 
           {can.review && isPitchReview && (
             <Card>

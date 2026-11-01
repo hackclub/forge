@@ -48,7 +48,9 @@ export default function ContractText({ rates }: { rates: ContractorRates }) {
             "Reviewer" means you, the individual signing this Agreement, and any other individual engaged by Hack Club
             HQ to review projects submitted to Forge.
           </li>
-          <li>"Forge" refers to the Hack Club event called Hack Club Forge, that can be found at forge.hackclub.com.</li>
+          <li>
+            "Forge" refers to the Hack Club event called Hack Club Forge, that can be found at forge.hackclub.com.
+          </li>
           <li>
             "Review" means one completed review of a User project submitted to Forge, carried out in accordance with
             Section 1.2 and tracked through the Forge platform.
@@ -125,8 +127,8 @@ export default function ContractText({ rates }: { rates: ContractorRates }) {
         </Clause>
         <Clause title="4.2 Taxes">
           <p>
-            Any honorariums or bonuses you receive are your responsibility to report for tax purposes. Hack Club will not
-            withhold taxes on your behalf.
+            Any honorariums or bonuses you receive are your responsibility to report for tax purposes. Hack Club will
+            not withhold taxes on your behalf.
           </p>
         </Clause>
       </Section>
@@ -227,9 +229,9 @@ export default function ContractText({ rates }: { rates: ContractorRates }) {
         </Clause>
         <Clause title="10.2 Termination">
           <p>
-            At Hack Club HQ's discretion, you will be terminated if it is found that you have committed a Code of Conduct
-            violation, have broken your Non-Disclosure Agreement or have not fulfilled your core responsibilities set out
-            in Section 1.2.
+            At Hack Club HQ's discretion, you will be terminated if it is found that you have committed a Code of
+            Conduct violation, have broken your Non-Disclosure Agreement or have not fulfilled your core
+            responsibilities set out in Section 1.2.
           </p>
         </Clause>
         <Clause title="10.3 Offboarding Obligations">

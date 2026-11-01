@@ -453,6 +453,11 @@ Rails.application.routes.draw do
       get "spork" => "spork#index", as: :spork
       post "spork/sweep" => "spork#sweep", as: :spork_sweep
       post "spork/screen/:project_id" => "spork#screen", as: :spork_screen
+      post "spork/innocent/:project_id" => "spork#innocent", as: :spork_innocent
+      post "spork/unmark_innocent/:project_id" => "spork#unmark_innocent", as: :spork_unmark_innocent
+      post "spork/checking/:project_id" => "spork#start_checking", as: :spork_start_checking
+      post "spork/stop_checking/:project_id" => "spork#stop_checking", as: :spork_stop_checking
+      post "spork/flag/:project_id" => "spork#flag", as: :spork_flag
       post "spork/lookup" => "spork#lookup", as: :spork_lookup
       get "spork/lookup/:token" => "spork#lookup_status", as: :spork_lookup_status
       get "metrics" => "metrics#index", as: :metrics

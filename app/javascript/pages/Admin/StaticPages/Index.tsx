@@ -163,7 +163,13 @@ export default function AdminStaticPagesIndex({
         </Section>
       )}
 
-      {(can('feature_flags') || can('audit_log') || can('nda') || can('jobs') || can('fraud') || is_admin || is_superadmin) && (
+      {(can('feature_flags') ||
+        can('audit_log') ||
+        can('nda') ||
+        can('jobs') ||
+        can('fraud') ||
+        is_admin ||
+        is_superadmin) && (
         <Section title="Engineering">
           {can('feature_flags') && (
             <Tile href="/admin/feature_flags" label="Feature Flags" icon={Flag} badge={counts.feature_flags} />

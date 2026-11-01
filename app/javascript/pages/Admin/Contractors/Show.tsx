@@ -123,7 +123,10 @@ export default function AdminContractorShow({
         totals={totals}
         extra={
           current_week
-            ? { label: `This week (${current_week.review_count} reviews)`, value: formatCents(current_week.total_cents) }
+            ? {
+                label: `This week (${current_week.review_count} reviews)`,
+                value: formatCents(current_week.total_cents),
+              }
             : undefined
         }
       />

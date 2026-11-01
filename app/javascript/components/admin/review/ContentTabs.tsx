@@ -216,7 +216,9 @@ export function ContentTabs({
                     </Fragment>
                   ))}
                   {entry.content_lost && <Badge variant="destructive">Content vanished</Badge>}
-                  {!entry.content_lost && !entry.meets_requirements && <Badge variant="warning">Below requirements</Badge>}
+                  {!entry.content_lost && !entry.meets_requirements && (
+                    <Badge variant="warning">Below requirements</Badge>
+                  )}
                   {!isGitJournal && <CopyDevlogLink url={`${origin}/projects/${project.id}/devlogs/${entry.id}`} />}
                 </div>
                 {openEntries.has(entry.id) ? (
