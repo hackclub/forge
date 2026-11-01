@@ -8,10 +8,15 @@ import { Input } from '@/components/admin/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/admin/ui/table'
 import AdminPagination from '@/components/admin/AdminPagination'
 import {
+  SporkActions,
   SporkCheckDetails,
+  SporkCheckingBadge,
+  SporkInnocentBadge,
   SporkMatchLink,
   SporkVerdictBadge,
   type SporkCheckDetail,
+  type SporkChecking,
+  type SporkInnocent,
   type SporkMatch,
   type SporkVerdict,
 } from '@/components/admin/SporkCard'
@@ -24,16 +29,20 @@ interface SporkRow {
   status: string
   repo_link: string | null
   user_display_name: string | null
+  flagged: boolean
   spork: {
     verdict: SporkVerdict
     match_count: number
     top_matches: (SporkMatch & { mode: string })[]
     error_message: string | null
     checked_at: string | null
+    innocent: SporkInnocent | null
+    checking: SporkChecking | null
   } | null
 }
 
 interface SporkStats {
+  queue: number
   screenable: number
   screened: number
   exclusive: number
@@ -49,8 +58,11 @@ type LookupState =
   | ({ status: 'done'; repo: string } & SporkCheckDetail)
 
 const filters = [
-  { key: 'hits', label: 'Hits' },
+  { key: 'queue', label: 'Queue' },
+  { key: 'checking', label: 'Checking' },
+  { key: 'hits', label: 'All hits' },
   { key: 'exclusive', label: 'Likely copied' },
+  { key: 'innocent', label: 'Innocent' },
   { key: 'failed', label: 'Failed' },
   { key: 'unscreened', label: 'Unscreened' },
   { key: 'all', label: 'All' },
@@ -173,7 +185,13 @@ export default function AdminSporkIndex({
         </Card>
       )}
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-xs text-muted-foreground uppercase tracking-wide">In queue</p>
+            <p className="text-2xl font-semibold mt-1">{stats.queue}</p>
+          </CardContent>
+        </Card>
         <Card>
           <CardContent className="p-4">
             <p className="text-xs text-muted-foreground uppercase tracking-wide">Screened</p>
@@ -305,7 +323,12 @@ export default function AdminSporkIndex({
                     </TableCell>
                     <TableCell>
                       <div className="space-y-1">
-                        <SporkVerdictBadge verdict={p.spork?.verdict} />
+                        <div className="flex items-center gap-1 flex-wrap">
+                          <SporkVerdictBadge verdict={p.spork?.verdict} />
+                          <SporkInnocentBadge innocent={p.spork?.innocent} />
+                          <SporkCheckingBadge checking={p.spork?.checking} />
+                          {p.flagged && <Badge variant="danger">Flagged</Badge>}
+                        </div>
                         {p.spork?.error_message && (
                           <p className="text-[11px] text-muted-foreground max-w-48 truncate">{p.spork.error_message}</p>
                         )}
@@ -325,9 +348,19 @@ export default function AdminSporkIndex({
                     </TableCell>
                     <TableCell className="text-muted-foreground text-xs">{p.spork?.checked_at || '—'}</TableCell>
                     <TableCell className="text-right">
-                      <Button variant="ghost" size="sm" onClick={() => screen(p.id)} disabled={!enabled}>
-                        Screen
-                      </Button>
+                      <div className="flex items-center justify-end gap-1">
+                        <SporkActions
+                          projectId={p.id}
+                          projectName={p.name}
+                          innocent={!!p.spork?.innocent}
+                          checking={p.spork?.checking ?? null}
+                          flagged={p.flagged}
+                          screened={!!p.spork}
+                        />
+                        <Button variant="ghost" size="sm" onClick={() => screen(p.id)} disabled={!enabled}>
+                          Screen
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}

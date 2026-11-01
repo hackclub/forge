@@ -49,6 +49,7 @@ interface AdminStats {
   pending_reviews_tier_4: number
   pending_requirements_checks: number
   flagged_projects: number
+  spork_queue: number
   projects: number
   users: number
   pending_orders: number
@@ -147,7 +148,7 @@ function buildSections(): { items: NavItem[] }[] {
           statKey: 'flagged_projects',
           permission: 'fraud',
         },
-        { label: 'Spork', href: '/admin/spork', icon: ScanSearch, permission: 'fraud' },
+        { label: 'Spork', href: '/admin/spork', icon: ScanSearch, statKey: 'spork_queue', permission: 'fraud' },
         { label: 'Leaderboard', href: '/admin/reviews/leaderboard', icon: Trophy, permission: 'pending_reviews' },
         { label: 'My Contract', href: '/admin/my_contract', icon: FileText, permission: 'contractor' },
       ],

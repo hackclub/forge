@@ -86,7 +86,7 @@ export default function AdminProjectsShow({
   }[]
   review_history: ReviewEvent[]
   airtable_status: { in_airtable: boolean; record_id?: string; queue_status?: string }
-  spork: { enabled: boolean; check: SporkCheckDetail | null } | null
+  spork: { enabled: boolean; flagged: boolean; check: SporkCheckDetail | null } | null
   can: { review: boolean; destroy: boolean; restore: boolean; reverse: boolean }
 }) {
   const isSuperadmin = !!usePage<SharedProps>().props.auth.user?.is_superadmin
@@ -772,7 +772,15 @@ export default function AdminProjectsShow({
             </CardContent>
           </Card>
 
-          {spork && <SporkCard projectId={project.id} enabled={spork.enabled} check={spork.check} />}
+          {spork && (
+            <SporkCard
+              projectId={project.id}
+              projectName={project.name}
+              enabled={spork.enabled}
+              flagged={spork.flagged}
+              check={spork.check}
+            />
+          )}
 
           {can.review && isPitchReview && (
             <Card>

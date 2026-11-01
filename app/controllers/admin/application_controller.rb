@@ -43,6 +43,7 @@ class Admin::ApplicationController < ApplicationController
         pending_reviews_tier_4: tier_counts["tier_4"].to_i,
         pending_requirements_checks: Project.kept.where(status: :pending).requirements_unchecked.count,
         flagged_projects: Project.kept.flagged_for_review.count,
+        spork_queue: SporkCheck.queued.count,
         projects: Project.kept.count,
         users: User.kept.count,
         pending_orders: Order.pending.count,
