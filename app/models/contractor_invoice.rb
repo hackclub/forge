@@ -9,7 +9,7 @@
 #  signed_at               :datetime
 #  signed_ip               :string
 #  signed_name             :string
-#  status                  :integer          default(0), not null
+#  status                  :integer          default("pending_signature"), not null
 #  total_cents             :integer          default(0), not null
 #  week_start              :date             not null
 #  created_at              :datetime         not null

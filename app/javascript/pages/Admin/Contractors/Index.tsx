@@ -62,7 +62,10 @@ export default function AdminContractorsIndex({
                 {contractors.map((c) => (
                   <TableRow key={c.id}>
                     <TableCell className="font-medium">
-                      <Link href={`/admin/contractors/${c.id}`} className="inline-flex items-center gap-2 hover:underline">
+                      <Link
+                        href={`/admin/contractors/${c.id}`}
+                        className="inline-flex items-center gap-2 hover:underline"
+                      >
                         <img src={c.avatar} alt="" className="size-6 rounded-full" />
                         {c.display_name}
                       </Link>

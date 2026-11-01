@@ -1,7 +1,13 @@
 import { Card, CardContent } from '@/components/admin/ui/card'
 import { formatCents, type InvoiceTotals } from './lib'
 
-export default function TotalsCards({ totals, extra }: { totals: InvoiceTotals; extra?: { label: string; value: string } }) {
+export default function TotalsCards({
+  totals,
+  extra,
+}: {
+  totals: InvoiceTotals
+  extra?: { label: string; value: string }
+}) {
   const cards = [
     ...(extra ? [extra] : []),
     { label: 'Awaiting signature', value: formatCents(totals.awaiting_signature_cents) },
