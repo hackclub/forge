@@ -1,4 +1,6 @@
 class Admin::MetricsController < Admin::ApplicationController
+  before_action :require_metrics_permission!
+
   COIN_USD_VALUE = 1.0
   TOP_COIN_HOLDERS_LIMIT = 100
   DEVLOG_DAY = "COALESCE(devlogs.entry_date, DATE(devlogs.created_at AT TIME ZONE 'UTC' AT TIME ZONE 'America/New_York'))".freeze
@@ -268,6 +270,10 @@ class Admin::MetricsController < Admin::ApplicationController
   end
 
   private
+
+  def require_metrics_permission!
+    require_permission!("metrics")
+  end
 
   def coin_totals_by_user
     kept_user_ids = User.kept.select(:id)

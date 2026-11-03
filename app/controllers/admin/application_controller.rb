@@ -71,6 +71,7 @@ class Admin::ApplicationController < ApplicationController
       ships: user.has_permission?("ships"),
       feature_flags: user.has_permission?("feature_flags"),
       audit_log: user.has_permission?("audit_log"),
+      metrics: user.has_permission?("metrics"),
       jobs: user.has_permission?("jobs"),
       third_party: user.has_permission?("third_party"),
       support: user.has_permission?("support"),

@@ -71,6 +71,7 @@ interface AdminPermissions {
   ships: boolean
   feature_flags: boolean
   audit_log: boolean
+  metrics: boolean
   jobs: boolean
   third_party: boolean
   support: boolean
@@ -196,7 +197,7 @@ function buildSections(): { items: NavItem[] }[] {
         { label: 'Slack Pings', href: '/admin/slack_pings', icon: MessageSquare, permission: 'is_admin' },
         { label: 'Review Audits', href: '/admin/review_audits', icon: Activity, permission: 'is_superadmin' },
         { label: 'NDA', href: '/admin/nda', icon: FileSignature, permission: 'nda' },
-        { label: 'Metrics', href: '/admin/metrics', icon: BarChart3, permission: 'audit_log' },
+        { label: 'Metrics', href: '/admin/metrics', icon: BarChart3, permission: 'metrics' },
         { label: 'Database', href: '/admin/database', icon: Database, permission: 'is_admin' },
         { label: 'API Keys', href: '/admin/api_keys', icon: Bot, permission: 'is_superadmin' },
         { label: 'Macondo Import', href: '/admin/macondo_import', icon: Import, permission: 'is_superadmin' },
@@ -290,6 +291,7 @@ export default function AdminSidebar({
     ships: false,
     feature_flags: false,
     audit_log: false,
+    metrics: false,
     jobs: false,
     third_party: false,
     support: false,

@@ -271,6 +271,7 @@ class User < ApplicationRecord
     ships
     feature_flags
     audit_log
+    metrics
     jobs
     third_party
     support
