@@ -165,6 +165,7 @@ export default function AdminStaticPagesIndex({
 
       {(can('feature_flags') ||
         can('audit_log') ||
+        can('metrics') ||
         can('nda') ||
         can('jobs') ||
         can('fraud') ||
@@ -174,7 +175,7 @@ export default function AdminStaticPagesIndex({
           {can('feature_flags') && (
             <Tile href="/admin/feature_flags" label="Feature Flags" icon={Flag} badge={counts.feature_flags} />
           )}
-          {can('audit_log') && <Tile href="/admin/metrics" label="Metrics" icon={BarChart3} />}
+          {can('metrics') && <Tile href="/admin/metrics" label="Metrics" icon={BarChart3} />}
           {can('audit_log') && <Tile href="/admin/audit_log" label="Audit Log" icon={ScrollText} />}
           {can('hackatime') && <Tile href="/admin/hackatime_bans" label="Hackatime Bans" icon={ShieldX} />}
           {can('nda') && <Tile href="/admin/nda" label="NDA" icon={FileSignature} />}

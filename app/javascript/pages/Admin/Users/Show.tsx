@@ -40,6 +40,7 @@ const permissionLabels: Record<string, string> = {
   ships: 'Build Reviews',
   feature_flags: 'Feature Flags',
   audit_log: 'Audit Log',
+  metrics: 'Metrics',
   jobs: 'Jobs',
   third_party: '3rd Party',
   support: 'Support Tickets',
