@@ -145,7 +145,7 @@ export default function AdminUsersShow({
   coins: CoinSummary
   coin_adjustments: CoinAdjustment[]
   hackatime: HackatimeInfo | null
-  can: { destroy: boolean; restore: boolean; impersonate: boolean; nda_bypass: boolean }
+  can: { destroy: boolean; restore: boolean; adjust_coins: boolean; impersonate: boolean; nda_bypass: boolean }
   available_roles: string[]
   available_permissions: string[]
   available_regions: Record<string, string>
@@ -656,42 +656,46 @@ export default function AdminUsersShow({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-            <Input
-              type="number"
-              step="0.01"
-              value={coinAmount}
-              onChange={(e) => setCoinAmount(e.target.value)}
-              placeholder="Amount (+ or -)"
-            />
-            <Input
-              type="text"
-              value={coinReason}
-              onChange={(e) => setCoinReason(e.target.value)}
-              placeholder="Reason"
-              className="md:col-span-2"
-            />
-          </div>
-          <Button
-            onClick={() => {
-              const amt = parseFloat(coinAmount)
-              if (!amt || !coinReason.trim()) return
-              router.post(
-                `/admin/users/${user.id}/adjust_coins`,
-                { amount: amt, reason: coinReason },
-                {
-                  onSuccess: () => {
-                    setCoinAmount('')
-                    setCoinReason('')
-                  },
-                },
-              )
-            }}
-            disabled={!coinAmount || !coinReason.trim()}
-            size="sm"
-          >
-            Apply Adjustment
-          </Button>
+          {can.adjust_coins && (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={coinAmount}
+                  onChange={(e) => setCoinAmount(e.target.value)}
+                  placeholder="Amount (+ or -)"
+                />
+                <Input
+                  type="text"
+                  value={coinReason}
+                  onChange={(e) => setCoinReason(e.target.value)}
+                  placeholder="Reason"
+                  className="md:col-span-2"
+                />
+              </div>
+              <Button
+                onClick={() => {
+                  const amt = parseFloat(coinAmount)
+                  if (!amt || !coinReason.trim()) return
+                  router.post(
+                    `/admin/users/${user.id}/adjust_coins`,
+                    { amount: amt, reason: coinReason },
+                    {
+                      onSuccess: () => {
+                        setCoinAmount('')
+                        setCoinReason('')
+                      },
+                    },
+                  )
+                }}
+                disabled={!coinAmount || !coinReason.trim()}
+                size="sm"
+              >
+                Apply Adjustment
+              </Button>
+            </>
+          )}
 
           <Separator />
 

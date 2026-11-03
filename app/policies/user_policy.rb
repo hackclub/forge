@@ -19,6 +19,14 @@ class UserPolicy < ApplicationPolicy
     admin? && record.discarded?
   end
 
+  def toggle_shop_unlocked?
+    has_users_permission?
+  end
+
+  def adjust_coins?
+    admin?
+  end
+
   class Scope < ApplicationPolicy::Scope
     def resolve
       if user&.has_permission?("users")
