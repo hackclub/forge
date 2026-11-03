@@ -37,7 +37,7 @@ class Admin::UsersController < Admin::ApplicationController
       },
       coin_adjustments: @user.coin_adjustments.includes(:actor).order(created_at: :desc).map { |a| serialize_adjustment(a) },
       hackatime: hackatime ? serialize_hackatime(hackatime) : nil,
-      can: { destroy: policy(@user).destroy?, restore: policy(@user).restore?, impersonate: !@user.staff?, nda_bypass: current_user.has_permission?("nda") },
+      can: { destroy: policy(@user).destroy?, restore: policy(@user).restore?, adjust_coins: policy(@user).adjust_coins?, impersonate: !@user.staff?, nda_bypass: current_user.has_permission?("nda") },
       available_roles: %w[user admin reviewer support fulfillment forge_ui],
       available_permissions: User::AVAILABLE_PERMISSIONS,
       available_regions: HasRegion::REGIONS,
@@ -120,7 +120,7 @@ class Admin::UsersController < Admin::ApplicationController
 
   def toggle_shop_unlocked
     @user = User.find(params[:id])
-    authorize @user, :update?
+    authorize @user
     @user.update!(shop_unlocked: !@user.shop_unlocked)
     audit!("user.shop_unlocked_toggled", target: @user, metadata: { shop_unlocked: @user.shop_unlocked })
     redirect_to admin_user_path(@user), notice: @user.shop_unlocked? ? "#{@user.display_name}'s shop access unlocked." : "#{@user.display_name}'s shop access locked."
@@ -223,7 +223,7 @@ class Admin::UsersController < Admin::ApplicationController
 
   def adjust_coins
     @user = User.find(params[:id])
-    authorize @user, :show?
+    authorize @user
 
     amount = params[:amount].to_f
     reason = params[:reason].to_s.strip
