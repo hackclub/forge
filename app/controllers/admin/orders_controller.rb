@@ -78,6 +78,7 @@ class Admin::OrdersController < Admin::ApplicationController
     @order.update!(status: :rejected, reviewer: current_user, reviewed_at: Time.current, review_notes: notes)
     audit!("order.rejected", target: @order, label: @order.kind_label, metadata: { reason: notes, coin_cost: @order.coin_cost.to_f })
     FulfillmentNotifyJob.perform_later(@order.id)
+    OrderDmJob.perform_later(@order.id)
     redirect_to admin_order_path(@order), notice: "Order rejected. Coins refunded to user."
   end
 
@@ -125,6 +126,7 @@ class Admin::OrdersController < Admin::ApplicationController
     end
 
     FulfillmentNotifyJob.perform_later(@order.id)
+    OrderDmJob.perform_later(@order.id)
     redirect_to admin_order_path(@order), notice: "Order marked fulfilled."
   end
 
