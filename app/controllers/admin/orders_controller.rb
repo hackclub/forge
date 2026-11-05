@@ -157,6 +157,7 @@ class Admin::OrdersController < Admin::ApplicationController
       via: "hcb_api"
     })
     FulfillmentNotifyJob.perform_later(@order.id)
+    OrderDmJob.perform_later(@order.id)
     redirect_to admin_order_path(@order), notice: "HCB grant created and order marked fulfilled."
   rescue HcbService::Error => e
     redirect_to admin_order_path(@order), alert: e.message
