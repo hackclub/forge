@@ -18,7 +18,7 @@ class ProjectsController < ApplicationController
 
     render inertia: "Projects/Show", props: {
       project: serialize_project_detail(@project),
-      devlogs: @project.devlogs.includes(:user).map { |d| serialize_devlog(d) },
+      devlogs: can_view_devlogs?(@project) ? @project.devlogs.includes(:user).map { |d| serialize_devlog(d) } : [],
       review_history: serialize_review_history(@project),
       is_admin_view: policy(@project).update? && @project.user_id != current_user&.id,
       can: {
@@ -30,7 +30,8 @@ class ProjectsController < ApplicationController
         manage_team: current_user.present? && policy(@project).manage_team?,
         create_subproject: current_user.present? && policy(@project).create_subproject?,
         leave: current_user.present? && @project.member?(current_user) && @project.user_id != current_user.id,
-        confirm_macondo_tier: current_user.present? && policy(@project).confirm_macondo_tier?
+        confirm_macondo_tier: current_user.present? && policy(@project).confirm_macondo_tier?,
+        view_rejected_devlogs: @project.rejected? && can_view_devlogs?(@project)
       },
       hackatime_enabled: HackatimeService.enabled?,
       pending_invites: policy(@project).manage_team? ? serialize_pending_invites(@project) : [],
@@ -643,6 +644,10 @@ class ProjectsController < ApplicationController
 
   def can_view_project_review?(project)
     current_user.present? && (project.member?(current_user) || current_user.staff?)
+  end
+
+  def can_view_devlogs?(project)
+    !project.rejected? || can_view_project_review?(project)
   end
 
   def serialize_payout(project)
