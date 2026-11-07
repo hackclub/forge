@@ -335,6 +335,7 @@ export default function ProjectsShow({
     create_subproject: boolean
     leave: boolean
     confirm_macondo_tier: boolean
+    view_rejected_devlogs: boolean
   }
   is_admin_view: boolean
   pending_invites: PendingInvite[]
@@ -728,8 +729,9 @@ export default function ProjectsShow({
   const isWebMode = project.devlog_mode === 'website'
   const canLog = isBuildingPhase
   const needsDevlogChoice = canLog && !project.devlog_mode && can.update
-  const showGitDevlog = canLog && isGitMode
-  const showWebDevlog = canLog && isWebMode
+  const canViewDevlogs = canLog || (can.view_rejected_devlogs && devlogs.length > 0)
+  const showGitDevlog = canViewDevlogs && isGitMode
+  const showWebDevlog = canViewDevlogs && isWebMode
   const showCoverUpload = can.update && canLog
   const isPitchReturn = isReturned && !isNormalTier && project.from_slack && devlogs.length === 0
 
@@ -1251,7 +1253,7 @@ export default function ProjectsShow({
                       </button>
                     </div>
                   )}
-                  {can.update && project.repo_link && (
+                  {can.update && canLog && project.repo_link && (
                     <>
                       {editingBranch ? (
                         <form onSubmit={saveBranch} className="flex items-center gap-1">
@@ -1332,7 +1334,7 @@ export default function ProjectsShow({
                 </div>
               )}
 
-              {!project.repo_link && can.update && (
+              {!project.repo_link && can.update && canLog && (
                 <div className="ghost-border bg-[#1c1b1b] p-8 text-center mb-6">
                   <span className="material-symbols-outlined text-3xl text-stone-700 mb-3">link_off</span>
                   <p className="text-stone-400 text-sm mb-4">
@@ -1584,7 +1586,7 @@ export default function ProjectsShow({
                       Export
                     </a>
                   )}
-                  {can.create_devlog && (
+                  {can.create_devlog && canLog && (
                     <button
                       onClick={() => setShowDevlogForm(!showDevlogForm)}
                       className="signature-smolder text-[#4c1a00] px-5 py-2 text-xs font-bold uppercase tracking-[0.15em] flex items-center gap-2 cursor-pointer"
