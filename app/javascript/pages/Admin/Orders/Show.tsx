@@ -21,7 +21,7 @@ import { Input } from '@/components/admin/ui/input'
 
 interface OrderDetail {
   id: number
-  kind: 'direct_grant' | 'shop_item' | 'supercon_ticket' | 'flight_reimbursement'
+  kind: 'direct_grant' | 'shop_item' | 'supercon_ticket' | 'flight_reimbursement' | 'referral_pin'
   kind_label: string
   status: 'pending' | 'approved' | 'fulfilled' | 'rejected'
   quantity: number
@@ -140,7 +140,9 @@ export default function AdminOrdersShow({
   const [grantLink, setGrantLink] = useState('')
   const [creatingGrant, setCreatingGrant] = useState(false)
   const [grantSearch, setGrantSearch] = useState('')
-  const [fulfillmentMethod, setFulfillmentMethod] = useState<'grant' | 'physical_product'>('grant')
+  const [fulfillmentMethod, setFulfillmentMethod] = useState<'grant' | 'physical_product'>(
+    order.kind === 'referral_pin' ? 'physical_product' : 'grant',
+  )
   const [shippingScreenshot, setShippingScreenshot] = useState<File | null>(null)
   const [screenshotPreviewUrl, setScreenshotPreviewUrl] = useState<string | null>(null)
   const [dragOver, setDragOver] = useState(false)
@@ -189,7 +191,8 @@ export default function AdminOrdersShow({
   }
 
   function fulfill() {
-    const method = order.kind === 'shop_item' ? fulfillmentMethod : 'grant'
+    const method =
+      order.kind === 'referral_pin' ? 'physical_product' : order.kind === 'shop_item' ? fulfillmentMethod : 'grant'
 
     if (method === 'physical_product') {
       if (!shippingScreenshot) {
@@ -372,7 +375,7 @@ export default function AdminOrdersShow({
           </Card>
         )}
 
-        {order.kind === 'shop_item' && (
+        {(order.kind === 'shop_item' || order.kind === 'referral_pin') && (
           <Card>
             <CardHeader>
               <CardTitle>Shipping address</CardTitle>

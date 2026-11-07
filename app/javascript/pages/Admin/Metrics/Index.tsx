@@ -104,6 +104,7 @@ interface Referrals {
   eligible: number
   pending: number
   conversion_percent: number
+  pins_earned: number
 }
 
 interface Payouts {
@@ -143,12 +144,6 @@ interface TopCoinHolder {
   earned: number
   adjusted: number
   spent: number
-}
-
-interface ReferralEconomy {
-  count: number
-  per_unit: number
-  total_coins: number
 }
 
 interface ReelEconomy {
@@ -276,7 +271,6 @@ export default function AdminMetricsIndex({
   tier_breakdown,
   coin_economy,
   top_coin_holders,
-  referral_economy,
   reel_economy,
   location_distribution,
   reviews,
@@ -296,7 +290,6 @@ export default function AdminMetricsIndex({
   tier_breakdown: TierRow[]
   coin_economy: CoinEconomy
   top_coin_holders: TopCoinHolder[]
-  referral_economy: ReferralEconomy
   reel_economy: ReelEconomy
   location_distribution: LocationDistribution
   reviews: ReviewStats
@@ -519,12 +512,13 @@ export default function AdminMetricsIndex({
         <h2 className="text-sm font-semibold tracking-wide uppercase text-muted-foreground">
           Referrals — last {range_days} days
         </h2>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
           <Stat label="Total" value={referrals.total} />
           <Stat label="Approved" value={referrals.approved} accent />
           <Stat label="Eligible" value={referrals.eligible} />
           <Stat label="Pending" value={referrals.pending} />
           <Stat label="Conversion" value={`${referrals.conversion_percent}%`} hint="approved / total" />
+          <Stat label="Pins earned" value={referrals.pins_earned} />
         </div>
       </div>
 
@@ -638,14 +632,6 @@ export default function AdminMetricsIndex({
                   <TableCell className="font-mono">{t.effective_rate}</TableCell>
                 </TableRow>
               ))}
-              <TableRow>
-                <TableCell className="font-medium">referrals</TableCell>
-                <TableCell className="font-mono">{referral_economy.per_unit}</TableCell>
-                <TableCell>{referral_economy.count}</TableCell>
-                <TableCell className="text-muted-foreground">—</TableCell>
-                <TableCell className="font-semibold">{referral_economy.total_coins}</TableCell>
-                <TableCell className="text-muted-foreground">—</TableCell>
-              </TableRow>
               <TableRow>
                 <TableCell className="font-medium">reels</TableCell>
                 <TableCell

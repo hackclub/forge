@@ -32,8 +32,7 @@
 #  fk_rails_...  (referrer_id => users.id)
 #
 class Referral < ApplicationRecord
-  PAYOUT_AMOUNT = 0.25
-  PRIZE_POOL_CONTRIBUTION = 0.1
+  PIN_THRESHOLD = 10
 
   has_paper_trail
 
@@ -58,20 +57,12 @@ class Referral < ApplicationRecord
     update!(status: :eligible, qualifying_project: project, eligible_at: Time.current)
   end
 
-  def approve!(actor:, force: false)
-    return if approved?
-    return unless force || eligible?
+  def approve!(actor:)
+    return unless eligible?
 
     transaction do
-      guild_multiplier = GuildState.multiplier_for(referrer.guild)
-      amount = (PAYOUT_AMOUNT * guild_multiplier).round(2)
-      adjustment = referrer.coin_adjustments.create!(
-        actor: actor,
-        amount: amount,
-        reason: "Referral payout for #{referred.display_name}"
-      )
-      ReferralPrizePool.instance.contribute!(PRIZE_POOL_CONTRIBUTION)
-      update!(status: :approved, approver: actor, approved_at: Time.current, payout_adjustment: adjustment)
+      update!(status: :approved, approver: actor, approved_at: Time.current)
+      ReferralPin.award_due!(referrer)
     end
   end
 
