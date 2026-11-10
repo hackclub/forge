@@ -202,7 +202,7 @@ const EMBERS = [
 const POPUP_META: Record<PopupId, { title: string; icon: string; size: ForgePopupSize }> = {
   projects: { title: 'Your Projects', icon: 'precision_manufacturing', size: 'lg' },
   shipping: { title: 'Ship a Project', icon: 'local_fire_department', size: 'md' },
-  faq: { title: 'Resources', icon: 'menu_book', size: 'lg' },
+  faq: { title: 'Resources', icon: 'menu_book', size: 'wide' },
   explore: { title: 'Explore the Forge', icon: 'explore', size: 'xl' },
   leaderboard: { title: 'Leaderboard', icon: 'emoji_events', size: 'lg' },
   shop: { title: 'The Shop', icon: 'storefront', size: 'xl' },

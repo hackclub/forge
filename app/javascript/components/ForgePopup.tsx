@@ -6,6 +6,7 @@ const SIZES = {
   md: 'max-w-2xl',
   lg: 'max-w-4xl',
   xl: 'max-w-6xl',
+  wide: 'max-w-[80vw]',
 } as const
 
 export type ForgePopupSize = keyof typeof SIZES
