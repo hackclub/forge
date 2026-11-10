@@ -15,12 +15,13 @@ class RsvpsController < ApplicationController
     render inertia: "Rsvp/Referral", props: {
       referral_code: current_user.referral_code,
       referral_url: "#{ENV.fetch('APP_URL', request.base_url)}/auth/hca/start?ref=#{current_user.referral_code}",
+      pin_threshold: Referral::PIN_THRESHOLD,
       stats: {
         total: referrals.size,
         pending: referrals.count(&:pending?),
         eligible: referrals.count(&:eligible?),
         approved: referrals.count(&:approved?),
-        earned: (referrals.count(&:approved?) * Referral::PAYOUT_AMOUNT).round(2)
+        pins_earned: current_user.referral_pins.count
       },
       referrals: referrals.map { |r|
         {

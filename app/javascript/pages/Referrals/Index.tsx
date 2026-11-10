@@ -7,7 +7,14 @@ interface ReferralRow {
   display_name: string
   avatar: string
   created_at: string
-  payout: number | null
+}
+
+interface PinRow {
+  id: number
+  milestone: number
+  status: 'pending' | 'shipped'
+  earned_at: string
+  shipped_at: string | null
 }
 
 interface Stats {
@@ -15,13 +22,14 @@ interface Stats {
   pending: number
   eligible: number
   approved: number
-  earned: number
+  pins_earned: number
+  progress: number
 }
 
 const STATUS_LABEL: Record<string, string> = {
   pending: 'Signed Up',
-  eligible: 'Approved (payout pending)',
-  approved: 'Paid Out',
+  eligible: 'Shipped (verifying)',
+  approved: 'Counted',
 }
 
 const STATUS_STYLES: Record<string, string> = {
@@ -33,15 +41,20 @@ const STATUS_STYLES: Record<string, string> = {
 export default function ReferralsIndex({
   referral_code,
   referral_url,
+  pin_threshold,
   stats,
   referrals,
+  pins,
 }: {
   referral_code: string
   referral_url: string
+  pin_threshold: number
   stats: Stats
   referrals: ReferralRow[]
+  pins: PinRow[]
 }) {
   const [copied, setCopied] = useState(false)
+  const remaining = pin_threshold - stats.progress
 
   function copyLink() {
     navigator.clipboard.writeText(referral_url)
@@ -56,7 +69,8 @@ export default function ReferralsIndex({
         <div className="mb-8">
           <h1 className="text-4xl font-headline font-bold text-[#ca5924] tracking-tight">Referrals</h1>
           <p className="text-stone-500 text-sm mt-1">
-            Share your code. When they ship their first project, you earn 0.25 coins + a prize pool ticket.
+            Share your link. Every {pin_threshold} people who sign up with it and ship a project earns you a custom
+            Forge pin, shipped to you for free. No limit.
           </p>
         </div>
 
@@ -77,12 +91,57 @@ export default function ReferralsIndex({
           <p className="text-stone-600 text-xs mt-3 break-all">{referral_url}</p>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
-          <Stat label="Total" value={stats.total} />
-          <Stat label="Pending" value={stats.pending} />
-          <Stat label="Approved" value={stats.eligible + stats.approved} />
-          <Stat label="Earned" value={`${stats.earned.toFixed(2)}c`} accent />
+        <div className="ghost-border bg-[#1c1b1b] border border-[#ca5924]/30 p-6 mb-6">
+          <div className="flex items-end justify-between gap-4 mb-3">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-stone-500 mb-1">Next pin</p>
+              <p className="font-headline font-bold text-2xl text-[#e5e2e1]">
+                {stats.progress}
+                <span className="text-stone-500 text-base"> / {pin_threshold}</span>
+              </p>
+            </div>
+            <p className="text-stone-500 text-xs text-right">
+              {remaining} more {remaining === 1 ? 'referral' : 'referrals'} to your next pin
+            </p>
+          </div>
+          <div className="h-2 bg-[#0e0e0e] overflow-hidden">
+            <div
+              className="h-full signature-smolder transition-all"
+              style={{ width: `${(stats.progress / pin_threshold) * 100}%` }}
+            />
+          </div>
         </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+          <Stat label="Signed Up" value={stats.total} />
+          <Stat label="Shipped" value={stats.eligible + stats.approved} />
+          <Stat label="Counted" value={stats.approved} />
+          <Stat label="Pins Earned" value={stats.pins_earned} accent />
+        </div>
+
+        {pins.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-[10px] font-bold uppercase tracking-[0.25em] text-stone-500 mb-3">Your Pins</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+              {pins.map((pin) => (
+                <div key={pin.id} className="ghost-border bg-[#1c1b1b] p-4 flex items-center gap-3">
+                  <span className="material-symbols-outlined text-[#ffb595] text-3xl">workspace_premium</span>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-headline font-bold text-[#e5e2e1] text-sm">{pin.milestone} referrals</p>
+                    <p className="text-stone-600 text-xs">Earned {pin.earned_at}</p>
+                  </div>
+                  <span
+                    className={`text-[10px] font-bold uppercase tracking-wider ${
+                      pin.status === 'shipped' ? 'text-emerald-400' : 'text-amber-400'
+                    }`}
+                  >
+                    {pin.status === 'shipped' ? `Shipped ${pin.shipped_at}` : 'Preparing'}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="mb-3">
           <h2 className="text-[10px] font-bold uppercase tracking-[0.25em] text-stone-500">Your Referrals</h2>
@@ -90,7 +149,7 @@ export default function ReferralsIndex({
 
         {referrals.length > 0 ? (
           <div className="ghost-border overflow-x-auto">
-            <table className="w-full min-w-[560px]">
+            <table className="w-full min-w-[480px]">
               <thead>
                 <tr className="border-b border-white/5">
                   <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">
@@ -101,9 +160,6 @@ export default function ReferralsIndex({
                   </th>
                   <th className="text-left px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">
                     Joined
-                  </th>
-                  <th className="text-right px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-600">
-                    Payout
                   </th>
                 </tr>
               </thead>
@@ -131,13 +187,6 @@ export default function ReferralsIndex({
                       </span>
                     </td>
                     <td className="px-5 py-3 text-stone-500 text-xs">{r.created_at}</td>
-                    <td className="px-5 py-3 text-right font-mono text-sm">
-                      {r.payout != null ? (
-                        <span className="text-[#ffb595]">+{r.payout.toFixed(2)}c</span>
-                      ) : (
-                        <span className="text-stone-600">-</span>
-                      )}
-                    </td>
                   </tr>
                 ))}
               </tbody>
