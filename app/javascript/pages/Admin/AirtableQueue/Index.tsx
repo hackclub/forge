@@ -44,12 +44,14 @@ export default function AdminAirtableQueueIndex({
   pagy,
   filters,
   counts,
+  hours_pending,
   airtable_enabled,
 }: {
   items: QueueItem[]
   pagy: PagyProps
   filters: { status: string }
   counts: { pending: number; sent: number; failed: number; cancelled: number }
+  hours_pending: number
   airtable_enabled: boolean
 }) {
   function applyFilter(value: string) {
@@ -73,7 +75,7 @@ export default function AdminAirtableQueueIndex({
         </Card>
       )}
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         {(['pending', 'sent', 'failed', 'cancelled'] as Status[]).map((s) => (
           <Card key={s} className={filters.status === s ? 'ring-2 ring-ring' : ''}>
             <CardContent className="p-4">
@@ -82,6 +84,12 @@ export default function AdminAirtableQueueIndex({
             </CardContent>
           </Card>
         ))}
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Hours pending</p>
+            <p className="text-2xl font-semibold">{hours_pending.toLocaleString()}h</p>
+          </CardContent>
+        </Card>
       </div>
 
       <div className="flex gap-2 flex-wrap">
