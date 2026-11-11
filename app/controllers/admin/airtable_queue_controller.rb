@@ -16,6 +16,7 @@ class Admin::AirtableQueueController < Admin::ApplicationController
         failed: AirtableQueueItem.failed.count,
         cancelled: AirtableQueueItem.cancelled.count
       },
+      hours_pending: AirtableQueueItem.pending.sum("(payload->>'Optional - Override Hours Spent')::numeric").to_f.round(1),
       airtable_enabled: AirtableService.enabled?
     }
   end
