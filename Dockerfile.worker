@@ -5,7 +5,7 @@
 # Uses the same build stage as the main Dockerfile.
 
 ARG RUBY_VERSION=3.4.13
-FROM docker.io/library/ruby:$RUBY_VERSION-slim AS base
+FROM docker.io/library/ruby:$RUBY_VERSION-slim-bookworm AS base
 
 WORKDIR /rails
 
