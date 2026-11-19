@@ -14,13 +14,13 @@ interface Stats {
   pending: number
   eligible: number
   approved: number
-  earned: number
+  pins_earned: number
 }
 
 const STATUS_LABEL: Record<string, string> = {
   pending: 'Signed up',
-  eligible: 'Approved (your payout is pending)',
-  approved: 'Paid out',
+  eligible: 'Shipped (verifying)',
+  approved: 'Counted',
 }
 
 const STATUS_STYLES: Record<string, string> = {
@@ -32,11 +32,13 @@ const STATUS_STYLES: Record<string, string> = {
 export default function RsvpReferral({
   referral_code,
   referral_url,
+  pin_threshold,
   stats,
   referrals,
 }: {
   referral_code: string
   referral_url: string
+  pin_threshold: number
   stats: Stats
   referrals: ReferralRow[]
 }) {
@@ -77,11 +79,11 @@ export default function RsvpReferral({
               <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tighter leading-[0.95] mb-4">
                 Refer a friend!
                 <br />
-                <span className="text-[#ca5924]">Get paid</span>
+                <span className="text-[#ca5924]">Earn a Forge pin</span>
               </h1>
               <p className="text-stone-400 text-sm md:text-base max-w-lg mx-auto">
-                Share your code. When they sign up and ship their first project, you earn 0.25 coins + a ticket into the
-                prize pool draw.
+                Share your code. Every {pin_threshold} people who sign up with it and ship a project earns you a custom
+                Forge pin, shipped to you for free. No limit.
               </p>
             </div>
 
@@ -107,8 +109,8 @@ export default function RsvpReferral({
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
               <Stat label="Total" value={stats.total} />
               <Stat label="Pending" value={stats.pending} />
-              <Stat label="Shipped" value={stats.eligible} accent />
-              <Stat label="Earned" value={`${stats.earned.toFixed(2)}c`} accent />
+              <Stat label="Shipped" value={stats.eligible + stats.approved} accent />
+              <Stat label="Pins Earned" value={stats.pins_earned} accent />
             </div>
 
             <div>

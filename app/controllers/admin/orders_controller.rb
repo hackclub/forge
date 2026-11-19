@@ -83,7 +83,13 @@ class Admin::OrdersController < Admin::ApplicationController
   end
 
   def fulfill
-    method = @order.shop_item? ? params[:fulfillment_method].to_s.presence || "grant" : "grant"
+    method = if @order.referral_pin?
+      "physical_product"
+    elsif @order.shop_item?
+      params[:fulfillment_method].to_s.presence || "grant"
+    else
+      "grant"
+    end
 
     case method
     when "physical_product"
@@ -271,7 +277,7 @@ class Admin::OrdersController < Admin::ApplicationController
   end
 
   def shipping_address(order)
-    return nil unless order.shop_item?
+    return nil unless order.physical?
 
     user = order.user
     return nil if user.address_line1.blank?

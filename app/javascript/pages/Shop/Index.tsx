@@ -30,7 +30,7 @@ interface ShopItem {
 
 interface Order {
   id: number
-  kind: 'direct_grant' | 'shop_item' | 'supercon_ticket' | 'flight_reimbursement'
+  kind: 'direct_grant' | 'shop_item' | 'supercon_ticket' | 'flight_reimbursement' | 'referral_pin'
   kind_label: string
   status: 'pending' | 'approved' | 'fulfilled' | 'rejected'
   quantity: number

@@ -2,7 +2,7 @@ import { router, Link } from '@inertiajs/react'
 import { ArrowLeft, CheckCheck } from 'lucide-react'
 import { Badge } from '@/components/admin/ui/badge'
 import { Button } from '@/components/admin/ui/button'
-import { Card, CardContent } from '@/components/admin/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/admin/ui/card'
 
 interface Referral {
   id: number
@@ -14,14 +14,24 @@ interface Referral {
   created_at: string
 }
 
-interface Stats {
-  total_unique_referrals: number
-  approved_count: number
-  eligible_count: number
-  pending_count: number
-  prize_pool: number
-  total_paid_out_to_pool: number
-  total_referral_spend: number
+interface Pin {
+  id: number
+  milestone: number
+  order_id: number
+  order_status: 'pending' | 'approved' | 'fulfilled' | 'rejected'
+  earned_at: string
+  shipped_at: string | null
+}
+
+function pinBadge(status: Pin['order_status']) {
+  switch (status) {
+    case 'fulfilled':
+      return <Badge variant="success">Shipped</Badge>
+    case 'rejected':
+      return <Badge variant="danger">Rejected</Badge>
+    default:
+      return <Badge variant="warning">Awaiting shipment</Badge>
+  }
 }
 
 function statusBadge(status: Referral['status']) {
@@ -49,16 +59,19 @@ function StatCard({ label, value }: { label: string; value: string | number }) {
 export default function AdminReferralsShow({
   user,
   referrals,
-  stats,
+  pins,
+  pin_threshold,
 }: {
   user: { id: number; display_name: string; avatar: string; referral_code: string }
   referrals: Referral[]
-  stats: Stats
+  pins: Pin[]
+  pin_threshold: number
 }) {
   const eligibleCount = referrals.filter((r) => r.status === 'eligible').length
+  const approvedCount = referrals.filter((r) => r.status === 'approved').length
 
   function approveOne(id: number) {
-    if (!confirm('Approve this referral and pay out the referrer?')) return
+    if (!confirm('Approve this referral? It will count toward a Forge pin.')) return
     router.post(`/admin/referrals/approve/${id}`)
   }
 
@@ -93,11 +106,40 @@ export default function AdminReferralsShow({
         )}
       </div>
 
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <StatCard label="Total" value={referrals.length} />
         <StatCard label="Eligible" value={eligibleCount} />
-        <StatCard label="Approved" value={referrals.filter((r) => r.status === 'approved').length} />
+        <StatCard label="Approved" value={approvedCount} />
+        <StatCard label="Next pin" value={`${approvedCount % pin_threshold} / ${pin_threshold}`} />
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Pins</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {pins.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No pins earned yet.</p>
+          ) : (
+            <div className="space-y-2">
+              {pins.map((pin) => (
+                <div key={pin.id} className="flex items-center gap-3 border rounded-md p-3">
+                  <div className="flex-1 min-w-0">
+                    <Link href={`/admin/orders/${pin.order_id}`} className="font-medium hover:underline">
+                      {pin.milestone}-referral pin
+                    </Link>
+                    <p className="text-xs text-muted-foreground">
+                      Earned {pin.earned_at}
+                      {pin.shipped_at && ` · Shipped ${pin.shipped_at}`}
+                    </p>
+                  </div>
+                  {pinBadge(pin.order_status)}
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {referrals.length === 0 ? (
         <Card>
@@ -142,8 +184,8 @@ export default function AdminReferralsShow({
       )}
 
       <p className="text-xs text-muted-foreground">
-        Approved referrals pay out 0.25c to the referrer and add 0.1c to the prize pool ({stats.prize_pool.toFixed(2)}c
-        current).
+        Every {pin_threshold} approved referrals automatically creates a Forge pin order, which is shipped through the
+        orders queue.
       </p>
     </div>
   )
