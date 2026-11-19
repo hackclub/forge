@@ -17,6 +17,7 @@
 #             heartbeat_admin_review_session PATCH  /admin/review_sessions/:id/heartbeat(.:format)                                                    admin/review_sessions#heartbeat
 #               release_admin_review_session POST   /admin/review_sessions/:id/release(.:format)                                                      admin/review_sessions#release
 #                       review_admin_project POST   /admin/projects/:id/review(.:format)                                                              admin/projects#review
+#    check_draft_justification_admin_project POST   /admin/projects/:id/check_draft_justification(.:format)                                           admin/projects#check_draft_justification
 #                      restore_admin_project POST   /admin/projects/:id/restore(.:format)                                                             admin/projects#restore
 #                toggle_hidden_admin_project POST   /admin/projects/:id/toggle_hidden(.:format)                                                       admin/projects#toggle_hidden
 #            toggle_shadow_ban_admin_project POST   /admin/projects/:id/toggle_shadow_ban(.:format)                                                   admin/projects#toggle_shadow_ban
@@ -57,6 +58,7 @@
 #                    coin_history_admin_user GET    /admin/users/:id/coin_history(.:format)                                                           admin/users#coin_history
 #            toggle_shop_unlocked_admin_user POST   /admin/users/:id/toggle_shop_unlocked(.:format)                                                   admin/users#toggle_shop_unlocked
 #       toggle_maintenance_bypass_admin_user POST   /admin/users/:id/toggle_maintenance_bypass(.:format)                                              admin/users#toggle_maintenance_bypass
+#               toggle_nda_bypass_admin_user POST   /admin/users/:id/toggle_nda_bypass(.:format)                                                      admin/users#toggle_nda_bypass
 #               toggle_bypass_idv_admin_user POST   /admin/users/:id/toggle_bypass_idv(.:format)                                                      admin/users#toggle_bypass_idv
 #                        sync_idv_admin_user POST   /admin/users/:id/sync_idv(.:format)                                                               admin/users#sync_idv
 #          generate_referral_code_admin_user POST   /admin/users/:id/generate_referral_code(.:format)                                                 admin/users#generate_referral_code
@@ -81,7 +83,9 @@
 #                        approve_admin_order POST   /admin/orders/:id/approve(.:format)                                                               admin/orders#approve
 #                         reject_admin_order POST   /admin/orders/:id/reject(.:format)                                                                admin/orders#reject
 #                        fulfill_admin_order POST   /admin/orders/:id/fulfill(.:format)                                                               admin/orders#fulfill
+#                   create_grant_admin_order POST   /admin/orders/:id/create_grant(.:format)                                                          admin/orders#create_grant
 #                       reassign_admin_order POST   /admin/orders/:id/reassign(.:format)                                                              admin/orders#reassign
+#            shipping_screenshot_admin_order GET    /admin/orders/:id/shipping_screenshot(.:format)                                                   admin/orders#shipping_screenshot
 #                               admin_orders GET    /admin/orders(.:format)                                                                           admin/orders#index
 #                                admin_order GET    /admin/orders/:id(.:format)                                                                       admin/orders#show
 #                           admin_shop_items GET    /admin/shop_items(.:format)                                                                       admin/shop_items#index
@@ -89,6 +93,20 @@
 #                            admin_shop_item PATCH  /admin/shop_items/:id(.:format)                                                                   admin/shop_items#update
 #                                            PUT    /admin/shop_items/:id(.:format)                                                                   admin/shop_items#update
 #                                            DELETE /admin/shop_items/:id(.:format)                                                                   admin/shop_items#destroy
+#                     sign_admin_my_contract POST   /admin/my_contract/sign(.:format)                                                                 admin/my_contract#sign
+#                          admin_my_contract GET    /admin/my_contract(.:format)                                                                      admin/my_contract#show
+#             mark_all_paid_admin_contractor POST   /admin/contractors/:id/mark_all_paid(.:format)                                                    admin/contractors#mark_all_paid
+#                          admin_contractors GET    /admin/contractors(.:format)                                                                      admin/contractors#index
+#                           admin_contractor GET    /admin/contractors/:id(.:format)                                                                  admin/contractors#show
+#                 admin_contractor_agreement GET    /admin/contractor_agreements/:id(.:format)                                                        admin/contractor_agreements#show
+#                                            PATCH  /admin/contractor_agreements/:id(.:format)                                                        admin/contractor_agreements#update
+#                                            PUT    /admin/contractor_agreements/:id(.:format)                                                        admin/contractor_agreements#update
+#              sign_admin_contractor_invoice POST   /admin/contractor_invoices/:id/sign(.:format)                                                     admin/contractor_invoices#sign
+#         mark_paid_admin_contractor_invoice POST   /admin/contractor_invoices/:id/mark_paid(.:format)                                                admin/contractor_invoices#mark_paid
+#                   admin_contractor_invoice GET    /admin/contractor_invoices/:id(.:format)                                                          admin/contractor_invoices#show
+#                                            DELETE /admin/contractor_invoices/:id(.:format)                                                          admin/contractor_invoices#destroy
+#                         admin_grant_merges GET    /admin/grant_merges(.:format)                                                                     admin/grant_merges#index
+#                                            POST   /admin/grant_merges(.:format)                                                                     admin/grant_merges#create
 #                         export_admin_rsvps GET    /admin/rsvps/export(.:format)                                                                     admin/rsvps#export
 #                                admin_rsvps GET    /admin/rsvps(.:format)                                                                            admin/rsvps#index
 #                                 admin_rsvp DELETE /admin/rsvps/:id(.:format)                                                                        admin/rsvps#destroy
@@ -110,6 +128,9 @@
 #               refresh_admin_hackatime_bans POST   /admin/hackatime_bans/refresh(.:format)                                                           admin/hackatime_bans#refresh
 #               ban_all_admin_hackatime_bans POST   /admin/hackatime_bans/ban_all(.:format)                                                           admin/hackatime_bans#ban_all
 #                       admin_hackatime_bans GET    /admin/hackatime_bans(.:format)                                                                   admin/hackatime_bans#index
+#                            admin_nda_check POST   /admin/nda_check(.:format)                                                                        admin/nda_checks#create
+#                          refresh_admin_nda POST   /admin/nda/refresh(.:format)                                                                      admin/nda#refresh
+#                                  admin_nda GET    /admin/nda(.:format)                                                                              admin/nda#show
 #                              admin_metrics GET    /admin/metrics(.:format)                                                                          admin/metrics#index
 #                        admin_airtable_sync GET    /admin/airtable_sync(.:format)                                                                    admin/airtable_sync#index
 #                admin_airtable_sync_recheck POST   /admin/airtable_sync/recheck(.:format)                                                            admin/airtable_sync#recheck
@@ -125,6 +146,8 @@
 #                      admin_audit_log_entry GET    /admin/audit_log/:id(.:format)                                                                    admin/audit_log#show
 #                             admin_database GET    /admin/database(.:format)                                                                         admin/database#index
 #                       admin_database_query POST   /admin/database/query(.:format)                                                                   admin/database#query
+#                       admin_macondo_import GET    /admin/macondo_import(.:format)                                                                   admin/macondo_imports#show
+#                                            POST   /admin/macondo_import(.:format)                                                                   admin/macondo_imports#create
 #                             admin_api_keys GET    /admin/api_keys(.:format)                                                                         admin/api_keys#index
 #                              admin_api_key POST   /admin/api_keys/:id(.:format)                                                                     admin/api_keys#update
 #                         admin_api_key_test POST   /admin/api_keys/:id/test(.:format)                                                                admin/api_keys#test
@@ -144,6 +167,10 @@
 #                                  hca_start GET    /auth/hca/start(.:format)                                                                         auth#new
 #                               hca_callback GET    /auth/hca/callback(.:format)                                                                      auth#create
 #                                    signout DELETE /auth/signout(.:format)                                                                           auth#destroy
+#                                  hcb_start GET    /auth/hcb/start(.:format)                                                                         admin/hcb_connections#new
+#                               hcb_callback GET    /auth/hcb/callback(.:format)                                                                      admin/hcb_connections#create
+#                                   hcb_test POST   /auth/hcb/test(.:format)                                                                          admin/hcb_connections#test
+#                             hcb_disconnect DELETE /auth/hcb(.:format)                                                                               admin/hcb_connections#destroy
 #                                impersonate POST   /impersonate/:user_id(.:format)                                                                   impersonations#create
 #                         stop_impersonating DELETE /impersonate(.:format)                                                                            impersonations#destroy
 #                                      sorry GET    /sorry(.:format)                                                                                  bans#show
@@ -192,6 +219,7 @@
 #               import_from_macondo_projects POST   /projects/import_from_macondo(.:format)                                                           projects#import_from_macondo
 #                hackatime_projects_projects GET    /projects/hackatime_projects(.:format)                                                            projects#hackatime_projects
 #                  submit_for_review_project POST   /projects/:id/submit_for_review(.:format)                                                         projects#submit_for_review
+#               confirm_macondo_tier_project POST   /projects/:id/confirm_macondo_tier(.:format)                                                      projects#confirm_macondo_tier
 #                           ai_check_project GET    /projects/:id/ai_check(.:format)                                                                  projects#ai_check
 #                       run_ai_check_project POST   /projects/:id/run_ai_check(.:format)                                                              projects#run_ai_check
 #                    ai_check_status_project GET    /projects/:id/ai_check_status(.:format)                                                           projects#ai_check_status
@@ -199,6 +227,7 @@
 #                     export_devlogs_project GET    /projects/:id/export_devlogs(.:format)                                                            projects#export_devlogs
 #                     resubmit_pitch_project POST   /projects/:id/resubmit_pitch(.:format)                                                            projects#resubmit_pitch
 #                 upload_cover_image_project POST   /projects/:id/upload_cover_image(.:format)                                                        projects#upload_cover_image
+#                   crop_cover_image_project POST   /projects/:id/crop_cover_image(.:format)                                                          projects#crop_cover_image
 #                    set_devlog_mode_project PATCH  /projects/:id/set_devlog_mode(.:format)                                                           projects#set_devlog_mode
 #                          link_repo_project PATCH  /projects/:id/link_repo(.:format)                                                                 projects#link_repo
 #                 set_journal_branch_project PATCH  /projects/:id/set_journal_branch(.:format)                                                        projects#set_journal_branch
@@ -210,6 +239,8 @@
 #                                            PUT    /projects/:project_id/devlogs/:id(.:format)                                                       devlogs#update
 #                                            DELETE /projects/:project_id/devlogs/:id(.:format)                                                       devlogs#destroy
 #                       project_devlog_image POST   /projects/:project_id/devlog_image(.:format)                                                      devlogs#upload_image
+#         relink_project_orphaned_lapse_link PATCH  /projects/:project_id/orphaned_lapse_links/:id/relink(.:format)                                   orphaned_lapse_links#relink
+#                project_orphaned_lapse_link DELETE /projects/:project_id/orphaned_lapse_links/:id(.:format)                                          orphaned_lapse_links#destroy
 #              project_collaboration_invites POST   /projects/:project_id/invites(.:format)                                                           collaboration_invites#create
 #               project_collaboration_invite DELETE /projects/:project_id/invites/:id(.:format)                                                       collaboration_invites#destroy
 #                       project_collaborator PATCH  /projects/:project_id/collaborators/:id(.:format)                                                 project_collaborators#update
